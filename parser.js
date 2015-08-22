@@ -24,6 +24,8 @@ var stream_index = 0;
 var sub_rule_index = 0;
 var sub_rule_token_index = 0;
 var current_rule;
+var current_rule_name;
+var memoization;
 var debug = false;
 
 assertTrue(parse(rules, ["3"], true));
@@ -31,13 +33,23 @@ assertFalse(parse(rules, ["1", '+'], true));
 assertTrue(parse(rules, ["1", '+', "1"], true));
 assertTrue(parse(rules, ["1", '+', "1", "-", "1"]));
 assertTrue(parse(rules, ["3", '-', "3", "-", "1"]));
-//assertFalse(parse(rules, ["3", '-', "3", "-", "-", "1"]));
-//assertFalse(parse(rules, ["1", "1"]));
+assertFalse(parse(rules, ["3", '-', "3", "-", "-", "1"]));
+assertFalse(parse(rules, ["1", "1"]));
+assertFalse(parse(rules, ["9"], true));
+assertFalse(parse(rules, ["3", "-"], true));
 
+var perfTokens = [];
+// that many token seems to be fast enough
+for(var i=0; i<1000; i++) {
+    perfTokens.push("2");
+    perfTokens.push("-");
+}
+perfTokens.push("3");
 
+assertTrue(parse(rules, perfTokens));
+perfTokens.push("+");
+assertFalse(parse(rules, perfTokens));
 
-    
-//assertFalse(parse(rules, ["9"], true));
 
 function ruleAlreadyInStack() {
   // avoid infinite recursion
@@ -45,7 +57,7 @@ function ruleAlreadyInStack() {
   var i = stack.length - 1;
   
   while(i >= 0) {
-    if(stack[i][0] == current_rule
+    if(stack[i][0] == current_rule_name
         && stack[i][1] == sub_rule_index 
         && stack[i][2] == sub_rule_token_index 
         && stack[i][3] == stream_index) {
@@ -72,15 +84,25 @@ function popStack() {
         throw "Stack empty";
     }
     var tmp = stack.pop();
-    current_rule = tmp[0];
+    current_rule_name = tmp[0]
+    current_rule = rules[current_rule_name];
     sub_rule_index = tmp[1];
     sub_rule_token_index = tmp[2];
     stream_index = tmp[3];
     printStack("Restore");
 }
 function pushStack() {
-    stack.push([current_rule, sub_rule_index, sub_rule_token_index, stream_index]);
+    stack.push([current_rule_name, sub_rule_index, sub_rule_token_index, stream_index]);
     printStack("Save");
+}
+// memoization makes no difference in perf
+function memoize(value) {
+    var key = [current_rule_name, sub_rule_index, sub_rule_token_index, stream_index].join(",");
+    memoization[key] = value;
+}
+function worthExploring() {
+    var key = [current_rule_name, sub_rule_index, sub_rule_token_index, stream_index].join(",");
+    return memoization[key] !== false;
 }
 function ruleItem() { return current_rule[sub_rule_index][sub_rule_token_index]; }
 function backtrack(msg) {
@@ -95,30 +117,16 @@ function backtrack(msg) {
 function parse(rules, stream) {
 
     stack = [];
-    var memoization = {};
+    memoization = {};
     stream_index = 0;
     sub_rule_index = 0;
     sub_rule_token_index = 0;
+    current_rule_name = "START";
     current_rule = rules.START;
-    var token;
-
-    var j = 0;
+    memoization = {};
+    var token, rule_item;
 
     while(true) {
-
-        j++;
-        if(j>30) {
-            printStack();
-            break;
-        }
-
-        /*if(ruleAlreadyInStack()) {
-            backtrack('Rule already in stack');
-            stream_index = stream_index - sub_rule_token_index;
-            sub_rule_token_index = 0;
-            sub_rule_index++;
-            continue;
-        }*/
 
         // backtrack if no rule
         while(!current_rule[sub_rule_index]) {
@@ -180,9 +188,12 @@ function parse(rules, stream) {
         if(rules[rule_item]) {
 
             print('Expand the new rule', rule_item);
+            if(!worthExploring()) {
+                continue;
+            }
 
             if(ruleAlreadyInStack()) {
-                print("Rule already in the stack", current_rule, stack.length);
+                print("Rule already in the stack", current_rule);
                 stream_index = stream_index - sub_rule_token_index;
                 sub_rule_token_index = 0;
                 sub_rule_index++;
@@ -193,6 +204,7 @@ function parse(rules, stream) {
             // save the current state
             pushStack();
 
+            current_rule_name = rule_item;
             current_rule = rules[rule_item];
             sub_rule_token_index = 0;
             sub_rule_index = 0;
@@ -203,7 +215,7 @@ function parse(rules, stream) {
         } else {
             // Token does match
              if(rule_item === token) {
-                 print('Token match');
+                print('Token match');
                 sub_rule_token_index++;
                 stream_index++;
             // Token doesn't match, next sub rule
