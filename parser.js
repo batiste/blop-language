@@ -1,22 +1,35 @@
 
+// This parser will work with non left recursive rules
+// Left recusive rules will not create a infinite loops, but will
+// Simply be interrrupted by ruleAlreadyInStack
 
 
 function assertTrue(a, msg) {
     if(a !== true) {
-        throw "(" + a + ") is not true";
+        throw (msg || a) + " is not true";
     }
 }
 
 function assertFalse(a, msg) {
     if(a !== false) {
-        throw "(" + a + ") is not false";
+        throw (msg || a) + " is not false";
     }
+}
+
+function assertTrueRules(rules, input) {
+    var result = parse(rules, input.split(''));
+    assertTrue(result, input);
+}
+
+function assertFalseRules(rules, input) {
+    var result = parse(rules, input.split(''));
+    assertFalse(result, input);
 }
 
 var rules = {
     'START': [['math']],
     'NUM': [['1'], ['2'], ['3']],
-    'math': [['NUM' , '+', 'math'], ['NUM' , '-', 'math'], ['NUM']]
+    'math': [['(', 'math', ')'], ['NUM' , '+', 'math'], ['NUM' , '-', 'math'], ['NUM']]
 };
 
 var stack = [];
@@ -28,15 +41,17 @@ var current_rule_name;
 var memoization;
 var debug = false;
 
-assertTrue(parse(rules, ["3"], true));
-assertFalse(parse(rules, ["1", '+'], true));
-assertTrue(parse(rules, ["1", '+', "1"], true));
-assertTrue(parse(rules, ["1", '+', "1", "-", "1"]));
-assertTrue(parse(rules, ["3", '-', "3", "-", "1"]));
-assertFalse(parse(rules, ["3", '-', "3", "-", "-", "1"]));
-assertFalse(parse(rules, ["1", "1"]));
-assertFalse(parse(rules, ["9"], true));
-assertFalse(parse(rules, ["3", "-"], true));
+assertTrueRules(rules, "3");
+assertFalseRules(rules, "1+");
+assertTrueRules(rules, "1+1");
+assertTrueRules(rules, "1+2-3");
+assertFalseRules(rules, "3--2");
+assertFalseRules(rules, "11");
+assertFalseRules(rules, "4");
+assertFalseRules(rules, "3-");
+assertTrueRules(rules, "(1+1)");
+assertTrueRules(rules, "(1-1)");
+
 
 var perfTokens = [];
 // that many token seems to be fast enough
@@ -49,6 +64,10 @@ perfTokens.push("3");
 assertTrue(parse(rules, perfTokens));
 perfTokens.push("+");
 assertFalse(parse(rules, perfTokens));
+
+
+// there we see the problem with the lake of left recursion
+assertTrueRules(rules, "(1+1)+1");
 
 
 function ruleAlreadyInStack() {
