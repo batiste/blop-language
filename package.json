@@ -1,0 +1,27 @@
+{
+  "name": "gg-parser",
+  "version": "1.0.0",
+  "description": "A simple parser",
+  "main": "parser.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/batiste/js-grammar-parser.git"
+  },
+  "keywords": [
+    "parser",
+    "grammar",
+    "language"
+  ],
+  "author": "Batiste Bieler",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/batiste/js-grammar-parser/issues"
+  },
+  "homepage": "https://github.com/batiste/js-grammar-parser",
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}
