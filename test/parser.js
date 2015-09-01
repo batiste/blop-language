@@ -1,15 +1,38 @@
 var assert = require("assert");
 var parser = require("../parser");
+var early = require("../early");
 
+describe('Early parser basics', function() {
 
-function assertTrueRules(rules, input) {
+    var rules = {
+        'START': [['math']],
+        'NUM': [['1'], ['2']],
+        'math': [['math' , '+', 'math'], ['math' , '-', 'math'], ['NUM']]
+    };
+
+    it('Prediction function', function () {
+      early.main(rules, ['1', '+', '1']);
+      assert.equal(early.sets[0].length, 6);
+      assert.equal(early.sets[1].length, 5);
+      assert.equal(early.sets[2].length, 6);
+      assert.equal(early.sets[3].length, 1);
+
+      console.log(early.sets[0]);
+      console.log(early.sets[1]);
+      console.log(early.sets[2]);
+      console.log(early.sets[3]);
+
+    });
+});
+
+function assertComplete(rules, input) {
     var result = parser.parse(rules, input.split(''));
-    assert.equal(result, true);
+    assert.equal(result, true, input + ' should be complete');
 }
 
-function assertFalseRules(rules, input) {
+function assertIncomplete(rules, input) {
     var result = parser.parse(rules, input.split(''));
-    assert.equal(result, false);
+    assert.equal(result, false, input + ' should be incomplete');
 }
 
 describe('Parser basics', function() {
@@ -21,25 +44,26 @@ describe('Parser basics', function() {
     };
 
     it('should accept', function () {
-      assertTrueRules(rules, "3");
-      assertTrueRules(rules, "1+1");
-      assertTrueRules(rules, "1+2-3");
-      assertTrueRules(rules, "(1+1)");
-      assertTrueRules(rules, "(1-1)");
+      assertComplete(rules, "3");
+      assertComplete(rules, "1+1");
+      assertComplete(rules, "1+2-3");
+      assertComplete(rules, "(1+1)");
+      assertComplete(rules, "(1-1)");
+      assertComplete(rules, "(((2)))");
     });
 
     it('should reject', function () {
-      assertFalseRules(rules, "1+");
-      assertFalseRules(rules, "3--2");
-      assertFalseRules(rules, "11");
-      assertFalseRules(rules, "4");
-      assertFalseRules(rules, "3-");
+      assertIncomplete(rules, "1+");
+      assertIncomplete(rules, "3--2");
+      assertIncomplete(rules, "11");
+      assertIncomplete(rules, "4");
+      assertIncomplete(rules, "3-");
     });
 
     it('should be fast', function () {
       var perfTokens = [];
       // that many token seems to be fast enough
-      for(var i=0; i<1000; i++) {
+      for(var i=0; i<100; i++) {
           perfTokens.push("2");
           perfTokens.push("-");
       }
@@ -52,7 +76,8 @@ describe('Parser basics', function() {
 
     it('should fail', function () {
       // there we see the problem with the lake of left recursion
-      assertFalseRules(rules, "(1+1)+1");
+      assertComplete(rules, "1+(1+1)");
+      assertIncomplete(rules, "(1+1)+1");
     });
 
 });

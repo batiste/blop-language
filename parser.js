@@ -1,7 +1,8 @@
 
-// This parser will work with non left recursive rules
-// Left recusive rules will not create a infinite loops, but will
-// Simply be interrrupted by ruleAlreadyInStack
+// This is a left to right top down grammar parser
+
+// This grammar parser will work with non left recursive rules
+// Left recusive garmmar will create a infinite loops
 
 function parse(rules, stream, debug) {
 
@@ -14,23 +15,6 @@ function parse(rules, stream, debug) {
     var current_rule_name = "START";
     var memoization = {};
     var token, rule_item;
-
-    function ruleAlreadyInStack() {
-      // avoid infinite recursion
-      // This is faster than filter
-      var i = stack.length - 1;
-      
-      while(i >= 0) {
-        if(stack[i][0] == current_rule_name && 
-            stack[i][1] == sub_rule_index && 
-            stack[i][2] == sub_rule_token_index && 
-            stack[i][3] == stream_index) {
-          return true;
-        }
-        i = i-1;
-      }
-      return false;
-    }
 
     function print() {
         if(debug) {
@@ -57,15 +41,7 @@ function parse(rules, stream, debug) {
         stack.push([current_rule_name, sub_rule_index, sub_rule_token_index, stream_index]);
         printStack("Save");
     }
-    // memoization makes no difference in perf
-    function memoize(value) {
-        var key = [current_rule_name, sub_rule_index, sub_rule_token_index, stream_index].join(",");
-        memoization[key] = value;
-    }
-    function worthExploring() {
-        var key = [current_rule_name, sub_rule_index, sub_rule_token_index, stream_index].join(",");
-        return memoization[key] !== false;
-    }
+
     function ruleItem() { return current_rule[sub_rule_index][sub_rule_token_index]; }
     function backtrack(msg) {
         if(stack.length === 0) {
@@ -137,20 +113,6 @@ function parse(rules, stream, debug) {
         if(rules[rule_item]) {
 
             print('Expand the new rule', rule_item);
-            if(!worthExploring()) {
-                continue;
-            }
-
-            // this is only useful if there is some left recusrion in
-            // the grammar
-            if(ruleAlreadyInStack()) {
-                print("Rule already in the stack", current_rule);
-                stream_index = stream_index - sub_rule_token_index;
-                sub_rule_token_index = 0;
-                sub_rule_index++;
-                print("Next sub rule:", current_rule[sub_rule_index]);
-                continue;
-            }
 
             // save the current state
             pushStack();
@@ -179,6 +141,7 @@ function parse(rules, stream, debug) {
         }
     }
 }
+
 
 module.exports = {
     parse: parse
