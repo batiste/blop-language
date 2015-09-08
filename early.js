@@ -16,12 +16,9 @@ function ruleAlreadyInSet(set, rule_name, index, parsed) {
     return false;
 }
 
-function push(set_index, rule_name, rule_index, parsed, start) {
+function push_unsafe(set_index, rule_name, rule_index, parsed, start) {
     if(!sets[set_index]) {
         sets[set_index] = [];
-    }
-    if(ruleAlreadyInSet(sets[set_index], rule_name, rule_index, parsed)) {
-        return false;
     }
     sets[set_index].push({
         start: start,
@@ -32,39 +29,59 @@ function push(set_index, rule_name, rule_index, parsed, start) {
     return true;
 }
 
+function push(set_index, rule_name, rule_index, parsed, start) {
+    if(!sets[set_index]) {
+        sets[set_index] = [];
+    }
+    if(ruleAlreadyInSet(sets[set_index], rule_name, rule_index, parsed)) {
+        return false;
+    }
+    push_unsafe(set_index, rule_name, rule_index, parsed, start);
+    return true;
+}
+
 function prediction(sub_rules, rule_name, set_index, early_item) {
     for(var i = 0; i < sub_rules.length; i++) {
-        push(set_index, rule_name, i, 0, set_index);
+        if(push(set_index, rule_name, i, 0, set_index)) {
+            console.log("Push prediction in set", set_index, lastItem(set_index));
+        }
     }
 }
 
 function next(rules, item) {
     return rules[item.rule_name][item.rule_index][item.parsed];
 }
+
+function lastItem(index) {
+    return sets[index][sets[index].length-1];
+}
     
 function complete(rules, set_index, early_item) {
     var i = 0;
     var set = sets[early_item.start];
+    var completed_rule_name = early_item.rule_name;
+    //var item = rules[early_item.rule_name][early_item.rule_index];
     while(i < set.length) {
         var old_item = set[i];
-        var nex = next(rules, old_item);
-        if(early_item.rule_name == nex) {
-            console.log("Push complete", old_item.rule_name)
+        var next_old = next(rules, old_item);
+        if(completed_rule_name === next_old) {
             push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start);
+            console.log("Push complete in set", set_index , lastItem(set_index));
         }
         i++;
     }
 }
 
+
 function main(rules, stream) {
     set_index = 0;
     push(0, 'START', 0, 0, 0);
     var i = 0;
-    while(stream[set_index]) {
-        console.log(set_index, stream[set_index]);
+    while(sets[set_index] && (set_index < stream.length + 1)) {
+        console.log("--- Set", set_index, "with value", stream[set_index]);
         if(!sets[set_index]) {
             sets[set_index] = [];
-        } else if (sets[set_index].length == 0) {
+        } else if (sets[set_index].length === 0) {
             console.log("No more rules");
             return;
         }
@@ -73,26 +90,28 @@ function main(rules, stream) {
             var early_item = sets[set_index][i];
             var early_rule = rules[early_item.rule_name][early_item.rule_index];
             var symbol = early_rule[early_item.parsed];
-            console.log('terminal:', symbol);
+            console.log('Early item', early_item);
             if(symbol === undefined) {
                 // complete
-                console.log('complete', set_index, early_item);
+                console.log('- complete', set_index, early_item);
                 complete(rules, set_index, early_item);
+            } else if(!rules[symbol]) {
+                if(stream[set_index] === symbol) {
+                    push_unsafe(set_index+1, early_item.rule_name, early_item.rule_index, early_item.parsed+1, early_item.start);
+                    console.log("- terminal match", symbol, ", scan in set", set_index+1, lastItem(set_index+1));
+                } else {
+                    console.log("- terminal mismatch");
+                }
             } else if(rules[symbol]) {
+                console.log('- predict', set_index, early_item);
                 // we have a rule, we need to predict
                 prediction(rules[symbol], symbol, set_index, early_item);
-            } else {
-                console.log('terminal:', symbol);
-                // terminal symbol, scan
-                if(stream[set_index] === symbol) {
-                    console.log('symbol match', symbol);
-                    push(set_index+1, early_item.rule_name, early_item.rule_index, early_item.parsed+1, early_item.start);
-                }
             }
             i++;
         }
         set_index++;
     }
+    
 }
 
 module.exports = {

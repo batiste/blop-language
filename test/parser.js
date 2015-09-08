@@ -6,12 +6,15 @@ describe('Early parser basics', function() {
 
     var rules = {
         'START': [['math']],
-        'NUM': [['1'], ['2']],
-        'math': [['math' , '+', 'math'], ['math' , '-', 'math'], ['NUM']]
+        'NUM': [['1']],
+        'math': [['math' , '+', 'math'], ['NUM']]
     };
 
     it('Prediction function', function () {
-      early.main(rules, ['1', '+', '1']);
+      early.main(rules, ['1', '+', '1', '+', '1']);
+
+      console.log(early.sets);
+
       assert.equal(early.sets[0].length, 6);
       assert.equal(early.sets[1].length, 5);
       assert.equal(early.sets[2].length, 6);
