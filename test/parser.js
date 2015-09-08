@@ -11,19 +11,23 @@ describe('Early parser basics', function() {
     };
 
     it('Prediction function', function () {
-      early.main(rules, ['1', '+', '1']);
+      var result = early.main(rules, ['1']);
+      assert.equal(result, true);
 
-      console.log(early.sets);
+      result = early.main(rules, ['1', '+', '1']);
+      assert.equal(result, true);
 
-      assert.equal(early.sets[0].length, 6);
-      assert.equal(early.sets[1].length, 5);
-      assert.equal(early.sets[2].length, 6);
-      assert.equal(early.sets[3].length, 1);
+      result = early.main(rules, ['1', '+']);
+      assert.equal(result, false);
 
-      console.log(early.sets[0]);
-      console.log(early.sets[1]);
-      console.log(early.sets[2]);
-      console.log(early.sets[3]);
+      result = early.main(rules, ['1', '1']);
+      assert.equal(result, false);
+
+      result = early.main(rules, ['1', '+', '1', '+', '1']);
+      assert.equal(result, true);
+
+      result = early.main(rules, ['+', '1', '+']);
+      assert.equal(result, false);
 
     });
 });

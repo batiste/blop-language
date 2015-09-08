@@ -92,10 +92,11 @@ function init(rules) {
 
 function main(rules, stream) {
     set_index = 0;
+    sets = [[]];
     init(rules);
-    
+
     var i = 0;
-    while(sets[set_index] && (set_index < stream.length + 3)) {
+    while(sets[set_index] && (set_index < stream.length + 1)) {
         console.log("--- Set", set_index, "with value", stream[set_index]);
         if(!sets[set_index]) {
             sets[set_index] = [];
@@ -129,7 +130,23 @@ function main(rules, stream) {
         }
         set_index++;
     }
-    
+
+    // test completness
+    var last_set = sets[stream.length];
+    if(last_set) {
+        for(i=0; i<last_set.length; i++) {
+            var item = last_set[i];
+            if(item.rule_name === 'START' && 
+                item.start === 0 && 
+                item.parsed && 
+                rules.START[item.rule_index].length === item.parsed) {
+                return true;
+            }
+        }
+    }
+
+
+    return false;
 }
 
 module.exports = {
