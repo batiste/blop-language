@@ -6,28 +6,37 @@ describe('Early parser basics', function() {
 
     var rules = {
         'START': [['math']],
-        'NUM': [['1']],
-        'math': [['math' , '+', 'math'], ['NUM']]
+        'NUM': [['1'], ['2'], ['3']],
+        'math': [['math' , '+', 'math'], ['math' , '-', 'math'], ['NUM']]
     };
 
-    it('Prediction function', function () {
-      var result = early.main(rules, ['1']);
+    it('Simple math function', function () {
+      var result = early.parse(rules, ['1']);
       assert.equal(result, true);
 
-      result = early.main(rules, ['1', '+', '1']);
+      result = early.parse(rules, ['1', '+', '2']);
       assert.equal(result, true);
 
-      result = early.main(rules, ['1', '+']);
+      result = early.parse(rules, ['1', '+']);
       assert.equal(result, false);
 
-      result = early.main(rules, ['1', '1']);
+      result = early.parse(rules, ['1', '1']);
       assert.equal(result, false);
 
-      result = early.main(rules, ['1', '+', '1', '+', '1']);
+      result = early.parse(rules, ['1', '+', '9']);
+      assert.equal(result, false);
+
+      result = early.parse(rules, ['1', '+', '1', '+', '1']);
       assert.equal(result, true);
 
-      result = early.main(rules, ['+', '1', '+']);
+      result = early.parse(rules, ['+', '1', '+']);
       assert.equal(result, false);
+
+      result = early.parse(rules, ['1', '-', '1', '+', '1']);
+      assert.equal(result, true);
+
+      result = early.parse(rules, ['1', '-', '1', '-', '1']);
+      assert.equal(result, true);
 
     });
 });

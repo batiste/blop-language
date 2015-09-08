@@ -1,4 +1,6 @@
-
+// Early parser,
+// Completly based on 
+// http://loup-vaillant.fr/tutorials/earley-parsing/
 
 var sets = [[]];
 var set_index = 0;
@@ -60,10 +62,6 @@ function lastItem(index) {
     return sets[index][len-1];
 }
 
-// - complete 5 { start: 2, rule_name: 'math', rule_index: 0, parsed: 3 }
-// Push complete in set 5 { start: 4, rule_name: 'math', rule_index: 0, parsed: 1 }
-// Push complete in set 5 { start: 4, rule_name: 'math', rule_index: 0, parsed: 1 }
-
 function complete(rules, set_index, early_item) {
     var i = 0;
     var set = sets[early_item.start];
@@ -90,7 +88,7 @@ function init(rules) {
 }
 
 
-function main(rules, stream) {
+function parse(rules, stream) {
     set_index = 0;
     sets = [[]];
     init(rules);
@@ -150,7 +148,7 @@ function main(rules, stream) {
 }
 
 module.exports = {
-    main: main,
+    parse: parse,
     prediction: prediction,
     sets: sets
 };
