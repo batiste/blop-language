@@ -39,6 +39,21 @@ describe('Early parser basics', function() {
       assert.equal(result, true);
 
     });
+
+    it('should be fast', function () {
+      var perfTokens = [];
+      // that many token seems to be fast enough
+      for(var i=0; i<100; i++) {
+          perfTokens.push("2");
+          perfTokens.push("-");
+      }
+      perfTokens.push("3");
+
+      assert.equal(early.parse(rules, perfTokens), true);
+      perfTokens.push("+");
+      assert.equal(early.parse(rules, perfTokens), false);
+    });
+    
 });
 
 function assertComplete(rules, input) {
