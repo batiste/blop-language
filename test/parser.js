@@ -11,7 +11,7 @@ describe('Early parser basics', function() {
     };
 
     it('Prediction function', function () {
-      early.main(rules, ['1', '+', '1', '+', '1']);
+      early.main(rules, ['1', '+', '1']);
 
       console.log(early.sets);
 

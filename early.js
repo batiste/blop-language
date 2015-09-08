@@ -6,10 +6,13 @@ var stream_index = 0;
 var sub_rule_index = 0;
 var sub_rule_token_index = 0;
 
-function ruleAlreadyInSet(set, rule_name, index, parsed) {
+function ruleAlreadyInSet(set, rule_name, index, parsed, start) {
     for(var i = 0; i < set.length; i++) {
         var item = set[i];
-        if(item.rule_name == rule_name && item.rule_index == index && item.parsed == parsed) {
+        if(item.rule_name == rule_name && 
+            item.rule_index == index && 
+            item.parsed == parsed &&
+            item.start == start) {
             return true;
         }
     }
@@ -33,7 +36,7 @@ function push(set_index, rule_name, rule_index, parsed, start) {
     if(!sets[set_index]) {
         sets[set_index] = [];
     }
-    if(ruleAlreadyInSet(sets[set_index], rule_name, rule_index, parsed)) {
+    if(ruleAlreadyInSet(sets[set_index], rule_name, rule_index, parsed, start)) {
         return false;
     }
     push_unsafe(set_index, rule_name, rule_index, parsed, start);
@@ -53,9 +56,14 @@ function next(rules, item) {
 }
 
 function lastItem(index) {
-    return sets[index][sets[index].length-1];
+    var len = sets[index].length;
+    return sets[index][len-1];
 }
-    
+
+// - complete 5 { start: 2, rule_name: 'math', rule_index: 0, parsed: 3 }
+// Push complete in set 5 { start: 4, rule_name: 'math', rule_index: 0, parsed: 1 }
+// Push complete in set 5 { start: 4, rule_name: 'math', rule_index: 0, parsed: 1 }
+
 function complete(rules, set_index, early_item) {
     var i = 0;
     var set = sets[early_item.start];
@@ -65,19 +73,29 @@ function complete(rules, set_index, early_item) {
         var old_item = set[i];
         var next_old = next(rules, old_item);
         if(completed_rule_name === next_old) {
-            push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start);
-            console.log("Push complete in set", set_index , lastItem(set_index));
+            if(push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start)) {
+                console.log("Push complete in set", set_index , lastItem(set_index));
+            } else {
+                console.log("Item already there", old_item);
+            }
         }
         i++;
+    }
+}
+
+function init(rules) {
+    for(var i=0; i<rules.START.length; i++) {
+        push(0, 'START', 0, i, 0);
     }
 }
 
 
 function main(rules, stream) {
     set_index = 0;
-    push(0, 'START', 0, 0, 0);
+    init(rules);
+    
     var i = 0;
-    while(sets[set_index] && (set_index < stream.length + 1)) {
+    while(sets[set_index] && (set_index < stream.length + 3)) {
         console.log("--- Set", set_index, "with value", stream[set_index]);
         if(!sets[set_index]) {
             sets[set_index] = [];
