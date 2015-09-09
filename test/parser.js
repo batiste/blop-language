@@ -16,14 +16,6 @@ function curryIncomplete(parser) {
   };
 }
 
-
-
-function incomplete(rules, input) {
-    var result = parser.parse(rules, input.split(''));
-    assert.equal(result, false, input + ' should be incomplete');
-}
-
-
 describe('Early parser basics', function() {
 
     var complete = curryComplete(early);
@@ -39,12 +31,16 @@ describe('Early parser basics', function() {
       complete(rules, '1');
       complete(rules, '1+2');
       complete(rules, '1+2+1-2-1');
+      complete(rules, "(1-1)");
+      complete(rules, "(((2)))");
     });
 
     it('should reject', function () {
       incomplete(rules, '1+');
       incomplete(rules, '++');
       incomplete(rules, '1-2+11');
+      incomplete(rules, "(1-1)-1)");
+      incomplete(rules, "(((2))");
     });
 
     it('should be fast', function () {
@@ -65,11 +61,12 @@ describe('Early parser basics', function() {
       // there we see the problem with the lake of left recursion
       complete(rules, "1+(1+1)");
       complete(rules, "(1+1)+1");
+      complete(rules, "(1+1)");
     });
 
 });
 
-describe('Left to right parser basics', function() {
+describe('Left to right, top down parser basics', function() {
 
     var complete = curryComplete(early);
     var incomplete = curryIncomplete(early);
@@ -77,6 +74,7 @@ describe('Left to right parser basics', function() {
     var rules = {
         'START': [['math']],
         'NUM': [['1'], ['2'], ['3']],
+        // Not the effort to avoid left recursion here
         'math': [['(', 'math', ')'], ['NUM' , '+', 'math'], ['NUM' , '-', 'math'], ['NUM']]
     };
 
@@ -95,6 +93,7 @@ describe('Left to right parser basics', function() {
       incomplete(rules, "11");
       incomplete(rules, "4");
       incomplete(rules, "3-");
+      incomplete(rules, "-3");
     });
 
     it('should be fast', function () {
@@ -112,7 +111,7 @@ describe('Left to right parser basics', function() {
     });
 
     it('left recursion should fail', function () {
-      // there we see the problem with the lake of left recursion
+      // there we see the problem with the lacke of left recursion
       complete(rules, "1+(1+1)");
       incomplete(rules, "(1+1)+1");
     });
