@@ -28,7 +28,7 @@ function ruleAlreadyInSet(set, rule_name, index, parsed, start) {
     return false;
 }
 
-function push_unsafe(set_index, rule_name, rule_index, parsed, start) {
+function push_unsafe(set_index, rule_name, rule_index, parsed, start, early_complete) {
     if(!sets[set_index]) {
         sets[set_index] = [];
     }
@@ -36,19 +36,20 @@ function push_unsafe(set_index, rule_name, rule_index, parsed, start) {
         start: start,
         rule_name: rule_name,
         rule_index: rule_index,
-        parsed: parsed
+        parsed: parsed,
+        c: early_complete === true
     });
     return true;
 }
 
-function push(set_index, rule_name, rule_index, parsed, start) {
+function push(set_index, rule_name, rule_index, parsed, start, early_complete) {
     if(!sets[set_index]) {
         sets[set_index] = [];
     }
     if(ruleAlreadyInSet(sets[set_index], rule_name, rule_index, parsed, start)) {
         return false;
     }
-    push_unsafe(set_index, rule_name, rule_index, parsed, start);
+    push_unsafe(set_index, rule_name, rule_index, parsed, start, early_complete);
     return true;
 }
 
@@ -78,7 +79,8 @@ function complete(rules, set_index, early_item) {
         var old_item = set[i];
         var next_old = next(rules, old_item);
         if(completed_rule_name === next_old) {
-            if(push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start)) {
+            var early_complete = rules[old_item.rule_name][old_item.rule_index][old_item.parsed+1] === undefined;
+            if(push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start, early_complete)) {
                 print("Push complete in set", set_index , lastItem(set_index));
             } else {
                 print("Item already there", old_item);
@@ -92,6 +94,10 @@ function init(rules) {
     for(var i=0; i<rules.START.length; i++) {
         push(0, 'START', 0, i, 0);
     }
+}
+
+function buildTree(node, index, early_rule) {
+
 }
 
 
@@ -121,7 +127,8 @@ function parse(rules, stream) {
                 complete(rules, set_index, early_item);
             } else if(!rules[symbol]) {
                 if(stream[set_index] === symbol) {
-                    push_unsafe(set_index+1, early_item.rule_name, early_item.rule_index, early_item.parsed+1, early_item.start);
+                    var complet = rules[early_item.rule_name][early_item.rule_index][early_item.parsed+1] === undefined;
+                    push_unsafe(set_index+1, early_item.rule_name, early_item.rule_index, early_item.parsed+1, early_item.start, complet);
                     print("- terminal match", symbol, ", scan in set", set_index+1, lastItem(set_index+1));
                 } else {
                     print("- terminal mismatch");
@@ -150,12 +157,12 @@ function parse(rules, stream) {
         }
     }
 
-
     return false;
 }
 
 module.exports = {
     parse: parse,
     prediction: prediction,
-    sets: sets
+    sets: sets,
+    getSets: function(){ return sets; }
 };
