@@ -109,7 +109,7 @@ describe('Early parser basics', function() {
         var list = reversed[pos];
         var rules = [];
         for(var i=0; i < list.length; i++) {
-          if(list[i].rule_name == rule_name && list[i].consumed == consumed) {
+          if(list[i].rule_name === rule_name && list[i].consumed === consumed) {
             rules.push(list[i]);
           }
         }
@@ -120,24 +120,61 @@ describe('Early parser basics', function() {
         var list = reversed[pos];
         var early_items = [];
         for(var i=0; i < list.length; i++) {
-          if(list[i].rule_name == rule_name && list[i].consumed <= consumed) {
+          if(list[i].rule_name === rule_name && list[i].consumed <= consumed) {
             early_items.push(list[i]);
           }
         }
         return early_items;
       }
 
-      var possibleStarts = filter(0, 'START', tokens.length);
-
-
-      function develop(start, early_item, end) {
-        
+      function getRule(item) {
+        return rules[item.rule_name][item.rule_index];
       }
 
-      //console.log(possible_starts);
-      //var tree = develop(0, possible_starts[0]);
+      var id = 1;
 
-      //console.log(JSON.stringify(tree, null, 2));
+      function develop(start, early_item, end, depth) {
+        var rule = getRule(early_item);
+        console.log(rule);
+        var pos = start;
+        var node = {
+          children: [],
+          name: early_item.rule_name,
+          id: id,
+          rule: rule,
+          pos: pos,
+          depth: depth,
+          end: end
+        };
+        id++;
+        rule.map(function(item) {
+          if(rules[item]) {
+            // a rule
+            var early_items = byName(pos, item, end);
+            console.log('--->', pos, item, end, early_items);
+            if(early_items.length === 0) {
+              return false;
+            }
+            early_items.map(function(e_item) {
+              var result = develop(pos, e_item, e_item.end, depth+1);
+              if(result) {
+                node.children.push(result);
+              }
+            });
+          } else {
+            // not a rule
+            node.children.push({name:item});
+          }
+        });
+        return node;
+      }
+
+      var possibleStarts = filter(0, 'START', tokens.length);
+      console.log('------------');
+      console.log(possibleStarts);
+      console.log('------------');
+      var tree = develop(0, possibleStarts[0], tokens.length, 0);
+      console.log(JSON.stringify(tree, null, 2));
 
     });
 });
