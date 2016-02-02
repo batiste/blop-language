@@ -66,60 +66,80 @@ describe('Early parser basics', function() {
 
     it('build tree', function() {
 
-      var r = early.parse(rules, '1+1'.split(''));
+      var tokens = '1+2'.split('');
+
+      var r = early.parse(rules, tokens);
+
+      console.log(tokens);
+
       var sets = early.getSets();
       console.log(sets);
       assert.equal(r, true);
 
-      function getCompleteRulesInSet(rule_name, set, start) {
-        var r = [];
-        for(var i=0; i<set.length; i++) {
-          if(set[i].rule_name === rule_name && set[i].c && start === set[i].start) {
-            r.push(set[i]);
+      function reverse_and_cleanup(sets) {
+        var items = {};
+        for(var i=0; i<sets.length; i++) {
+          for(var j=0; j<sets[i].length; j++) {
+            var item = sets[i][j];
+            if(item.c) {
+              var new_item = {
+                rule_name: item.rule_name,
+                rule_index: item.rule_index,
+                parsed: item.parsed,
+                start: item.start,
+                end: item.start + item.parsed - 1,
+                consumed: i
+              };
+              if(!items[item.start]) {
+                items[item.start] = [];
+              }
+              items[item.start].push(new_item);
+            }
           }
         }
-        return r;
+        return items;
       }
 
+      console.log('-- Reversed and cleanup version --');
+      reversed = reverse_and_cleanup(sets);
+      console.log(reversed);
+      console.log('----');
 
-      function develop(rule_name, start, set_index) {
-
-        var item = getCompleteRulesInSet(rule_name, sets[set_index], start);
-        item = item[0];
-
-        var sub_rules = rules[rule_name][item.rule_index];
-        var node = {name: rule_name, children: [], start:start, end:set_index};
-
-        i = sub_rules.length - 1;
-        while(i > -1) {
-          var _rule_name = sub_rules[i];
-          if(_rule_name) {
-
-            var rules_in_set = getCompleteRulesInSet(_rule_name, sets[set_index], start);
-            var ris = rules_in_set[0];
-            var child = {name: ris.rule_name, start: ris.start, end: set_index, children: []};
-
-            // create infinite loops
-            // develop(ris.rule_name, ris.start, ris.start + ris.parsed);
-            node.children.push(child);
-
-          
-          } else {
-            node.children.push({name: 'terminal', start: set_index-1, end: set_index});
+      function filter(pos, rule_name, consumed) {
+        var list = reversed[pos];
+        var rules = [];
+        for(var i=0; i < list.length; i++) {
+          if(list[i].rule_name == rule_name && list[i].consumed == consumed) {
+            rules.push(list[i]);
           }
-          i--;
         }
-        return node;
+        return rules;
       }
 
-      var rule_name = 'START';
-      var set_index = sets.length - 1;
+      function byName(pos, rule_name, consumed) {
+        var list = reversed[pos];
+        var early_items = [];
+        for(var i=0; i < list.length; i++) {
+          if(list[i].rule_name == rule_name && list[i].consumed <= consumed) {
+            early_items.push(list[i]);
+          }
+        }
+        return early_items;
+      }
 
-      var tree = develop(rule_name, 0, set_index);
-      console.log(tree);
+      var possibleStarts = filter(0, 'START', tokens.length);
+
+
+      function develop(start, early_item, end) {
+        
+      }
+
+      //console.log(possible_starts);
+      //var tree = develop(0, possible_starts[0]);
+
+      //console.log(JSON.stringify(tree, null, 2));
 
     });
-
 });
 
 describe('Left to right, top down parser basics', function() {

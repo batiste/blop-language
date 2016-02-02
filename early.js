@@ -15,6 +15,16 @@ function print() {
     }
 }
 
+// structure of an early item
+var structure = {
+    start: "start set index (set of tokens)",
+    rule_name: "name or the rule",
+    rule_index: "index of the rule",
+    parsed: "amount of symbols parsed withing the rules (this isn't the amount of symbol)",
+    c: "true if the item is complete (the fat dot is at the end of the rule"
+};
+
+
 function ruleAlreadyInSet(set, rule_name, index, parsed, start) {
     for(var i = 0; i < set.length; i++) {
         var item = set[i];
@@ -79,8 +89,8 @@ function complete(rules, set_index, early_item) {
         var old_item = set[i];
         var next_old = next(rules, old_item);
         if(completed_rule_name === next_old) {
-            var early_complete = rules[old_item.rule_name][old_item.rule_index][old_item.parsed+1] === undefined;
-            if(push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed+1, old_item.start, early_complete)) {
+            var early_complete = rules[old_item.rule_name][old_item.rule_index][old_item.parsed + 1] === undefined;
+            if(push(set_index, old_item.rule_name, old_item.rule_index, old_item.parsed + 1, old_item.start, early_complete)) {
                 print("Push complete in set", set_index , lastItem(set_index));
             } else {
                 print("Item already there", old_item);
@@ -127,9 +137,9 @@ function parse(rules, stream) {
                 complete(rules, set_index, early_item);
             } else if(!rules[symbol]) {
                 if(stream[set_index] === symbol) {
-                    var complet = rules[early_item.rule_name][early_item.rule_index][early_item.parsed+1] === undefined;
-                    push_unsafe(set_index+1, early_item.rule_name, early_item.rule_index, early_item.parsed+1, early_item.start, complet);
-                    print("- terminal match", symbol, ", scan in set", set_index+1, lastItem(set_index+1));
+                    var complet = rules[early_item.rule_name][early_item.rule_index][early_item.parsed + 1] === undefined;
+                    push_unsafe(set_index + 1, early_item.rule_name, early_item.rule_index, early_item.parsed + 1, early_item.start, complet);
+                    print("- terminal match", symbol, ", scan in set", set_index + 1, lastItem(set_index + 1));
                 } else {
                     print("- terminal mismatch");
                 }
