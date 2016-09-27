@@ -1,6 +1,7 @@
 var assert = require("assert");
 var parser = require("../parser");
 var early = require("../early");
+var tokenizer = require("../tokenizer");
 
 function curryComplete(parser) {
   return function complete(rules, input) {
@@ -181,8 +182,8 @@ describe('Early parser basics', function() {
 
 describe('Left to right, top down parser basics', function() {
 
-    var complete = curryComplete(early);
-    var incomplete = curryIncomplete(early);
+    var complete = curryComplete(parser);
+    var incomplete = curryIncomplete(parser);
 
     var rules = {
         'START': [['math']],
@@ -224,9 +225,91 @@ describe('Left to right, top down parser basics', function() {
     });
 
     it('left recursion should fail', function () {
-      // there we see the problem with the lacke of left recursion
+      // there we see the problem with the lack of left recursion
       complete(rules, "1+(1+1)");
       incomplete(rules, "(1+1)+1");
     });
+
+});
+
+
+describe('Left to right, top down parser complex', function() {
+
+    var complete = curryComplete(parser);
+    var incomplete = curryIncomplete(parser);
+
+    var rules = {
+        'START': [['exp']],
+        'NUM': [['1']],
+        'DOT': [['.']],
+        'NAME': [['hello'], ['plop']],
+        'DOTTED_PATH': [['NAME', 'DOT', 'NAME'], ['NAME']],
+        'MATH_OPERATOR': [['+'], ['-']],
+        'math': [
+            ['(', 'math', ')', 'MATH_OPERATOR', 'math'], 
+            ['(', 'math', ')'],
+            ['NUM' , 'MATH_OPERATOR', 'math'],
+            ['NUM']],
+        'exp': [
+          ['DOTTED_PATH', 'MATH_OPERATOR', 'exp'],
+          ['DOTTED_PATH'],
+          ['math', 'MATH_OPERATOR', 'exp'],
+          ['math'],
+        ]
+    };
+
+    var tokens = {
+      'number': {reg: /^[0-9]+/},
+      'operator': {reg: /^\+|\-/},
+      '(': {str: '('},
+      ')': {str: ')'}
+    };
+    var r = tokenizer.tokenize(tokens, '(12+13)');
+
+    function _complete(rules, input) {
+        var result = parser.parse(rules, input.split(' '), false);
+        assert.equal(result, true, input + ' should be complete');
+    }
+
+    function incomplete(rules, input) {
+      var result = parser.parse(rules, input.split(''), false);
+      assert.equal(result, false, input + ' should be incomplete');
+    }
+
+    it('should accept', function () {
+      _complete(rules, "1 + 1");
+      _complete(rules, "( 1 )");
+      _complete(rules, "( ( 1 ) )");
+      _complete(rules, "( 1 + 1 ) + 1");
+      _complete(rules, "( 1 + 1 + 1 )");
+      _complete(rules, "hello");
+      _complete(rules, "hello . plop");
+      _complete(rules, "hello . plop + 1");
+      _complete(rules, "hello + ( 1 + 1 )");
+      _complete(rules, "( 1 + 1 ) + hello");
+      _complete(rules, "( 1 + 1 ) + hello . plop");
+    });
+
+    it('should not accept', function () {
+
+    });
+
+  describe('Tokenizer', function() {
+    var tokens = {
+      'number': {reg: /^[0-9]+/},
+      'operator': {reg: /^\+|\-/},
+      '(': {str: '('},
+      ')': {str: ')'}
+    };
+
+    var r = tokenizer.tokenize(tokens, '(12+13)');
+    assert.equal(r[0].value, '(');
+    assert.equal(r[1].value, '12');
+    assert.equal(r[2].value, '+');
+    assert.equal(r[3].value, '13');
+    assert.equal(r[4].value, ')');
+
+  });
+
 
 });
