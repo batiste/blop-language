@@ -1,11 +1,12 @@
 
+
 // This is a left to right top down grammar parser
 
 // This grammar parser will work with non left recursive rules
 // Left recusive garmmar will create a infinite loops
 
 function parse(rules, stream, debug) {
-
+    "use strict";
     debug = debug || false;
     var stack = [];
     var stream_index = 0;
@@ -13,7 +14,6 @@ function parse(rules, stream, debug) {
     var sub_rule_token_index = 0;
     var current_rule = rules.START;
     var current_rule_name = "START";
-    var memoization = {};
     var token, rule_item;
 
     function print() {
@@ -58,14 +58,16 @@ function parse(rules, stream, debug) {
         stack.push([current_rule_name, sub_rule_index, sub_rule_token_index, stream_index]);
     }
 
-    function ruleItem() { return current_rule[sub_rule_index][sub_rule_token_index]; }
+    function ruleItem() { 
+        return current_rule[sub_rule_index][sub_rule_token_index]; 
+    }
     function backtrack(msg) {
         if(stack.length === 0) {
             throw "Stack empty";
         }
-        printStack("Backtrack Before" + msg);
+        printStack("Backtrack Before " + msg);
         popStack('Backtrack');
-        printStack("Backtrack After" + msg);
+        printStack("Backtrack After " + msg);
     }
 
     function parentStreamIndex() {
@@ -88,10 +90,10 @@ function parse(rules, stream, debug) {
 
     while(true) {
 
-        // backtrack if no rule
+        // No more sub to evaluate
         while(!current_rule[sub_rule_index]) {
             if(stack.length === 0) {
-                print("Stack is empty, failure to match");
+                print("Stack is empty: failure to match anything");
                 return false;
             }
             backtrack('No more sub rules');
@@ -135,7 +137,6 @@ function parse(rules, stream, debug) {
 
         if(!token) {
             printStack('Token exhausted');
-            var parent = stack[stack.length - 2];
             stream_index = parentStreamIndex();
             sub_rule_token_index = 0;
             sub_rule_index++;
@@ -152,6 +153,7 @@ function parse(rules, stream, debug) {
             // save the current state
             pushStack('Save before expanding new rule ' + rule_item + '(0)');
 
+            // setup the next rule to be evaluated
             current_rule_name = rule_item;
             current_rule = rules[rule_item];
             sub_rule_token_index = 0;
@@ -161,7 +163,7 @@ function parse(rules, stream, debug) {
         // Token case
         } else {
             // Token does match?
-            if(rule_item === token) {
+            if(rule_item === token.type) {
                 print('Token match');
                 sub_rule_token_index++;
                 stream_index++;
@@ -176,7 +178,6 @@ function parse(rules, stream, debug) {
         }
     }
 }
-
 
 module.exports = {
     parse: parse

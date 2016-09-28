@@ -180,118 +180,85 @@ describe('Early parser basics', function() {
     });
 });
 
-describe('Left to right, top down parser basics', function() {
-
-    var complete = curryComplete(parser);
-    var incomplete = curryIncomplete(parser);
-
-    var rules = {
-        'START': [['math']],
-        'NUM': [['1'], ['2'], ['3']],
-        // Not the effort to avoid left recursion here
-        'math': [['(', 'math', ')'], ['NUM' , '+', 'math'], ['NUM' , '-', 'math'], ['NUM']]
-    };
-
-    it('should accept', function () {
-      complete(rules, "3");
-      complete(rules, "1+1");
-      complete(rules, "1+2-3");
-      complete(rules, "(1+1)");
-      complete(rules, "(1-1)");
-      complete(rules, "(((2)))");
-    });
-
-    it('should reject', function () {
-      incomplete(rules, "1+");
-      incomplete(rules, "3--2");
-      incomplete(rules, "11");
-      incomplete(rules, "4");
-      incomplete(rules, "3-");
-      incomplete(rules, "-3");
-    });
-
-    it('should be fast', function () {
-      var perfTokens = [];
-      // that many token seems to be fast enough
-      for(var i=0; i<100; i++) {
-          perfTokens.push("2");
-          perfTokens.push("-");
-      }
-      perfTokens.push("3");
-
-      assert.equal(parser.parse(rules, perfTokens), true);
-      perfTokens.push("+");
-      assert.equal(parser.parse(rules, perfTokens), false);
-    });
-
-    it('left recursion should fail', function () {
-      // there we see the problem with the lack of left recursion
-      complete(rules, "1+(1+1)");
-      incomplete(rules, "(1+1)+1");
-    });
-
-});
-
-
 describe('Left to right, top down parser complex', function() {
 
-    var complete = curryComplete(parser);
-    var incomplete = curryIncomplete(parser);
+    function strDef(input) {
+      var first, i, ch;
+      first = input.charAt(0);
+      if(first === '"' || first === "'") {
+        i = 1;
+        while(input.charAt(i)){
+          ch = input.charAt(i);
+          if(ch === '\\') {
+            i++;
+          } else if(ch === first) {
+            return input.slice(0, i + 1);
+          }
+          i++;
+        }
+      }
+    }
+
+    var tokens = {
+      'number': {reg: /^[0-9]+(\.[0-9]*)?/},
+      'operator': {reg: /^\+|\-/},
+      'name': {reg: /^\w+/},
+      '.': {str: '.'},      
+      '(': {str: '('},
+      ')': {str: ')'},
+      'str': {func:strDef}
+    };
 
     var rules = {
         'START': [['exp']],
-        'NUM': [['1']],
-        'DOT': [['.']],
-        'NAME': [['hello'], ['plop']],
-        'DOTTED_PATH': [['NAME', 'DOT', 'NAME'], ['NAME']],
-        'MATH_OPERATOR': [['+'], ['-']],
+        'DOTTED_PATH': [['name', '.', 'name'], ['name']],
         'math': [
-            ['(', 'math', ')', 'MATH_OPERATOR', 'math'], 
+            ['(', 'math', ')', 'operator', 'math'], 
             ['(', 'math', ')'],
-            ['NUM' , 'MATH_OPERATOR', 'math'],
-            ['NUM']],
+            ['number' , 'operator', 'math'],
+            ['number']],
         'exp': [
-          ['DOTTED_PATH', 'MATH_OPERATOR', 'exp'],
+          ['DOTTED_PATH', 'operator', 'exp'],
           ['DOTTED_PATH'],
-          ['math', 'MATH_OPERATOR', 'exp'],
+          ['math', 'operator', 'exp'],
+          ['str', 'operator', 'exp'],
           ['math'],
+          ['str']
         ]
     };
 
-    var tokens = {
-      'number': {reg: /^[0-9]+/},
-      'operator': {reg: /^\+|\-/},
-      '(': {str: '('},
-      ')': {str: ')'}
-    };
-    var r = tokenizer.tokenize(tokens, '(12+13)');
-
-    function _complete(rules, input) {
-        var result = parser.parse(rules, input.split(' '), false);
-        assert.equal(result, true, input + ' should be complete');
+    function complete(rules, input) {
+      var stream = tokenizer.tokenize(tokens, input);
+      var result = parser.parse(rules, stream, false);
+      assert.equal(result, true, input + ' should be complete');
     }
 
     function incomplete(rules, input) {
-      var result = parser.parse(rules, input.split(''), false);
+      var stream = tokenizer.tokenize(tokens, input);
+      var result = parser.parse(rules, stream, false);
       assert.equal(result, false, input + ' should be incomplete');
     }
 
     it('should accept', function () {
-      _complete(rules, "1 + 1");
-      _complete(rules, "( 1 )");
-      _complete(rules, "( ( 1 ) )");
-      _complete(rules, "( 1 + 1 ) + 1");
-      _complete(rules, "( 1 + 1 + 1 )");
-      _complete(rules, "hello");
-      _complete(rules, "hello . plop");
-      _complete(rules, "hello . plop + 1");
-      _complete(rules, "hello + ( 1 + 1 )");
-      _complete(rules, "( 1 + 1 ) + hello");
-      _complete(rules, "( 1 + 1 ) + hello . plop");
+      complete(rules, "1+1");
+      complete(rules, "(1)");
+      complete(rules, "((1))");
+      complete(rules, "(1+1)+1");
+      complete(rules, "(1+1+1)");
+      complete(rules, "hello");
+      complete(rules, "hello.plop");
+      complete(rules, "hello.plop+1");
+      complete(rules, "hello+(1+1)");
+      complete(rules, "(1+1)+hello");
+      complete(rules, "(1+1)+hello.plop");
+      complete(rules, "1.+2.");
+      complete(rules, "1.090+1212.12312");
+      complete(rules, "'my string'+'my other'");
     });
 
     it('should not accept', function () {
-
+      incomplete(rules, "(()))");
+      incomplete(rules, "1++");
     });
 
   describe('Tokenizer', function() {
