@@ -71,10 +71,10 @@ describe('Early parser basics', function() {
 
       var r = early.parse(rules, tokens);
 
-      console.log(tokens);
+      //console.log(tokens);
 
       var sets = early.getSets();
-      console.log(sets);
+      //console.log(sets);
       assert.equal(r, true);
 
       function reverse_and_cleanup(sets) {
@@ -101,10 +101,10 @@ describe('Early parser basics', function() {
         return items;
       }
 
-      console.log('-- Reversed and cleanup version --');
+      //console.log('-- Reversed and cleanup version --');
       reversed = reverse_and_cleanup(sets);
-      console.log(reversed);
-      console.log('----');
+      //console.log(reversed);
+      //console.log('----');
 
       function filter(pos, rule_name, consumed) {
         var list = reversed[pos];
@@ -136,7 +136,7 @@ describe('Early parser basics', function() {
 
       function develop(start, early_item, end, depth) {
         var rule = getRule(early_item);
-        console.log(rule);
+        //console.log(rule);
         var pos = start;
         var node = {
           children: [],
@@ -152,7 +152,7 @@ describe('Early parser basics', function() {
           if(rules[item]) {
             // a rule
             var early_items = byName(pos, item, end);
-            console.log('--->', pos, item, end, early_items);
+            //console.log('--->', pos, item, end, early_items);
             if(early_items.length === 0) {
               return false;
             }
@@ -170,12 +170,12 @@ describe('Early parser basics', function() {
         return node;
       }
 
-      var possibleStarts = filter(0, 'START', tokens.length);
-      console.log('------------');
-      console.log(possibleStarts);
-      console.log('------------');
-      var tree = develop(0, possibleStarts[0], tokens.length, 0);
-      console.log(JSON.stringify(tree, null, 2));
+      //var possibleStarts = filter(0, 'START', tokens.length);
+      //console.log('------------');
+      //console.log(possibleStarts);
+      //console.log('------------');
+      //var tree = develop(0, possibleStarts[0], tokens.length, 0);
+      //console.log(JSON.stringify(tree, null, 2));
 
     });
 });
@@ -261,22 +261,46 @@ describe('Left to right, top down parser complex', function() {
       incomplete(rules, "1++");
     });
 
-  describe('Tokenizer', function() {
+  it('should be fast', function () {
     var tokens = {
       'number': {reg: /^[0-9]+/},
-      'operator': {reg: /^\+|\-/},
-      '(': {str: '('},
-      ')': {str: ')'}
+      'operator': {reg: /^\+|\-/}
     };
 
-    var r = tokenizer.tokenize(tokens, '(12+13)');
+    var rules = {
+        'START': [['math']],
+        'math': [
+            ['number' , 'operator', 'math'],
+            ['number']],
+    };
+
+    var perfTokens = [];
+    for(var i=0; i<1000; i++) {
+        perfTokens.push("1.0");
+    }
+    perfTokens.push("2.4");
+
+    var stream = tokenizer.tokenize(tokens, perfTokens.join('+'));
+    var result = parser.parse(rules, stream, false);
+    assert.equal(result, true);
+  });
+
+});
+
+describe('Tokenizer', function() {
+  var tokens = {
+    'number': {reg: /^[0-9]+/},
+    'operator': {reg: /^\+|\-/},
+    '(': {str: '('},
+    ')': {str: ')'}
+  };
+
+  var r = tokenizer.tokenize(tokens, '(12+13)');
+  it('should tokenize', function () {
     assert.equal(r[0].value, '(');
     assert.equal(r[1].value, '12');
     assert.equal(r[2].value, '+');
     assert.equal(r[3].value, '13');
     assert.equal(r[4].value, ')');
-
   });
-
-
 });

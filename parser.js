@@ -9,18 +9,29 @@ function parse(rules, stream, debug) {
     "use strict";
     debug = debug || false;
     var stack = [];
-    var stream_index = 0;
-    var sub_rule_index = 0;
-    var sub_rule_token_index = 0;
-    var current_rule = rules.START;
-    var current_rule_name = "START";
     var token, rule_item;
+
+    var current = {
+        rule_name: "START",
+        sub_rule_index: 0,
+        sub_rule_token_index: 0,
+        stream_index: 0,
+        children: []
+    };
+    var start = current;
 
     function print() {
         if(debug) {
             console.log.apply(console, arguments);
         }
     }
+
+    function ruleRepr(frame) {
+        return frame.rule_name + '(' +
+            frame.sub_rule_index + '); rule_token_index(' +
+            frame.sub_rule_token_index+ '); stream_index('+ frame.stream_index +')';
+    }
+
     function printStack(msg) {
         if(!debug) {
             return;
@@ -30,14 +41,11 @@ function parse(rules, stream, debug) {
         var space = '  ', frame;
         while(i < stack.length) {
             frame = stack[i];
-            var rule = rules[frame[0]];
-            var sub_rule = rule[frame[1]];
-            _msg.push(space + '+ Rule name: ' + frame[0] + '(' + frame[1] + '); rule_token_index(' + frame[2] + '); stream_index('+frame[3]+')');
+            _msg.push(space + '+ Rule name: ' + ruleRepr(frame));
             space = space + '  ';
             i++;
         }
-        frame = [current_rule_name, sub_rule_index, sub_rule_token_index, stream_index];
-        _msg.push(space + '-> Rule name: ' + frame[0] + '(' + frame[1] + '); rule_token_index(' + frame[2] + '); stream_index('+frame[3]+')');
+        _msg.push(space + '-> Rule name: ' + ruleRepr(current));
         print(_msg.join("\n"));
     }
 
@@ -46,21 +54,24 @@ function parse(rules, stream, debug) {
             throw "Stack empty";
         }
         var tmp = stack.pop();
-        current_rule_name = tmp[0];
-        current_rule = rules[current_rule_name];
-        sub_rule_index = tmp[1];
-        sub_rule_token_index = tmp[2];
-        stream_index = tmp[3];
+        current = tmp;
         //printStack("Restored");
     }
     function pushStack(msg) {
-        printStack("Save stack: "+msg);        
-        stack.push([current_rule_name, sub_rule_index, sub_rule_token_index, stream_index]);
+        printStack("Save stack: "+msg);
+        stack.push(Object.assign({}, current));
     }
 
-    function ruleItem() { 
-        return current_rule[sub_rule_index][sub_rule_token_index]; 
+    function rule() {
+        return rules[current.rule_name];
     }
+    function subRule() { 
+        return rule()[current.sub_rule_index];
+    }
+    function subRuleItem() { 
+        return subRule()[current.sub_rule_token_index];
+    }
+
     function backtrack(msg) {
         if(stack.length === 0) {
             throw "Stack empty";
@@ -70,82 +81,91 @@ function parse(rules, stream, debug) {
         printStack("Backtrack After " + msg);
     }
 
+    function parent() {
+        return stack[stack.length - 1];
+    }
+
     function parentStreamIndex() {
-        var parent = stack[stack.length - 1];
-        // stream index from the parent
-        if(parent) {
-            return parent[3];
+        var _parent = parent();
+        if(_parent) {
+            return _parent.stream_index;
         }
         return 0;
     }
 
-    function parentRoleTokenIndex() {
-        var parent = stack[stack.length - 1];
-        // stream index from the parent
-        if(parent) {
-            return parent[3];
+    function buildBack() {
+        var i = stack.length - 1, tree, item;
+        while(i >= 0) {
+            //var item = rule_item[i];
+            i--;
         }
-        return 0;
     }
 
     while(true) {
 
-        // No more sub to evaluate
-        while(!current_rule[sub_rule_index]) {
+        // No more sub rule to evaluate
+        while(!subRule()) {
             if(stack.length === 0) {
                 print("Stack is empty: failure to match anything");
                 return false;
             }
             backtrack('No more sub rules');
-            stream_index = parentStreamIndex();
-            sub_rule_token_index = 0;
-            sub_rule_index++;
+            current.stream_index = parentStreamIndex();
+            current.sub_rule_token_index = 0;
+            current.sub_rule_index++;
             printStack("Next sub rule");
         }
 
         // test satisfaction of the current rule
-        if(sub_rule_token_index >= current_rule[sub_rule_index].length) {
+        if(current.sub_rule_token_index >= subRule().length) {
 
-            print('Rule satisfied: ', current_rule[sub_rule_index], " Stack depth: ", stack.length);
+            print('Rule satisfied: ', subRule(), " Stack depth: ", stack.length);
+            var _parent = parent();
+            if(_parent && current.children !== undefined) {
+                _parent.children.push(Object.assign({}, current));
+            }
 
             // rule satified so we pop to get the previous rule 
             // but with the stream_index moved forward
-            var tmp = stream_index;
-            //printStack("Before");
+            var tmp = current.stream_index;
             popStack();
 
-            stream_index = tmp;
-            sub_rule_token_index++;
+            current.stream_index = tmp;
+            current.sub_rule_token_index++;
 
             printStack("Forward");
 
             if(stack.length === 0) {
-                print("Stack empty");
-                if(stream_index == stream.length) {
-                    print("All tokens consumed");
-                    return true;
+
+                if(current.stream_index == stream.length) {
+                    print("Parsing successful");
+                    return start;
                 }
-                print("Token not consumed", stream.length - stream_index, ' Last token ', stream[stream_index]);
+
+                print("Stack empty, Token not consumed" +
+                    stream.length - current.stream_index + ' Last token ' + stream[current.stream_index]);
+
                 return false;
             }
 
             continue;
         }
 
-        token = stream[stream_index];
-        rule_item = ruleItem();
+        token = stream[current.stream_index];
+        rule_item = subRuleItem();
 
         if(!token) {
             printStack('Token exhausted');
-            stream_index = parentStreamIndex();
-            sub_rule_token_index = 0;
-            sub_rule_index++;
+            current.stream_index = parentStreamIndex();
+            current.sub_rule_token_index = 0;
+            current.sub_rule_index++;
+            current.children = [];
             printStack("Next sub rule");
             continue;
         }
 
         print('Rule item: ', rule_item);
-        print('    Token: ', token);
+        print('Token: ', token);
 
         // Rules case
         if(rules[rule_item]) {
@@ -154,25 +174,35 @@ function parse(rules, stream, debug) {
             pushStack('Save before expanding new rule ' + rule_item + '(0)');
 
             // setup the next rule to be evaluated
-            current_rule_name = rule_item;
-            current_rule = rules[rule_item];
-            sub_rule_token_index = 0;
-            sub_rule_index = 0;
+            var n = {
+                children: [],
+                rule_name: rule_item,
+                sub_rule_token_index: 0,
+                sub_rule_index: 0,
+                stream_index: current.stream_index
+            };
+            current = n;
             continue;
 
         // Token case
         } else {
             // Token does match?
             if(rule_item === token.type) {
-                print('Token match');
-                sub_rule_token_index++;
-                stream_index++;
+                print('Token match ' + token.type + '('+current.stream_index+')');
+                current.sub_rule_token_index++;
+                current.stream_index++;
+                current.children.push(token);
             // Token doesn't match, next sub rule
             } else {
-                stream_index = parentStreamIndex();
-                sub_rule_token_index = 0;
-                sub_rule_index++;
-                print("Token mismatch, next sub rule: " + current_rule_name + '('+sub_rule_index+')');
+                var n = {
+                    children: [],
+                    rule_name: current.rule_name,
+                    sub_rule_token_index: 0,
+                    sub_rule_index: current.sub_rule_index + 1,
+                    stream_index: parentStreamIndex()
+                };
+                current = n;
+                print("Token mismatch, next sub rule: " + n.rule_name + '('+ n.sub_rule_index + ')');
             }
             continue;
         }

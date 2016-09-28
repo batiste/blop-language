@@ -20,6 +20,10 @@
   "bugs": {
     "url": "https://github.com/batiste/js-grammar-parser/issues"
   },
+  "devDependencies": {
+    "mocha": "*",
+    "should": ">= 0.0.1"
+  },
   "homepage": "https://github.com/batiste/js-grammar-parser",
   "devDependencies": {
     "mocha": "^2.2.5"
