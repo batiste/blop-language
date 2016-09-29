@@ -21,16 +21,27 @@ function strDef(input) {
 
 var tokens = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-  'operator': {reg: /^\+|\-/},
+  'operator': {reg: /^[\+|\-]/},
   'name': {reg: /^\w+/},
   '.': {str: '.'},      
   '(': {str: '('},
   ')': {str: ')'},
+  '=': {str: '='},
+  'newline': {str: '\n'},
   'str': {func:strDef}
 };
 
 var rules = {
-    'START': [['exp']],
+    'START': [['NEW_LINE']],
+    'NEW_LINE': [
+      ['STATEMENT', 'newline', 'NEW_LINE'],
+      ['STATEMENT', 'EOS'],
+      ['EOS']
+    ],
+    'STATEMENT': [
+      ['assign'], // more specific need to be first
+      ['exp'],
+    ],
     'DOTTED_PATH': [['name', '.', 'name'], ['name']],
     'math': [
         ['(', 'math', ')', 'operator', 'math'], 
@@ -38,19 +49,42 @@ var rules = {
         ['number' , 'operator', 'math'],
         ['number']
     ],
+    'assign': [
+      ['DOTTED_PATH', '=', 'exp'],
+    ],
     'exp': [
       ['DOTTED_PATH', 'operator', 'exp'],
       ['DOTTED_PATH'],
       ['math', 'operator', 'exp'],
       ['str', 'operator', 'exp'],
       ['math'],
-      ['str']
+      ['str'],
     ]
 };
 
+var modifiers = {
+  'NEW_LINE': function(node, parent) {
+    parent.children.push(node.children.pop());
+    return node;
+  },
+};
+
+function modify(node, parent) {
+    if(node.rule_name && modifiers[node.rule_name]) {
+        modifiers[node.rule_name](node, parent);
+    }
+
+    if(node.children) {
+        for(var i=0; i<node.children.length; i++) {
+            modify(node.children[i], node);
+        }
+    }
+}
+
+
 function parse(input) {
   var stream = tokenizer.tokenize(tokens, input);
-  return  parser.parse(rules, stream, true);
+  return parser.parse(rules, stream, modifiers, true);
 }
 
 function printTree(node, sp) {
@@ -67,7 +101,8 @@ function printTree(node, sp) {
     }
 }
 
-var start = parse('hello.boum+1');
+var start = parse('a=1');
+modify(start, null);
 
 printTree(start, ' ');
 

@@ -5,7 +5,7 @@
 // This grammar parser will work with non left recursive rules
 // Left recusive garmmar will create a infinite loops
 
-function parse(rules, stream, debug) {
+function parse(rules, stream, modifiers, debug) {
     "use strict";
     debug = debug || false;
     var stack = [];
