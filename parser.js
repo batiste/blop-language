@@ -5,7 +5,7 @@
 // This grammar parser will work with non left recursive rules
 // Left recusive garmmar will create a infinite loops
 
-function parse(rules, stream, modifiers, debug) {
+function parse(rules, stream, debug) {
     "use strict";
     debug = debug || false;
     var stack = [];
@@ -125,6 +125,19 @@ function parse(rules, stream, modifiers, debug) {
                 _parent.children.push(Object.assign({}, current));
             }
 
+            if(stack.length === 0) {
+                print("Stack empty");
+                
+                if(current.stream_index == stream.length) {
+                    print("Parsing successful");
+                    return start;
+                }
+
+                print('Token not consumed:' + (stream.length - current.stream_index));
+
+                return false;
+            }
+
             // rule satified so we pop to get the previous rule 
             // but with the stream_index moved forward
             var tmp = current.stream_index;
@@ -134,19 +147,6 @@ function parse(rules, stream, modifiers, debug) {
             current.sub_rule_token_index++;
 
             printStack("Forward");
-
-            if(stack.length === 0) {
-
-                if(current.stream_index == stream.length) {
-                    print("Parsing successful");
-                    return start;
-                }
-
-                print("Stack empty, Token not consumed" +
-                    stream.length - current.stream_index + ' Last token ' + stream[current.stream_index]);
-
-                return false;
-            }
 
             continue;
         }

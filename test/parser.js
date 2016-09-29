@@ -201,7 +201,7 @@ describe('Left to right, top down parser complex', function() {
 
     var tokens = {
       'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-      'operator': {reg: /^\+|\-/},
+      'operator': {reg: /^[\+|\-]/},
       'name': {reg: /^\w+/},
       '.': {str: '.'},      
       '(': {str: '('},
@@ -210,7 +210,7 @@ describe('Left to right, top down parser complex', function() {
     };
 
     var rules = {
-        'START': [['exp']],
+        'START': [['exp', 'EOS']],
         'DOTTED_PATH': [['name', '.', 'name'], ['name']],
         'math': [
             ['(', 'math', ')', 'operator', 'math'], 
@@ -230,7 +230,7 @@ describe('Left to right, top down parser complex', function() {
     function complete(rules, input) {
       var stream = tokenizer.tokenize(tokens, input);
       var result = parser.parse(rules, stream, false);
-      assert.equal(result, true, input + ' should be complete');
+      assert.equal(!!result, true, input + ' should be complete');
     }
 
     function incomplete(rules, input) {
@@ -240,7 +240,7 @@ describe('Left to right, top down parser complex', function() {
     }
 
     it('should accept', function () {
-      complete(rules, "1+1");
+      complete(rules, "1");
       complete(rules, "(1)");
       complete(rules, "((1))");
       complete(rules, "(1+1)+1");
@@ -268,7 +268,7 @@ describe('Left to right, top down parser complex', function() {
     };
 
     var rules = {
-        'START': [['math']],
+        'START': [['math', 'EOS']],
         'math': [
             ['number' , 'operator', 'math'],
             ['number']],
@@ -282,7 +282,7 @@ describe('Left to right, top down parser complex', function() {
 
     var stream = tokenizer.tokenize(tokens, perfTokens.join('+'));
     var result = parser.parse(rules, stream, false);
-    assert.equal(result, true);
+    assert.equal(!!result, true);
   });
 
 });

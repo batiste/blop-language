@@ -39,7 +39,9 @@ var rules = {
       ['EOS']
     ],
     'STATEMENT': [
-      ['assign'], // more specific need to be first
+      ['assign'], // because as soon as a rule is satisfied 
+                  // the parser return happily and destroy the stack
+                  // the more specific rules need to come first
       ['exp'],
     ],
     'DOTTED_PATH': [['name', '.', 'name'], ['name']],
