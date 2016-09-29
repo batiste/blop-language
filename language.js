@@ -22,6 +22,7 @@ function strDef(input) {
 var tokens = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
   'operator': {reg: /^[\+|\-]/},
+  'def': {str: 'def '},
   'name': {reg: /^\w+/},
   '.': {str: '.'},      
   '(': {str: '('},
@@ -54,7 +55,15 @@ var rules = {
     'assign': [
       ['DOTTED_PATH', '=', 'exp'],
     ],
+    'func_def': [
+      ['def', 'name', '(', ')', 'func_body'],
+      ['def', '(', ')', 'func_body'],
+    ],
+    'func_body': [
+      ['exp'],
+    ],
     'exp': [
+      ['func_def'],
       ['DOTTED_PATH', 'operator', 'exp'],
       ['DOTTED_PATH'],
       ['math', 'operator', 'exp'],
@@ -103,7 +112,7 @@ function printTree(node, sp) {
     }
 }
 
-var start = parse('a=1');
+var start = parse('def test()1+1');
 modify(start, null);
 
 printTree(start, ' ');
