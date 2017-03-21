@@ -5,9 +5,10 @@ function tokenize(tokenDef, input) {
     var keys = Object.keys(tokenDef);
     var stream = [], lastToken, i, key, candidate=null, match, token;
     var len = input.length;
+    var char = 0;
     var index = 0;
 
-    while(index < len) {
+    while(char < len) {
 
         for(i=0; i<keys.length; i++) {
           key = keys[i];
@@ -36,9 +37,10 @@ function tokenize(tokenDef, input) {
         }
 
         if(candidate !== null) {
-          lastToken = {type:key, value:candidate, index:index};
+          lastToken = {type:key, value:candidate, start:char, index:index, len:candidate.length};
           stream.push(lastToken);
-          index += candidate.length;
+          index++;
+          char += candidate.length;
           input = input.substr(candidate.length);
         } else {
           if(stream.length === 0) {
@@ -54,7 +56,7 @@ function tokenize(tokenDef, input) {
           throw new Error(msg);
         }
     }
-    stream.push({type:'EOS', value:'', index:index});
+    stream.push({type:'EOS', value:'', char:char});
     return stream;
 }
 

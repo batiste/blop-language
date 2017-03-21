@@ -3,15 +3,18 @@
 // This is a left to right top down grammar parser
 
 // This grammar parser will work with non left recursive rules
-// Left recusive garmmar will create a infinite loops
+// Left recursive grammar will create a infinite loops
 
 function parse(rules, stream, debug) {
     "use strict";
     debug = debug || false;
     var stack = [];
     var token, rule_item;
+    var best_failure_stream_index = 0;
+    var best_failure = null;
 
     var current = {
+        success: true,
         rule_name: "START",
         sub_rule_index: 0,
         sub_rule_token_index: 0,
@@ -65,10 +68,10 @@ function parse(rules, stream, debug) {
     function rule() {
         return rules[current.rule_name];
     }
-    function subRule() { 
+    function subRule() {
         return rule()[current.sub_rule_index];
     }
-    function subRuleItem() { 
+    function subRuleItem() {
         return subRule()[current.sub_rule_token_index];
     }
 
@@ -107,7 +110,7 @@ function parse(rules, stream, debug) {
         while(!subRule()) {
             if(stack.length === 0) {
                 print("Stack is empty: failure to match anything");
-                return false;
+                return best_failure;
             }
             backtrack('No more sub rules');
             current.stream_index = parentStreamIndex();
@@ -127,7 +130,7 @@ function parse(rules, stream, debug) {
 
             if(stack.length === 0) {
                 print("Stack empty");
-                
+
                 if(current.stream_index == stream.length) {
                     print("Parsing successful");
                     return start;
@@ -135,10 +138,10 @@ function parse(rules, stream, debug) {
 
                 print('Token not consumed:' + (stream.length - current.stream_index));
 
-                return false;
+                return best_failure;
             }
 
-            // rule satified so we pop to get the previous rule 
+            // rule satified so we pop to get the previous rule
             // but with the stream_index moved forward
             var tmp = current.stream_index;
             popStack();
@@ -186,14 +189,36 @@ function parse(rules, stream, debug) {
 
         // Token case
         } else {
+            var rule_item_optional = false;
+            if(rule_item.endsWith('?')) {
+              rule_item_optional = true;
+              rule_item = rule_item.substring(0, rule_item.length - 1);
+            }
+
             // Token does match?
             if(rule_item === token.type) {
                 print('Token match ' + token.type + '('+current.stream_index+')');
                 current.sub_rule_token_index++;
                 current.stream_index++;
                 current.children.push(token);
+            // Token doesn't match, but the token is optionnal
+            } else if(rule_item_optional) {
+                current.sub_rule_token_index++;
             // Token doesn't match, next sub rule
             } else {
+                if(best_failure_stream_index < current.stream_index) {
+                  best_failure_stream_index = current.stream_index;
+                  best_failure = {
+                      success: false,
+                      rule_name: current.rule_name,
+                      sub_rule_token_index: current.sub_rule_token_index,
+                      sub_rule_index: current.sub_rule_index,
+                      stream_index: current.stream_index,
+                      token: token,
+                      rule_item: rule_item,
+                  };
+                }
+
                 var n = {
                     children: [],
                     rule_name: current.rule_name,
