@@ -30,6 +30,7 @@ var tokens = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
   'operator': {reg: /^[\+|\-]/},
   'def': {str: 'def '},
+  'return': {str: 'return ', verbose:'return'},
   'name': {reg: /^\w+/},
   ',': {str: ','},
   '.': {str: '.'},
@@ -53,6 +54,7 @@ var rules = {
       ['EOS']
     ],
     'STATEMENT': [
+      ['return', 'exp'],
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
@@ -74,19 +76,26 @@ var rules = {
     ],
     'func_def': [
       ['def', 'name?', '(', ')', 'func_body'],
-      ['def', 'name?', '(', 'func_params', ')', 'func_body'],
+      ['def', 'name?', '(', 'func_def_params', ')', 'func_body'],
+    ],
+    'func_def_params': [
+      ['name', '=', 'exp', ',', 'w', 'func_def_params'],
+      ['name', '=', 'exp'],
+      ['exp', ',', 'w', 'func_def_params'],
+      ['exp']
     ],
     'func_call': [
       ['name', '(', ')'],
-      ['name', '(', 'func_params', ')'],
+      ['name', '(', 'func_call_params', ')'],
     ],
-    'func_params': [
-      ['exp', ',', 'w', 'func_params'],
+    'func_call_params': [
+      ['name', '=', 'exp'],
+      ['exp', ',', 'w', 'func_call_params'],
       ['exp']
     ],
     'func_body': [
       ['w', 'exp'],
-      ['w', '{', 'newline', 'STATEMENTS', 'newline', '}']
+      ['w', '{', 'newline', 'STATEMENTS', 'newline', 'W?', '}']
     ],
     'exp': [
       ['func_def'],
@@ -172,7 +181,6 @@ function parse(input) {
       if(tokens[sr] && tokens[sr].verbose) {
         sr = tokens[sr].verbose.replace(/\s/g, '-')
       }
-
       if(i === tree.sub_rule_token_index) {
         rule += `${RED}${sr}${NC} `
       } else {
@@ -209,10 +217,13 @@ var nodeStack = [];
 var output = [];
 
 var backend = {
+  'func_def': function(node) {
 
+  }
 }
 
 function generateNode(node) {
+  console.log(node)
   output.push(node.value)
 }
 
@@ -233,24 +244,16 @@ var code = `def toto(1, 1) {
   asdfasd()
   asdfasdfs.asdfa.sdfds()
   asdfdsa = 1
-  def test() 1
+  def test() 1 + 10902320932
   def blop() 1 + 10
-  def test(1, 2) {
+  def test(a=1, 2) {
     1 + 1
-}
+  }
+  return test
 }
 def test() {
   1232131.12321 + 1
 }`
-
-function generateArrow(items, nb) {
-  var str = '', i=0
-  while(i < nb) {
-    str = str + items[i].replace(/./g, '-') + '-'
-    i++
-  }
-  return str + '^'
-}
 
 var tree = parse(code);
 
