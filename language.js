@@ -31,6 +31,8 @@ var tokens = {
   'operator': {reg: /^[\+|\-]/},
   'def': {str: 'def '},
   'return': {str: 'return ', verbose:'return'},
+  'return': {str: 'return ', verbose:'return'},
+  'throw': {str: 'throw ', verbose:'throw'},
   'name': {reg: /^\w+/},
   ',': {str: ','},
   '.': {str: '.'},
@@ -54,11 +56,11 @@ var rules = {
       ['EOS']
     ],
     'STATEMENT': [
-      ['return', 'exp'],
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
       ['exp'],
+      ['return', 'exp']
     ],
     'DOTTED_PATH': [
       ['name', '.', 'func_call'],
@@ -149,7 +151,13 @@ function streamContext(index, stream) {
     }
     i--
   }
-  str = str + RED + stream[index].value + NC
+  var v = stream[index].value;
+  v = v.replace(/\r/g, '⏎\r')
+  v = v.replace(/\n/g, '⏎\n')
+  v = v.replace(/\t/g, '⇥')
+  v = v.replace(/ /g, '␣')
+
+  str = str + RED + v + NC
   i = index + 1
   var lines = 0
   while(i < stream.length) {
@@ -172,7 +180,6 @@ function parse(input) {
   var tree = parser.parse(rules, stream, false);
 
   if(!tree.success) {
-    console.log("tree", tree)
     var sub_rules = rules[tree.rule_name][tree.sub_rule_index];
     var rule = ''
     var token = tree.token
@@ -217,42 +224,30 @@ var nodeStack = [];
 var output = [];
 
 var backend = {
-  'func_def': function(node) {
-
+  'def': function(node) {
+    output.push(`function `)
   }
-}
-
-function generateNode(node) {
-  console.log(node)
-  output.push(node.value)
 }
 
 function generateCode(node) {
-    generateNode(node);
-    nodeStack.push(node);
-    if(node.children) {
-        for(var i=0; i<node.children.length; i++) {
-            generateCode(node.children[i])
-        }
+  if(backend[node.type]) {
+    backend[node.type](node)
+  } else if(backend[node.rule_name]) {
+    backend[node.rule_name](node)
+  } else {
+    if(node.value) {
+      output.push(node.value)
     }
-    nodeStack.pop()
+    if(node.children) {
+      for(var i=0; i<node.children.length; i++) {
+        generateCode(node.children[i])
+      }
+    }
+  }
 }
 
-var code = `def toto(1, 1) {
-  1 + 1 + 44354
-  asdf.asdfasd.asdfds = asdfdsa
-  asdfasd()
-  asdfasdfs.asdfa.sdfds()
-  asdfdsa = 1
-  def test() 1 + 10902320932
-  def blop() 1 + 10
-  def test(a=1, 2) {
-    1 + 1
-  }
-  return test
-}
-def test() {
-  1232131.12321 + 1
+var code = `def toto(1) {
+  1 +  
 }`
 
 var tree = parse(code);

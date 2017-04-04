@@ -203,7 +203,7 @@ describe('Left to right, top down parser complex', function() {
       'number': {reg: /^[0-9]+(\.[0-9]*)?/},
       'operator': {reg: /^[\+|\-]/},
       'name': {reg: /^\w+/},
-      '.': {str: '.'},      
+      '.': {str: '.'},
       '(': {str: '('},
       ')': {str: ')'},
       'str': {func:strDef}
@@ -213,7 +213,7 @@ describe('Left to right, top down parser complex', function() {
         'START': [['exp', 'EOS']],
         'DOTTED_PATH': [['name', '.', 'name'], ['name']],
         'math': [
-            ['(', 'math', ')', 'operator', 'math'], 
+            ['(', 'math', ')', 'operator', 'math'],
             ['(', 'math', ')'],
             ['number' , 'operator', 'math'],
             ['number']],
@@ -230,13 +230,13 @@ describe('Left to right, top down parser complex', function() {
     function complete(rules, input) {
       var stream = tokenizer.tokenize(tokens, input);
       var result = parser.parse(rules, stream, false);
-      assert.equal(!!result, true, input + ' should be complete');
+      assert.equal(result.success, true, input + ' should be complete');
     }
 
     function incomplete(rules, input) {
       var stream = tokenizer.tokenize(tokens, input);
       var result = parser.parse(rules, stream, false);
-      assert.equal(result, false, input + ' should be incomplete');
+      assert.equal(result.success, false, input + ' should be incomplete');
     }
 
     it('should accept', function () {
