@@ -247,7 +247,7 @@ function generateCode(node) {
 }
 
 var code = `def toto(1) {
-  1 +  
+  1 + -
 }`
 
 var tree = parse(code);
