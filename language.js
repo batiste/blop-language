@@ -50,9 +50,9 @@ var tokens = {
 var rules = {
     'START': [['STATEMENTS']],
     'STATEMENTS': [
-      ['W?', 'DOTTED_PATH', 'newline', 'STATEMENTS'],
-      ['W?', 'DOTTED_PATH', 'EOS'],
-      ['W?', 'DOTTED_PATH'],
+      ['W?', 'STATEMENT', 'newline', 'STATEMENTS'],
+      ['W?', 'STATEMENT', 'EOS'],
+      ['W?', 'STATEMENT'],
       ['EOS']
     ],
     'STATEMENT': [
@@ -246,7 +246,10 @@ function generateCode(node) {
   }
 }
 
-var code = `a.b.c`
+var code = `def blop() {
+  a.b.c.d = 10 + 20.0
+  return 1
+}`
 
 var tree = parse(code);
 

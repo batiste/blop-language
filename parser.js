@@ -210,7 +210,7 @@ function parse(rules, stream, debug) {
                 current.sub_rule_token_index++;
             // Token doesn't match, next sub rule
             } else {
-                if(best_failure_stream_index < current.stream_index) {
+                if(best_failure_stream_index <= current.stream_index) {
                   best_failure_stream_index = current.stream_index;
                   best_failure = {
                       success: false,
