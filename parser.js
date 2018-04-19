@@ -52,13 +52,16 @@ function parse(rules, stream, debug) {
         print(_msg.join("\n"));
     }
 
-    function popStack(msg) {
+    function popStack(msg, failure) {
         if(stack.length === 0) {
             throw "Stack empty";
         }
+        if(!failure) {
+          //current.children
+        }
         var tmp = stack.pop();
         current = tmp;
-        //printStack("Restored");
+        printStack("Restored");
     }
     function pushStack(msg) {
         printStack("Save stack: "+msg);
@@ -80,7 +83,7 @@ function parse(rules, stream, debug) {
             throw "Stack empty";
         }
         printStack("Backtrack Before " + msg);
-        popStack('Backtrack');
+        popStack('Backtrack', true);
         printStack("Backtrack After " + msg);
     }
 
@@ -116,6 +119,7 @@ function parse(rules, stream, debug) {
             current.stream_index = parentStreamIndex();
             current.sub_rule_token_index = 0;
             current.sub_rule_index++;
+            current.children = []
             printStack("Next sub rule");
         }
 
@@ -162,7 +166,7 @@ function parse(rules, stream, debug) {
             current.stream_index = parentStreamIndex();
             current.sub_rule_token_index = 0;
             current.sub_rule_index++;
-            current.children = [];
+            // current.children = [];
             printStack("Next sub rule");
             continue;
         }
@@ -220,13 +224,13 @@ function parse(rules, stream, debug) {
                 }
 
                 var n = {
-                    children: [],
                     rule_name: current.rule_name,
                     sub_rule_token_index: 0,
                     sub_rule_index: current.sub_rule_index + 1,
                     stream_index: parentStreamIndex()
                 };
                 current = n;
+                current.children = [];
                 print("Token mismatch, next sub rule: " + n.rule_name + '('+ n.sub_rule_index + ')');
             }
             continue;

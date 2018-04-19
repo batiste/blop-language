@@ -50,9 +50,9 @@ var tokens = {
 var rules = {
     'START': [['STATEMENTS']],
     'STATEMENTS': [
-      ['W?', 'STATEMENT', 'newline', 'STATEMENTS'],
-      ['W?', 'STATEMENT', 'EOS'],
-      ['W?', 'STATEMENT'],
+      ['W?', 'DOTTED_PATH', 'newline', 'STATEMENTS'],
+      ['W?', 'DOTTED_PATH', 'EOS'],
+      ['W?', 'DOTTED_PATH'],
       ['EOS']
     ],
     'STATEMENT': [
@@ -175,9 +175,9 @@ function streamContext(index, stream) {
 }
 
 
-function parse(input) {
+function parse(input, debug) {
   var stream = tokenizer.tokenize(tokens, input);
-  var tree = parser.parse(rules, stream, false);
+  var tree = parser.parse(rules, stream, debug);
 
   if(!tree.success) {
     var sub_rules = rules[tree.rule_name][tree.sub_rule_index];
@@ -194,13 +194,13 @@ function parse(input) {
         rule += `${YELLOW}${sr}${NC} `
       }
     }
-    throw `
+    throw new Error(`
   ${RED}Parser error${NC}
   Best match was at rule ${tree.rule_name}[${tree.sub_rule_token_index}] ${rule}
   token ${YELLOW}${token.value}${NC} doesn't match rule item ${YELLOW}${tree.rule_item}${NC}
   Context:
 ${streamContext(token.index, stream)}
-  `
+  `)
   }
 
   return tree
@@ -208,7 +208,7 @@ ${streamContext(token.index, stream)}
 
 function printTree(node, sp) {
     if(node.rule_name) {
-        console.log(sp + 'r ' + node.rule_name);
+        console.log(sp + 'r ' + node.rule_name + '(' + node.sub_rule_index + ')');
     } else {
         console.log(sp + 't ' + node.type + ' ' + node.value);
     }
@@ -246,12 +246,10 @@ function generateCode(node) {
   }
 }
 
-var code = `def toto(1) {
-  1 + -
-}`
+var code = `a.b.c`
 
 var tree = parse(code);
 
-//printTree(tree, ' ');
+printTree(tree, '')
 generateCode(tree)
 console.log(output.join(''))
