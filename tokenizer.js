@@ -56,7 +56,7 @@ function tokenize(tokenDef, input) {
           throw new Error(msg);
         }
     }
-    stream.push({type:'EOS', value:'', char:char});
+    stream.push({type:'EOS', value:'<EOS>', char:char, index: index});
     return stream;
 }
 

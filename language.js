@@ -30,7 +30,10 @@ var tokens = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
   'operator': {reg: /^[\+|\-]/},
   'def': {str: 'def '},
-  'return': {str: 'return ', verbose:'return'},
+  'new': {str: 'new '},
+  'if': {str: 'if '},
+  'else': {str: 'else '},
+  'elseif': {str: 'elseif '},
   'return': {str: 'return ', verbose:'return'},
   'throw': {str: 'throw ', verbose:'throw'},
   'name': {reg: /^\w+/},
@@ -48,19 +51,20 @@ var tokens = {
 };
 
 var rules = {
-    'START': [['STATEMENTS']],
+    'START': [['STATEMENTS', 'EOS']],
     'STATEMENTS': [
-      ['W?', 'STATEMENT', 'newline', 'STATEMENTS'],
-      ['W?', 'STATEMENT', 'EOS'],
-      ['W?', 'STATEMENT'],
-      ['EOS']
+      ['newline', 'w?', 'W?', 'STATEMENT', 'STATEMENTS'], // this recursion handle empty new lines
+      ['newline', 'w?', 'W?', 'STATEMENT'],
+      ['newline', 'w?', 'W?', 'STATEMENTS'],
+      ['newline', 'w?', 'W?']
     ],
     'STATEMENT': [
+      ['condition'],
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
       ['exp'],
-      ['return', 'exp']
+      ['return', 'exp'],
     ],
     'DOTTED_PATH': [
       ['name', '.', 'func_call'],
@@ -97,7 +101,16 @@ var rules = {
     ],
     'func_body': [
       ['w', 'exp'],
-      ['w', '{', 'newline', 'STATEMENTS', 'newline', 'W?', '}']
+      ['w', '{', 'STATEMENTS', '}']
+    ],
+    'condition': [
+      ['if', 'exp', 'w', '{', 'STATEMENTS', '}', 'conditionelseif'],
+    ],
+    'conditionelseif': [
+      ['w', 'elseif', 'exp', 'w', '{', 'STATEMENTS', '}', 'conditionelseif'],
+      ['w', 'elseif', 'exp', 'w', '{', 'STATEMENTS', '}'],
+      ['w', 'else', '{', 'STATEMENTS', '}'],
+      ['w?']
     ],
     'exp': [
       ['func_def'],
@@ -108,6 +121,8 @@ var rules = {
       ['str', 'w', 'operator', 'w', 'exp'],
       ['math'],
       ['str'],
+      ['(', 'exp', ')'],
+      ['new', 'exp'],
     ]
 };
 
@@ -196,7 +211,7 @@ function parse(input, debug) {
     }
     throw new Error(`
   ${RED}Parser error${NC}
-  Best match was at rule ${tree.rule_name}[${tree.sub_rule_token_index}] ${rule}
+  Best match was at rule ${tree.rule_name}[${tree.sub_rule_index}][${tree.sub_rule_token_index}] ${rule}
   token ${YELLOW}${token.value}${NC} doesn't match rule item ${YELLOW}${tree.rule_item}${NC}
   Context:
 ${streamContext(token.index, stream)}
@@ -246,13 +261,29 @@ function generateCode(node) {
   }
 }
 
-var code = `def blop() {
-  a.b.c.d = 10 + 20.0
+var code = `
+
+def blop(a, b) {
   return 1
-}`
+}
 
-var tree = parse(code);
+if 1 {
+  1
+} elseif 1 {
+  2
+} else {
+  a = 2
+}
 
-printTree(tree, '')
+blop()
+`
+var a = []
+for(var i=0; i<1; i++) {
+  a.push(code)
+}
+
+var tree = parse(a.join(''));
+
+// printTree(tree, '')
 generateCode(tree)
 console.log(output.join(''))
