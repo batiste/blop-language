@@ -5,8 +5,31 @@
 // This grammar parser will work with non left recursive rules
 // Left recursive grammar will create a infinite loops
 
+function preprocessRules(rules) {
+  return Object.keys(rules).reduce((accu, key) => {
+    accu[key] = rules[key].map(
+      subRule => subRule.map(subRuleItem => {
+        const values = subRuleItem.split(':')
+        let optional = false;
+        if(values[0].endsWith('?')) {
+          values[0] = values[0].substring(0, values[0].length - 1);
+          optional = true
+        }
+        return {
+          value: values[0],
+          alias: values[1],
+          optional
+        }
+      })
+    )
+    return accu
+  }, {})
+}
+
+
 function parse(rules, stream, debug) {
     "use strict";
+    rules = preprocessRules(rules)
     debug = debug || false;
     var stack = [];
     var token, rule_item;
@@ -129,7 +152,11 @@ function parse(rules, stream, debug) {
             print('Rule satisfied: ', subRule(), " Stack depth: ", stack.length);
             var _parent = parent();
             if(_parent && current.children !== undefined) {
-                _parent.children.push(Object.assign({}, current));
+                const copy = Object.assign({}, current)
+                _parent.children.push(copy);
+                if(current.alias) {
+                  _parent.named[current.alias] = copy
+                }
             }
 
             if(stack.length === 0) {
@@ -144,7 +171,7 @@ function parse(rules, stream, debug) {
 
                 return best_failure;
             }
-
+            
             // rule satified so we pop to get the previous rule
             // but with the stream_index moved forward
             var tmp = current.stream_index;
@@ -175,7 +202,7 @@ function parse(rules, stream, debug) {
         print('Token: ', token);
 
         // Rules case
-        if(rules[rule_item]) {
+        if(rules[rule_item.value]) {
 
             // save the current state
             pushStack('Save before expanding new rule ' + rule_item + '(0)');
@@ -183,7 +210,9 @@ function parse(rules, stream, debug) {
             // setup the next rule to be evaluated
             var n = {
                 children: [],
-                rule_name: rule_item,
+                named: {},
+                rule_name: rule_item.value,
+                alias: rule_item.alias,
                 sub_rule_token_index: 0,
                 sub_rule_index: 0,
                 stream_index: current.stream_index
@@ -193,20 +222,18 @@ function parse(rules, stream, debug) {
 
         // Token case
         } else {
-            var rule_item_optional = false;
-            if(rule_item.endsWith('?')) {
-              rule_item_optional = true;
-              rule_item = rule_item.substring(0, rule_item.length - 1);
-            }
-
             // Token does match?
-            if(rule_item === token.type) {
+            if(rule_item.value === token.type) {
                 print('Token match ' + token.type + '('+current.stream_index+')');
                 current.sub_rule_token_index++;
                 current.stream_index++;
                 current.children.push(token);
+                if(rule_item.alias) {
+                  //console.log(rule_item.alias)
+                  current.named[rule_item.alias] = token
+                }
             // Token doesn't match, but the token is optionnal
-            } else if(rule_item_optional) {
+            } else if(rule_item.optional) {
                 current.sub_rule_token_index++;
             // Token doesn't match, next sub rule
             } else {
@@ -225,12 +252,13 @@ function parse(rules, stream, debug) {
 
                 var n = {
                     rule_name: current.rule_name,
+                    alias: current.alias,
                     sub_rule_token_index: 0,
                     sub_rule_index: current.sub_rule_index + 1,
-                    stream_index: parentStreamIndex()
+                    stream_index: parentStreamIndex(),
+                    children: []
                 };
                 current = n;
-                current.children = [];
                 print("Token mismatch, next sub rule: " + n.rule_name + '('+ n.sub_rule_index + ')');
             }
             continue;

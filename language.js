@@ -104,12 +104,12 @@ var rules = {
       ['w', '{', 'STATEMENTS', '}']
     ],
     'condition': [
-      ['if', 'exp', 'w', '{', 'STATEMENTS', '}', 'conditionelseif'],
+      ['if:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}', 'conditionelseif:elseif'],
     ],
     'conditionelseif': [
-      ['w', 'elseif', 'exp', 'w', '{', 'STATEMENTS', '}', 'conditionelseif'],
-      ['w', 'elseif', 'exp', 'w', '{', 'STATEMENTS', '}'],
-      ['w', 'else', '{', 'STATEMENTS', '}'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}', 'conditionelseif:elseif'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}'],
+      ['w', 'else:type', '{', 'STATEMENTS:stats', '}'],
       ['w?']
     ],
     'exp': [
@@ -149,6 +149,13 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+function replaceInvisibleChars(v) {
+  v = v.replace(/\r/g, '⏎\r')
+  v = v.replace(/\n/g, '⏎\n')
+  v = v.replace(/\t/g, '⇥')
+  return v.replace(/ /g, '␣')
+}
+
 function streamContext(index, stream) {
   var min = Math.max(0, index-10), i
   var max = Math.min(stream.length, index+10)
@@ -166,11 +173,7 @@ function streamContext(index, stream) {
     }
     i--
   }
-  var v = stream[index].value;
-  v = v.replace(/\r/g, '⏎\r')
-  v = v.replace(/\n/g, '⏎\n')
-  v = v.replace(/\t/g, '⇥')
-  v = v.replace(/ /g, '␣')
+  var v = replaceInvisibleChars(stream[index].value);
 
   str = str + RED + v + NC
   i = index + 1
@@ -212,7 +215,7 @@ function parse(input, debug) {
     throw new Error(`
   ${RED}Parser error${NC}
   Best match was at rule ${tree.rule_name}[${tree.sub_rule_index}][${tree.sub_rule_token_index}] ${rule}
-  token ${YELLOW}${token.value}${NC} doesn't match rule item ${YELLOW}${tree.rule_item}${NC}
+  token ${YELLOW}${replaceInvisibleChars(token.value)}${NC} doesn't match rule item ${YELLOW}${tree.rule_item}${NC}
   Context:
 ${streamContext(token.index, stream)}
   `)
@@ -239,9 +242,27 @@ var nodeStack = [];
 var output = [];
 
 var backend = {
-  'def': function(node) {
-    output.push(`function `)
-  }
+  'def': node => output.push(`function `),
+  'EOS': node => '',
+  'condition': node => {
+    output.push(`${node.named.type.value}(`)
+    output.push(generateCode(node.named.exp))
+    output.push(`) {`)
+    generateCode(node.named.stats)
+    output.push(`}`)
+    generateCode(node.named.elseif)
+  },
+  'conditionelseif': node => {
+    if(!node.named) {
+      return
+    }
+    output.push(` ${node.named.type.value}(`)
+    output.push(generateCode(node.named.exp))
+    output.push(`) {`)
+    generateCode(node.named.stats)
+    output.push(`}`)
+    generateCode(node.named.elseif)
+  },
 }
 
 function generateCode(node) {
@@ -262,20 +283,11 @@ function generateCode(node) {
 }
 
 var code = `
-
-def blop(a, b) {
-  return 1
-}
-
 if 1 {
   1
 } elseif 1 {
   2
-} else {
-  a = 2
 }
-
-blop()
 `
 var a = []
 for(var i=0; i<1; i++) {
