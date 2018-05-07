@@ -256,7 +256,8 @@ function parse(rules, stream, debug) {
                     sub_rule_token_index: 0,
                     sub_rule_index: current.sub_rule_index + 1,
                     stream_index: parentStreamIndex(),
-                    children: []
+                    children: [],
+                    named: {}
                 };
                 current = n;
                 print("Token mismatch, next sub rule: " + n.rule_name + '('+ n.sub_rule_index + ')');

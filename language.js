@@ -28,7 +28,7 @@ function singleSpace(input) {
 
 var tokens = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-  'operator': {reg: /^[\+|\-]/},
+  'operator': {reg: /^[\+|\-|\*|\/]/},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'if': {str: 'if '},
@@ -36,6 +36,7 @@ var tokens = {
   'elseif': {str: 'elseif '},
   'return': {str: 'return ', verbose:'return'},
   'throw': {str: 'throw ', verbose:'throw'},
+  'colon': {str: ':'},
   'name': {reg: /^\w+/},
   ',': {str: ','},
   '.': {str: '.'},
@@ -43,6 +44,9 @@ var tokens = {
   ')': {str: ')'},
   '{': {str: '{'},
   '}': {str: '}'},
+  '=>': {str: '=>'},
+  '<=': {str: '<='},
+  '==': {str: '=='},
   '=': {str: '='},
   'newline': {str: '\n'},
   'str': {func:strDef},
@@ -81,8 +85,9 @@ var rules = {
       ['DOTTED_PATH', 'w', '=', 'w', 'exp'],
     ],
     'func_def': [
-      ['def', 'name?', '(', ')', 'func_body'],
-      ['def', 'name?', '(', 'func_def_params', ')', 'func_body'],
+      ['def', 'name?:name', '(', ')', 'func_body:body', 'w',],
+      ['def', 'name?:name', '(', 'func_def_params:params', ')', 'w', 'func_body:body'],
+      ['(', 'func_def_params:params', ')', 'w', '=>', 'w', 'func_body:body'],
     ],
     'func_def_params': [
       ['name', '=', 'exp', ',', 'w', 'func_def_params'],
@@ -100,8 +105,8 @@ var rules = {
       ['exp']
     ],
     'func_body': [
-      ['w', 'exp'],
-      ['w', '{', 'STATEMENTS', '}']
+      ['exp:exp'],
+      ['{', 'STATEMENTS:stats', '}']
     ],
     'condition': [
       ['if:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}', 'conditionelseif:elseif'],
@@ -112,17 +117,34 @@ var rules = {
       ['w', 'else:type', '{', 'STATEMENTS:stats', '}'],
       ['w?']
     ],
+    'object_literal': [
+      ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}']
+    ],
+    'object_literal_body': [
+      ['str', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
+      ['str', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
+    ],
+    'operation': [
+      ['operator', 'w','exp'],
+      ['==', 'w','exp'],
+      ['=>', 'w','exp'],
+      ['<=', 'w','exp'],
+      ['>', 'w','exp'],
+      ['<', 'w','exp']
+    ],
     'exp': [
       ['func_def'],
       ['func_call'],
-      ['DOTTED_PATH', 'w', 'operator', 'w', 'exp'],
+      ['DOTTED_PATH', 'w', 'operation'],
       ['DOTTED_PATH'],
-      ['math', 'w', 'operator', 'w', 'exp'],
-      ['str', 'w', 'operator', 'w', 'exp'],
+      ['math', 'w', 'operation'],
       ['math'],
+      ['str', 'w', 'operation'],
       ['str'],
       ['(', 'exp', ')'],
+      ['object_literal'],
       ['new', 'exp'],
+      ['throw', 'exp']
     ]
 };
 
@@ -212,6 +234,7 @@ function parse(input, debug) {
         rule += `${YELLOW}${sr}${NC} `
       }
     }
+    console.log(tree)
     throw new Error(`
   ${RED}Parser error${NC}
   Best match was at rule ${tree.rule_name}[${tree.sub_rule_index}][${tree.sub_rule_token_index}] ${rule}
@@ -253,7 +276,13 @@ var backend = {
     generateCode(node.named.elseif)
   },
   'conditionelseif': node => {
-    if(!node.named) {
+    if(!node.named.type) {
+      return
+    }
+    if(node.named.type.type === 'else') {
+      output.push(` else {`)
+      generateCode(node.named.stats)
+      output.push(`}`)
       return
     }
     output.push(` ${node.named.type.value}(`)
@@ -263,6 +292,31 @@ var backend = {
     output.push(`}`)
     generateCode(node.named.elseif)
   },
+  'func_def': node => {
+    output.push(`function `)
+    if(node.named.name) {
+      output.push(node.named.name.value)
+    }
+    output.push(`(`)
+    generateCode(node.named.params)
+    output.push(`)`)
+    generateCode(node.named.body)
+  },
+  'func_body': node => {
+    if(node.named.exp) {
+      output.push(` { return `)
+      generateCode(node.named.exp)
+      output.push(` }`)
+    }
+    if(node.named.stats) {
+      output.push(` {`)
+      generateCode(node.named.stats)
+      output.push(`}`)
+    }
+  },
+  '==': node => {
+    output.push(`===`)
+  }
 }
 
 function generateCode(node) {
@@ -283,10 +337,28 @@ function generateCode(node) {
 }
 
 var code = `
-if 1 {
+
+a = {
+  'abc': 1,
+  'bc': 2
+}
+
+(a, b, c) => {
+  console.log('blop')
+}
+
+(a, b, c) => a + b / 1.039 * 2 == 1
+
+def blop(a, b) {
+  1
+}
+
+if (1 + 2) == 2 {
   1
 } elseif 1 {
-  2
+  2 + a
+} else {
+  throw new Error()
 }
 `
 var a = []

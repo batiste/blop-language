@@ -7,6 +7,12 @@ function tokenize(tokenDef, input) {
     var len = input.length;
     var char = 0;
     var index = 0;
+    for(i=0; i<keys.length; i++) {
+      key = keys[i];
+      if((/\:|\?/g).test(key)) {
+        throw new Error('Reserved word in token name')
+      }
+    }
 
     while(char < len) {
 
