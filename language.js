@@ -71,7 +71,7 @@ var rules = {
       ['return', 'exp'],
     ],
     'DOTTED_PATH': [
-      ['name', '.', 'func_call'],
+      ['name', 'func_call'],
       ['name', '.', 'DOTTED_PATH'],
       ['name']
     ],
@@ -87,7 +87,7 @@ var rules = {
     'func_def': [
       ['def', 'name?:name', '(', ')', 'func_body:body', 'w',],
       ['def', 'name?:name', '(', 'func_def_params:params', ')', 'w', 'func_body:body'],
-      ['(', 'func_def_params:params', ')', 'w', '=>', 'w', 'func_body:body'],
+      ['(', 'func_def_params:params', ')', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
     ],
     'func_def_params': [
       ['name', '=', 'exp', ',', 'w', 'func_def_params'],
@@ -96,8 +96,12 @@ var rules = {
       ['exp']
     ],
     'func_call': [
-      ['name', '(', ')'],
-      ['name', '(', 'func_call_params', ')'],
+      ['(', ')', '.', 'DOTTED_PATH'],
+      ['(', 'func_call_params', ')', '.', 'DOTTED_PATH'],
+      ['(', ')', 'func_call'],
+      ['(', 'func_call_params', ')', 'func_call'],
+      ['(', ')'],
+      ['(', 'func_call_params', ')'],
     ],
     'func_call_params': [
       ['name', '=', 'exp'],
@@ -134,13 +138,14 @@ var rules = {
     ],
     'exp': [
       ['func_def'],
-      ['func_call'],
       ['DOTTED_PATH', 'w', 'operation'],
       ['DOTTED_PATH'],
       ['math', 'w', 'operation'],
       ['math'],
       ['str', 'w', 'operation'],
       ['str'],
+      ['(', 'exp', ')', 'func_call'],
+      ['(', 'exp', ')', '.', 'DOTTED_PATH'],
       ['(', 'exp', ')'],
       ['object_literal'],
       ['new', 'exp'],
@@ -234,11 +239,11 @@ function parse(input, debug) {
         rule += `${YELLOW}${sr}${NC} `
       }
     }
-    console.log(tree)
+    console.log(tree.rule_item)
     throw new Error(`
   ${RED}Parser error${NC}
   Best match was at rule ${tree.rule_name}[${tree.sub_rule_index}][${tree.sub_rule_token_index}] ${rule}
-  token ${YELLOW}${replaceInvisibleChars(token.value)}${NC} doesn't match rule item ${YELLOW}${tree.rule_item}${NC}
+  token ${YELLOW}${replaceInvisibleChars(token.value)}${NC} doesn't match rule item ${YELLOW}${tree.rule_item.value}${NC}
   Context:
 ${streamContext(token.index, stream)}
   `)
@@ -261,8 +266,14 @@ function printTree(node, sp) {
     }
 }
 
-var nodeStack = [];
 var output = [];
+var namespace = {}
+
+function addToNamespace(name, node) {
+  if(namespace[name]) {
+    
+  }
+}
 
 var backend = {
   'def': node => output.push(`function `),
@@ -293,14 +304,24 @@ var backend = {
     generateCode(node.named.elseif)
   },
   'func_def': node => {
-    output.push(`function `)
-    if(node.named.name) {
-      output.push(node.named.name.value)
+    if(node.named['fat-arrow']) {
+      if(node.named.name) {
+        output.push(node.named.name.value)
+      }
+      output.push(`(`)
+      generateCode(node.named.params)
+      output.push(`) =>`)
+      generateCode(node.named.body)
+    } else {
+      output.push(`function `)
+      if(node.named.name) {
+        output.push(node.named.name.value)
+      }
+      output.push(`(`)
+      generateCode(node.named.params)
+      output.push(`)`)
+      generateCode(node.named.body)
     }
-    output.push(`(`)
-    generateCode(node.named.params)
-    output.push(`)`)
-    generateCode(node.named.body)
   },
   'func_body': node => {
     if(node.named.exp) {
@@ -347,7 +368,7 @@ a = {
   console.log('blop')
 }
 
-(a, b, c) => a + b / 1.039 * 2 == 1
+((a, b, c) => a + b / 1.039 * 2 + 1)
 
 def blop(a, b) {
   1
@@ -360,6 +381,14 @@ if (1 + 2) == 2 {
 } else {
   throw new Error()
 }
+
+bla.blop()()
+blop(1, 2)
+bla.blop()().hello()
+test()
+
+((a, b) => a + b)(1, 2)
+
 `
 var a = []
 for(var i=0; i<1; i++) {
