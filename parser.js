@@ -1,5 +1,3 @@
-
-
 // This is a left to right top down grammar parser
 
 // This grammar parser will work with non left recursive rules
