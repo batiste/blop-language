@@ -25,7 +25,7 @@ function singleSpace(input) {
 
 var tokensDefinition = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-  'operator': {reg: /^[\+|\-|\*|\/]/},
+  'operator': {reg: /^[\+|\-|\*]/},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'if': {str: 'if '},
@@ -41,6 +41,9 @@ var tokensDefinition = {
   ')': {str: ')'},
   '{': {str: '{'},
   '}': {str: '}'},
+  '/': {str: '/'},
+  '[': {str: '['},
+  ']': {str: ']'},
   '=>': {str: '=>'},
   '<=': {str: '<='},
   '==': {str: '=='},

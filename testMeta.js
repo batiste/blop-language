@@ -2,66 +2,58 @@
 // a grammar and a token definition
 const grammar = require('./grammar').grammar
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
+const backend = require("./backend")
 const fs = require('fs');
-const meta = require('./meta');
+// const meta = require('./meta');
+const meta = require('./metaSync');
+const utils = require('./utils');
+
+const { performance } = require('perf_hooks');
+
+performance.mark('A');
 
 fs.writeFileSync("./out.js", meta.generate(grammar, tokensDefinition, false).join("\n"), function(err) {
     if(err) {
       console.log(err);
       return
     }
-}); 
+});
+
+performance.mark('B');
+performance.measure('Writting parser code', 'A', 'B')
 
 const tokenize = require('./tokenizer').tokenize
 const out = require('./out')
+const code = require('./codeExample').code
 
-var code = `
-a = {
-  'abc': 1,
-  'bc': 2
+performance.mark('C');
+
+// const stream = tokenize(tokensDefinition, code)
+let stream = out.tokenize(tokensDefinition, code)
+
+performance.mark('D');
+performance.measure('Tokenization', 'C', 'D')
+
+let tree = out.parse(stream, 0)
+
+if(!tree.success) {
+  utils.displayError(code, stream, tokensDefinition, grammar, tree)
 }
 
-(a, b, c) => {
-  console.log('blop')
-}
+performance.mark('E');
+performance.measure('Parsing', 'D', 'E')
 
-((a, b, c) => a + b / 1.039 * 2 + 1)
+let output = backend.generateCode(tree).join('')
 
-def blop(a, b) {
-  1
-}
+performance.mark('F');
+performance.measure('Code generation', 'E', 'F')
 
-if (1 + 2) == 2 {
-  1
-} elseif 1 {
-  2 + a
-} else {
-  throw new Error()
-}
+console.log(output)
 
-bla.blop()()
-blop(1, 2)
-bla.blop()().hello()
-test()
+const measurements = performance.getEntriesByType('measure');
+measurements.forEach(measurement => {
+  // I'm going to make the logs colour-coded, in this case I'm using Green
+  console.log('\x1b[32m%s\x1b[0m', measurement.name + ' ' + measurement.duration);
+})
 
-((a, b) => a + b)(1, 2)
-
-`
-
-const stream = tokenize(tokensDefinition, code)
-const tree = out.parse(stream, 0)
-
-let output = []
-function generateCode(node) {
-  if(node.value) {
-    output.push(node.value)
-  }
-  if(node.children) {
-    for(var i=0; i<node.children.length; i++) {
-      generateCode(node.children[i])
-    }
-  }
-}
-console.log(`success: ${tree.success}`)
-generateCode(tree)
-console.log(output.join(''))
+eval(output)

@@ -3,27 +3,7 @@
 // This grammar parser will work with non left recursive rules
 // Left recursive grammar will create a infinite loops
 
-function preprocessRules(rules) {
-  return Object.keys(rules).reduce((accu, key) => {
-    accu[key] = rules[key].map(
-      subRule => subRule.map(subRuleItem => {
-        const values = subRuleItem.split(':')
-        let optional = false;
-        if(values[0].endsWith('?')) {
-          values[0] = values[0].substring(0, values[0].length - 1);
-          optional = true
-        }
-        return {
-          value: values[0],
-          alias: values[1],
-          optional
-        }
-      })
-    )
-    return accu
-  }, {})
-}
-
+const preprocessGrammar = require('./utils').preprocessGrammar
 
 function parse(rules, stream, debug) {
     "use strict";

@@ -1,10 +1,8 @@
 
 var grammar = {
-    'START': [['STATEMENTS', 'EOS']],
+    'START': [['STATEMENTS*', 'EOS']],
     'STATEMENTS': [
-      ['newline', 'w?', 'W?', 'STATEMENT', 'STATEMENTS'], // this recursion handle empty new lines
-      ['newline', 'w?', 'W?', 'STATEMENT'],
-      ['newline', 'w?', 'W?', 'STATEMENTS'],
+      ['newline', 'w?', 'W?', 'STATEMENT'], // this recursion handle empty new lines
       ['newline', 'w?', 'W?']
     ],
     'STATEMENT': [
@@ -13,11 +11,12 @@ var grammar = {
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
       ['exp'],
+      ['virtual_node'],
       ['return', 'exp'],
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
-      ['name', '.', 'DOTTED_PATH'],
+      ['name', '.', 'DOTTED_PATH*'],
       ['name']
     ],
     'math': [
@@ -30,15 +29,19 @@ var grammar = {
       ['DOTTED_PATH', 'w', '=', 'w', 'exp'],
     ],
     'func_def': [
-      ['def', 'name?:name', '(', ')', 'func_body:body', 'w',],
-      ['def', 'name?:name', '(', 'func_def_params:params', ')', 'w', 'func_body:body'],
-      ['(', 'func_def_params:params', ')', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+      ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
+      ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
+      ['(', 'func_def_params:params', ')', 'annotation?', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+      ['(', ')', 'annotation?', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+    ],
+    'annotation': [
+      ['colon', 'w' ,'name'],
     ],
     'func_def_params': [
-      ['name', '=', 'exp', ',', 'w', 'func_def_params'],
-      ['name', '=', 'exp'],
-      ['exp', ',', 'w', 'func_def_params'],
-      ['exp']
+      ['name', '=', 'exp', 'annotation?', ',', 'w', 'func_def_params'],
+      ['name', '=', 'exp', 'annotation?'],
+      ['exp', 'annotation?', ',', 'w', 'func_def_params'],
+      ['exp', 'annotation?']
     ],
     'func_call': [
       ['(', ')', '.', 'DOTTED_PATH'],
@@ -55,15 +58,23 @@ var grammar = {
     ],
     'func_body': [
       ['exp:exp'],
-      ['{', 'STATEMENTS:stats', '}']
+      ['{', 'STATEMENTS*:stats', '}']
+    ],
+    'array_literal': [
+      ['[', 'newline?', 'W?', 'array_literal_body', ']'],
+      ['[', ']'],
+    ],
+    'array_literal_body': [
+      ['exp', ',', 'w', 'newline?', 'W?', 'array_literal_body'],
+      ['exp'],
     ],
     'condition': [
-      ['if:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}', 'conditionelseif:elseif'],
+      ['if:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
     ],
     'conditionelseif': [
-      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}', 'conditionelseif:elseif'],
-      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS:stats', '}'],
-      ['w', 'else:type', '{', 'STATEMENTS:stats', '}'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
+      ['w', 'else:type', '{', 'STATEMENTS*:stats', '}'],
       ['w?']
     ],
     'object_literal': [
@@ -72,6 +83,13 @@ var grammar = {
     'object_literal_body': [
       ['str', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
       ['str', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
+    ],
+    'virtual_node': [
+      ['<', 'name:opening', 'w', '/', '>'],
+      ['<', 'name:opening', '>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', (node) => node.named.opening.value === node.named.closing.value], // (node) => node.named.opening.value === node.named.closing.value
+    ],
+    'virtual_node_assign': [
+      ['=', 'w', 'exp:exp']
     ],
     'operation': [
       ['operator', 'w','exp'],
@@ -93,6 +111,8 @@ var grammar = {
       ['(', 'exp', ')', '.', 'DOTTED_PATH'],
       ['(', 'exp', ')'],
       ['object_literal'],
+      ['array_literal'],
+      ['virtual_node_assign'],
       ['new', 'exp'],
       ['throw', 'exp']
     ]
