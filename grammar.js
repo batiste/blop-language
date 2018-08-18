@@ -12,7 +12,7 @@ var grammar = {
                   // the more specific rules need to come first
       ['exp'],
       ['virtual_node'],
-      ['return', 'exp'],
+      ['return', 'exp'],  
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
@@ -26,7 +26,9 @@ var grammar = {
         ['number']
     ],
     'assign': [
-      ['DOTTED_PATH', 'w', '=', 'w', 'exp'],
+      ['name:name', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
+      ['name:name', 'w', '=', 'w', 'exp:exp'],
+      ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp']
     ],
     'func_def': [
       ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
@@ -85,11 +87,17 @@ var grammar = {
       ['str', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
     ],
     'virtual_node': [
-      ['<', 'name:opening', 'w', '/', '>'],
-      ['<', 'name:opening', '>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', (node) => node.named.opening.value === node.named.closing.value], // (node) => node.named.opening.value === node.named.closing.value
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/', '>'],
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', 
+        (node) => node.named.opening.value === node.named.closing.value], 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '<', '/', 'name:closing', '>', 
+        (node) => node.named.opening.value === node.named.closing.value], 
     ],
     'virtual_node_assign': [
       ['=', 'w', 'exp:exp']
+    ],
+    'virtual_node_attributes': [
+      ['w', 'name:name', '=', 'exp:exp']
     ],
     'operation': [
       ['operator', 'w','exp'],

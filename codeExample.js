@@ -5,6 +5,20 @@ v = {"h": (name, attrs, children) => [
   attrs]
 }
 
+abc = 10
+abc = 100 + 213 + 2321 + 1.00
+
+def testNamespace() {
+  abc = 290
+  abc = 343
+  blop = 123
+  () => {
+    abc = 323243
+    blop := 323243
+  }
+  return b
+}
+
 def fib(n: number): number {
   if n < 2 {
     return n
@@ -14,21 +28,26 @@ def fib(n: number): number {
 
 def component(number) {
    def test() {
-     <hello>
-      = number
-     </hello>
+     if 1 > 10 {
+       <hello>number + 1</hello>
+     } else {
+       <span>
+        = 1
+       </span>
+     }
    }
-   <test>
-     = fib(5)
-     <hello>
+   <div>
+     = fib(number)
+     <hello id="blop" className=1 + 2 + 1 blop="héllo">
        if number == 1 {
-         = fib(6)
+         = fib(number)
        } else {
-         = fib(8)
+         = "Héllo"
+         = "Blop"
        }
        = test()
      </hello>
-  </test>
+  </div>
 }
 
 console.log(component(4))

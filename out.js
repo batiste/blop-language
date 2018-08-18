@@ -383,13 +383,66 @@ function assign_0(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "assign", subRule: 0, type: "assign", named}
-  const _rule_0 = DOTTED_PATH(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
   if(stream[i].type !== 'w') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'explicit_assign') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['explicit_assign'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function assign_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "assign", subRule: 1, type: "assign", named}
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 1, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 1, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
@@ -397,7 +450,7 @@ function assign_0(stream, index) {
   children.push(stream[i]); i++;
   if(stream[i].type !== '=') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure = {rule_name: 'assign', sub_rule_index: 1, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
@@ -405,7 +458,50 @@ function assign_0(stream, index) {
   children.push(stream[i]); i++;
   if(stream[i].type !== 'w') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'assign', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure = {rule_name: 'assign', sub_rule_index: 1, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function assign_2(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "assign", subRule: 2, type: "assign", named}
+  const _rule_0 = DOTTED_PATH(stream, i);
+  if(!_rule_0) return;
+    named['path'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '=') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'assign', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
@@ -413,6 +509,7 @@ function assign_0(stream, index) {
   children.push(stream[i]); i++;
   const _rule_1 = exp(stream, i);
   if(!_rule_1) return;
+    named['exp'] = _rule_1
   children.push(_rule_1);
   i = _rule_1.last_index;
   node.success = i === stream.length; node.last_index = i
@@ -420,7 +517,7 @@ function assign_0(stream, index) {
 }
 
 function assign(stream, index) {
-  return assign_0(stream, index)
+  return assign_0(stream, index) || assign_1(stream, index) || assign_2(stream, index)
 }
 function func_def_0(stream, index) {
   let i = index;
@@ -1726,14 +1823,17 @@ function virtual_node_0(stream, index) {
   }
     named['opening'] = stream[i]
   children.push(stream[i]); i++;
-  if(stream[i].type !== 'w') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'virtual_node', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
-      best_failure_index = i
-     }
-     return;
+  let _rule_0 = virtual_node_attributes(stream, i);
+  while(_rule_0) {
+    named['attrs'] ? null : named['attrs'] = []
+    named['attrs'].push(_rule_0)
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+    _rule_0 = virtual_node_attributes(stream, i);
   }
-  children.push(stream[i]); i++;
+  if(stream[i].type == 'w') {
+    children.push(stream[i]); i++;
+  }
   if(stream[i].type !== '/') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'virtual_node', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
@@ -1776,6 +1876,14 @@ function virtual_node_1(stream, index) {
   }
     named['opening'] = stream[i]
   children.push(stream[i]); i++;
+  let _rule_0 = virtual_node_attributes(stream, i);
+  while(_rule_0) {
+    named['attrs'] ? null : named['attrs'] = []
+    named['attrs'].push(_rule_0)
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+    _rule_0 = virtual_node_attributes(stream, i);
+  }
   if(stream[i].type !== '>') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'virtual_node', sub_rule_index: 1, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
@@ -1784,13 +1892,13 @@ function virtual_node_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  let _rule_0 = STATEMENTS(stream, i);
-  while(_rule_0) {
+  let _rule_1 = STATEMENTS(stream, i);
+  while(_rule_1) {
     named['stats'] ? null : named['stats'] = []
-    named['stats'].push(_rule_0)
-    children.push(_rule_0);
-    i = _rule_0.last_index;
-    _rule_0 = STATEMENTS(stream, i);
+    named['stats'].push(_rule_1)
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = STATEMENTS(stream, i);
   }
   if(stream[i].type !== '<') {
     if(i > best_failure_index) {
@@ -1830,8 +1938,89 @@ if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ re
   return node
 }
 
+function virtual_node_2(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "virtual_node", subRule: 2, type: "virtual_node", named}
+  if(stream[i].type !== '<') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['opening'] = stream[i]
+  children.push(stream[i]); i++;
+  let _rule_0 = virtual_node_attributes(stream, i);
+  while(_rule_0) {
+    named['attrs'] ? null : named['attrs'] = []
+    named['attrs'].push(_rule_0)
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+    _rule_0 = virtual_node_attributes(stream, i);
+  }
+  if(stream[i].type !== '>') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_1 = exp(stream, i);
+  if(!_rule_1) return;
+    named['exp'] = _rule_1
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  if(stream[i].type !== '<') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '/') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['closing'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '>') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node', sub_rule_index: 2, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ return }
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function virtual_node(stream, index) {
-  return virtual_node_0(stream, index) || virtual_node_1(stream, index)
+  return virtual_node_0(stream, index) || virtual_node_1(stream, index) || virtual_node_2(stream, index)
 }
 function virtual_node_assign_0(stream, index) {
   let i = index;
@@ -1865,6 +2054,48 @@ function virtual_node_assign_0(stream, index) {
 
 function virtual_node_assign(stream, index) {
   return virtual_node_assign_0(stream, index)
+}
+function virtual_node_attributes_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "virtual_node_attributes", subRule: 0, type: "virtual_node_attributes", named}
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node_attributes', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node_attributes', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '=') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'virtual_node_attributes', sub_rule_index: 0, sub_rule_token_index: i - index, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function virtual_node_attributes(stream, index) {
+  return virtual_node_attributes_0(stream, index)
 }
 function operation_0(stream, index) {
   let i = index;
@@ -2395,9 +2626,6 @@ function _tokenize(tokenDef, input, stream) {
   if(input.startsWith(`throw `)) {
    return [`throw `, `throw`];
   }
-  if(input.startsWith(`:`)) {
-   return [`:`, `colon`];
-  }
   match = input.match(tokenDef.name.reg);
   if(match !== null) {
    return [match[0], `name`];
@@ -2444,8 +2672,14 @@ function _tokenize(tokenDef, input, stream) {
   if(input.startsWith(`<`)) {
    return [`<`, `<`];
   }
+  if(input.startsWith(`:=`)) {
+   return [`:=`, `explicit_assign`];
+  }
   if(input.startsWith(`=`)) {
    return [`=`, `=`];
+  }
+  if(input.startsWith(`:`)) {
+   return [`:`, `colon`];
   }
   if(input.startsWith(`
 `)) {
