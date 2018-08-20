@@ -20,9 +20,9 @@ var grammar = {
       ['name']
     ],
     'math': [
-        ['(', 'math', ')', 'w', 'operator', 'w', 'math'],
+        ['(', 'math', ')', 'w', 'operator', 'w', 'exp'],
         ['(', 'math', ')'],
-        ['number' , 'w', 'operator', 'w', 'math'],
+        ['number' , 'w', 'operator', 'w', 'exp'],
         ['number']
     ],
     'assign': [
@@ -83,9 +83,10 @@ var grammar = {
       ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}']
     ],
     'object_literal_body': [
-      ['str', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
-      ['str', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
+      ['object_literal_key', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
+      ['object_literal_key', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
     ],
+    'object_literal_key' : [['str'], ['name']],
     'virtual_node': [
       ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/', '>'],
       ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', 
@@ -119,6 +120,7 @@ var grammar = {
       ['(', 'exp', ')', '.', 'DOTTED_PATH'],
       ['(', 'exp', ')'],
       ['object_literal'],
+      ['array_literal', '.', 'name', 'func_call'],
       ['array_literal'],
       ['virtual_node_assign'],
       ['new', 'exp'],

@@ -49,9 +49,9 @@ const backend = {
     }
     popNameSpaceVN()
     if(parent) {
-      output.push(` ${parent}.push(v.h('${node.named.opening.value}', ${_uid}_attrs, ${_uid}));`)
+      output.push(` ${parent}.push(m('${node.named.opening.value}', ${_uid}_attrs, ${_uid}));`)
     }  else {
-      output.push(` return v.h('${node.named.opening.value}', ${_uid}_attrs, ${_uid});`)
+      output.push(` return m('${node.named.opening.value}', ${_uid}_attrs, ${_uid});`)
     }
   },
   'virtual_node_assign': node => {

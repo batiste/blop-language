@@ -27,6 +27,7 @@ function streamContext(index, stream) {
     }
     i--
   }
+  
   var v = replaceInvisibleChars(stream[index].value);
 
   str = str + RED + v + NC
@@ -48,12 +49,10 @@ function streamContext(index, stream) {
 
 
 function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
-
     var sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
     var rule = ''
     var token = bestFailure.token
     let = failingToken = ''
-    console.log(bestFailure, grammar[bestFailure.rule_name])
     for(i=0; i<sub_rules.length; i++) {
       var sr = sub_rules[i];
       if(tokensDefinition[sr] && tokensDefinition[sr].verbose) {
@@ -66,7 +65,6 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
         rule += `${YELLOW}${sr}${NC} `
       }
     }
-    console.log(bestFailure.rule_item)
     throw new Error(`
   ${RED}Parser error${NC}
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}

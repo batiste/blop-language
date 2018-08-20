@@ -12,7 +12,7 @@ const { performance } = require('perf_hooks');
 
 performance.mark('A');
 
-fs.writeFileSync("./out.js", meta.generate(grammar, tokensDefinition, false).join("\n"), function(err) {
+fs.writeFileSync("./parser.js", meta.generate(grammar, tokensDefinition, false).join("\n"), function(err) {
     if(err) {
       console.log(err);
       return
@@ -23,7 +23,7 @@ performance.mark('B');
 performance.measure('Writting parser code', 'A', 'B')
 
 const tokenize = require('./tokenizer').tokenize
-const out = require('./out')
+const out = require('./parser')
 const code = require('./codeExample').code
 
 performance.mark('C');
@@ -48,12 +48,8 @@ let output = backend.generateCode(tree).join('')
 performance.mark('F');
 performance.measure('Code generation', 'E', 'F')
 
-console.log(output)
-
 const measurements = performance.getEntriesByType('measure');
 measurements.forEach(measurement => {
   // I'm going to make the logs colour-coded, in this case I'm using Green
   console.log('\x1b[32m%s\x1b[0m', measurement.name + ' ' + measurement.duration);
 })
-
-eval(output)
