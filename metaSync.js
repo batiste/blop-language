@@ -143,7 +143,7 @@ function generateTokenizer(tokenDef) {
       throw new Error("Tokenizer error: Invalid token " + key + " without a reg, str or func property");
     }
   }
-  output.push(`  return null`)
+  output.push(`  return [null, \`${key}\`]`)
   output.push('}')
   
   output.push('function tokenize(tokenDef, input) {')
@@ -166,7 +166,7 @@ function generateTokenizer(tokenDef) {
       if(lastToken) {
         lastToken.pointer += lastToken.value.length;
       }
-      let msg = "Tokenizer error, no matching token found";
+      let msg = "Tokenizer error, no matching token found for " + input.slice(0, 26);
       if(lastToken) {
         msg += "Before token of type " + lastToken.type + ": " + lastToken.value;
       }

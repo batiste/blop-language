@@ -1,8 +1,11 @@
 
 var grammar = {
-    'START': [['STATEMENTS*', 'EOS']],
+    'START': [
+      ['STATEMENTS*', 'EOS'],
+      ['STATEMENT', 'STATEMENTS*', 'EOS']
+    ],
     'STATEMENTS': [
-      ['newline', 'w?', 'W?', 'STATEMENT'], // this recursion handle empty new lines
+      ['newline', 'w?', 'W?', 'STATEMENT'],
       ['newline', 'w?', 'W?']
     ],
     'STATEMENT': [

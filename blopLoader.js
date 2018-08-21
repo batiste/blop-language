@@ -23,5 +23,6 @@ module.exports = function(source) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree)
   }
   let output = backend.generateCode(tree).join('')
+  console.log(output)
   return output;
 }

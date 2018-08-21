@@ -24,8 +24,35 @@ function START_0(stream, index) {
   return node
 }
 
+function START_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "START", subRule: 1, type: "START", named}
+  const _rule_0 = STATEMENT(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  let _rule_1 = STATEMENTS(stream, i);
+  while(_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = STATEMENTS(stream, i);
+  }
+  if(stream[i].type !== 'EOS') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'START', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function START(stream, index) {
-  return START_0(stream, index)
+  return START_0(stream, index) || START_1(stream, index)
 }
 function STATEMENTS_0(stream, index) {
   let i = index;
@@ -2761,7 +2788,7 @@ function _tokenize(tokenDef, input, stream) {
   if(match !== null) {
    return [match[0], `W`];
   }
-  return null
+  return [null, `W`]
 }
 function tokenize(tokenDef, input) {
   let stream = [], lastToken, i, key, candidate=null, match, token
@@ -2783,7 +2810,7 @@ function tokenize(tokenDef, input) {
       if(lastToken) {
         lastToken.pointer += lastToken.value.length;
       }
-      let msg = "Tokenizer error, no matching token found";
+      let msg = "Tokenizer error, no matching token found for " + input.slice(0, 26);
       if(lastToken) {
         msg += "Before token of type " + lastToken.type + ": " + lastToken.value;
       }

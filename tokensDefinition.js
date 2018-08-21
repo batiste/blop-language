@@ -3,7 +3,7 @@
 function strDef(input) {
   var first, i, ch;
   first = input.charAt(0);
-  if(first === '"' || first === "'") {
+  if(first === '"' || first === "'" || first === "`") {
     i = 1;
     while(input.charAt(i)){
       ch = input.charAt(i);

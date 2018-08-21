@@ -1,6 +1,6 @@
-let output = [];
-let namespacesVN = [{}]
-let namespacesFCT = [{}]
+let output;
+let namespacesVN;
+let namespacesFCT;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1]
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN()
@@ -18,6 +18,9 @@ const uid = () => {
 
 const backend = {
   'def': node => output.push(`function `),
+  'str': node => {
+    output.push('`' + node.value.slice(1, -1) + '`')
+  },
   'EOS': node => '',
   'annotation': node => '',
   'assign': node => {
@@ -48,17 +51,24 @@ const backend = {
       output.push(`);`)
     }
     popNameSpaceVN()
+    let start = node.named.opening.value
+    if(!/^[A-Z]/.test(node.named.opening.value)) {
+      start = `'${node.named.opening.value}'`
+    }
+    
     if(parent) {
-      output.push(` ${parent}.push(m('${node.named.opening.value}', ${_uid}_attrs, ${_uid}));`)
+      output.push(` ${parent}.push(m(${start}, ${_uid}_attrs, ${_uid}));`)
     }  else {
-      output.push(` return m('${node.named.opening.value}', ${_uid}_attrs, ${_uid});`)
+      output.push(` return m(${start}, ${_uid}_attrs, ${_uid});`)
     }
   },
   'virtual_node_assign': node => {
     const _uid = currentNameSpaceVN()['currentVNode']
-    output.push(`${_uid}.push(`)
+    const a_uid = uid()
+    output.push(`let ${a_uid} = `)
     generateCode(node.named.exp)
-    output.push(`);`)
+    output.push(`;`)
+    output.push(`Array.isArray(${a_uid}) ? ${a_uid}.forEach(i => ${_uid}.push(i)) : ${_uid}.push(${a_uid});`)
   },
   'virtual_node_attributes': node => {
     const _uid = currentNameSpaceVN()['currentVNode']
@@ -80,7 +90,7 @@ const backend = {
     }
     if(node.named.type.type === 'else') {
       output.push(` else {`)
-    node.named.stats.forEach(stat => generateCode(stat))
+      node.named.stats.forEach(stat => generateCode(stat))
       output.push(`}`)
       return
     }
@@ -92,8 +102,10 @@ const backend = {
     generateCode(node.named.elseif)
   },
   'func_def': node => {
+    const ns = currentNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
+        ns[node.named.name.value] = node.named.name
         output.push(node.named.name.value)
       }
       output.push(`(`)
@@ -103,6 +115,7 @@ const backend = {
     } else {
       output.push(`function `)
       if(node.named.name) {
+        ns[node.named.name.value] = node.named.name
         output.push(node.named.name.value)
       }
       output.push(`(`)
@@ -143,16 +156,22 @@ function generateCode(node) {
       }
     }
   }
-
   return output
 }
 
-
-
 module.exports = {
   generateCode: (node) => { 
-    namespace = {}
     output = []
-    return generateCode(node)
+    output = [];
+    namespacesVN = [{}]
+    namespacesFCT = [{}]
+    generateCode(node)
+    const ns = currentNameSpaceFCT()
+    output.push(`module.exports = {`)
+    Object.keys(ns).forEach(key => {
+      output.push(` ${key},`)
+    })
+    output.push(`}`)
+    return output
   }
 }

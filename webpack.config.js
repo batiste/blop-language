@@ -1,8 +1,9 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
-  entry: './public/test.blop.js',
+  entry: './public/index.blop.js',
   output: {
     path: path.resolve(__dirname, 'public', 'dist'),
     filename: 'bundle.js'
@@ -19,5 +20,8 @@ module.exports = {
         ]
       }
     ]
-  }
+  },
+  plugins: [
+    new webpack.SourceMapDevToolPlugin({})
+  ]
 };
