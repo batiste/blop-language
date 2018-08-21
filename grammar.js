@@ -15,6 +15,8 @@ var grammar = {
                   // the more specific rules need to come first
       ['exp'],
       ['virtual_node'],
+      ['for_loop'],
+      ['while_loop'],
       ['return', 'exp'],  
     ],
     'DOTTED_PATH': [
@@ -32,6 +34,9 @@ var grammar = {
       ['name:name', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
       ['name:name', 'w', '=', 'w', 'exp:exp'],
       ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp']
+    ],
+    'for_loop': [
+      ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
     ],
     'func_def': [
       ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
@@ -81,6 +86,9 @@ var grammar = {
       ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
       ['w', 'else:type', '{', 'STATEMENTS*:stats', '}'],
       ['w?']
+    ],
+    'while_loop': [
+      ['while', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
     ],
     'object_literal': [
       ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}']

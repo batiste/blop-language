@@ -41,40 +41,48 @@ const backend = {
   'virtual_node': node => {
     const parent = currentNameSpaceVN()['currentVNode']
     const _uid = uid()
-    output.push(`const ${_uid} = []; ${_uid}_attrs = {};`)
+    output.push(`const ${_uid}_c = []; const ${_uid}_a = {};`)
     addNameSpaceVN()['currentVNode'] = _uid
     node.named.attrs ? node.named.attrs.forEach(attr => generateCode(attr)) : null
     node.named.stats ? node.named.stats.forEach(stat => generateCode(stat)) : null
     if(node.named.exp) {
-      output.push(` ${_uid}.push(`)
+      output.push(`${_uid}_c.push(`)
       generateCode(node.named.exp)
-      output.push(`);`)
+      output.push(`);\n `)
     }
     popNameSpaceVN()
     let start = node.named.opening.value
     if(!/^[A-Z]/.test(node.named.opening.value)) {
       start = `'${node.named.opening.value}'`
     }
-    
+    output.push(`const ${_uid} = m(${start}, ${_uid}_a, ${_uid}_c); `)
     if(parent) {
-      output.push(` ${parent}.push(m(${start}, ${_uid}_attrs, ${_uid}));`)
-    }  else {
-      output.push(` return m(${start}, ${_uid}_attrs, ${_uid});`)
+      output.push(`${parent}_c.push(${_uid}); `)
+    } else {
+      output.push(`return ${_uid}; `)
     }
+    output.push(``)
   },
   'virtual_node_assign': node => {
     const _uid = currentNameSpaceVN()['currentVNode']
     const a_uid = uid()
     output.push(`let ${a_uid} = `)
     generateCode(node.named.exp)
-    output.push(`;`)
-    output.push(`Array.isArray(${a_uid}) ? ${a_uid}.forEach(i => ${_uid}.push(i)) : ${_uid}.push(${a_uid});`)
+    output.push(`; Array.isArray(${a_uid}) ? ${a_uid}.forEach(_i => ${_uid}_c.push(_i)) : ${_uid}_c.push(${a_uid}); `)
   },
   'virtual_node_attributes': node => {
     const _uid = currentNameSpaceVN()['currentVNode']
-    output.push(` ${_uid}_attrs['${node.named.name.value}'] = `)
+    output.push(` ${_uid}_a['${node.named.name.value}'] = `)
     generateCode(node.named.exp)
-    output.push(";")
+    output.push("; ")
+  },
+  'for_loop': node => {
+    const value = node.named.value.value
+    output.push(`Object.keys(`)
+    generateCode(node.named.exp)
+    output.push(`).forEach(${value} => {`)
+    node.named.stats ? node.named.stats.forEach(stat => generateCode(stat)) : null
+    output.push('});')
   },
   'condition': node => {
     output.push(`${node.named.type.value}(`)
@@ -100,6 +108,13 @@ const backend = {
     node.named.stats.forEach(stat => generateCode(stat))
     output.push(`}`)
     generateCode(node.named.elseif)
+  },
+  'while_loop': node => {
+    output.push(`while(`)
+    output.push(generateCode(node.named.exp))
+    output.push(`) {`)
+    node.named.stats.forEach(stat => generateCode(stat))
+    output.push(`}`)
   },
   'func_def': node => {
     const ns = currentNameSpaceFCT()

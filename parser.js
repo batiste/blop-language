@@ -164,9 +164,35 @@ function STATEMENT_4(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "STATEMENT", subRule: 4, type: "STATEMENT", named}
+  const _rule_0 = for_loop(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function STATEMENT_5(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "STATEMENT", subRule: 5, type: "STATEMENT", named}
+  const _rule_0 = while_loop(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function STATEMENT_6(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "STATEMENT", subRule: 6, type: "STATEMENT", named}
   if(stream[i].type !== 'return') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'STATEMENT', sub_rule_index: 4, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure = {rule_name: 'STATEMENT', sub_rule_index: 6, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
@@ -181,7 +207,7 @@ function STATEMENT_4(stream, index) {
 }
 
 function STATEMENT(stream, index) {
-  return STATEMENT_0(stream, index) || STATEMENT_1(stream, index) || STATEMENT_2(stream, index) || STATEMENT_3(stream, index) || STATEMENT_4(stream, index)
+  return STATEMENT_0(stream, index) || STATEMENT_1(stream, index) || STATEMENT_2(stream, index) || STATEMENT_3(stream, index) || STATEMENT_4(stream, index) || STATEMENT_5(stream, index) || STATEMENT_6(stream, index)
 }
 function DOTTED_PATH_0(stream, index) {
   let i = index;
@@ -546,6 +572,88 @@ function assign_2(stream, index) {
 
 function assign(stream, index) {
   return assign_0(stream, index) || assign_1(stream, index) || assign_2(stream, index)
+}
+function for_loop_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "for_loop", subRule: 0, type: "for_loop", named}
+  if(stream[i].type !== 'for') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['value'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'in') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_1 = STATEMENTS(stream, i);
+  while(_rule_1) {
+    named['stats'] ? null : named['stats'] = []
+    named['stats'].push(_rule_1)
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = STATEMENTS(stream, i);
+  }
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function for_loop(stream, index) {
+  return for_loop_0(stream, index)
 }
 function func_def_0(stream, index) {
   let i = index;
@@ -1675,6 +1783,63 @@ function conditionelseif_3(stream, index) {
 function conditionelseif(stream, index) {
   return conditionelseif_0(stream, index) || conditionelseif_1(stream, index) || conditionelseif_2(stream, index) || conditionelseif_3(stream, index)
 }
+function while_loop_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "while_loop", subRule: 0, type: "while_loop", named}
+  if(stream[i].type !== 'while') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'while_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'while_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'while_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_1 = STATEMENTS(stream, i);
+  while(_rule_1) {
+    named['stats'] ? null : named['stats'] = []
+    named['stats'].push(_rule_1)
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = STATEMENTS(stream, i);
+  }
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'while_loop', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function while_loop(stream, index) {
+  return while_loop_0(stream, index)
+}
 function object_literal_0(stream, index) {
   let i = index;
   let children = [];
@@ -2704,8 +2869,17 @@ function _tokenize(tokenDef, input, stream) {
   if(input.startsWith(`if `)) {
    return [`if `, `if`];
   }
+  if(input.startsWith(`while `)) {
+   return [`while `, `while`];
+  }
   if(input.startsWith(`else `)) {
    return [`else `, `else`];
+  }
+  if(input.startsWith(`for `)) {
+   return [`for `, `for`];
+  }
+  if(input.startsWith(`in `)) {
+   return [`in `, `in`];
   }
   if(input.startsWith(`elseif `)) {
    return [`elseif `, `elseif`];

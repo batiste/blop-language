@@ -17,15 +17,12 @@ Title = {
 
 Hello = {
   view: () => {
-     <div>
+    <div>
        <Title size=24>
           = "We have "
           = count
           = " stuff"
        </Title>
-       [1, 2, 3].forEach((i) => {
-         <p class=`hello${i}`>"Hello " + module.test(i)</p>
-       })
        <button onclick=click>"Increase count: ${count}"</button>
     </div>
   }
