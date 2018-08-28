@@ -7,6 +7,20 @@ def click() {
   count := count + 1
 }
 
+def expressionVirtualNode(c) {
+  a = null
+  if c < 5 {
+    a = <i>1 + c</i>
+  } else {
+    a = "Too small"
+  }
+  b = <i>
+    = ", "
+    = c * c
+  </i>
+  return [a, b]
+}
+
 Title = {
   view: (vnode) => {
     <h1 style=`font-size: ${vnode.attrs.size || 18}px`>
@@ -15,15 +29,23 @@ Title = {
   }
 }
 
+Button = {
+  view: (vnode) => {
+    <button onclick=vnode.attrs.onclick style=`font-size: 18px; padding: 1em`>
+      = vnode.children
+    </button>
+  }
+}
+
 Hello = {
   view: () => {
     <div>
        <Title size=24>
           = "We have "
-          = count
+          = expressionVirtualNode(count)
           = " stuff"
        </Title>
-       <button onclick=click>"Increase count: ${count}"</button>
+       <Button onclick=click>"Increase count: ${count}"</Button>
     </div>
   }
 }

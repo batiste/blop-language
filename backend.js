@@ -1,4 +1,3 @@
-let output;
 let namespacesVN;
 let namespacesFCT;
 
@@ -11,40 +10,68 @@ const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT()
 const popNameSpaceFCT = () => namespacesFCT.pop()
 
 uid_i = 0;
-const uid = () => { 
+const uid = () => {
   uid_i++;
-  return `_uid_${uid_i}`
+  return `__${uid_i}`
 }
 
 const backend = {
-  'def': node => output.push(`function `),
-  'str': node => {
-    output.push('`' + node.value.slice(1, -1) + '`')
-  },
-  'EOS': node => '',
-  'annotation': node => '',
+  'def': node => [`function `],
+  'str': node => ['`' + node.value.slice(1, -1) + '`'],
+  'EOS': node => [],
+  'annotation': node => [],
   'assign': node => {
+    let output = [];
     if(node.named.name) {
       const ns = currentNameSpaceFCT()
       if(!ns[node.named.name.value] && !node.named.explicit_assign) {
-        output.push('let ')
+        // output.push('let ')
         ns[node.named.name.value] = node.named.name
       }
-      output.push(generateCode(node.named.name))
+      output.push(...generateCode(node.named.name))
     } else {
-      output.push(generateCode(node.named.path))
+      output.push(...generateCode(node.named.path))
     }
     output.push(' = ')
-    output.push(generateCode(node.named.exp))
+    output.push(...generateCode(node.named.exp))
     output.push(';')
+    return output
   },
   'virtual_node': node => {
+    let output = [];
     const parent = currentNameSpaceVN()['currentVNode']
     const _uid = uid()
     output.push(`const ${_uid}_c = []; const ${_uid}_a = {};`)
     addNameSpaceVN()['currentVNode'] = _uid
-    node.named.attrs ? node.named.attrs.forEach(attr => generateCode(attr)) : null
-    node.named.stats ? node.named.stats.forEach(stat => generateCode(stat)) : null
+    node.named.attrs ? node.named.attrs.forEach(attr => output.push(...generateCode(attr))) : null
+    node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
+    if(node.named.exp) {
+      output.push(`${_uid}_c.push(`)
+      output.push(...generateCode(node.named.exp))
+      output.push(`);\n `)
+    }
+    popNameSpaceVN()
+    let start = node.named.opening.value
+    if(!/^[A-Z]/.test(node.named.opening.value)) {
+      start = `'${node.named.opening.value}'`
+    }
+    output.push(`const ${_uid} = m(${start}, ${_uid}_a, ${_uid}_c); `)
+    if(parent) {
+      output.push(`${parent}_c.push(${_uid}); `)
+    } else {
+      output.push(`return ${_uid}; `)
+    }
+    return output;
+  },
+  'virtual_node_exp': node => {
+    let output = [];
+    const parent = currentNameSpaceVN()['currentVNode']
+    const _uid = uid()
+    output.push('(() => {')
+    output.push(`const ${_uid}_c = []; const ${_uid}_a = {};`)
+    addNameSpaceVN()['currentVNode'] = _uid
+    node.named.attrs ? node.named.attrs.forEach(attr => output.push(...generateCode(attr))) : null
+    node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     if(node.named.exp) {
       output.push(`${_uid}_c.push(`)
       generateCode(node.named.exp)
@@ -61,62 +88,86 @@ const backend = {
     } else {
       output.push(`return ${_uid}; `)
     }
-    output.push(``)
+    output.push(`})()`)
+    return output;
   },
   'virtual_node_assign': node => {
+    let output = [];
     const _uid = currentNameSpaceVN()['currentVNode']
+    const cn = currentNameSpaceFCT()
     const a_uid = uid()
+    cn[a_uid] = 'hoist'
     output.push(`let ${a_uid} = `)
-    generateCode(node.named.exp)
+    output.push(...generateCode(node.named.exp))
     output.push(`; Array.isArray(${a_uid}) ? ${a_uid}.forEach(_i => ${_uid}_c.push(_i)) : ${_uid}_c.push(${a_uid}); `)
+    return output;
   },
   'virtual_node_attributes': node => {
+    let output = [];
     const _uid = currentNameSpaceVN()['currentVNode']
     output.push(` ${_uid}_a['${node.named.name.value}'] = `)
-    generateCode(node.named.exp)
+    output.push(...generateCode(node.named.exp))
     output.push("; ")
+    return output;
   },
   'for_loop': node => {
+    let output = [];
     const value = node.named.value.value
     output.push(`Object.keys(`)
-    generateCode(node.named.exp)
+    output.push(...generateCode(node.named.exp))
     output.push(`).forEach(${value} => {`)
     node.named.stats ? node.named.stats.forEach(stat => generateCode(stat)) : null
     output.push('});')
+    return output;
   },
   'condition': node => {
+    let output = [];
     output.push(`${node.named.type.value}(`)
-    output.push(generateCode(node.named.exp))
+    output.push(...generateCode(node.named.exp))
     output.push(`) {`)
-    node.named.stats.forEach(stat => generateCode(stat))
+    node.named.stats.forEach(stat => {
+      output.push(...generateCode(stat))
+    })
     output.push(`}`)
-    generateCode(node.named.elseif)
+    output.push(...generateCode(node.named.elseif))
+    return output;
   },
   'conditionelseif': node => {
+    let output = [];
     if(!node.named.type) {
-      return
+      return output;
     }
     if(node.named.type.type === 'else') {
       output.push(` else {`)
-      node.named.stats.forEach(stat => generateCode(stat))
+      node.named.stats.forEach(stat => {
+        output.push(...generateCode(stat))
+      })
       output.push(`}`)
-      return
+      return output;
     }
     output.push(` ${node.named.type.value}(`)
-    output.push(generateCode(node.named.exp))
+    output.push(...generateCode(node.named.exp))
     output.push(`) {`)
-    node.named.stats.forEach(stat => generateCode(stat))
+    node.named.stats.forEach(stat => {
+      output.push(...generateCode(stat))
+    })
     output.push(`}`)
-    generateCode(node.named.elseif)
+    output.push(...generateCode(node.named.elseif))
+    return output;
   },
   'while_loop': node => {
+    let output = [];
     output.push(`while(`)
-    output.push(generateCode(node.named.exp))
+    output.push(...generateCode(node.named.exp))
     output.push(`) {`)
-    node.named.stats.forEach(stat => generateCode(stat))
+    node.named.stats.forEach(stat => {
+      output.push(...generateCode(stat))
+    })
     output.push(`}`)
+    return output
   },
   'func_def': node => {
+    let output = [];
     const ns = currentNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
@@ -124,9 +175,11 @@ const backend = {
         output.push(node.named.name.value)
       }
       output.push(`(`)
-      node.named.params ? generateCode(node.named.params) : null
+      if(node.named.params) { 
+        output.push(...generateCode(node.named.params))
+      }
       output.push(`) => `)
-      generateCode(node.named.body)
+      output.push(...generateCode(node.named.body))
     } else {
       output.push(`function `)
       if(node.named.name) {
@@ -134,53 +187,56 @@ const backend = {
         output.push(node.named.name.value)
       }
       output.push(`(`)
-      node.named.params ? generateCode(node.named.params) : null
+      if(node.named.params) { 
+        output.push(...generateCode(node.named.params))
+      }
       output.push(`)`)
-      generateCode(node.named.body)
+      output.push(...generateCode(node.named.body))
     }
+    return output;
   },
   'func_body': node => {
+    let output = []
     if(node.named.exp) {
-      generateCode(node.named.exp)
+      output = generateCode(node.named.exp)
     }
-    addNameSpaceFCT()
+    const cn = addNameSpaceFCT()
     if(node.named.stats) {
       output.push(` {`)
-      node.named.stats.forEach(stat => generateCode(stat))
+      node.named.stats.forEach(stat => output.push(...generateCode(stat)))
       output.push(`}`)
     }
     popNameSpaceFCT()
+    return output;
   },
-  '==': node => {
-    output.push(`===`)
-  }
+  '==': node => [`===`]
 }
 
 function generateCode(node) {
+  let output = []
   if(backend[node.type]) {
-    backend[node.type](node)
+    a = backend[node.type](node)
+    output.push(...backend[node.type](node))
   } else if(backend[node.rule_name]) {
-    backend[node.rule_name](node)
+    output.push(...backend[node.rule_name](node))
   } else {
     if(node.value) {
       output.push(node.value)
     }
     if(node.children) {
       for(var i=0; i<node.children.length; i++) {
-        generateCode(node.children[i])
+        output.push(...generateCode(node.children[i]))
       }
     }
   }
-  return output
+  return output;
 }
 
 module.exports = {
   generateCode: (node) => { 
-    output = []
-    output = [];
     namespacesVN = [{}]
     namespacesFCT = [{}]
-    generateCode(node)
+    const output = generateCode(node)
     const ns = currentNameSpaceFCT()
     output.push(`module.exports = {`)
     Object.keys(ns).forEach(key => {

@@ -13,8 +13,8 @@ var grammar = {
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
-      ['exp'],
       ['virtual_node'],
+      ['exp'],
       ['for_loop'],
       ['while_loop'],
       ['return', 'exp'],  
@@ -105,6 +105,13 @@ var grammar = {
       ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '<', '/', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
     ],
+    'virtual_node_exp': [
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/', '>'],
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', 
+        (node) => node.named.opening.value === node.named.closing.value], 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '<', '/', 'name:closing', '>', 
+        (node) => node.named.opening.value === node.named.closing.value], 
+    ],
     'virtual_node_assign': [
       ['=', 'w', 'exp:exp']
     ],
@@ -134,6 +141,7 @@ var grammar = {
       ['array_literal', '.', 'name', 'func_call'],
       ['array_literal'],
       ['virtual_node_assign'],
+      ['virtual_node_exp'],
       ['new', 'exp'],
       ['throw', 'exp']
     ]
