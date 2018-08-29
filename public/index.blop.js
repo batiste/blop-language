@@ -8,16 +8,15 @@ def click() {
 }
 
 def expressionVirtualNode(c) {
-  a = null
-  if c < 5 {
-    a = <i>1 + c</i>
+  if c < 10 {
+    a = <p>"c ^ 3 === " + c * c * c</p>
   } else {
-    a = "Too small"
+    a = "Too big"
   }
-  b = <i>
-    = ", "
+  b = <p>
+    = "c ^ 2 === "
     = c * c
-  </i>
+  </p>
   return [a, b]
 }
 
@@ -40,12 +39,12 @@ Button = {
 Hello = {
   view: () => {
     <div>
-       <Title size=24>
-          = "We have "
-          = expressionVirtualNode(count)
-          = " stuff"
-       </Title>
-       <Button onclick=click>"Increase count: ${count}"</Button>
+       <Title size=24>`We have ${count} stuff`</Title>
+       = expressionVirtualNode(count)
+       if count > 10 {
+         <p>"Very big number"</p>
+       }
+       <Button onclick=click>`Increase count: ${count}`</Button>
     </div>
   }
 }

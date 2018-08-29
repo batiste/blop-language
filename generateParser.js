@@ -50,6 +50,5 @@ performance.measure('Code generation', 'E', 'F')
 
 const measurements = performance.getEntriesByType('measure');
 measurements.forEach(measurement => {
-  // I'm going to make the logs colour-coded, in this case I'm using Green
   console.log('\x1b[32m%s\x1b[0m', measurement.name + ' ' + measurement.duration);
 })

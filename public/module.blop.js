@@ -7,6 +7,8 @@ for blip in [1, 2, 4] {
   console.log(blip)
 }
 
-while 1 == 2 {
+a = <b>1</b>
+
+while 1 == 22 {
   console.log(1)
 }

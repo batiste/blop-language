@@ -86,17 +86,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/webpack/buildin/module.js":
-/*!***********************************!*\
-  !*** (webpack)/buildin/module.js ***!
-  \***********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-eval("module.exports = function(module) {\n\tif (!module.webpackPolyfill) {\n\t\tmodule.deprecate = function() {};\n\t\tmodule.paths = [];\n\t\t// module.parent = undefined by default\n\t\tif (!module.children) module.children = [];\n\t\tObject.defineProperty(module, \"loaded\", {\n\t\t\tenumerable: true,\n\t\t\tget: function() {\n\t\t\t\treturn module.l;\n\t\t\t}\n\t\t});\n\t\tObject.defineProperty(module, \"id\", {\n\t\t\tenumerable: true,\n\t\t\tget: function() {\n\t\t\t\treturn module.i;\n\t\t\t}\n\t\t});\n\t\tmodule.webpackPolyfill = 1;\n\t}\n\treturn module;\n};\n\n\n//# sourceURL=webpack:///(webpack)/buildin/module.js?");
-
-/***/ }),
-
 /***/ "./public/index.blop.js":
 /*!******************************!*\
   !*** ./public/index.blop.js ***!
@@ -104,7 +93,7 @@ eval("module.exports = function(module) {\n\tif (!module.webpackPolyfill) {\n\t\
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("/* WEBPACK VAR INJECTION */(function(module) {\nmodule = __webpack_require__(/*! ./module.blop.js */ \"./public/module.blop.js\");\n\nroot = document.body;\ncount = 0;\nfunction click() {\n  count = count + 1;\n}\n\nfunction expressionVirtualNode(c) {\n  a = null;\n  if (c < 5) {\n    a = (() => {const __92_c = []; const __92_a = {};__92_c.push();\n const __92 = m('i', __92_a, __92_c); return __92; })();\n  } else {\n    a = `Too small`;\n  }\n  b = (() => {const __108_c = []; const __108_a = {};\n    let __110 = `, `; Array.isArray(__110) ? __110.forEach(_i => __108_c.push(_i)) : __108_c.push(__110); \n    let __112 = c * c; Array.isArray(__112) ? __112.forEach(_i => __108_c.push(_i)) : __108_c.push(__112); \n  const __108 = m('i', __108_a, __108_c); return __108; })();\n  return [a, b]\n}\n\nTitle = {\n  view: (vnode) =>  {\n    const __158_c = []; const __158_a = {}; __158_a['style'] = `font-size: ${vnode.attrs.size || 18}px`; \n      let __160 = vnode.children; Array.isArray(__160) ? __160.forEach(_i => __158_c.push(_i)) : __158_c.push(__160); \n    const __158 = m('h1', __158_a, __158_c); return __158; \n  }\n};\n\nButton = {\n  view: (vnode) =>  {\n    const __206_c = []; const __206_a = {}; __206_a['onclick'] = vnode.attrs.onclick;  __206_a['style'] = `font-size: 18px; padding: 1em`; \n      let __208 = vnode.children; Array.isArray(__208) ? __208.forEach(_i => __206_c.push(_i)) : __206_c.push(__208); \n    const __206 = m('button', __206_a, __206_c); return __206; \n  }\n};\n\nHello = {\n  view: () =>  {\n    const __464_c = []; const __464_a = {};\n       const __472_c = []; const __472_a = {}; __472_a['size'] = 24; \n          let __474 = `We have `; Array.isArray(__474) ? __474.forEach(_i => __472_c.push(_i)) : __472_c.push(__474); \n          let __476 = expressionVirtualNode(count); Array.isArray(__476) ? __476.forEach(_i => __472_c.push(_i)) : __472_c.push(__476); \n          let __478 = ` stuff`; Array.isArray(__478) ? __478.forEach(_i => __472_c.push(_i)) : __472_c.push(__478); \n       const __472 = m(Title, __472_a, __472_c); __464_c.push(__472); \n       const __480_c = []; const __480_a = {}; __480_a['onclick'] = click; __480_c.push(`Increase count: ${count}`);\n const __480 = m(Button, __480_a, __480_c); __464_c.push(__480); \n    const __464 = m('div', __464_a, __464_c); return __464; \n  }\n};\n\nm.mount(root, Hello)\nmodule.exports = { module, root, count, click, expressionVirtualNode, Title, Button, Hello,}\n/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/webpack/buildin/module.js */ \"./node_modules/webpack/buildin/module.js\")(module)))\n\n//# sourceURL=webpack:///./public/index.blop.js?");
+eval("let module, root, count, Title, Button, Hello;\nmodule = __webpack_require__(/*! ./module.blop.js */ \"./public/module.blop.js\");\n\nroot = document.body;\ncount = 0;\nfunction click() {\n  count = count + 1;\n}\n\nfunction expressionVirtualNode(c) {let a, b, __3, __4;\n  if (c < 10) {\n    a = (() => {const __1c = []; const __1a = {};__1c.push(`c ^ 3 === ` + c * c * c);\n const __1 = m('p', __1a, __1c); return __1; })();\n  } else {\n    a = `Too big`;\n  }\n  b = (() => {const __2c = []; const __2a = {};\n    __3 = `c ^ 2 === `; Symbol.iterator in Object(__3) ? __2c.push(...__3) : __2c.push(__3); \n    __4 = c * c; Symbol.iterator in Object(__4) ? __2c.push(...__4) : __2c.push(__4); \n  const __2 = m('p', __2a, __2c); return __2; })();\n  return [a, b]\n}\n\nTitle = {\n  view: (vnode) =>  {let __6;\n    const __5c = []; const __5a = {}; __5a['style'] = `font-size: ${vnode.attrs.size || 18}px`; \n      __6 = vnode.children; Symbol.iterator in Object(__6) ? __5c.push(...__6) : __5c.push(__6); \n    const __5 = m('h1', __5a, __5c); return __5; \n  }\n};\n\nButton = {\n  view: (vnode) =>  {let __8;\n    const __7c = []; const __7a = {}; __7a['onclick'] = vnode.attrs.onclick;  __7a['style'] = `font-size: 18px; padding: 1em`; \n      __8 = vnode.children; Symbol.iterator in Object(__8) ? __7c.push(...__8) : __7c.push(__8); \n    const __7 = m('button', __7a, __7c); return __7; \n  }\n};\n\nHello = {\n  view: () =>  {let __11;\n    const __9c = []; const __9a = {};\n       const __10c = []; const __10a = {}; __10a['size'] = 24; __10c.push(`We have ${count} stuff`);\n const __10 = m(Title, __10a, __10c); __9c.push(__10); \n       __11 = expressionVirtualNode(count); Symbol.iterator in Object(__11) ? __9c.push(...__11) : __9c.push(__11); \n       if (count > 10) {\n         const __12c = []; const __12a = {};__12c.push(`Very big number`);\n const __12 = m('p', __12a, __12c); __9c.push(__12); \n       }\n       const __13c = []; const __13a = {}; __13a['onclick'] = click; __13c.push(`Increase count: ${count}`);\n const __13 = m(Button, __13a, __13c); __9c.push(__13); \n    const __9 = m('div', __9a, __9c); return __9; \n  }\n};\n\nm.mount(root, Hello)\nmodule.exports = { module, root, count, click, expressionVirtualNode, Title, Button, Hello,}\n\n//# sourceURL=webpack:///./public/index.blop.js?");
 
 /***/ }),
 
@@ -115,7 +104,7 @@ eval("/* WEBPACK VAR INJECTION */(function(module) {\nmodule = __webpack_require
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("\ntest = (i) =>  {\n  return 42 * i\n};\n\nObject.keys([1, 2, 4]).forEach(blip => {});\n\nwhile(1 === 2) {\n  console.log(1)\n}\nmodule.exports = { test,}\n\n//# sourceURL=webpack:///./public/module.blop.js?");
+eval("let test, a;\ntest = (i) =>  {\n  return 42 * i\n};\n\nObject.keys([1, 2, 4]).forEach(blip => {});\n\na = (() => {const __1c = []; const __1a = {};__1c.push(1);\n const __1 = m('b', __1a, __1c); return __1; })();\n\nwhile(1 === 22) {\n  console.log(1)\n}\nmodule.exports = { test, a,}\n\n//# sourceURL=webpack:///./public/module.blop.js?");
 
 /***/ })
 
