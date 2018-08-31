@@ -1,5 +1,6 @@
 
 TodoListItem = require("./TodoListItem.blop.js").TodoListItem
+Button = require("./TodoListItem.blop.js").Button
 
 root = document.body
 state = {
@@ -8,14 +9,6 @@ state = {
 
 Title = {
   view: (vnode) => <h1 style=`font-size: ${vnode.attrs.size || 18}px`>vnode.children</h1>
-}
-
-Button = {
-  view: (vnode) => {
-    <button onclick=vnode.attrs.onclick style=`font-size: 16px; padding: 0.5em`>
-      = vnode.children
-    </button>
-  }
 }
 
 Input = {

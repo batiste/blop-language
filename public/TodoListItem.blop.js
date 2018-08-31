@@ -1,4 +1,12 @@
 
+Button = {
+  view: (vnode) => {
+    <button onclick=vnode.attrs.onclick style=`font-size: 16px; padding: 0.5em`>
+      = vnode.children
+    </button>
+  }
+}
+
 TodoListItem = {
   view: (vnode) => {
     value = vnode.attrs.value
@@ -10,9 +18,8 @@ TodoListItem = {
           = value + ' '
         </span>
       }
-      <button
-        onclick=vnode.attrs.removeItem
-        style="float:right">'delete'</button>
+      <Button
+        onclick=vnode.attrs.removeItem>'delete'</Button>
     </li>
   }
 }
