@@ -243,7 +243,7 @@ function DOTTED_PATH_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  if(stream[i].type !== '.') {
+  if(stream[i].type !== '[') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
@@ -251,12 +251,18 @@ function DOTTED_PATH_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  let _rule_0 = DOTTED_PATH(stream, i);
-  while(_rule_0) {
-    children.push(_rule_0);
-    i = _rule_0.last_index;
-    _rule_0 = DOTTED_PATH(stream, i);
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== ']') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
   }
+  children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -274,12 +280,43 @@ function DOTTED_PATH_2(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
+  if(stream[i].type !== '.') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 2, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_0 = DOTTED_PATH(stream, i);
+  while(_rule_0) {
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+    _rule_0 = DOTTED_PATH(stream, i);
+  }
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function DOTTED_PATH_3(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "DOTTED_PATH", subRule: 3, type: "DOTTED_PATH", named}
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i
   return node
 }
 
 function DOTTED_PATH(stream, index) {
-  return DOTTED_PATH_0(stream, index) || DOTTED_PATH_1(stream, index) || DOTTED_PATH_2(stream, index)
+  return DOTTED_PATH_0(stream, index) || DOTTED_PATH_1(stream, index) || DOTTED_PATH_2(stream, index) || DOTTED_PATH_3(stream, index)
 }
 function math_0(stream, index) {
   let i = index;

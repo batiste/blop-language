@@ -21,6 +21,7 @@ var grammar = {
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
+      ['name', '[', 'exp', ']'],
       ['name', '.', 'DOTTED_PATH*'],
       ['name']
     ],
@@ -127,7 +128,7 @@ var grammar = {
       ['<=', 'w','exp'],
       ['!=', 'w','exp'],
       ['>', 'w','exp'],
-      ['<', 'w','exp']
+      ['<', 'w','exp'],
     ],
     'exp': [
       ['func_def'],

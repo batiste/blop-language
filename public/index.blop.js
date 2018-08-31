@@ -35,7 +35,12 @@ TodoList = {
        <Button onclick=(e) => this.addItem(e)>`Add to list`</Button>
        <ul style="max-width: 15em">
        for index, value in state.todoList {
-         <TodoListItem removeItem=(e) => this.remove(e, index) value=value />
+         <TodoListItem
+            removeItem=(e) => this.remove(e, index)
+            editItem=(e) => this.editItem(e, index)
+            changeItem=(e) => this.changeItem(e, index)
+            editMode=this.editItemIndex == index
+            value=value />
        }
        </ul>
     </div>
@@ -46,10 +51,18 @@ TodoList = {
       this.inputValue = ''
     }
   },
+  editItem: def (e, index) {
+    this.editItemIndex = index
+  },
+  changeItem: def (e, index) {
+    this.editItemIndex = false
+    state.todoList[index] = e.target.value
+  },
   onChange: def (e) {
     this.inputValue = e.target.value
   },
   remove: def (e, index) {
+    this.editItemIndex = false
     state.todoList.splice(index, 1)
   }
 }
