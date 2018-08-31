@@ -6,7 +6,7 @@ TodoListItem = {
       if vnode.attrs.editMode {
         <input type="text" value=value onchange=vnode.attrs.changeItem />
       } else {
-        <span onclick=vnode.attrs.editItem
+        <span onclick=vnode.attrs.editItem>
           = value + ' '
         </span>
       }
