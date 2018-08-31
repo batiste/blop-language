@@ -10,48 +10,58 @@ function replaceInvisibleChars(v) {
   return v.replace(/ /g, '␣')
 }
 
-function streamContext(index, stream) {
-  var min = Math.max(0, index-10), i
-  var max = Math.min(stream.length, index+10)
-  var str = ''
-  i = index - 1
-  var lines = 0
-  while(i >= 0) {
-    var v = stream[i].value
-    if(v.match(/\n/)) {
-      lines++
-    }
-    str = v + str
-    if(lines > 3) {
-      break
-    }
-    i--
-  }
-  
-  var v = replaceInvisibleChars(stream[index].value);
+function streamContext(input, token, stream) {
+  let index = token.index
+  let {lineNumber, charNumber, end} = tokenPosition(input, token)
 
-  str = str + RED + v + NC
-  i = index + 1
-  var lines = 0
-  while(i < stream.length) {
-    var v = stream[i].value
+  let lineNb = 1
+  let streamIndex = 0
+  let str = ''
+  while(lineNb < (lineNumber + 4) && stream[streamIndex]) {
+    let v = stream[streamIndex].value
     if(v.match(/\n/)) {
-      lines++
+      lineNb++
+      if(lineNb > (lineNumber + 3)) {
+        return str
+      }
+      if(lineNb >= (lineNumber - 3)) {
+        str += v + String("     " + lineNb).slice(-5) + ':'
+      }
+    } else {
+      if(lineNb >= (lineNumber - 3)) {
+        if(streamIndex === index) {
+          v = RED + replaceInvisibleChars(v) + NC;
+        }
+        str += v
+      }
     }
-    str = str + v
-    if(lines > 2) {
-      break
-    }
-    i++
+    streamIndex++
   }
   return str
 }
 
+function tokenPosition(input, token) {
+  let charn = token.start || 0;
+  let lines = input.split("\n"), i, charCounter = 0, charOnLine = 0;
+  for(i=0; i<lines.length; i++) {
+    charCounter += lines[i].length + 1;
+    if(charCounter >= charn) {
+      break;
+    }
+    charOnLine += lines[i].length + 1;
+  }
+  let lineNumber = Math.max(0, i) + 1; // line number
+  let charNumber = (charn - charOnLine) + 1
+  let end = charNumber + token.len
+  return {lineNumber, charNumber, end}
+}
+
 
 function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
-    var sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
-    var rule = ''
-    var token = bestFailure.token
+    let sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+    let rule = ''
+    let token = bestFailure.token
+    let positions = tokenPosition(input, token)
     let = failingToken = ''
     for(i=0; i<sub_rules.length; i++) {
       var sr = sub_rules[i];
@@ -66,11 +76,11 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
       }
     }
     throw new Error(`
-  ${RED}Parser error${NC}
+  ${RED}Parser error at line ${positions.lineNumber} char ${positions.charNumber} to ${positions.end} ${NC}
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
   token ${YELLOW}${replaceInvisibleChars(token.value)}${NC}  doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
-${streamContext(token.index, stream)}
+${streamContext(input, token, stream)}
   `)
 }
 

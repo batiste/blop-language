@@ -43,7 +43,7 @@ function tokenize(tokenDef, input) {
         }
 
         if(candidate !== null) {
-          lastToken = {type:key, value:candidate, start:char, index:index, len:candidate.length};
+          lastToken = {type:key, value:candidate, start:char, index, len:candidate.length};
           stream.push(lastToken);
           index++;
           char += candidate.length;
@@ -52,9 +52,6 @@ function tokenize(tokenDef, input) {
           if(stream.length === 0) {
             throw new Error("Tokenizer error: total match failure");
           }
-          if(lastToken) {
-            lastToken.pointer += lastToken.value.length;
-          }
           var msg = "Tokenizer error, no matching token found";
           if(lastToken) {
             msg += "\n" + "Before token of type " + lastToken.type + ": " + lastToken.value;
@@ -62,7 +59,7 @@ function tokenize(tokenDef, input) {
           throw new Error(msg);
         }
     }
-    stream.push({type:'EOS', value:'<End Of Stream>', char:char, index: index});
+    stream.push({type:'EOS', value:'<End Of Stream>', start:char, index, len:0});
     return stream;
 }
 
