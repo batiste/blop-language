@@ -116,6 +116,7 @@ var grammar = {
       ['=', 'w', 'exp:exp']
     ],
     'virtual_node_attributes': [
+      ['newline', 'W', 'name:name', '=', 'exp:exp'],
       ['w', 'name:name', '=', 'exp:exp']
     ],
     'operation': [
@@ -123,6 +124,7 @@ var grammar = {
       ['==', 'w','exp'],
       ['=>', 'w','exp'],
       ['<=', 'w','exp'],
+      ['!=', 'w','exp'],
       ['>', 'w','exp'],
       ['<', 'w','exp']
     ],

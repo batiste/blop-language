@@ -49,6 +49,7 @@ var tokensDefinition = {
   '=>': {str: '=>'},
   '<=': {str: '<='},
   '==': {str: '=='},
+  '!=': {str: '!='},
   '>': {str: '>'},
   '<': {str: '<'},
   'explicit_assign': {str: ':='},

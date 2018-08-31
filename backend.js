@@ -72,7 +72,7 @@ const backend = {
       start = `'${node.named.opening.value}'`
     }
     output.push(`const ${_uid} = m(${start}, ${_uid}a, ${_uid}c); `)
-    if(parent) {
+    if(parent && node.type !== 'virtual_node_exp') {
       output.push(`${parent}c.push(${_uid}); `)
     } else {
       output.push(`return ${_uid}; `)
@@ -108,10 +108,10 @@ const backend = {
   'for_loop': node => {
     let output = [];
     const value = node.named.value.value
-    output.push(`Object.keys(`)
+    output.push(`Object.values(`) // can use Object.entries
     output.push(...generateCode(node.named.exp))
     output.push(`).forEach(${value} => {`)
-    node.named.stats ? node.named.stats.forEach(stat => generateCode(stat)) : null
+    node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     output.push('});')
     return output;
   },
@@ -213,7 +213,8 @@ const backend = {
     popNameSpaceFCT()
     return output;
   },
-  '==': node => [`===`]
+  '==': node => [`===`],
+  '!=': node => [`!==`]
 }
 
 function generateCode(node) {

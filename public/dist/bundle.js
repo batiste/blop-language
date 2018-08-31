@@ -86,6 +86,17 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./public/TodoListItem.blop.js":
+/*!*************************************!*\
+  !*** ./public/TodoListItem.blop.js ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("let TodoListItem;\nTodoListItem = {\n  view: (vnode) =>  {let __2;\n    const __1c = []; const __1a = {}; __1a['style'] = `margin: 1em`; \n      __2 = vnode.attrs.value + ` `; Symbol.iterator in Object(__2) ? __1c.push(...__2) : __1c.push(__2); \n      const __3c = []; const __3a = {}; __3a['href'] = `#delete-${vnode.attrs.value}`;  __3a['onclick'] = vnode.attrs.removeItem;  __3a['style'] = `float:right`; __3c.push(`x`);\n const __3 = m('a', __3a, __3c); __1c.push(__3); \n    const __1 = m('li', __1a, __1c); return __1; \n  }\n};\nmodule.exports = { TodoListItem,}\n\n//# sourceURL=webpack:///./public/TodoListItem.blop.js?");
+
+/***/ }),
+
 /***/ "./public/index.blop.js":
 /*!******************************!*\
   !*** ./public/index.blop.js ***!
@@ -93,18 +104,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("let module, root, count, Title, Button, Hello;\nmodule = __webpack_require__(/*! ./module.blop.js */ \"./public/module.blop.js\");\n\nroot = document.body;\ncount = 0;\nfunction click() {\n  count = count + 1;\n}\n\nfunction expressionVirtualNode(c) {let a, b, __3, __4;\n  if (c < 10) {\n    a = (() => {const __1c = []; const __1a = {};__1c.push(`c ^ 3 === ` + c * c * c);\n const __1 = m('p', __1a, __1c); return __1; })();\n  } else {\n    a = `Too big`;\n  }\n  b = (() => {const __2c = []; const __2a = {};\n    __3 = `c ^ 2 === `; Symbol.iterator in Object(__3) ? __2c.push(...__3) : __2c.push(__3); \n    __4 = c * c; Symbol.iterator in Object(__4) ? __2c.push(...__4) : __2c.push(__4); \n  const __2 = m('p', __2a, __2c); return __2; })();\n  return [a, b]\n}\n\nTitle = {\n  view: (vnode) =>  {let __6;\n    const __5c = []; const __5a = {}; __5a['style'] = `font-size: ${vnode.attrs.size || 18}px`; \n      __6 = vnode.children; Symbol.iterator in Object(__6) ? __5c.push(...__6) : __5c.push(__6); \n    const __5 = m('h1', __5a, __5c); return __5; \n  }\n};\n\nButton = {\n  view: (vnode) =>  {let __8;\n    const __7c = []; const __7a = {}; __7a['onclick'] = vnode.attrs.onclick;  __7a['style'] = `font-size: 18px; padding: 1em`; \n      __8 = vnode.children; Symbol.iterator in Object(__8) ? __7c.push(...__8) : __7c.push(__8); \n    const __7 = m('button', __7a, __7c); return __7; \n  }\n};\n\nHello = {\n  view: () =>  {let __11;\n    const __9c = []; const __9a = {};\n       const __10c = []; const __10a = {}; __10a['size'] = 24; __10c.push(`We have ${count} stuff`);\n const __10 = m(Title, __10a, __10c); __9c.push(__10); \n       __11 = expressionVirtualNode(count); Symbol.iterator in Object(__11) ? __9c.push(...__11) : __9c.push(__11); \n       if (count > 10) {\n         const __12c = []; const __12a = {};__12c.push(`Very big number`);\n const __12 = m('p', __12a, __12c); __9c.push(__12); \n       }\n       const __13c = []; const __13a = {}; __13a['onclick'] = click; __13c.push(`Increase count: ${count}`);\n const __13 = m(Button, __13a, __13c); __9c.push(__13); \n    const __9 = m('div', __9a, __9c); return __9; \n  }\n};\n\nm.mount(root, Hello)\nmodule.exports = { module, root, count, click, expressionVirtualNode, Title, Button, Hello,}\n\n//# sourceURL=webpack:///./public/index.blop.js?");
-
-/***/ }),
-
-/***/ "./public/module.blop.js":
-/*!*******************************!*\
-  !*** ./public/module.blop.js ***!
-  \*******************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-eval("let test, a;\ntest = (i) =>  {\n  return 42 * i\n};\n\nObject.keys([1, 2, 4]).forEach(blip => {});\n\na = (() => {const __1c = []; const __1a = {};__1c.push(1);\n const __1 = m('b', __1a, __1c); return __1; })();\n\nwhile(1 === 22) {\n  console.log(1)\n}\nmodule.exports = { test, a,}\n\n//# sourceURL=webpack:///./public/module.blop.js?");
+eval("let TodoListItem, root, state, Title, Button, Input, TodoList;\nTodoListItem = __webpack_require__(/*! ./TodoListItem.blop.js */ \"./public/TodoListItem.blop.js\").TodoListItem;\n\nroot = document.body;\nstate = {\n  todoList: []\n};\n\nTitle = {\n  view: (vnode) => (() => {const __1c = []; const __1a = {}; __1a['style'] = `font-size: ${vnode.attrs.size || 18}px`; __1c.push(vnode.children);\n const __1 = m('h1', __1a, __1c); return __1; })()\n};\n\nButton = {\n  view: (vnode) =>  {let __3;\n    const __2c = []; const __2a = {}; __2a['onclick'] = vnode.attrs.onclick;  __2a['style'] = `font-size: 16px; padding: 0.5em`; \n      __3 = vnode.children; Symbol.iterator in Object(__3) ? __2c.push(...__3) : __2c.push(__3); \n    const __2 = m('button', __2a, __2c); return __2; \n  }\n};\n\nInput = {\n  view: (vnode) => (() => {const __4c = []; const __4a = {}; __4a['type'] = `text`;  __4a['value'] = vnode.attrs.value;  __4a['onchange'] = vnode.attrs.onchange;  __4a['style'] = `font-size: 16px; padding: 0.5em`; const __4 = m('input', __4a, __4c); return __4; })()\n};\n\nTodoList = {\n  inputValue: ``,\n  view: function () {\n    const __5c = []; const __5a = {};\n       const __6c = []; const __6a = {}; __6a['size'] = 24; __6c.push(`Todo list`);\n const __6 = m(Title, __6a, __6c); __5c.push(__6); \n       const __7c = []; const __7a = {}; __7a['value'] = this.inputValue;  __7a['onchange'] = (e) => this.onChange(e); const __7 = m(Input, __7a, __7c); __5c.push(__7); \n       const __8c = []; const __8a = {}; __8a['onclick'] = (e) => this.addItem(e); __8c.push(`Add to list`);\n const __8 = m(Button, __8a, __8c); __5c.push(__8); \n       const __9c = []; const __9a = {}; __9a['style'] = `max-width: 15em`; \n       Object.values(state.todoList).forEach(value => {\n         const __10c = []; const __10a = {}; __10a['removeItem'] = (e) => this.remove(e, value);  __10a['value'] = value; const __10 = m(TodoListItem, __10a, __10c); __9c.push(__10); \n       });\n       const __9 = m('ul', __9a, __9c); __5c.push(__9); \n    const __5 = m('div', __5a, __5c); return __5; \n  },\n  addItem: function (e) {\n    if (this.inputValue) {\n      state.todoList.push(this.inputValue)\n    }\n  },\n  onChange: function (e) {\n    this.inputValue = e.target.value;\n  },\n  remove: function (e, value) {\n    state.todoList = state.todoList.filter((item) => item !== value);\n  }\n};\n\nm.mount(root, TodoList)\nmodule.exports = { TodoListItem, root, state, Title, Button, Input, TodoList,}\n\n//# sourceURL=webpack:///./public/index.blop.js?");
 
 /***/ })
 

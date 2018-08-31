@@ -22,5 +22,7 @@ module.exports = function(source) {
   if(!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree)
   }
-  return backend.generateCode(tree).join('')
+  const code = backend.generateCode(tree).join('')
+  console.log(code)
+  return code
 }
