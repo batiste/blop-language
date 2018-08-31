@@ -34,8 +34,8 @@ TodoList = {
        <Input value=this.inputValue onchange=(e) => this.onChange(e) />
        <Button onclick=(e) => this.addItem(e)>`Add to list`</Button>
        <ul style="max-width: 15em">
-       for value in state.todoList {
-         <TodoListItem removeItem=(e) => this.remove(e, value) value=value />
+       for index, value in state.todoList {
+         <TodoListItem removeItem=(e) => this.remove(e, index) value=value />
        }
        </ul>
     </div>
@@ -43,13 +43,14 @@ TodoList = {
   addItem: def (e) {
     if this.inputValue {
       state.todoList.push(this.inputValue)
+      this.inputValue = ''
     }
   },
   onChange: def (e) {
     this.inputValue = e.target.value
   },
-  remove: def (e, value) {
-    state.todoList = state.todoList.filter((item) => item != value)
+  remove: def (e, index) {
+    state.todoList.splice(index, 1)
   }
 }
 

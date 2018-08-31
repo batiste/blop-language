@@ -37,6 +37,7 @@ var grammar = {
     ],
     'for_loop': [
       ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
+      ['for', 'name:key', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
     ],
     'func_def': [
       ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
@@ -145,7 +146,8 @@ var grammar = {
       ['virtual_node_assign'],
       ['virtual_node_exp'],
       ['new', 'exp'],
-      ['throw', 'exp']
+      ['throw', 'exp'],
+      ['delete', 'exp']
     ]
 };
 

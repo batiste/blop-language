@@ -28,6 +28,7 @@ var tokensDefinition = {
   'operator': {reg: /^[\+|\-|\*]/},
   'def': {str: 'def '},
   'new': {str: 'new '},
+  'delete': {str: 'delete '},
   'if': {str: 'if '},
   'while': {str: 'while '},
   'else': {str: 'else '},

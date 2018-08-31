@@ -107,10 +107,12 @@ const backend = {
   },
   'for_loop': node => {
     let output = [];
+    const key = (node.named.key && node.named.key.value) || '__index';
     const value = node.named.value.value
-    output.push(`Object.values(`) // can use Object.entries
+    const f_uid = uid()
+    output.push(`Object.entries(`) // can use Object.entries
     output.push(...generateCode(node.named.exp))
-    output.push(`).forEach(${value} => {`)
+    output.push(`).forEach(${f_uid} => {let [${key}, ${value}] = ${f_uid};  `)
     node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     output.push('});')
     return output;

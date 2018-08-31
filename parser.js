@@ -652,8 +652,112 @@ function for_loop_0(stream, index) {
   return node
 }
 
+function for_loop_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "for_loop", subRule: 1, type: "for_loop", named}
+  if(stream[i].type !== 'for') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['key'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== ',') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['value'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'in') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+    named['exp'] = _rule_0
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_1 = STATEMENTS(stream, i);
+  while(_rule_1) {
+    named['stats'] ? null : named['stats'] = []
+    named['stats'].push(_rule_1)
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = STATEMENTS(stream, i);
+  }
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'for_loop', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function for_loop(stream, index) {
-  return for_loop_0(stream, index)
+  return for_loop_0(stream, index) || for_loop_1(stream, index)
 }
 function func_def_0(stream, index) {
   let i = index;
@@ -3158,8 +3262,29 @@ function exp_16(stream, index) {
   return node
 }
 
+function exp_17(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 17, type: "exp", named}
+  if(stream[i].type !== 'delete') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 17, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function exp(stream, index) {
-  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index)
+  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index) || exp_17(stream, index)
 }
 function _tokenize(tokenDef, input, stream) {
   match = input.match(tokenDef.number.reg);
@@ -3175,6 +3300,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`new `)) {
    return [`new `, `new`];
+  }
+  if(input.startsWith(`delete `)) {
+   return [`delete `, `delete`];
   }
   if(input.startsWith(`if `)) {
    return [`if `, `if`];
