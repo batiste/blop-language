@@ -1,6 +1,6 @@
 
-TodoListItem = require("./TodoListItem.blop.js").TodoListItem
-Button = require("./TodoListItem.blop.js").Button
+import TodoListItem from './TodoListItem.blop.js'
+import Button from './TodoListItem.blop.js'
 
 state = {
   todoList: [],

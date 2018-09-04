@@ -53,6 +53,21 @@ const backend = {
     output.push(';')
     return output
   },
+  'object_destructuring': node => {
+    let output = [];
+    output.push('let ')
+    for(var i=0; i<node.children.length; i++) {
+      output.push(...generateCode(node.children[i]))
+    }
+    return output;
+  },
+  'import_statement': node => {
+    let output = [];
+    output.push('let ' + generateCode(node.named.name) + ' = require(')
+    output.push(generateCode(node.named.file) + ').')
+    output.push(generateCode(node.named.name) + ';')
+    return output;
+  },
   'virtual_node': node => {
     let output = [];
     const parent = currentNameSpaceVN()['currentVNode']

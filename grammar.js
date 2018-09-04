@@ -17,7 +17,9 @@ var grammar = {
       ['exp'],
       ['for_loop'],
       ['while_loop'],
-      ['return', 'exp'],  
+      ['object_destructuring'],
+      ['import_statement'],
+      ['return', 'exp'],
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
@@ -34,7 +36,7 @@ var grammar = {
     'assign': [
       ['name:name', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
       ['name:name', 'w', '=', 'w', 'exp:exp'],
-      ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp']
+      ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp'],
     ],
     'for_loop': [
       ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
@@ -98,6 +100,16 @@ var grammar = {
     'object_literal_body': [
       ['object_literal_key', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
       ['object_literal_key', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
+    ],
+    'object_destructuring': [
+      ['{', 'w', 'destructuring_values', 'w', '}', 'w', '=', 'w', 'exp']
+    ],
+    'import_statement': [
+      ['import', 'name:name', 'w', 'from', 'str:file']
+    ],
+    'destructuring_values': [
+      ['object_literal_key', ',', 'w', 'destructuring_values'],
+      ['object_literal_key']
     ],
     'object_literal_key' : [['str'], ['name']],
     'virtual_node': [
