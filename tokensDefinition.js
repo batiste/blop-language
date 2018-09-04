@@ -34,6 +34,8 @@ var tokensDefinition = {
   'else': {str: 'else '},
   'for': {str: 'for '},
   'in': {str: 'in '},
+  'await': {str: 'await '},
+  'async': {str: 'async '},
   'elseif': {str: 'elseif '},
   'return': {str: 'return ', verbose:'return'},
   'throw': {str: 'throw ', verbose:'throw'},

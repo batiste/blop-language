@@ -2,10 +2,15 @@
 TodoListItem = require("./TodoListItem.blop.js").TodoListItem
 Button = require("./TodoListItem.blop.js").Button
 
-root = document.body
 state = {
-  todoList: []
+  todoList: [],
+  dog: null
 }
+
+fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
+  state.dog = (await response.json()).message
+  m.redraw()
+})
 
 Title = {
   view: (vnode) => <h1 style=`font-size: ${vnode.attrs.size || 18}px`>vnode.children</h1>
@@ -36,6 +41,9 @@ TodoList = {
             value=value />
        }
        </ul>
+       if state.dog {
+         <img src=state.dog />
+       }
     </div>
   },
   addItem: def (e) {
@@ -60,4 +68,4 @@ TodoList = {
   }
 }
 
-m.mount(root, TodoList)
+m.mount(document.body, TodoList)

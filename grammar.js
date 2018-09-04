@@ -144,6 +144,8 @@ var grammar = {
       ['object_literal'],
       ['array_literal', '.', 'name', 'func_call'],
       ['array_literal'],
+      ['await', 'exp'],
+      ['async', 'exp'],
       ['virtual_node_assign'],
       ['virtual_node_exp'],
       ['new', 'exp'],

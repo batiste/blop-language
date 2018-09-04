@@ -3236,7 +3236,15 @@ function exp_13(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 13, type: "exp", named}
-  const _rule_0 = virtual_node_assign(stream, i);
+  if(stream[i].type !== 'await') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 13, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -3249,7 +3257,15 @@ function exp_14(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 14, type: "exp", named}
-  const _rule_0 = virtual_node_exp(stream, i);
+  if(stream[i].type !== 'async') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 14, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -3262,15 +3278,7 @@ function exp_15(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 15, type: "exp", named}
-  if(stream[i].type !== 'new') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 15, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
-  const _rule_0 = exp(stream, i);
+  const _rule_0 = virtual_node_assign(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -3283,15 +3291,7 @@ function exp_16(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 16, type: "exp", named}
-  if(stream[i].type !== 'throw') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 16, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
-  const _rule_0 = exp(stream, i);
+  const _rule_0 = virtual_node_exp(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -3304,7 +3304,7 @@ function exp_17(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 17, type: "exp", named}
-  if(stream[i].type !== 'delete') {
+  if(stream[i].type !== 'new') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'exp', sub_rule_index: 17, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
@@ -3320,8 +3320,50 @@ function exp_17(stream, index) {
   return node
 }
 
+function exp_18(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 18, type: "exp", named}
+  if(stream[i].type !== 'throw') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 18, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function exp_19(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 19, type: "exp", named}
+  if(stream[i].type !== 'delete') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 19, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function exp(stream, index) {
-  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index) || exp_17(stream, index)
+  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index) || exp_17(stream, index) || exp_18(stream, index) || exp_19(stream, index)
 }
 function _tokenize(tokenDef, input, stream) {
   match = input.match(tokenDef.number.reg);
@@ -3355,6 +3397,12 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`in `)) {
    return [`in `, `in`];
+  }
+  if(input.startsWith(`await `)) {
+   return [`await `, `await`];
+  }
+  if(input.startsWith(`async `)) {
+   return [`async `, `async`];
   }
   if(input.startsWith(`elseif `)) {
    return [`elseif `, `elseif`];
