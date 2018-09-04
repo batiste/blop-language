@@ -94,7 +94,7 @@ const backend = {
     cn[a_uid] = node
     output.push(`${a_uid} = `)
     output.push(...generateCode(node.named.exp))
-    output.push(`; Symbol.iterator in Object(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid}); `)
+    output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid}); `)
     return output;
   },
   'virtual_node_attributes': node => {

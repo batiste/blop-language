@@ -10,7 +10,7 @@ Button = {
 TodoListItem = {
   view: (vnode) => {
     value = vnode.attrs.value
-    <li style=`margin: 1em; font-size: 16px;`>
+    <li style=`padding: 1em; font-size: 16px;`>
       if vnode.attrs.editMode {
         <input type="text" value=value onchange=vnode.attrs.changeItem />
       } else {
@@ -18,8 +18,9 @@ TodoListItem = {
           = value + ' '
         </span>
       }
-      <Button
-        onclick=vnode.attrs.removeItem>'delete'</Button>
+      <div style="float:right">
+        <Button onclick=vnode.attrs.removeItem>'delete'</Button>
+      </div>
     </li>
   }
 }

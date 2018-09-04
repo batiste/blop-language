@@ -26,7 +26,7 @@ TodoList = {
        <Title size=24>`Todo list`</Title>
        <Input value=this.inputValue onchange=(e) => this.onChange(e) />
        <Button onclick=(e) => this.addItem(e)>`Add to list`</Button>
-       <ul style="max-width: 15em">
+       <ul style="max-width: 20em">
        for index, value in state.todoList {
          <TodoListItem
             removeItem=(e) => this.remove(e, index)
