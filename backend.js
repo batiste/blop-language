@@ -63,9 +63,16 @@ const backend = {
   },
   'import_statement': node => {
     let output = [];
-    output.push('let ' + generateCode(node.named.name) + ' = require(')
-    output.push(generateCode(node.named.file) + ').')
-    output.push(generateCode(node.named.name) + ';')
+    let file = node.named.file.value;
+    if(node.named.name) {
+      let name = node.named.name.value
+      output.push(`let ${name} = require(${file}).${name};`)
+    }
+    if(node.named.dest_values) {
+      output.push('let { ')
+      output.push(...generateCode(node.named.dest_values))
+      output.push(`} = require(${file});`)
+    }
     return output;
   },
   'virtual_node': node => {

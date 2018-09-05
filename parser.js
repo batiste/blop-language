@@ -164,7 +164,7 @@ function STATEMENT_4(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "STATEMENT", subRule: 4, type: "STATEMENT", named}
-  const _rule_0 = for_loop(stream, i);
+  const _rule_0 = object_destructuring(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -177,7 +177,7 @@ function STATEMENT_5(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "STATEMENT", subRule: 5, type: "STATEMENT", named}
-  const _rule_0 = while_loop(stream, i);
+  const _rule_0 = for_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -190,7 +190,7 @@ function STATEMENT_6(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "STATEMENT", subRule: 6, type: "STATEMENT", named}
-  const _rule_0 = object_destructuring(stream, i);
+  const _rule_0 = while_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -2229,6 +2229,63 @@ function object_destructuring_0(stream, index) {
 function object_destructuring(stream, index) {
   return object_destructuring_0(stream, index)
 }
+function destructuring_values_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "destructuring_values", subRule: 0, type: "destructuring_values", named}
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== ',') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_0 = destructuring_values(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function destructuring_values_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "destructuring_values", subRule: 1, type: "destructuring_values", named}
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function destructuring_values(stream, index) {
+  return destructuring_values_0(stream, index) || destructuring_values_1(stream, index)
+}
 function import_statement_0(stream, index) {
   let i = index;
   let children = [];
@@ -2280,21 +2337,22 @@ function import_statement_0(stream, index) {
   return node
 }
 
-function import_statement(stream, index) {
-  return import_statement_0(stream, index)
-}
-function destructuring_values_0(stream, index) {
+function import_statement_1(stream, index) {
   let i = index;
   let children = [];
   let named = {};
-  let node = {children, stream_index: index, name: "destructuring_values", subRule: 0, type: "destructuring_values", named}
-  const _rule_0 = object_literal_key(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  if(stream[i].type !== ',') {
+  let node = {children, stream_index: index, name: "import_statement", subRule: 1, type: "import_statement", named}
+  if(stream[i].type !== 'import') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
@@ -2302,35 +2360,64 @@ function destructuring_values_0(stream, index) {
   children.push(stream[i]); i++;
   if(stream[i].type !== 'w') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'destructuring_values', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], success: false}
       best_failure_index = i
      }
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = destructuring_values(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function destructuring_values_1(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "destructuring_values", subRule: 1, type: "destructuring_values", named}
-  const _rule_0 = object_literal_key(stream, i);
+  const _rule_0 = destructuring_values(stream, i);
   if(!_rule_0) return;
+    named['dest_values'] = _rule_0
   children.push(_rule_0);
   i = _rule_0.last_index;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'from') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'str') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['file'] = stream[i]
+  children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i
   return node
 }
 
-function destructuring_values(stream, index) {
-  return destructuring_values_0(stream, index) || destructuring_values_1(stream, index)
+function import_statement(stream, index) {
+  return import_statement_0(stream, index) || import_statement_1(stream, index)
 }
 function object_literal_key_0(stream, index) {
   let i = index;

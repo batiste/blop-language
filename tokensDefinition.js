@@ -41,7 +41,7 @@ var tokensDefinition = {
   'throw': {str: 'throw ', verbose:'throw'},
   'import': {str: 'import '},
   'from': {str: 'from '},
-  'name': {reg: /^[\w_]+/},
+  'name': {reg: /^[\w]+/},
   ',': {str: ','},
   '.': {str: '.'},
   '(': {str: '('},

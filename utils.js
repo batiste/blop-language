@@ -7,6 +7,7 @@ function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r')
   v = v.replace(/\n/g, '⏎\n')
   v = v.replace(/\t/g, '⇥')
+  v = v.replace(" ", 'nbsp')
   return v.replace(/ /g, '␣')
 }
 
@@ -78,7 +79,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
     throw new Error(`
   ${RED}Parser error at line ${positions.lineNumber} char ${positions.charNumber} to ${positions.end} ${NC}
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-  token ${YELLOW}${replaceInvisibleChars(token.value)}${NC}  doesn't match rule item ${YELLOW}${failingToken}${NC}
+  token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
 ${streamContext(input, token, stream)}
   `)

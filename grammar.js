@@ -15,9 +15,9 @@ var grammar = {
                   // the more specific rules need to come first
       ['virtual_node'],
       ['exp'],
+      ['object_destructuring'],
       ['for_loop'],
       ['while_loop'],
-      ['object_destructuring'],
       ['import_statement'],
       ['return', 'exp'],
     ],
@@ -104,12 +104,13 @@ var grammar = {
     'object_destructuring': [
       ['{', 'w', 'destructuring_values', 'w', '}', 'w', '=', 'w', 'exp']
     ],
-    'import_statement': [
-      ['import', 'name:name', 'w', 'from', 'str:file']
-    ],
     'destructuring_values': [
-      ['object_literal_key', ',', 'w', 'destructuring_values'],
-      ['object_literal_key']
+      ['name', ',', 'w', 'destructuring_values'],
+      ['name']
+    ],
+    'import_statement': [
+      ['import', 'name:name', 'w', 'from', 'str:file'],
+      ['import', '{', 'w', 'destructuring_values:dest_values', 'w', '}', 'w', 'from', 'str:file']
     ],
     'object_literal_key' : [['str'], ['name']],
     'virtual_node': [
