@@ -15,7 +15,7 @@ module.exports = {
         use: [
           {
             loader: path.resolve('./blopLoader.js'),
-            options: {/* ... */}
+            options: {debug: false}
           }
         ]
       }

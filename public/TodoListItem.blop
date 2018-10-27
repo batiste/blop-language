@@ -21,7 +21,7 @@ TodoListItem = {
           <input type="text" style=style value=value onchange=changeItem />
         } else {
           <div onclick=vnode.attrs.editItem style=style>
-            = value + ' '
+            = value
           </div>
         }
       </div>

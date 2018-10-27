@@ -219,6 +219,9 @@ const backend = {
       output.push(`) => `)
       output.push(...generateCode(node.named.body))
     } else {
+      if(!node.named.name) {
+        output.push(`(`)
+      }
       output.push(`function `)
       if(node.named.name) {
         node.hoist = false;
@@ -231,6 +234,9 @@ const backend = {
       }
       output.push(`)`)
       output.push(...generateCode(node.named.body))
+      if(!node.named.name) {
+        output.push(`)`)
+      }
     }
     return output;
   },

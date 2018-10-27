@@ -28,25 +28,28 @@ TodoList = {
   inputValue: "",
   view: def () {
     <div>
-       <Title size=24>`Todo list`</Title>
-       <Input value=this.inputValue onchange=(e) => this.onChange(e) />
-       <Button onclick=(e) => this.addItem(e)>"Add to list"</Button>
-       <ul style="max-width: 20em">
-       for index, value in state.todoList {
-         <TodoListItem
-            removeItem=(e) => this.remove(e, index)
-            editItem=(e) => this.editItem(e, index)
-            changeItem=(e) => this.changeItem(e, index)
-            editMode=this.editItemIndex == index
-            value=value />
-       }
-       </ul>
-       if state.dog {
-         <img src=state.dog />
-       }
+        <Title size=24>`Todo list`</Title>
+        <form onsubmit=(e) => this.addItem(e)>
+          <Input value=this.inputValue onchange=(e) => this.onChange(e) />
+          <Button onclick=(e) => this.addItem(e)>"Add to list"</Button>
+        </form>
+        <ul style="max-width: 20em">
+        for index, value in state.todoList {
+          <TodoListItem
+              removeItem=(e) => this.remove(e, index)
+              editItem=(e) => this.editItem(e, index)
+              changeItem=(e) => this.changeItem(e, index)
+              editMode=this.editItemIndex == index
+              value=value />
+        }
+        </ul>
+        if state.dog {
+          <img src=state.dog />
+        }
     </div>
   },
   addItem: def (e) {
+    e.preventDefault()
     if this.inputValue {
       state.todoList.push(this.inputValue)
       this.inputValue = ''
