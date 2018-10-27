@@ -1,0 +1,29 @@
+{
+  "name": "blop",
+	"displayName": "Blop language syntax highlighter",
+	"description": "A Javascript-like language that offers a JSX syntax",
+	"version": "1.0.0",
+	"publisher": "",
+	"engines": { "vscode": "*" },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "icon": "./blop.png",
+  "author": "Batiste Bieler",
+  "contributes": {
+    "files.associations": {
+      "*.blop": "blop"
+    },
+    "languages": [{
+      "id": "blop",
+      "extensions": [ ".blop" ],
+      "aliases": [ "Blop", "blop" ],
+      "configuration": "./blop-language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "blop",
+      "scopeName": "source.blop",
+      "path": "./blop.json"
+    }]
+  }
+}

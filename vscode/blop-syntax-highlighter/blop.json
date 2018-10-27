@@ -1,0 +1,143 @@
+{  
+    "fileTypes":[  
+      "blop"
+    ],
+    "name":"blop",
+    "patterns":[  
+      {  
+        "captures":{  
+          "1":{  
+            "name":"keyword.other.blop"
+          },
+          "2":{  
+            "name":"parens"
+          }
+        },
+        "match":"(def)(?:\\()",
+        "name":"def.blop"
+      },
+      {  
+        "match":"''",
+        "name":"string.cokescript"
+      },
+      {  
+        "match":"\"\"",
+        "name":"string.cokescript"
+      },
+      {  
+        "match":"``",
+        "name":"string.cokescript"
+      },
+      {  
+        "begin":"\\\"",
+        "end":"([^\\\\]|\\\\\\\\)\\\"",
+        "name":"string.blop"
+      },
+      {  
+        "begin":"\\'",
+        "end":"([^\\\\]|\\\\\\\\)'",
+        "name":"string.blop"
+      },
+      {  
+        "begin":"\\`",
+        "end":"([^\\\\]|\\\\\\\\)`",
+        "name":"string.blop"
+      },
+      {  
+        "begin":"\"",
+        "end":"\"",
+        "name":"string.blop"
+      },
+      {  
+        "begin":"\\'",
+        "end":"\\'",
+        "name":"string.blop"
+      },
+      {  
+        "begin":"\\`",
+        "end":"\\`",
+        "name":"string.blop"
+      },
+      {  
+        "match":"\\=\\=|\\<\\=|\\>\\=|\\=|\\&\\&?|\\<|\\>|\\+|\\-|\\|\\|?|\\=",
+        "name":"keyword.other.compare.blop"
+      },
+      {  
+        "match":"^([a-zA-Z][a-zA-Z_0-9]*) \\= ",
+        "captures": {"1": {"name":"support.type.object.module.blop"}}
+      },
+      {  
+        "match":"(\\.[a-zA-Z][a-zA-Z_0-9]*) \\= ",
+        "captures": {"1": {"name":"variable.assignment.blop"}}
+      },
+      {  
+        "match":" ([a-zA-Z][a-zA-Z_0-9]*)\\=",
+        "captures": {"1": {"name":"variable.parameter"}}
+      },
+      {  
+        "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
+        "name":"meta.object-literal.key.blop"
+      },
+      {  
+        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*[ |\\n]",
+        "name":"support.function.other.blop"
+      },
+      {  
+        "match":"\\<\\/[a-zA-Z][a-zA-Z_0-9]*\\>",
+        "name":"support.function.other.blop"
+      },
+      {  
+        "match":"def |dom|if |else|elseif |for |in |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this",
+        "name":"keyword.other.blop"
+      },
+      {  
+        "captures":{
+          "1":{  
+            "name":"support.function.misc.blop"
+          },
+          "2":{  
+            "name":"parens"
+          }
+        },
+        "match":"([a-zA-Z][a-zA-Z_]*)(?:\\()",
+        "name":"func.call.blop"
+      },
+      {  
+        "match":"[a-zA-Z][a-zA-Z_0-9]*",
+        "name":"name.blop"
+      },
+      {  
+        "match":"\\.|\\,|\\:",
+        "name":"punctuation.definition.string.blop"
+      },
+      {  
+        "match":"[a-zA-Z][a-zA-Z_0-9]*",
+        "name":"name.blop"
+      },
+      {  
+        "match":"[0-9]+\\.?[0-9]*",
+        "name":"constant.numeric.decimal.blop"
+      },
+      {  
+        "match":"\\/\\/[^\\n]*",
+        "name":"comment.blop"
+      },
+      {
+        "name": "comment.block.blop",
+        "begin": "/\\*",
+        "beginCaptures": {
+          "0": {
+            "name": "definition.comment.blop"
+          }
+        },
+        "end": "\\*/",
+        "endCaptures": {
+          "0": {
+            "name": "definition.comment.blop"
+          }
+        }
+      }
+    ],
+    "scopeName":"source.blop",
+    "uuid":"80bb5c88-4a96-45ed-af77-18a15627612f"
+  }
