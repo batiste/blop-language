@@ -1,0 +1,30 @@
+
+Button = {
+  view: (vnode) => {
+    <button onclick=vnode.attrs.onclick style=`font-size: 16px; padding: 0.5em`>
+      = vnode.children
+    </button>
+  }
+}
+
+style = `padding: 0.5em 1em; font-size: 16px;`
+
+TodoListItem = {
+  view: (vnode) => {
+    { value, changeItem } = vnode.attrs
+    <li>
+      <div>
+        <div style="float:right">
+          <Button onclick=vnode.attrs.removeItem>'delete'</Button>
+        </div>
+        if vnode.attrs.editMode {
+          <input type="text" style=style value=value onchange=changeItem />
+        } else {
+          <div onclick=vnode.attrs.editItem style=style>
+            = value + ' '
+          </div>
+        }
+      </div>
+    </li>
+  }
+}

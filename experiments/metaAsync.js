@@ -1,4 +1,4 @@
-const preprocessGrammar = require('./utils').preprocessGrammar
+const { preprocessGrammar, checkGrammarAndTokens } = require('./utils')
 
 function generateSubRule(name, index, subRule, tokensDef, debug) {
   const output = [];
@@ -48,7 +48,8 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
 
 function generate(grammar, tokensDef, debug) {
   let output = []
-  grammar = preprocessGrammar(grammar)
+  checkGrammarAndTokens(grammar, tokensDef)
+  grammar = preprocessGrammar(grammar, tokensDef)
   const entries = Object.keys(grammar)
   output.push(`let best_failure;`)
   output.push(`let best_failure_index = 0;`)

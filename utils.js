@@ -7,7 +7,7 @@ function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r')
   v = v.replace(/\n/g, '⏎\n')
   v = v.replace(/\t/g, '⇥')
-  v = v.replace(" ", 'nbsp')
+  v = v.replace('\xa0', 'nbsp')
   return v.replace(/ /g, '␣')
 }
 
@@ -99,6 +99,17 @@ function printTree(node, sp) {
     }
 }
 
+function checkGrammarAndTokens(grammar, tokensDefinition) {
+  let gkeys = Object.keys(grammar)
+  let tkeys = Object.keys(tokensDefinition)
+  var intersection = gkeys.filter(function(n) {
+    return tkeys.indexOf(n) > -1;
+  });
+  if(intersection.length > 0) {
+    throw new Error(`Grammar and token have keys in common: ${intersection}`)
+  }
+}
+
 function preprocessGrammar(rules) {
   return Object.keys(rules).reduce((accu, key) => {
     accu[key] = rules[key].map(
@@ -132,6 +143,7 @@ function preprocessGrammar(rules) {
 
 module.exports = {
   preprocessGrammar,
+  checkGrammarAndTokens,
   displayError,
   printTree
 }

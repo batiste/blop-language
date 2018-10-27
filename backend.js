@@ -18,6 +18,24 @@ const uid = (hint) => {
 const backend = {
   'def': node => [`function `],
   'str': node => ['`' + node.value.slice(1, -1) + '`'],
+  'str_expression': node => {
+    let output = ['`', node.named.str.value.slice(1, -1), '${']
+    output.push(...generateCode(node.named.str_exp))
+    return output
+  },
+  'inner_str_expression': node => {
+    let output = generateCode(node.named.exp)
+    output.push('}')
+    output.push(node.named.str.value.slice(1, -1))
+    if(node.named.str_exp) {
+      output.push(...generateCode(node.named.str_exp))
+    } else {
+      output.push('`')
+    }
+    // ['exp:exp', 'str:str', 'inner_str_expression:str_exp'],
+    // ['exp:exp', 'str:str'],
+    return output
+  },
   'EOS': node => [],
   'START': node => {
     let final = [];
@@ -237,6 +255,7 @@ const backend = {
     popNameSpaceFCT()
     return output;
   },
+  'comment': node => node.value.replace('#', '//'),
   '==': node => [`===`],
   '!=': node => [`!==`]
 }

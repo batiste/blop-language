@@ -1,11 +1,10 @@
 
-
 function strDef(input) {
   var first, i, ch;
   first = input.charAt(0);
   if(first === '"' || first === "'" || first === "`") {
     i = 1;
-    while(input.charAt(i)){
+    while(input.charAt(i)) {
       ch = input.charAt(i);
       if(ch === '\\') {
         i++;
@@ -25,7 +24,9 @@ function singleSpace(input) {
 
 var tokensDefinition = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-  'operator': {reg: /^[\+|\-|\*]/},
+  'comment': {reg: /^\/\/[^\n]*/, verbose: 'comment'},
+  'multiline_comment': {reg: /^\/\*+[^*]*\*+(?:[^\/*][^*]*\*+)*\//, verbose: 'comment'},
+  'operator': {reg: /^(\+|\-|\*|\|\|?|\&\&?)/},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'delete': {str: 'delete '},
@@ -48,7 +49,8 @@ var tokensDefinition = {
   ')': {str: ')'},
   '{': {str: '{'},
   '}': {str: '}'},
-  '/': {str: '/'},
+  '</': {str: '</'},
+  '/>': {str: '/>'},
   '[': {str: '['},
   ']': {str: ']'},
   '=>': {str: '=>'},
@@ -57,11 +59,11 @@ var tokensDefinition = {
   '!=': {str: '!='},
   '>': {str: '>'},
   '<': {str: '<'},
-  'explicit_assign': {str: ':='},
+  'explicit_assign': {str: ':=', verbose: 'explicit assign'},
   '=': {str: '='},
   'colon': {str: ':'},
   'newline': {str: '\n'},
-  'str': {func:strDef},
+  'str': {func:strDef, verbose: 'string'},
   'w': {func:singleSpace, verbose: 'single white space'},
   'W': {reg: /^[\s]+/, verbose: 'multiple white spaces'}
 };

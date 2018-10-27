@@ -5,8 +5,16 @@ var grammar = {
       ['STATEMENT', 'STATEMENTS*', 'EOS']
     ],
     'STATEMENTS': [
-      ['newline', 'w?', 'W?', 'STATEMENT'],
-      ['newline', 'w?', 'W?']
+      ['newline', 'w?', 'W?', 'STATEMENT', 'wcomment?'],
+      ['newline', 'w?', 'W?', 'scomment?']
+    ],
+    'wcomment': [
+      ['w', 'comment'],
+      ['w', 'multiline_comment']
+    ],
+    'scomment': [
+      ['comment'],
+      ['multiline_comment']
     ],
     'STATEMENT': [
       ['condition'],
@@ -19,7 +27,7 @@ var grammar = {
       ['for_loop'],
       ['while_loop'],
       ['import_statement'],
-      ['return', 'exp'],
+      ['return', 'exp']
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
@@ -114,17 +122,17 @@ var grammar = {
     ],
     'object_literal_key' : [['str'], ['name']],
     'virtual_node': [
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/', '>'],
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/>'],
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '<', '/', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
     ],
     'virtual_node_exp': [
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/', '>'],
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '<', '/', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/>'],
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '<', '/', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
     ],
     'virtual_node_assign': [
@@ -143,12 +151,21 @@ var grammar = {
       ['>', 'w','exp'],
       ['<', 'w','exp'],
     ],
+    'str_expression': [
+      ['str:str', 'inner_str_expression:str_exp'],
+    ],
+    'inner_str_expression': [
+      ['exp:exp', 'str:str', 'inner_str_expression:str_exp'],
+      ['exp:exp', 'str:str'],
+    ],
     'exp': [
       ['func_def'],
       ['DOTTED_PATH', 'w', 'operation'],
       ['DOTTED_PATH'],
       ['math', 'w', 'operation'],
       ['math'],
+      ['str_expression', 'w', 'operation'],
+      ['str_expression'],
       ['str', 'w', 'operation'],
       ['str'],
       ['(', 'exp', ')', 'func_call'],

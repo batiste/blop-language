@@ -3,7 +3,7 @@ const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
-  entry: './public/index.blop.js',
+  entry: './public/index.blop',
   output: {
     path: path.resolve(__dirname, 'public', 'dist'),
     filename: 'bundle.js'
@@ -11,7 +11,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /blop\.js$/,
+        test: /\.blop$/,
         use: [
           {
             loader: path.resolve('./blopLoader.js'),

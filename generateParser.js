@@ -4,11 +4,17 @@ const grammar = require('./grammar').grammar
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const backend = require("./backend")
 const fs = require('fs');
-// const meta = require('./meta');
 const meta = require('./metaSync');
 const utils = require('./utils');
 
-const { performance } = require('perf_hooks');
+const { performance, PerformanceObserver } = require('perf_hooks');
+
+const obs = new PerformanceObserver((items) => {
+  const measurement = items.getEntries()[0]
+  console.log('\x1b[32m%s\x1b[0m', measurement.name + ' ' + measurement.duration);
+  performance.clearMarks();
+});
+obs.observe({ entryTypes: ['measure'] });
 
 performance.mark('A');
 
@@ -28,7 +34,6 @@ const code = require('./codeExample').code
 
 performance.mark('C');
 
-// const stream = tokenize(tokensDefinition, code)
 let stream = out.tokenize(tokensDefinition, code)
 
 performance.mark('D');
@@ -47,8 +52,3 @@ let output = backend.generateCode(tree).join('')
 
 performance.mark('F');
 performance.measure('Code generation', 'E', 'F')
-
-const measurements = performance.getEntriesByType('measure');
-measurements.forEach(measurement => {
-  console.log('\x1b[32m%s\x1b[0m', measurement.name + ' ' + measurement.duration);
-})
