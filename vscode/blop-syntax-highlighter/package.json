@@ -3,12 +3,16 @@
 	"displayName": "Blop language syntax highlighter",
 	"description": "A Javascript-like language that offers a JSX syntax",
 	"version": "1.0.0",
-	"publisher": "",
+	"publisher": "batistebieler",
 	"engines": { "vscode": "*" },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "icon": "./blop.png",
+  "repository": {
+		"type": "git",
+		"url": "https://github.com/batiste/blop-language/vscode/blop-syntax-highlighter"
+	},
+  "icon": "blop.png",
   "author": "Batiste Bieler",
   "contributes": {
     "files.associations": {

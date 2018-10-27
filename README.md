@@ -40,4 +40,10 @@ TodoList = {
  }
  
  m.mount(document.body, TodoList)
- 
+ ```
+
+ # Vscode extension
+
+ Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
+
+ ![Extensions](/extensions.png)

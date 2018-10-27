@@ -5,12 +5,12 @@
 	"author": "Batiste Bieler",
 	"license": "MIT",
 	"version": "1.0.0",
-	"icon": "./blop.png",
+	"icon": "blop.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/batiste/blop-language/vscode/blop-server"
 	},
-	"publisher": "vscode",
+	"publisher": "batistebieler",
 	"categories": [],
 	"keywords": [
 		"multi-root ready"
