@@ -2,15 +2,15 @@ var code = `
 root = document.body
 
 def render(number) {
-   <div>
-     <h1>
+  <div>
+      <h1>
        = "Hello"
-     </h1>
-     [1, 2].forEach((i) => {
-       <p class="hello" + i>
-         = "Hello " + i
-       </p>
-     })
+      </h1>
+      [1, 2].forEach((i) => {
+        <p class="hello" + i>
+          = "Hello " + i
+        </p>
+      })
   </div>
 }
 

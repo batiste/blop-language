@@ -28,7 +28,7 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
       } else {
         output.push(`  if(stream[i].type !== '${rule.value}') {`)
         output.push(`    if(i > best_failure_index) {`)
-        output.push(`      best_failure = {rule_name: '${name}', sub_rule_index: ${index}, sub_rule_stream_index: i - index, sub_rule_token_index: ${i}, stream_index: i, token: stream[i], success: false}`)
+        output.push(`      best_failure = {rule_name: '${name}', sub_rule_index: ${index}, sub_rule_stream_index: i - index, sub_rule_token_index: ${i}, stream_index: i, token: stream[i], first_token: stream[index], success: false}`)
         output.push(`      best_failure_index = i`)
         output.push(`     }`)
         output.push(`     return;`)

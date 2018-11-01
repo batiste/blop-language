@@ -11,8 +11,9 @@ function replaceInvisibleChars(v) {
   return v.replace(/ /g, '␣')
 }
 
-function streamContext(input, token, stream) {
+function streamContext(input, token, firstToken, stream) {
   let index = token.index
+  let firstTokenIndex = firstToken.index
   let {lineNumber, charNumber, end} = tokenPosition(input, token)
 
   let lineNb = 1
@@ -32,6 +33,8 @@ function streamContext(input, token, stream) {
       if(lineNb >= (lineNumber - 3)) {
         if(streamIndex === index) {
           v = RED + replaceInvisibleChars(v) + NC;
+        } else if (streamIndex >= firstTokenIndex && streamIndex < index) {
+          v = YELLOW + replaceInvisibleChars(v) + NC;
         }
         str += v
       }
@@ -62,6 +65,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
     let sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
     let rule = ''
     let token = bestFailure.token
+    let firstToken = bestFailure.first_token
     let positions = tokenPosition(input, token)
     let = failingToken = ''
     for(i=0; i<sub_rules.length; i++) {
@@ -81,7 +85,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
   token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
-${streamContext(input, token, stream)}
+${streamContext(input, token, firstToken, stream)}
   `)
 }
 

@@ -9,6 +9,7 @@ Button = {
 
 style = `padding: 0.5em 1em; font-size: 16px;`
 
+
 TodoListItem = {
   view: (vnode) => {
     { value, changeItem } = vnode.attrs
@@ -28,3 +29,4 @@ TodoListItem = {
     </li>
   }
 }
+

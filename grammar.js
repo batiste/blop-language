@@ -1,11 +1,15 @@
 
 var grammar = {
     'START': [
-      ['STATEMENTS*', 'EOS'],
-      ['STATEMENT', 'STATEMENTS*', 'EOS']
+      ['GLOBAL_STATEMENTS*', 'EOS'],
+      ['GLOBAL_STATEMENT', 'GLOBAL_STATEMENTS*', 'EOS']
     ],
-    'STATEMENTS': [
-      ['newline', 'w?', 'W?', 'STATEMENT', 'wcomment?'],
+    'GLOBAL_STATEMENTS': [
+      ['newline', 'w?', 'W?', 'GLOBAL_STATEMENT', 'wcomment?'],
+      ['newline', 'w?', 'W?', 'scomment?']
+    ],
+    'SCOPED_STATEMENTS': [
+      ['newline', 'w?', 'W?', 'SCOPED_STATEMENT', 'wcomment?'],
       ['newline', 'w?', 'W?', 'scomment?']
     ],
     'wcomment': [
@@ -16,7 +20,18 @@ var grammar = {
       ['comment'],
       ['multiline_comment']
     ],
-    'STATEMENT': [
+    'GLOBAL_STATEMENT': [
+      ['condition'],
+      ['assign'], // because as soon as a rule is satisfied
+                  // the parser return happily and destroy the stack
+                  // the more specific rules need to come first
+      ['exp'],
+      ['object_destructuring'],
+      ['for_loop'],
+      ['while_loop'],
+      ['import_statement'],
+    ],
+    'SCOPED_STATEMENT': [
       ['condition'],
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
@@ -26,7 +41,6 @@ var grammar = {
       ['object_destructuring'],
       ['for_loop'],
       ['while_loop'],
-      ['import_statement'],
       ['return', 'exp']
     ],
     'DOTTED_PATH': [
@@ -47,8 +61,8 @@ var grammar = {
       ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp'],
     ],
     'for_loop': [
-      ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
-      ['for', 'name:key', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
+      ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+      ['for', 'name:key', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ],
     'func_def': [
       ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
@@ -80,7 +94,7 @@ var grammar = {
     ],
     'func_body': [
       ['exp:exp'],
-      ['{', 'STATEMENTS*:stats', '}']
+      ['{', 'SCOPED_STATEMENTS*:stats', '}']
     ],
     'array_literal': [
       ['[', 'newline?', 'W?', 'array_literal_body', ']'],
@@ -91,16 +105,16 @@ var grammar = {
       ['exp'],
     ],
     'condition': [
-      ['if:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
+      ['if:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
     ],
     'conditionelseif': [
-      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
-      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
-      ['w', 'else:type', '{', 'STATEMENTS*:stats', '}'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
+      ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+      ['w', 'else:type', '{', 'SCOPED_STATEMENTS*:stats', '}'],
       ['w?']
     ],
     'while_loop': [
-      ['while', 'exp:exp', 'w', '{', 'STATEMENTS*:stats', '}'],
+      ['while', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ],
     'object_literal': [
       ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}']
@@ -123,14 +137,14 @@ var grammar = {
     'object_literal_key' : [['str'], ['name']],
     'virtual_node': [
       ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/>'],
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '</', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'SCOPED_STATEMENTS*:stats', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
       ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
     ],
     'virtual_node_exp': [
       ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/>'],
-      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'STATEMENTS*:stats', '</', 'name:closing', '>', 
+      ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'SCOPED_STATEMENTS*:stats', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
       ['<', 'name:opening', 'virtual_node_attributes*:attrs','>', 'exp:exp', '</', 'name:closing', '>', 
         (node) => node.named.opening.value === node.named.closing.value], 
