@@ -21,9 +21,10 @@ Hello = {
 }
 
 m.mount(root, Hello)
+
 `
 var a = []
-for(var i=0; i<1; i++) {
+for(var i=0; i<100; i++) {
   a.push(code)
 }
 const lcode = a.join('')

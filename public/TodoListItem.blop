@@ -1,32 +1,28 @@
+import 'snabbdom/h' as snabbdomh
+h = snabbdomh.default
 
-Button = {
-  view: (vnode) => {
-    <button onclick=vnode.attrs.onclick style=`font-size: 16px; padding: 0.5em`>
-      = vnode.children
-    </button>
-  }
+Button = (attrs, children) => {
+  <button type='button' style={fontSize: ''attrs.size || 16`px`} on=attrs.on>
+    = children
+  </button>
 }
 
-style = `padding: 0.5em 1em; font-size: 16px;`
-
-
-TodoListItem = {
-  view: (vnode) => {
-    { value, changeItem } = vnode.attrs
-    <li>
-      <div>
-        <div style="float:right">
-          <Button onclick=vnode.attrs.removeItem>'delete'</Button>
-        </div>
-        if vnode.attrs.editMode {
-          <input type="text" style=style value=value onchange=changeItem />
-        } else {
-          <div onclick=vnode.attrs.editItem style=style>
-            = value
-          </div>
-        }
+TodoListItem = (attrs, children) => {
+  { value, changeItem } = attrs
+  style = {padding: '0.5em 1em', fontSize: '16px;'}
+  <li>
+    <div>
+      <div style="float:right">
+        <Button on={click: attrs.removeItem}>'delete'</Button>
       </div>
-    </li>
-  }
+      if attrs.editMode {
+        <input type="text" style=style value=value on={change: changeItem} />
+      } else {
+        <div on={click: attrs.editItem} style=style>
+          = value
+        </div>
+      }
+    </div>
+  </li>
 }
 

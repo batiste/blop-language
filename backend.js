@@ -46,7 +46,8 @@ const backend = {
     if (keys.length > 0) {
       final.push(`let ${keys.join(', ')};`)
     }
-    final.push(...module)
+    
+    final.push(module.join(''))
     final.push(`module.exports = {`)
     Object.keys(ns).forEach(key => {
       final.push(` ${key},`)
@@ -81,15 +82,16 @@ const backend = {
   },
   'import_statement': node => {
     let output = [];
-    let file = node.named.file.value;
-    if(node.named.name) {
+    if(node.named.module) {
       let name = node.named.name.value
-      output.push(`let ${name} = require(${file}).${name};`)
-    }
-    if(node.named.dest_values) {
+      output.push(`let ${name} = require(${node.named.module.value});`)
+    } else if(node.named.name) {
+      let name = node.named.name.value
+      output.push(`let ${name} = require(${node.named.file.value}).${name};`)
+    } else if(node.named.dest_values) {
       output.push('let { ')
       output.push(...generateCode(node.named.dest_values))
-      output.push(`} = require(${file});`)
+      output.push(`} = require(${node.named.file.value});`)
     }
     return output;
   },
@@ -102,16 +104,21 @@ const backend = {
     node.named.attrs ? node.named.attrs.forEach(attr => output.push(...generateCode(attr))) : null
     node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     if(node.named.exp) {
-      output.push(`${_uid}c.push(`)
+      const a_uid = uid()
+      output.push(`${a_uid} = `)
       output.push(...generateCode(node.named.exp))
-      output.push(`);\n `)
+      output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});\n `)
+      // output.push(`${_uid}c.push(`)
+      // output.push(...generateCode(node.named.exp))
+      // output.push(`);\n `)
     }
     popNameSpaceVN()
     let start = node.named.opening.value
-    if(!/^[A-Z]/.test(node.named.opening.value)) {
-      start = `'${node.named.opening.value}'`
+    if(/^[A-Z]/.test(node.named.opening.value)) {
+      output.push(`const ${_uid} = ${start}(${_uid}a, ${_uid}c);`)
+    } else {
+      output.push(`const ${_uid} = h('${start}', ${_uid}a, ${_uid}c);`)
     }
-    output.push(`const ${_uid} = m(${start}, ${_uid}a, ${_uid}c); `)
     if(parent && node.type !== 'virtual_node_exp') {
       output.push(`${parent}c.push(${_uid}); `)
     } else {

@@ -27,6 +27,7 @@ var tokensDefinition = {
   'comment': {reg: /^\/\/[^\n]*/, verbose: 'comment'},
   'multiline_comment': {reg: /^\/\*+[^*]*\*+(?:[^\/*][^*]*\*+)*\//, verbose: 'comment'},
   'operator': {reg: /^(\+|\-|\*|\|\|?|\&\&?)/},
+  'as': {str: 'as '},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'delete': {str: 'delete '},

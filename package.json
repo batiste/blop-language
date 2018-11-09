@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/batiste/js-grammar-parser",
   "dependencies": {
+    "snabbdom": "^0.7.2",
     "webpack": "^4.16.5"
   }
 }
