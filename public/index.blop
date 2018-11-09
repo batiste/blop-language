@@ -21,7 +21,7 @@ fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
 
 Input = (attrs) => <input
   type="text"
-  value=attrs.value
+  props={value: attrs.value}
   on=attrs.on
   style={fontSize: '16px', padding: '0.5em'} />
 
@@ -56,8 +56,8 @@ TodoList = () => {
   <div>
     <Title size=24>`Todo list`</Title>
     <form on={submit: addItem}>
-      <Input value=state.inputValue on={change: onChange} />
-      <Button on={click: addItem}>"Add to list"</Button>
+      <Input props={value: state.inputValue} on={change: onChange} />
+      <Button on={click: addItem} size=28>"Add to list"</Button>
     </form>
     <ul style={maxWidth: '20em'}>
     for index, value in state.todoList {
@@ -70,7 +70,8 @@ TodoList = () => {
     }
     </ul>
     if state.dog {
-      <img src=state.dog />
+      <p>state.dog</p>
+      <img props={src: state.dog} />
     }
   </div>
 }

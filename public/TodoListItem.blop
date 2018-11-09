@@ -2,9 +2,7 @@ import 'snabbdom/h' as snabbdomh
 h = snabbdomh.default
 
 Button = (attrs, children) => {
-  <button type='button' style={fontSize: ''attrs.size || 16`px`} on=attrs.on>
-    = children
-  </button>
+  <button style={fontSize: ''attrs.size || 16`px`} on=attrs.on>children</button>
 }
 
 TodoListItem = (attrs, children) => {
@@ -12,11 +10,11 @@ TodoListItem = (attrs, children) => {
   style = {padding: '0.5em 1em', fontSize: '16px;'}
   <li>
     <div>
-      <div style="float:right">
+      <div style={float: "right"}>
         <Button on={click: attrs.removeItem}>'delete'</Button>
       </div>
       if attrs.editMode {
-        <input type="text" style=style value=value on={change: changeItem} />
+        <input props={type: "text", value: value} style=style on={change: changeItem} />
       } else {
         <div on={click: attrs.editItem} style=style>
           = value
