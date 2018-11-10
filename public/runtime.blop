@@ -4,7 +4,22 @@ import 'snabbdom/modules/style' as style
 import 'snabbdom/modules/eventlisteners' as eventlisteners
 import 'snabbdom/h' as snabbdomh
 
-h = snabbdomh.default
+h = def h(name, properties, children) {
+    console.log(name)
+    props = {}
+    on = null
+    style = null
+    for index, value in properties {
+        if index == 'on' {
+            on = value
+        } elseif index == 'style' {
+            style = value
+        } else {
+            props[index] = value
+        }
+    }
+    return snabbdomh.default(name, {on: on, style: style, props: props}, children)
+}
 patch = snabbdom.init([props.default, style.default, eventlisteners.default])
 
 def mount(dom, func) {

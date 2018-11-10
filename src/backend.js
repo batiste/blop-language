@@ -189,7 +189,7 @@ const backend = {
       output.push(`}`)
       return output;
     }
-    output.push(` ${node.named.type.value}(`)
+    output.push(` else if (`)
     output.push(...generateCode(node.named.exp))
     output.push(`) {`)
     node.named.stats.forEach(stat => {

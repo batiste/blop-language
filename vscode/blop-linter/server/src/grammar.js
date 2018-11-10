@@ -117,7 +117,8 @@ var grammar = {
       ['while', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ],
     'object_literal': [
-      ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}']
+      ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}'],
+      ['{', '}']
     ],
     'object_literal_body': [
       ['object_literal_key', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],

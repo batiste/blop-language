@@ -13,7 +13,7 @@ TodoListItem = (attrs, children) => {
         <Button on={click: attrs.removeItem}>'delete'</Button>
       </div>
       if attrs.editMode {
-        <input props={type: "text", value: value} style=style on={change: changeItem} />
+        <input type="text" value=value style=style on={change: changeItem} />
       } else {
         <div on={click: attrs.editItem} style=style>
           = value

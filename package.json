@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/generateParser && webpack --watch",
-    "linter": "cp {parser.js,grammar.js,tokenizer.js,tokensDefinition.js} vscode/blop-linter/server/src/"
+    "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js} vscode/blop-linter/server/src/"
   },
   "repository": {
     "type": "git",

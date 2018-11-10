@@ -13,7 +13,7 @@ fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
 
 Input = (attrs) => <input
   type="text"
-  props={value: attrs.value}
+  value=attrs.value
   on=attrs.on
   style={fontSize: '16px', padding: '0.5em'} />
 
@@ -21,7 +21,7 @@ Title = (attrs, children) => {
   <h1 style={fontSize: ''attrs.size || 18'px'}>children</h1>
 }
 
-TodoList = () => {
+TodoList = (state) => {
   addItem = (e) => {
     e.preventDefault()
     if state.inputValue {
@@ -40,7 +40,6 @@ TodoList = () => {
     state.inputValue = e.target.value
   }
   remove = (e, index) => {
-    console.log(e, index)
     state.editItemIndex = false
     state.todoList.splice(index, 1)
   }
@@ -48,7 +47,7 @@ TodoList = () => {
   <div>
     <Title size=24>`Todo list`</Title>
     <form on={submit: addItem}>
-      <Input props={value: state.inputValue} on={change: onChange} />
+      <Input value=state.inputValue on={change: onChange} />
       <Button on={click: addItem} size=28>"Add to list"</Button>
     </form>
     <ul style={maxWidth: '20em'}>
@@ -62,10 +61,15 @@ TodoList = () => {
     }
     </ul>
     if state.dog {
-      <p>state.dog</p>
-      <img props={src: state.dog} />
+      <a href=state.dog>
+        <img src=state.dog />
+      </a>
     }
   </div>
 }
 
-mount(document.body, TodoList)
+def binded() {
+  return TodoList(state)
+}
+
+mount(document.body, binded)
