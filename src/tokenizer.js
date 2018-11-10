@@ -1,3 +1,4 @@
+// this function is now integrated into the meta parser generator
 
 "use strict";
 

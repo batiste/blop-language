@@ -4,7 +4,7 @@
   "description": "A simple parser",
   "main": "index.js",
   "scripts": {
-    "start": "node generateParser && webpack --watch",
+    "start": "node src/generateParser && webpack --watch",
     "linter": "cp {parser.js,grammar.js,tokenizer.js,tokensDefinition.js} vscode/blop-linter/server/src/"
   },
   "repository": {

@@ -4,7 +4,7 @@ const grammar = require('./grammar').grammar
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const backend = require("./backend")
 const fs = require('fs');
-const meta = require('./metaSync');
+const meta = require('./metaParserGenerator');
 const utils = require('./utils');
 
 const { performance, PerformanceObserver } = require('perf_hooks');
@@ -18,7 +18,7 @@ obs.observe({ entryTypes: ['measure'] });
 
 performance.mark('A');
 
-fs.writeFileSync("./parser.js", meta.generate(grammar, tokensDefinition, false).join("\n"), function(err) {
+fs.writeFileSync("./src/parser.js", meta.generate(grammar, tokensDefinition, false).join("\n"), function(err) {
     if(err) {
       console.log(err);
       return

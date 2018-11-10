@@ -14,7 +14,7 @@ module.exports = {
         test: /\.blop$/,
         use: [
           {
-            loader: path.resolve('./blopLoader.js'),
+            loader: path.resolve('./src/blopLoader.js'),
             options: {debug: true}
           }
         ]
