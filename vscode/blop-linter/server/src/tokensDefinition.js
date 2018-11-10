@@ -24,9 +24,10 @@ function singleSpace(input) {
 
 var tokensDefinition = {
   'number': {reg: /^[0-9]+(\.[0-9]*)?/},
-  'comment': {reg: /^\/\/[^\n]*/},
-  'multiline_comment': {reg: /^\/\*+[^*]*\*+(?:[^\/*][^*]*\*+)*\//},
+  'comment': {reg: /^\/\/[^\n]*/, verbose: 'comment'},
+  'multiline_comment': {reg: /^\/\*+[^*]*\*+(?:[^\/*][^*]*\*+)*\//, verbose: 'comment'},
   'operator': {reg: /^(\+|\-|\*|\|\|?|\&\&?)/},
+  'as': {str: 'as '},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'delete': {str: 'delete '},
@@ -49,7 +50,8 @@ var tokensDefinition = {
   ')': {str: ')'},
   '{': {str: '{'},
   '}': {str: '}'},
-  '/': {str: '/'},
+  '</': {str: '</'},
+  '/>': {str: '/>'},
   '[': {str: '['},
   ']': {str: ']'},
   '=>': {str: '=>'},
@@ -58,11 +60,11 @@ var tokensDefinition = {
   '!=': {str: '!='},
   '>': {str: '>'},
   '<': {str: '<'},
-  'explicit_assign': {str: ':='},
+  'explicit_assign': {str: ':=', verbose: 'explicit assign'},
   '=': {str: '='},
   'colon': {str: ':'},
   'newline': {str: '\n'},
-  'str': {func:strDef},
+  'str': {func:strDef, verbose: 'string'},
   'w': {func:singleSpace, verbose: 'single white space'},
   'W': {reg: /^[\s]+/, verbose: 'multiple white spaces'}
 };

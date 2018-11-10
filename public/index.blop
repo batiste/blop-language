@@ -1,14 +1,6 @@
 
+import { h, mount } from './runtime.blop'
 import { TodoListItem, Button } from './TodoListItem.blop'
-import Blop from './TodoListItem.blop'
-import 'snabbdom' as snabbdom
-import 'snabbdom/modules/props' as props
-import 'snabbdom/modules/style' as style
-import 'snabbdom/modules/eventlisteners' as eventlisteners
-import 'snabbdom/h' as snabbdomh
-h = snabbdomh.default
-
-patch = snabbdom.init([props.default, style.default, eventlisteners.default])
 
 state = {
   todoList: ['some task 1', 'some task 2'],
@@ -76,12 +68,4 @@ TodoList = () => {
   </div>
 }
 
-vnode = TodoList()
-
-patch(document.body, vnode)
-
-setInterval(() => {
-  newVnode = TodoList()
-  patch(vnode, newVnode)
-  vnode := newVnode
-}, 100)
+mount(document.body, TodoList)

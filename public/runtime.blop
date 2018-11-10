@@ -1,0 +1,19 @@
+import 'snabbdom' as snabbdom
+import 'snabbdom/modules/props' as props
+import 'snabbdom/modules/style' as style
+import 'snabbdom/modules/eventlisteners' as eventlisteners
+import 'snabbdom/h' as snabbdomh
+
+h = snabbdomh.default
+patch = snabbdom.init([props.default, style.default, eventlisteners.default])
+
+def mount(dom, func) {
+    vnode = func()
+    patch(document.body, vnode)
+
+    setInterval(() => {
+        newVnode = func()
+        patch(vnode, newVnode)
+        vnode := newVnode
+    }, 100)
+}

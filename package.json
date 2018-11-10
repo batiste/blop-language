@@ -2,9 +2,10 @@
   "name": "gg-parser",
   "version": "1.0.0",
   "description": "A simple parser",
-  "main": "parser.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node generateParser && webpack --watch"
+    "start": "node generateParser && webpack --watch",
+    "linter": "cp {parser.js,grammar.js,tokenizer.js,tokensDefinition.js} vscode/blop-linter/server/src/"
   },
   "repository": {
     "type": "git",
