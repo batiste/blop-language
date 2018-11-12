@@ -17,8 +17,9 @@ h = def h(name, properties, children) {
             props[index] = value
         }
     }
-    return snabbdomh.default(name, {on: on, style: style, props: props}, children)
+    return snabbdomh.default(name, { on: on, style: style, props: props }, children)
 }
+
 patch = snabbdom.init([props.default, style.default, eventlisteners.default])
 
 def mount(dom, func) {
@@ -38,5 +39,5 @@ def mount(dom, func) {
         })
     }
     interval = setInterval(refresh, 60)
-    return { refresh: refresh, umount: () => clearInterval(interval) }
+    return { refresh, umount: () => clearInterval(interval) }
 }

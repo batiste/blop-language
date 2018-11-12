@@ -15,10 +15,10 @@ Input = (attrs) => <input
   type="text"
   value=attrs.value
   on=attrs.on
-  style={fontSize: '16px', padding: '0.5em'} />
+  style={ fontSize: '16px', padding: '0.5em' } />
 
 Title = (attrs, children) => {
-  <h1 style={fontSize: ''attrs.size || 18'px'}>children</h1>
+  <h1 style={ fontSize: ''attrs.size || 18'px' }>children</h1>
 }
 
 TodoList = (state) => {
@@ -36,7 +36,7 @@ TodoList = (state) => {
     state.editItemIndex = false
     state.todoList[index] = e.target.value
   }
-  onChange = (e) => {
+  change = (e) => {
     state.inputValue = e.target.value
   }
   remove = (e, index) => {
@@ -46,18 +46,18 @@ TodoList = (state) => {
 
   <div>
     <Title size=24>`Todo list`</Title>
-    <form on={submit: addItem}>
-      <Input value=state.inputValue on={change: onChange} />
-      <Button on={click: addItem} size=28>"Add to list"</Button>
+    <form on={ submit: addItem }>
+      <Input value=state.inputValue on={ change } />
+      <Button on={ click: addItem } size=28>"Add to list"</Button>
     </form>
-    <ul style={maxWidth: '20em'}>
+    <ul style={ maxWidth: '20em' }>
     for index, value in state.todoList {
       <TodoListItem
         removeItem=(e) => remove(e, index)
         editItem=(e) => editItem(e, index)
         changeItem=(e) => changeItem(e, index)
         editMode=state.editItemIndex == index
-        value=value />
+        value />
     }
     </ul>
     if state.dog {

@@ -1,21 +1,25 @@
 import { h } from './runtime.blop'
 
 Button = (attrs, children) => {
-  <button style={fontSize: ''attrs.size || 16`px`} on=attrs.on>children</button>
+  <button style={ fontSize: ''attrs.size || 16`px` } on=attrs.on>children</button>
 }
 
 TodoListItem = (attrs, children) => {
-  { value, changeItem } = attrs
-  style = {padding: '0.5em 1em', fontSize: '16px;'}
+  { value,
+    changeItem as change,
+    removeItem,
+    editItem
+  } = attrs
+  style = { padding: '0.5em 1em', fontSize: '16px;' }
   <li>
     <div>
-      <div style={float: "right"}>
-        <Button on={click: attrs.removeItem}>'delete'</Button>
+      <div style={ float: "right" }>
+        <Button on={ click: removeItem }>'delete'</Button>
       </div>
       if attrs.editMode {
-        <input type="text" value=value style=style on={change: changeItem} />
+        <input type="text" value style on={ change } />
       } else {
-        <div on={click: attrs.editItem} style=style>
+        <div on={ click: editItem } style>
           = value
         </div>
       }

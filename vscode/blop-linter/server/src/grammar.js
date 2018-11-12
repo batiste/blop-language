@@ -5,8 +5,8 @@ var grammar = {
       ['GLOBAL_STATEMENTS*', 'EOS']
     ],
     'GLOBAL_STATEMENTS': [
-      ['newline', 'w?', 'W?', 'GLOBAL_STATEMENT', 'wcomment?'],
-      ['newline', 'w?', 'W?', 'scomment?']
+      ['newline', 'GLOBAL_STATEMENT', 'wcomment?'],
+      ['newline', 'scomment?']
     ],
     'SCOPED_STATEMENTS': [
       ['newline', 'w?', 'W?', 'SCOPED_STATEMENT', 'wcomment?'],
@@ -37,8 +37,8 @@ var grammar = {
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
       ['virtual_node'],
-      ['exp'],
       ['object_destructuring'],
+      ['exp'],
       ['for_loop'],
       ['while_loop'],
       ['return', 'exp']
@@ -93,15 +93,15 @@ var grammar = {
       ['exp']
     ],
     'func_body': [
-      ['exp:exp'],
-      ['{', 'SCOPED_STATEMENTS*:stats', '}']
+      ['{', 'SCOPED_STATEMENTS*:stats', '}'],
+      ['exp:exp']
     ],
     'array_literal': [
-      ['[', 'newline?', 'W?', 'array_literal_body', ']'],
+      ['[', 'newline?', 'W?', 'array_literal_body', 'newline?', 'W?', ']'],
       ['[', ']'],
     ],
     'array_literal_body': [
-      ['exp', ',', 'w', 'newline?', 'W?', 'array_literal_body'],
+      ['exp', ',', 'single_space_or_newline', 'array_literal_body'],
       ['exp'],
     ],
     'condition': [
@@ -117,19 +117,27 @@ var grammar = {
       ['while', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ],
     'object_literal': [
-      ['{', 'newline?', 'w?', 'W?', 'object_literal_body', '}'],
+      ['{', 'single_space_or_newline', 'object_literal_body', 'single_space_or_newline', '}'],
       ['{', '}']
     ],
+    'single_space_or_newline': [
+      ['w'],
+      ['newline', 'w?', 'W?']
+    ],
     'object_literal_body': [
-      ['object_literal_key', 'colon', 'w', 'exp', 'w?', 'W?', ',', 'newline?', 'w?', 'W?', 'object_literal_body'],
-      ['object_literal_key', 'colon', 'w', 'exp', 'newline?', 'w?', 'W?']
+      ['object_literal_key', 'colon', 'w', 'exp', ',', 'single_space_or_newline', 'object_literal_body'],
+      ['object_literal_key', ',', 'single_space_or_newline', 'object_literal_body'],
+      ['object_literal_key', 'colon', 'w', 'exp'],
+      ['object_literal_key']
     ],
     'object_destructuring': [
-      ['{', 'w', 'destructuring_values', 'w', '}', 'w', '=', 'w', 'exp']
+      ['{', 'w', 'destructuring_values', 'single_space_or_newline', '}', 'w', '=', 'w', 'exp']
     ],
     'destructuring_values': [
-      ['name', ',', 'w', 'destructuring_values'],
-      ['name']
+      ['name:name', ',', 'single_space_or_newline', 'destructuring_values'],
+      ['name:name', 'w', 'as:destruct', 'name:as', ',', 'single_space_or_newline', 'destructuring_values'],
+      ['name:name', 'w', 'as:destruct', 'name:as'],
+      ['name:name'],
     ],
     'import_statement': [
       ['import', 'name:name', 'w', 'from', 'str:file'],
@@ -156,7 +164,9 @@ var grammar = {
     ],
     'virtual_node_attributes': [
       ['newline', 'W', 'name:name', '=', 'exp:exp'],
-      ['w', 'name:name', '=', 'exp:exp']
+      ['w', 'name:name', '=', 'exp:exp'],
+      ['newline', 'W', 'name:name'],
+      ['w', 'name:name']
     ],
     'operation': [
       ['operator', 'w','exp'],

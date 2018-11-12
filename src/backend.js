@@ -80,6 +80,18 @@ const backend = {
     }
     return output;
   },
+  'as': node => {
+    return [':']
+  },
+  'object_literal': node => {
+    let output = [];
+    output.push('(')
+    for(var i=0; i<node.children.length; i++) {
+      output.push(...generateCode(node.children[i]))
+    }
+    output.push(')')
+    return output;
+  },
   'import_statement': node => {
     let output = [];
     if(node.named.module) {
@@ -148,7 +160,11 @@ const backend = {
     let output = [];
     const _uid = currentNameSpaceVN()['currentVNode']
     output.push(` ${_uid}a['${node.named.name.value}'] = `)
-    output.push(...generateCode(node.named.exp))
+    if(node.named.exp) {
+      output.push(...generateCode(node.named.exp))
+    } else {
+      output.push(node.named.name.value)
+    }
     output.push("; ")
     return output;
   },
