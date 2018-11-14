@@ -13,7 +13,15 @@ def doggyHanlder(params) {
   console.log('doggyHanlder called with', params)
   state.choosenDoggy = 'My dog is 'params.id''
 }
+
+def indexHandler(params) {
+  console.log('indexHandler called')
+  delete state.choosenDoggy
+}
+
 router.add({ path: '/dogs/:id', name: 'doggy', handler: doggyHanlder })
+router.add({ path: '/', name: 'root', handler: indexHandler })
+router.init()
 
 fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
   state.dog = (await response.json()).message

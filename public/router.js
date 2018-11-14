@@ -20,6 +20,9 @@ class Router {
       }
     })
   }
+  init() {
+    this.go(window.location.pathname, false)
+  }
   add(route) {
     route.reg = new RegExp(replace(escapeRegExp(route.path)))
     this.routes.push(route)
@@ -34,9 +37,13 @@ class Router {
       return {route: matchedRoute, params: m.groups}
     }
   }
-  go(path) {
+  go(path, push=true) {
     let m = this.match(path)
-    if(m) {
+    if(!m) {
+      console.log(`No route for path ${path}`)
+      return
+    }
+    if(push) {
       history.pushState({name: m.route.name, path: m.route.path, params: m.params}, m.route.name, path);
     }
     if(m.route.handler) {
