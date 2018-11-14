@@ -194,6 +194,7 @@ var grammar = {
       ['str_expression'],
       ['str', 'w', 'operation'],
       ['str'],
+      ['regexp'],
       ['(', 'exp', ')', 'func_call'],
       ['(', 'exp', ')', '.', 'DOTTED_PATH'],
       ['(', 'exp', ')'],

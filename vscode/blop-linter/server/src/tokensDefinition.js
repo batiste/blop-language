@@ -16,6 +16,26 @@ function strDef(input) {
   }
 }
 
+function regExpDef(input) {
+  if (input.charAt(0) == '/') {
+    i = 1
+    while (input.charAt(i)) {
+      ch = input.charAt(i)
+      if (ch == '\\') {
+        i++
+      } else if (ch == '/') {
+        i++
+        // modifiers
+        while (input.charAt(i) && "igm".indexOf(input.charAt(i)) != -1) {
+          i++
+        }
+        return input.slice(0, i)
+      }
+      i++
+    }
+  }
+}
+
 function singleSpace(input) {
   if(input[0] === ' ' && input[1] !== ' ') {
     return ' ';
@@ -64,9 +84,10 @@ var tokensDefinition = {
   '=': {str: '='},
   'colon': {str: ':'},
   'newline': {str: '\n'},
+  'regexp': {func: regExpDef},
   'str': {func:strDef, verbose: 'string'},
   'w': {func:singleSpace, verbose: 'single white space'},
-  'W': {reg: /^[\s]+/, verbose: 'multiple white spaces'}
+  'W': {reg: /^[\s]+/, verbose: 'multiple white spaces'},
 };
 
 module.exports = {
