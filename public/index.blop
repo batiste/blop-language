@@ -1,11 +1,19 @@
 
 import { h, mount } from './runtime.blop'
 import { TodoListItem, Button } from './TodoListItem.blop'
+import { Router } from './router.js'
 
+router = new Router()
 state = {
   todoList: ['some task 1', 'some task 2'],
   dog: null
 }
+
+def doggyHanlder(params) {
+  console.log('doggyHanlder called with', params)
+  state.choosenDoggy = 'My dog is 'params.id''
+}
+router.add({ path: '/dogs/:id', name: 'doggy', handler: doggyHanlder })
 
 fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
   state.dog = (await response.json()).message
@@ -43,9 +51,14 @@ TodoList = (state) => {
     state.editItemIndex = false
     state.todoList.splice(index, 1)
   }
+  getRandomInt = (min, max) => {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min)) + min
+  }
 
   <div>
-    <Title size=24>`Todo list`</Title>
+    <Title size=24>state.choosenDoggy || `Todo list`</Title>
     <form on={ submit: addItem }>
       <Input value=state.inputValue on={ change } />
       <Button on={ click: addItem } size=28>"Add to list"</Button>
@@ -61,8 +74,12 @@ TodoList = (state) => {
     }
     </ul>
     if state.dog {
-      <a href=state.dog>
+      <button on={ click: (e) => router.go('/dogs/'getRandomInt(10, 1000)'') }>
         <img src=state.dog />
+      </button>
+      <br />
+      <a href=state.dog>
+        = 'link to dog'
       </a>
     }
   </div>

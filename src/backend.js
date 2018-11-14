@@ -228,11 +228,12 @@ const backend = {
   },
   'func_def': node => {
     let output = [];
-    const ns = currentNameSpaceFCT()
+    const parentns = currentNameSpaceFCT()
+    const ns = addNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
         node.hoist = false;
-        ns[node.named.name.value] = node
+        parentns[node.named.name.value] = node
         output.push(node.named.name.value)
       }
       output.push(`(`)
@@ -241,6 +242,7 @@ const backend = {
       }
       output.push(`) => `)
       output.push(...generateCode(node.named.body))
+
     } else {
       if(!node.named.name) {
         output.push(`(`)
@@ -248,7 +250,7 @@ const backend = {
       output.push(`function `)
       if(node.named.name) {
         node.hoist = false;
-        ns[node.named.name.value] = node
+        parentns[node.named.name.value] = node
         output.push(node.named.name.value)
       }
       output.push(`(`)
@@ -261,14 +263,25 @@ const backend = {
         output.push(`)`)
       }
     }
+    popNameSpaceFCT()
+    return output;
+  },
+  'func_def_params': node => {
+    const ns = currentNameSpaceFCT()
+    node.hoist = false;
+    ns[node.named.name.value] = node
+    let output = [];
+    for(var i=0; i<node.children.length; i++) {
+      output.push(...generateCode(node.children[i]))
+    }
     return output;
   },
   'func_body': node => {
+    const ns = currentNameSpaceFCT()
     let output = []
     if(node.named.exp) {
       output = generateCode(node.named.exp)
     }
-    const ns = addNameSpaceFCT()
     if(node.named.stats) {
       output.push(` {`)
       let body = []
@@ -281,7 +294,6 @@ const backend = {
       output.push(...body)
       output.push(`}`)
     }
-    popNameSpaceFCT()
     return output;
   },
   'comment': node => node.value.replace('#', '//'),

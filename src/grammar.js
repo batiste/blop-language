@@ -74,10 +74,10 @@ var grammar = {
       ['colon', 'w' ,'name'],
     ],
     'func_def_params': [
-      ['name', '=', 'exp', 'annotation?', ',', 'w', 'func_def_params'],
-      ['name', '=', 'exp', 'annotation?'],
-      ['exp', 'annotation?', ',', 'w', 'func_def_params'],
-      ['exp', 'annotation?']
+      ['name:name', '=', 'exp', 'annotation?', ',', 'w', 'func_def_params'],
+      ['name:name', '=', 'exp', 'annotation?'],
+      ['name:name', 'annotation?', ',', 'w', 'func_def_params'],
+      ['name:name', 'annotation?']
     ],
     'func_call': [
       ['(', ')', '.', 'DOTTED_PATH'],

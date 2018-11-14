@@ -1345,6 +1345,7 @@ function func_def_params_0(stream, index) {
      }
      return;
   }
+    named['name'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== '=') {
     if(i > best_failure_index) {
@@ -1399,6 +1400,7 @@ function func_def_params_1(stream, index) {
      }
      return;
   }
+    named['name'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== '=') {
     if(i > best_failure_index) {
@@ -1426,10 +1428,15 @@ function func_def_params_2(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "func_def_params", subRule: 2, type: "func_def_params", named}
-  const _rule_0 = exp(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'func_def_params', sub_rule_index: 2, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
   const _rule_1 = annotation(stream, i);
   if(_rule_1) {
     children.push(_rule_1);
@@ -1464,10 +1471,15 @@ function func_def_params_3(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "func_def_params", subRule: 3, type: "func_def_params", named}
-  const _rule_0 = exp(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'func_def_params', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
   const _rule_1 = annotation(stream, i);
   if(_rule_1) {
     children.push(_rule_1);

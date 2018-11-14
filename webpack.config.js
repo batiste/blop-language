@@ -8,6 +8,11 @@ module.exports = {
     path: path.resolve(__dirname, 'public', 'dist'),
     filename: 'bundle.js'
   },
+  devServer: {
+    contentBase: path.join(__dirname, 'public'),
+    index: 'index.html',
+    port: 9000
+  },
   module: {
     rules: [
       {
@@ -15,7 +20,7 @@ module.exports = {
         use: [
           {
             loader: path.resolve('./src/blopLoader.js'),
-            options: {debug: true}
+            options: {debug: false}
           }
         ]
       }
