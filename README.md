@@ -1,6 +1,6 @@
 # The blop language
 
- ![Code example](/img/blop.png)
+ ![Code example](/img/blop.png | width=300)
 
 The blop language is a toy language that ressembles modern JavaScript. It uses the Snabbdom library to offer JSX like features.
 It has the advantage to fully integrate the HTML tags into the language and you are not limited to expressions. You can mix any statement within a function as HTML tags can be statements as well as expressions.
