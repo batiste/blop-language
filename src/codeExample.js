@@ -14,6 +14,17 @@ def render(number) {
   </div>
 }
 
+class Test {
+  def constructor(a) {
+    this.a = a
+  }
+  def blop(a) {
+    return blop
+  }
+}
+
+b = !b
+
 a = 1 - (1 + 2) + (2 + 4) + 2
 
 Hello = {

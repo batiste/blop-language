@@ -266,6 +266,33 @@ const backend = {
     popNameSpaceFCT()
     return output;
   },
+  'class_def': node => {
+    let output = [];
+    const ns = currentNameSpaceFCT()
+    node.hoist = false;
+    ns[node.named.name.value] = node
+    output.push('class ')
+    output.push(node.named.name.value)
+    output.push(' {')
+    node.named.stats.forEach(stat => output.push(...generateCode(stat)))
+    output.push(' }')
+    return output
+  },
+  'class_func_def': node => {
+    let output = [];
+    const ns = addNameSpaceFCT()
+    node.hoist = false;
+    ns[node.named.name.value] = node
+    output.push(node.named.name.value)
+    output.push(`(`)
+    if(node.named.params) { 
+      output.push(...generateCode(node.named.params))
+    }
+    output.push(`)`)
+    output.push(...generateCode(node.named.body))
+    popNameSpaceFCT()
+    return output;
+  },
   'func_def_params': node => {
     const ns = currentNameSpaceFCT()
     node.hoist = false;

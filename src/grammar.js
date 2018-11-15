@@ -26,6 +26,7 @@ var grammar = {
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
       ['exp'],
+      ['class_def'],
       ['object_destructuring'],
       ['for_loop'],
       ['while_loop'],
@@ -95,6 +96,17 @@ var grammar = {
     'func_body': [
       ['{', 'SCOPED_STATEMENTS*:stats', '}'],
       ['exp:exp']
+    ],
+    'class_def': [
+      ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}']
+    ],
+    'class_func_def': [
+      ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
+      ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
+    ],
+    'CLASS_STATEMENT': [
+      ['newline', 'w?', 'W?', 'class_func_def', 'wcomment?'],
+      ['newline', 'w?', 'W?', 'scomment?']
     ],
     'array_literal': [
       ['[', 'newline?', 'W?', 'array_literal_body', 'newline?', 'W?', ']'],
@@ -198,6 +210,7 @@ var grammar = {
       ['(', 'exp', ')', 'func_call'],
       ['(', 'exp', ')', '.', 'DOTTED_PATH'],
       ['(', 'exp', ')'],
+      ['unary', 'exp'],
       ['object_literal'],
       ['array_literal', '.', 'name', 'func_call'],
       ['array_literal'],

@@ -302,7 +302,7 @@ function GLOBAL_STATEMENT_3(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 3, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = object_destructuring(stream, i);
+  const _rule_0 = class_def(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -315,7 +315,7 @@ function GLOBAL_STATEMENT_4(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 4, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = for_loop(stream, i);
+  const _rule_0 = object_destructuring(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -328,7 +328,7 @@ function GLOBAL_STATEMENT_5(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 5, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = while_loop(stream, i);
+  const _rule_0 = for_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -341,6 +341,19 @@ function GLOBAL_STATEMENT_6(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 6, type: "GLOBAL_STATEMENT", named}
+  const _rule_0 = while_loop(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function GLOBAL_STATEMENT_7(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 7, type: "GLOBAL_STATEMENT", named}
   const _rule_0 = import_statement(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
@@ -350,7 +363,7 @@ function GLOBAL_STATEMENT_6(stream, index) {
 }
 
 function GLOBAL_STATEMENT(stream, index) {
-  return GLOBAL_STATEMENT_0(stream, index) || GLOBAL_STATEMENT_1(stream, index) || GLOBAL_STATEMENT_2(stream, index) || GLOBAL_STATEMENT_3(stream, index) || GLOBAL_STATEMENT_4(stream, index) || GLOBAL_STATEMENT_5(stream, index) || GLOBAL_STATEMENT_6(stream, index)
+  return GLOBAL_STATEMENT_0(stream, index) || GLOBAL_STATEMENT_1(stream, index) || GLOBAL_STATEMENT_2(stream, index) || GLOBAL_STATEMENT_3(stream, index) || GLOBAL_STATEMENT_4(stream, index) || GLOBAL_STATEMENT_5(stream, index) || GLOBAL_STATEMENT_6(stream, index) || GLOBAL_STATEMENT_7(stream, index)
 }
 function SCOPED_STATEMENT_0(stream, index) {
   let i = index;
@@ -1816,6 +1829,245 @@ function func_body_1(stream, index) {
 
 function func_body(stream, index) {
   return func_body_0(stream, index) || func_body_1(stream, index)
+}
+function class_def_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "class_def", subRule: 0, type: "class_def", named}
+  if(stream[i].type !== 'clazz') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_4 = CLASS_STATEMENT(stream, i);
+  while(_rule_4) {
+    children.push(_rule_4);
+    i = _rule_4.last_index;
+    _rule_4 = CLASS_STATEMENT(stream, i);
+  }
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 5, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function class_def(stream, index) {
+  return class_def_0(stream, index)
+}
+function class_func_def_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "class_func_def", subRule: 0, type: "class_func_def", named}
+  if(stream[i].type !== 'def') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type == 'name') {
+    named['name'] = stream[i]
+    children.push(stream[i]); i++;
+  }
+  if(stream[i].type !== '(') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== ')') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_4 = annotation(stream, i);
+  if(_rule_4) {
+    children.push(_rule_4);
+    i = _rule_4.last_index;
+  }
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 5, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_6 = func_body(stream, i);
+  if(!_rule_6) return;
+    named['body'] = _rule_6
+  children.push(_rule_6);
+  i = _rule_6.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function class_func_def_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "class_func_def", subRule: 1, type: "class_func_def", named}
+  if(stream[i].type !== 'def') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type == 'name') {
+    named['name'] = stream[i]
+    children.push(stream[i]); i++;
+  }
+  if(stream[i].type !== '(') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_3 = func_def_params(stream, i);
+  if(!_rule_3) return;
+    named['params'] = _rule_3
+  children.push(_rule_3);
+  i = _rule_3.last_index;
+  if(stream[i].type !== ')') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 4, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_5 = annotation(stream, i);
+  if(_rule_5) {
+    children.push(_rule_5);
+    i = _rule_5.last_index;
+  }
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_func_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 6, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_7 = func_body(stream, i);
+  if(!_rule_7) return;
+    named['body'] = _rule_7
+  children.push(_rule_7);
+  i = _rule_7.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function class_func_def(stream, index) {
+  return class_func_def_0(stream, index) || class_func_def_1(stream, index)
+}
+function CLASS_STATEMENT_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "CLASS_STATEMENT", subRule: 0, type: "CLASS_STATEMENT", named}
+  if(stream[i].type !== 'newline') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'CLASS_STATEMENT', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type == 'w') {
+    children.push(stream[i]); i++;
+  }
+  if(stream[i].type == 'W') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_3 = class_func_def(stream, i);
+  if(!_rule_3) return;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
+  const _rule_4 = wcomment(stream, i);
+  if(_rule_4) {
+    children.push(_rule_4);
+    i = _rule_4.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function CLASS_STATEMENT_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "CLASS_STATEMENT", subRule: 1, type: "CLASS_STATEMENT", named}
+  if(stream[i].type !== 'newline') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'CLASS_STATEMENT', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type == 'w') {
+    children.push(stream[i]); i++;
+  }
+  if(stream[i].type == 'W') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_3 = scomment(stream, i);
+  if(_rule_3) {
+    children.push(_rule_3);
+    i = _rule_3.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function CLASS_STATEMENT(stream, index) {
+  return CLASS_STATEMENT_0(stream, index) || CLASS_STATEMENT_1(stream, index)
 }
 function array_literal_0(stream, index) {
   let i = index;
@@ -4094,68 +4346,9 @@ function exp_13(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 13, type: "exp", named}
-  const _rule_0 = object_literal(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function exp_14(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "exp", subRule: 14, type: "exp", named}
-  const _rule_0 = array_literal(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  if(stream[i].type !== '.') {
+  if(stream[i].type !== 'unary') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 14, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
-  if(stream[i].type !== 'name') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 14, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
-  const _rule_3 = func_call(stream, i);
-  if(!_rule_3) return;
-  children.push(_rule_3);
-  i = _rule_3.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function exp_15(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "exp", subRule: 15, type: "exp", named}
-  const _rule_0 = array_literal(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function exp_16(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "exp", subRule: 16, type: "exp", named}
-  if(stream[i].type !== 'await') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 16, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'exp', sub_rule_index: 13, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -4169,12 +4362,71 @@ function exp_16(stream, index) {
   return node
 }
 
+function exp_14(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 14, type: "exp", named}
+  const _rule_0 = object_literal(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function exp_15(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 15, type: "exp", named}
+  const _rule_0 = array_literal(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  if(stream[i].type !== '.') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 15, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 15, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_3 = func_call(stream, i);
+  if(!_rule_3) return;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function exp_16(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 16, type: "exp", named}
+  const _rule_0 = array_literal(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function exp_17(stream, index) {
   let i = index;
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 17, type: "exp", named}
-  if(stream[i].type !== 'async') {
+  if(stream[i].type !== 'await') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'exp', sub_rule_index: 17, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -4195,35 +4447,9 @@ function exp_18(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 18, type: "exp", named}
-  const _rule_0 = virtual_node_assign(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function exp_19(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "exp", subRule: 19, type: "exp", named}
-  const _rule_0 = virtual_node_exp(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function exp_20(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "exp", subRule: 20, type: "exp", named}
-  if(stream[i].type !== 'new') {
+  if(stream[i].type !== 'async') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'exp', sub_rule_index: 20, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'exp', sub_rule_index: 18, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -4237,12 +4463,38 @@ function exp_20(stream, index) {
   return node
 }
 
+function exp_19(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 19, type: "exp", named}
+  const _rule_0 = virtual_node_assign(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function exp_20(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 20, type: "exp", named}
+  const _rule_0 = virtual_node_exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function exp_21(stream, index) {
   let i = index;
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 21, type: "exp", named}
-  if(stream[i].type !== 'throw') {
+  if(stream[i].type !== 'new') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'exp', sub_rule_index: 21, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -4263,7 +4515,7 @@ function exp_22(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "exp", subRule: 22, type: "exp", named}
-  if(stream[i].type !== 'delete') {
+  if(stream[i].type !== 'throw') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'exp', sub_rule_index: 22, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -4279,8 +4531,29 @@ function exp_22(stream, index) {
   return node
 }
 
+function exp_23(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp", subRule: 23, type: "exp", named}
+  if(stream[i].type !== 'delete') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'exp', sub_rule_index: 23, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_1 = exp(stream, i);
+  if(!_rule_1) return;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function exp(stream, index) {
-  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index) || exp_17(stream, index) || exp_18(stream, index) || exp_19(stream, index) || exp_20(stream, index) || exp_21(stream, index) || exp_22(stream, index)
+  return exp_0(stream, index) || exp_1(stream, index) || exp_2(stream, index) || exp_3(stream, index) || exp_4(stream, index) || exp_5(stream, index) || exp_6(stream, index) || exp_7(stream, index) || exp_8(stream, index) || exp_9(stream, index) || exp_10(stream, index) || exp_11(stream, index) || exp_12(stream, index) || exp_13(stream, index) || exp_14(stream, index) || exp_15(stream, index) || exp_16(stream, index) || exp_17(stream, index) || exp_18(stream, index) || exp_19(stream, index) || exp_20(stream, index) || exp_21(stream, index) || exp_22(stream, index) || exp_23(stream, index)
 }
 function _tokenize(tokenDef, input, stream) {
   match = input.match(tokenDef.number.reg);
@@ -4301,6 +4574,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`as `)) {
    return [`as `, `as`];
+  }
+  if(input.startsWith(`class `)) {
+   return [`class `, `clazz`];
   }
   if(input.startsWith(`def `)) {
    return [`def `, `def`];
@@ -4392,6 +4668,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`!=`)) {
    return [`!=`, `!=`];
+  }
+  if(input.startsWith(`!`)) {
+   return [`!`, `unary`];
   }
   if(input.startsWith(`>`)) {
    return [`>`, `>`];
