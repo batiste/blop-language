@@ -25,11 +25,6 @@
         "name":"string.cokescript"
       },
       {  
-        "begin":"\\/",
-        "end":"(\\\\.|[^\\/])*/",
-        "name":"string.blop"
-      },
-      {  
         "match":"``",
         "name":"string.cokescript"
       },
@@ -90,6 +85,10 @@
       {  
         "match":"\\<\\/[a-zA-Z][a-zA-Z_0-9]*\\>",
         "name":"support.function.other.blop"
+      },
+      {  
+        "match":"\\/(\\\\.|[^\\/])*/",
+        "name":"string.blop"
       },
       {  
         "match":"def |if |else|elseif |for |delete |new |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this",
