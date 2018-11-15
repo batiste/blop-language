@@ -25,22 +25,27 @@
         "name":"string.cokescript"
       },
       {  
+        "begin":"\\/",
+        "end":"(\\\\.|[^\\/])*/",
+        "name":"string.blop"
+      },
+      {  
         "match":"``",
         "name":"string.cokescript"
       },
       {  
         "begin":"\\\"",
-        "end":"([^\\\\]|\\\\\\\\)\\\"",
+        "end":"(\\\\.|[^\\\"])*\"",
         "name":"string.blop"
       },
       {  
         "begin":"\\'",
-        "end":"([^\\\\]|\\\\\\\\)'",
+        "end":"(\\\\.|[^\\'])*'",
         "name":"string.blop"
       },
       {  
         "begin":"\\`",
-        "end":"([^\\\\]|\\\\\\\\)`",
+        "end":"(\\\\.|[^\\`])*`",
         "name":"string.blop"
       },
       {  
