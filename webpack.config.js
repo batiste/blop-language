@@ -13,7 +13,8 @@ module.exports = {
     index: 'index.html',
     historyApiFallback: true,
     port: 9000,
-    overlay: true
+    overlay: true,
+    watchContentBase: true
   },
   module: {
     rules: [
