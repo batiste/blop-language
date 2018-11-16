@@ -27,7 +27,7 @@ class Router {
     route.reg = new RegExp(replace(escapeRegExp(route.path)))
     this.routes.push(route)
   }
-  def match(path) {
+  def match(path) 
     m = null
     matchedRoute = this.routes.find((route) => {
       m := path.match(route.reg)

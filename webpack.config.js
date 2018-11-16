@@ -12,7 +12,8 @@ module.exports = {
     contentBase: path.join(__dirname, 'public'),
     index: 'index.html',
     historyApiFallback: true,
-    port: 9000
+    port: 9000,
+    overlay: true
   },
   module: {
     rules: [

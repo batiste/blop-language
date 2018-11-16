@@ -86,7 +86,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
   token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
 ${streamContext(input, token, firstToken, stream)}
-  `)
+`)
 }
 
 function printTree(node, sp) {
