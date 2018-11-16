@@ -5,7 +5,7 @@ It has the advantage to fully integrate the HTML tags into the language and you 
 
 It compiles to javascript using a compiler that is generated using a grammar and token definition.
 
-<img src="/img/blop.png" width="800">
+<img src="/img/carbon.png" width="800">
 
 ## Installation
 
