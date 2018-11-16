@@ -1,7 +1,9 @@
 import { h } from './runtime.blop'
 
 Button = (attrs, children) => {
-  <button style={ fontSize: ''attrs.size || 16`px` } on=attrs.on>children</button>
+  <button
+    style={ fontSize: ''attrs.size || 16`px` }
+    on=attrs.on>children</button>
 }
 
 TodoListItem = (attrs, children) => {

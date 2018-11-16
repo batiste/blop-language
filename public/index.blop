@@ -9,12 +9,6 @@ state = {
   dog: null
 }
 
-class Hello {
-  def constructor() {
-    this.a = 1
-  }
-}
-
 def doggyHanlder(params) {
   console.log('doggyHanlder called with', params)
   state.choosenDoggy = 'My dog is 'params.id''
