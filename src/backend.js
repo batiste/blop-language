@@ -319,17 +319,19 @@ const backend = {
     let output = []
     if(node.named.exp) {
       output = generateCode(node.named.exp)
-    }
-    if(node.named.stats) {
+    } else {
       output.push(` {`)
       let body = []
-      node.named.stats.forEach(stat => body.push(...generateCode(stat)))
-      // hoisting
-      let keys = Object.keys(ns).filter(key => ns[key].hoist !== false)
-      if (keys.length > 0) {
-        output.push(`let ${keys.join(', ')};`)
+      // states can be empty
+      if(node.named.stats) {
+        node.named.stats.forEach(stat => body.push(...generateCode(stat)))
+        // hoisting
+        let keys = Object.keys(ns).filter(key => ns[key].hoist !== false)
+        if (keys.length > 0) {
+          output.push(`let ${keys.join(', ')};`)
+        }
+        output.push(...body)
       }
-      output.push(...body)
       output.push(`}`)
     }
     return output;
