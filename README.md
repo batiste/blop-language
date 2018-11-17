@@ -10,13 +10,44 @@ It compiles to javascript using a compiler that is generated using a grammar and
 
 ## Installation
 
+    npm install blop-language
+
+Or if you want to use the development version with examples
+
     git clone this repo
     npm install
     npm run start
     open http://localhost:9000
 
+## Configure Webpack loader for blop
+
+Add this rule into your `webpack.config.js`
+
+```javascript
+    module.exports = {
+        module: {
+            rules: [
+            {
+                test: /\.blop$/,
+                use: [
+                {
+                    loader: 'blop-language/src/loader',
+                    options: {debug: false}
+                }]
+            }
+            ]
+        }
+    }
+´´´
+    
+
 ## Install vscode extensions
 
+If you cloned the repository, it is has simple has creating a simbolic link
+to your `~/.vscode/extensions` directory. This convenient function will do it
+for you:
+
+    cd blop-language/
     npm run link-extensions
 
  ![Code example](/img/example.png)
