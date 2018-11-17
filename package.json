@@ -3,6 +3,7 @@
   "version": "0.9.0",
   "description": "Blop language is JavaScript-like language for the web",
   "main": "src/index.js",
+  "loader": "src/loader.js",
   "scripts": {
     "start": "node src/generateParser && webpack-dev-server",
     "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",

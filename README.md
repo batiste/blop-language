@@ -34,7 +34,7 @@ module.exports = {
         test: /\.blop$/,
         use: [
           {
-            loader: 'blop-language/src/loader',
+            loader: 'blop-language/loader',
             options: {debug: false}
           }
         ]

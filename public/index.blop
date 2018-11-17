@@ -1,6 +1,7 @@
 
 import { TodoListItem, Button } from './TodoListItem.blop'
 import { Router } from './router.blop'
+import { mount } from 'blop'
 
 router = new Router()
 state = {
@@ -96,4 +97,4 @@ def binded() {
   return TodoList(state)
 }
 
-blop.mount(document.body, binded)
+mount(document.body, binded)

@@ -95,17 +95,24 @@ const backend = {
     return output;
   },
   'import_statement': node => {
-    let output = [];
+    let output = [], _module;
+    if(node.named.file) {
+      if(node.named.file.value.slice(1, -1) === 'blop') {
+        _module = 'blop';
+      } else {
+        _module = `require(${node.named.file.value})`;
+      }
+    }
     if(node.named.module) {
       let name = node.named.name.value
       output.push(`let ${name} = require(${node.named.module.value});`)
     } else if(node.named.name) {
       let name = node.named.name.value
-      output.push(`let ${name} = require(${node.named.file.value}).${name};`)
+      output.push(`let ${name} = ${_module}.${name};`)
     } else if(node.named.dest_values) {
       output.push('let { ')
       output.push(...generateCode(node.named.dest_values))
-      output.push(`} = require(${node.named.file.value});`)
+      output.push(` } = ${_module};`)
     }
     return output;
   },
