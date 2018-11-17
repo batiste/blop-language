@@ -22,7 +22,7 @@ module.exports = {
         test: /\.blop$/,
         use: [
           {
-            loader: path.resolve('./src/blopLoader.js'),
+            loader: path.resolve('./src/loader.js'),
             options: {debug: false}
           }
         ]
