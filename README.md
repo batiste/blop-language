@@ -40,24 +40,25 @@ module.exports = {
   }
 }
 ```
-    
 
-## Install vscode extensions
+## Install Visual Studio Code extensions
 
-If you cloned the repository, it is has simple has creating a simbolic link
-to your `~/.vscode/extensions` directory. This convenient function will do it
+### Install them throught github
+
+If you cloned the repository, it is has simple has creating a symbolic link
+to your `~/.vscode/extensions` directory. This function will do it
 for you:
 
     cd blop-language/
     npm run link-extensions
 
+Relaunch vscode and open a `.blop` file to see if the linter and coloration work
+
  ![Code example](/img/example.png)
 
- # Vscode extension
+ ### Install them though visualstudio marketplace
 
  You can install the extension from the store but there is not guarantee the
  extensions will be fresh at this point.
 
  Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
-
- ![Extensions](/img/extensions.png)
