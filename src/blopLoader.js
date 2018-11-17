@@ -3,8 +3,6 @@ const validateOptions = require('schema-utils');
 const grammar = require('./grammar').grammar
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const backend = require("./backend")
-const fs = require('fs');
-const meta = require('./metaParserGenerator');
 const utils = require('./utils');
 const parser = require('./parser');
 
