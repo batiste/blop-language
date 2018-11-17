@@ -43,6 +43,15 @@ module.exports = {
 
 ## Install Visual Studio Code extensions
 
+### Install them though visualstudio marketplace.
+
+vscode will prompt you to install the extenstion when you open a `.blop` file
+
+Here is a link to the extensions on the visualstudio marketplace
+
+ Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
+
+
 ### Install them throught github
 
 If you cloned the repository, it is has simple has creating a symbolic link
@@ -55,10 +64,3 @@ for you:
 Relaunch vscode and open a `.blop` file to see if the linter and coloration work
 
  ![Code example](/img/example.png)
-
- ### Install them though visualstudio marketplace
-
- You can install the extension from the store but there is not guarantee the
- extensions will be fresh at this point.
-
- Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
