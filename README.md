@@ -25,18 +25,19 @@ Add this rule into your `webpack.config.js`
 
 ```javascript
 module.exports = {
-    module: {
-        rules: [
-        {
-            test: /\.blop$/,
-            use: [
-            {
-                loader: 'blop-language/src/loader',
-                options: {debug: false}
-            }]
-        }
+  module: {
+    rules: [
+      {
+        test: /\.blop$/,
+        use: [
+          {
+            loader: 'blop-language/src/loader',
+            options: {debug: false}
+          }
         ]
-    }
+      }
+    ]
+  }
 }
 ```
     
