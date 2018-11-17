@@ -24,21 +24,21 @@ Or if you want to use the development version with examples
 Add this rule into your `webpack.config.js`
 
 ```javascript
-    module.exports = {
-        module: {
-            rules: [
+module.exports = {
+    module: {
+        rules: [
+        {
+            test: /\.blop$/,
+            use: [
             {
-                test: /\.blop$/,
-                use: [
-                {
-                    loader: 'blop-language/src/loader',
-                    options: {debug: false}
-                }]
-            }
-            ]
+                loader: 'blop-language/src/loader',
+                options: {debug: false}
+            }]
         }
+        ]
     }
-´´´
+}
+```
     
 
 ## Install vscode extensions
