@@ -1,5 +1,6 @@
 let namespacesVN;
 let namespacesFCT;
+let needHyperscriptFunction;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1]
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN()
@@ -43,8 +44,9 @@ const backend = {
     node.children.forEach(stats => module.push(...generateCode(stats)))
     const ns = currentNameSpaceFCT()
     let keys = Object.keys(ns).filter(key => ns[key].hoist !== false)
+
     if (keys.length > 0) {
-      final.push(`let ${keys.join(', ')};`)
+      final.push(`let ${keys.join(', ')};\n`)
     }
     
     final.push(module.join(''))
@@ -109,6 +111,7 @@ const backend = {
   },
   'virtual_node': node => {
     let output = [];
+    needHyperscriptFunction = true;
     const parent = currentNameSpaceVN()['currentVNode']
     const _uid = uid()
     output.push(`const ${_uid}c = []; const ${_uid}a = {};`)
@@ -129,7 +132,7 @@ const backend = {
     if(/^[A-Z]/.test(node.named.opening.value)) {
       output.push(`const ${_uid} = ${start}(${_uid}a, ${_uid}c);`)
     } else {
-      output.push(`const ${_uid} = h('${start}', ${_uid}a, ${_uid}c);`)
+      output.push(`const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`)
     }
     if(parent && node.type !== 'virtual_node_exp') {
       output.push(`${parent}c.push(${_uid}); `)
@@ -139,6 +142,7 @@ const backend = {
     return output;
   },
   'virtual_node_exp': node => {
+    needHyperscriptFunction = true;
     let output = [];
     output.push('(() => {')
     output.push(...backend['virtual_node'](node))
@@ -350,6 +354,7 @@ function generateCode(node) {
 module.exports = {
   generateCode: (node) => { 
     uid_i = 0;
+    needHyperscriptFunction = false;
     namespacesVN = [{}]
     namespacesFCT = [{}]
     const output = generateCode(node)

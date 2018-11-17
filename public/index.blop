@@ -1,5 +1,4 @@
 
-import { h, mount } from './runtime.blop'
 import { TodoListItem, Button } from './TodoListItem.blop'
 import { Router } from './router.blop'
 
@@ -97,4 +96,4 @@ def binded() {
   return TodoList(state)
 }
 
-mount(document.body, binded)
+blop.mount(document.body, binded)

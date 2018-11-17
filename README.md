@@ -2,9 +2,12 @@
 
 The blop language ressembles modern JavaScript and offers JSX like features.
 
-It has the advantage to fully integrate the HTML tags into the language and you are not limited to expressions. You can mix any statement within a function as HTML tags can be statements as well as expressions.
+Blop natively understand nested HTML tags and components and you are not limited to simple expressions. You can mix any statement, expressions, and HTML tags within the same 
+function.
 
-It compiles to javascript using a compiler that is generated using a grammar and token definition.
+The HTML tags and components are converted into virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
+
+Blop compiles to modern JavaScript using a compiler that is generated using a grammar and token definition.
 
 <img src="/img/carbon.png" width="800">
 

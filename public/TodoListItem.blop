@@ -1,4 +1,3 @@
-import { h } from './runtime.blop'
 
 Button = (attrs, children) => {
   <button
