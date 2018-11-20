@@ -289,7 +289,7 @@ function GLOBAL_STATEMENT_2(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 2, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = exp(stream, i);
+  const _rule_0 = class_def(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -302,7 +302,7 @@ function GLOBAL_STATEMENT_3(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 3, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = class_def(stream, i);
+  const _rule_0 = object_destructuring(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -315,7 +315,7 @@ function GLOBAL_STATEMENT_4(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 4, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = object_destructuring(stream, i);
+  const _rule_0 = for_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -328,7 +328,7 @@ function GLOBAL_STATEMENT_5(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 5, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = for_loop(stream, i);
+  const _rule_0 = while_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -341,7 +341,7 @@ function GLOBAL_STATEMENT_6(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 6, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = while_loop(stream, i);
+  const _rule_0 = import_statement(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -354,7 +354,7 @@ function GLOBAL_STATEMENT_7(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "GLOBAL_STATEMENT", subRule: 7, type: "GLOBAL_STATEMENT", named}
-  const _rule_0 = import_statement(stream, i);
+  const _rule_0 = exp_statement(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -364,6 +364,22 @@ function GLOBAL_STATEMENT_7(stream, index) {
 
 function GLOBAL_STATEMENT(stream, index) {
   return GLOBAL_STATEMENT_0(stream, index) || GLOBAL_STATEMENT_1(stream, index) || GLOBAL_STATEMENT_2(stream, index) || GLOBAL_STATEMENT_3(stream, index) || GLOBAL_STATEMENT_4(stream, index) || GLOBAL_STATEMENT_5(stream, index) || GLOBAL_STATEMENT_6(stream, index) || GLOBAL_STATEMENT_7(stream, index)
+}
+function exp_statement_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "exp_statement", subRule: 0, type: "exp_statement", named}
+  const _rule_0 = exp(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function exp_statement(stream, index) {
+  return exp_statement_0(stream, index)
 }
 function SCOPED_STATEMENT_0(stream, index) {
   let i = index;
@@ -422,7 +438,7 @@ function SCOPED_STATEMENT_4(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "SCOPED_STATEMENT", subRule: 4, type: "SCOPED_STATEMENT", named}
-  const _rule_0 = exp(stream, i);
+  const _rule_0 = for_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -435,7 +451,7 @@ function SCOPED_STATEMENT_5(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "SCOPED_STATEMENT", subRule: 5, type: "SCOPED_STATEMENT", named}
-  const _rule_0 = for_loop(stream, i);
+  const _rule_0 = while_loop(stream, i);
   if(!_rule_0) return;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -448,22 +464,9 @@ function SCOPED_STATEMENT_6(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "SCOPED_STATEMENT", subRule: 6, type: "SCOPED_STATEMENT", named}
-  const _rule_0 = while_loop(stream, i);
-  if(!_rule_0) return;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i
-  return node
-}
-
-function SCOPED_STATEMENT_7(stream, index) {
-  let i = index;
-  let children = [];
-  let named = {};
-  let node = {children, stream_index: index, name: "SCOPED_STATEMENT", subRule: 7, type: "SCOPED_STATEMENT", named}
   if(stream[i].type !== 'return') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'SCOPED_STATEMENT', sub_rule_index: 7, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'SCOPED_STATEMENT', sub_rule_index: 6, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -473,6 +476,19 @@ function SCOPED_STATEMENT_7(stream, index) {
   if(!_rule_1) return;
   children.push(_rule_1);
   i = _rule_1.last_index;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function SCOPED_STATEMENT_7(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "SCOPED_STATEMENT", subRule: 7, type: "SCOPED_STATEMENT", named}
+  const _rule_0 = exp_statement(stream, i);
+  if(!_rule_0) return;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
   node.success = i === stream.length; node.last_index = i
   return node
 }

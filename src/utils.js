@@ -144,7 +144,6 @@ function preprocessGrammar(rules) {
   }, {})
 }
 
-
 module.exports = {
   preprocessGrammar,
   checkGrammarAndTokens,

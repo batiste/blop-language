@@ -11,7 +11,11 @@ module.exports = {
   devServer: {
     contentBase: path.join(__dirname, 'public'),
     index: 'index.html',
-    historyApiFallback: true,
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/dogs\/.*/, to: '/index.html' },
+      ]
+    },
     port: 9000,
     overlay: true,
     watchContentBase: true

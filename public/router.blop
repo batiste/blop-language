@@ -4,7 +4,7 @@ def escapeRegExp(str) {
 }
 
 def replace(str) {
-  str1 = str.replace(/\:(\w+)/g, '(?<$1>\\w+)')
+  str1 = str.replace(/\:(\w+)/g, '(?<$1>[\\w\\.\\-\\_]+)')
   return `^`str1``
 }
 
@@ -40,7 +40,7 @@ class Router {
   def go(path, push=true) {
     m = this.match(path)
     if !m {
-      console.log(`No route for path ${path}`)
+      console.log('No route for path 'path'')
       return
     }
     if push {

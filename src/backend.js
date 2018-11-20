@@ -20,12 +20,13 @@ const backend = {
   'def': node => [`function `],
   'str': node => ['`' + node.value.slice(1, -1) + '`'],
   'str_expression': node => {
-    let output = ['`', node.named.str.value.slice(1, -1), '${']
+    let output = ['`', node.named.str.value.slice(1, -1)]
     output.push(...generateCode(node.named.str_exp))
     return output
   },
   'inner_str_expression': node => {
-    let output = generateCode(node.named.exp)
+    let output = ['${']
+    output.push(...generateCode(node.named.exp))
     output.push('}')
     output.push(node.named.str.value.slice(1, -1))
     if(node.named.str_exp) {
@@ -33,8 +34,6 @@ const backend = {
     } else {
       output.push('`')
     }
-    // ['exp:exp', 'str:str', 'inner_str_expression:str_exp'],
-    // ['exp:exp', 'str:str'],
     return output
   },
   'EOS': node => [],
@@ -73,6 +72,14 @@ const backend = {
     output.push(...generateCode(node.named.exp))
     output.push(';')
     return output
+  },
+  'exp_statement': node => {
+    let output = [];
+    for(var i=0; i<node.children.length; i++) {
+      output.push(...generateCode(node.children[i]))
+    }
+    output.push(';')
+    return output;
   },
   'object_destructuring': node => {
     let output = [];

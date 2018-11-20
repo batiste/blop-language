@@ -25,12 +25,15 @@ var grammar = {
       ['assign'], // because as soon as a rule is satisfied
                   // the parser return happily and destroy the stack
                   // the more specific rules need to come first
-      ['exp'],
       ['class_def'],
       ['object_destructuring'],
       ['for_loop'],
       ['while_loop'],
       ['import_statement'],
+      ['exp_statement'],
+    ],
+    'exp_statement': [
+      ['exp']
     ],
     'SCOPED_STATEMENT': [
       ['condition'],
@@ -39,10 +42,10 @@ var grammar = {
                   // the more specific rules need to come first
       ['virtual_node'],
       ['object_destructuring'],
-      ['exp'],
       ['for_loop'],
       ['while_loop'],
-      ['return', 'exp']
+      ['return', 'exp'],
+      ['exp_statement'],
     ],
     'DOTTED_PATH': [
       ['name', 'func_call'],
