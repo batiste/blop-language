@@ -98,7 +98,7 @@ var grammar = {
       ['exp:exp']
     ],
     'class_def': [
-      ['clazz', 'name', 'w', '{', 'CLASS_STATEMENT*', '}']
+      ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}']
     ],
     'class_func_def': [
       ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],

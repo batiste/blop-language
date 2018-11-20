@@ -285,7 +285,9 @@ const backend = {
     output.push('class ')
     output.push(node.named.name.value)
     output.push(' {')
-    node.named.stats.forEach(stat => output.push(...generateCode(stat)))
+    if(node.named.stats) {
+      node.named.stats.forEach(stat => output.push(...generateCode(stat)))
+    }
     output.push(' }')
     return output
   },

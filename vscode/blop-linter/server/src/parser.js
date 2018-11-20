@@ -1850,6 +1850,7 @@ function class_def_0(stream, index) {
      }
      return;
   }
+    named['name'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== 'w') {
     if(i > best_failure_index) {
@@ -1869,6 +1870,8 @@ function class_def_0(stream, index) {
   children.push(stream[i]); i++;
   let _rule_4 = CLASS_STATEMENT(stream, i);
   while(_rule_4) {
+    named['stats'] ? null : named['stats'] = []
+    named['stats'].push(_rule_4)
     children.push(_rule_4);
     i = _rule_4.last_index;
     _rule_4 = CLASS_STATEMENT(stream, i);

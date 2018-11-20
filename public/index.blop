@@ -3,10 +3,6 @@ import { TodoListItem, Button } from './TodoListItem.blop'
 import { Router } from './router.blop'
 import { mount } from 'blop'
 
-() => {
-  return 1
-}
-
 router = new Router()
 state = {
   todoList: ['some task 1', 'some task 2'],
@@ -17,6 +13,8 @@ def doggyHanlder(params) {
   console.log('doggyHanlder called with', params)
   state.choosenDoggy = 'My dog is 'params.id''
 }
+
+class Test {}
 
 def indexHandler(params) {
   console.log('indexHandler called')

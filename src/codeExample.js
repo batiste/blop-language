@@ -22,6 +22,7 @@ class Test {
     return blop
   }
 }
+class Test2 {}
 
 b = !b
 
@@ -31,10 +32,13 @@ Hello = {
   view: render
 }
 
-m.mount(root, Hello)
+() => {
+  return 1
+}
+() => {}
 `
 var a = []
-for(var i=0; i<100; i++) {
+for(var i=0; i<10; i++) {
   a.push(code)
 }
 const lcode = a.join('')
