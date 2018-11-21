@@ -87,11 +87,11 @@
         "name":"support.function.other.blop"
       },
       {  
-        "match":"\\/(\\\\.|[^\\/])*/",
-        "name":"string.blop"
+        "match":"def |if |else|elseif |for |delete |new |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this",
+        "name":"keyword.other.blop"
       },
       {  
-        "match":"def |if |else|elseif |for |delete |new |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this",
+        "match":" int| string| array| object| any",
         "name":"keyword.other.blop"
       },
       {  
@@ -140,6 +140,10 @@
             "name": "definition.comment.blop"
           }
         }
+      },
+      {  
+        "match":"\\/(\\\\.|[^\\/])*/",
+        "name":"string.blop"
       }
     ],
     "scopeName":"source.blop",

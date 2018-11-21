@@ -3,9 +3,15 @@ def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }
 
-def replace(str) {
-  str1 = str.replace(/\:(\w+)/g, '(?<$1>[\\w\\.\\-\\_]+)')
-  return `^`str1``
+def createRegExp(str) {
+  str = escapeRegExp(str)
+  reg = /\:(\w+)/
+  names = []
+  str1 = str.replace(/\:(\w+)/g, (a, b) => {
+    names.push(b)
+    return '([\\w\\.\\-\\_]+)'
+  })
+  return { regexp: `^`str1``, names }
 }
 
 class Router {
@@ -24,17 +30,27 @@ class Router {
     this.go(window.location.pathname, false)
   }
   def add(route) {
-    route.reg = new RegExp(replace(escapeRegExp(route.path)))
+    { regexp, names } = createRegExp(route.path)
+    route.reg = new RegExp(regexp)
+    route.params = names
     this.routes.push(route)
   }
   def match(path) {
     m = null
+    params = {}
     matchedRoute = this.routes.find((route) => {
       m := path.match(route.reg)
-      return !!m
+      if m {
+        if route.params {
+          for index, value in route.params: array {
+            params[value] = m[1 + index]
+          }
+        }
+        return true
+      }
     })
     if matchedRoute {
-      return { route: matchedRoute, params: m.groups }
+      return { route: matchedRoute, params: params }
     }
   }
   def go(path, push=true) {

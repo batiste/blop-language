@@ -190,12 +190,25 @@ const backend = {
     let output = [];
     const key = (node.named.key && node.named.key.value) || '__index';
     const value = node.named.value.value
-    const f_uid = uid()
-    output.push(`Object.entries(`) // can use Object.entries
-    output.push(...generateCode(node.named.exp))
-    output.push(`).forEach(${f_uid} => {let [${key}, ${value}] = ${f_uid};  `)
-    node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
-    output.push('});')
+    const isArray = (node.named.keyannotation 
+      && node.named.keyannotation.children[2].value === 'int') ||
+      (node.named.objectannotation 
+        && node.named.objectannotation.children[2].value === 'array')
+    // an proper array is expected
+    if(isArray) {
+      output.push(...generateCode(node.named.exp))
+      output.push(`.forEach((${value}, ${key}) => { `)
+      node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
+      output.push('});')
+    // any other objects
+    } else {
+      const f_uid = uid()
+      output.push(`Object.entries(`)
+      output.push(...generateCode(node.named.exp))
+      output.push(`).forEach(${f_uid} => {let [${key}, ${value}] = ${f_uid}; `)
+      node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
+      output.push('});')
+    }
     return output;
   },
   'condition': node => {
@@ -330,7 +343,7 @@ const backend = {
       output = generateCode(node.named.exp)
     } else {
       output.push(` {`)
-      let body = []
+      let body = [];
       // states can be empty
       if(node.named.stats) {
         node.named.stats.forEach(stat => body.push(...generateCode(stat)))

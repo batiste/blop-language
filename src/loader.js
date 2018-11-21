@@ -14,7 +14,6 @@ const schema = {
 
 module.exports = function(source) {
   const options = getOptions(this);
-
   validateOptions(schema, options, 'Blop Loader');
   const name = require.resolve(path.join(__dirname, "./runtime.js"))
   const file = stringifyRequest(this, "!" + name)

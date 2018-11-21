@@ -24,6 +24,14 @@ class Test {
 }
 class Test2 {}
 
+() => {
+  a: 1
+}
+
+for key: int, value in array {
+  console.log(key)
+}
+
 b = !b
 
 a = 1 - (1 + 2) + (2 + 4) + 2
