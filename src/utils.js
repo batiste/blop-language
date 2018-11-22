@@ -18,7 +18,7 @@ function streamContext(input, token, firstToken, stream) {
 
   let lineNb = 1
   let streamIndex = 0
-  let str = ''
+  let str = NC
   while(lineNb < (lineNumber + 4) && stream[streamIndex]) {
     let v = stream[streamIndex].value
     if(v.match(/\n/)) {
@@ -145,8 +145,10 @@ function preprocessGrammar(rules) {
 }
 
 module.exports = {
+  streamContext,
   preprocessGrammar,
   checkGrammarAndTokens,
   displayError,
-  printTree
+  printTree,
+  NC
 }

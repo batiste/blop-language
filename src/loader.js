@@ -24,7 +24,7 @@ module.exports = function(source) {
   if(!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree)
   }
-  const code = header + backend.generateCode(tree).join('')
+  const code = header + backend.generateCode(tree, stream, source).join('')
   if(options.debug) {
     console.log(code)
   }

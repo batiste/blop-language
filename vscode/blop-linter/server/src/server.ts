@@ -18,11 +18,11 @@ import {
 	TextDocumentPositionParams
 } from 'vscode-languageserver';
 
-// const grammar = require('../../../../blop-language/grammar')
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const parser = require('./parser');
 const displayError = require('./utils').displayError
 const grammar = require('./grammar').grammar;
+const backend = require("./backend")
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -155,7 +155,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		diagnostics.push(diagnosic);
 		connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 		return
-	}
+  }
 
 	let tree = parser.parse(stream, 0)
 
@@ -174,7 +174,27 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		};
 		if (hasDiagnosticRelatedInformationCapability) { }
 		diagnostics.push(diagnosic);
-	}
+  }
+  
+  if(tree.success && settings.maxNumberOfProblems > 0) {
+    try {
+      backend.generateCode(tree, stream, text)
+    } catch(e) {
+      let token = e.token || {start:0, end: text.length}
+      let diagnosic: Diagnostic = {
+        severity: DiagnosticSeverity.Error,
+        range: {
+          start: textDocument.positionAt(token.start),
+          end: textDocument.positionAt(token.start + Math.max(1, token.len))
+        },
+        message: e.message,
+        source: 'blop'
+      };
+      diagnostics.push(diagnosic);
+      connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+      return
+    }
+  }
 
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });

@@ -1,23 +1,24 @@
 
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+RED=''
+YELLOW=''
+NC=''
 
 function replaceInvisibleChars(v) {
-  v = v.replace(/\r/g, '⏎')
-  v = v.replace(/\n/g, '⏎')
+  v = v.replace(/\r/g, '⏎\r')
+  v = v.replace(/\n/g, '⏎\n')
   v = v.replace(/\t/g, '⇥')
   v = v.replace('\xa0', 'nbsp')
   return v.replace(/ /g, '␣')
 }
 
-function streamContext(input, token, stream) {
+function streamContext(input, token, firstToken, stream) {
   let index = token.index
+  let firstTokenIndex = firstToken.index
   let {lineNumber, charNumber, end} = tokenPosition(input, token)
 
   let lineNb = 1
   let streamIndex = 0
-  let str = ''
+  let str = NC
   while(lineNb < (lineNumber + 4) && stream[streamIndex]) {
     let v = stream[streamIndex].value
     if(v.match(/\n/)) {
@@ -32,6 +33,8 @@ function streamContext(input, token, stream) {
       if(lineNb >= (lineNumber - 3)) {
         if(streamIndex === index) {
           v = RED + replaceInvisibleChars(v) + NC;
+        } else if (streamIndex >= firstTokenIndex && streamIndex < index) {
+          v = YELLOW + replaceInvisibleChars(v) + NC;
         }
         str += v
       }
@@ -127,5 +130,6 @@ function preprocessGrammar(rules) {
 module.exports = {
   preprocessGrammar,
   displayError,
-  printTree
+  printTree,
+  streamContext
 }

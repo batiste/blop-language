@@ -3,12 +3,14 @@ const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
+  stats: 'minimal',
   entry: './public/index.blop',
   output: {
     path: path.resolve(__dirname, 'public', 'dist'),
     filename: 'bundle.js'
   },
   devServer: {
+    stats: 'minimal',
     contentBase: path.join(__dirname, 'public'),
     index: 'index.html',
     historyApiFallback: {

@@ -4,11 +4,13 @@ let style = require('snabbdom/modules/style');
 let eventlisteners = require('snabbdom/modules/eventlisteners');
 let snabbdomh = require('snabbdom/h');
 
-function h(name, properties, children) {let props, on, style;
-  props = ({});
+function h(name, properties, children) {
+  let props, on, style;
+  props = {};
   on = null;
   style = null;
-  Object.entries(properties).forEach(__1 => {let [index, value] = __1;
+  Object.entries(properties).forEach(__1 => {
+    let [index, value] = __1;
     if (index === `on`) {
       on = value;
     } else if (index === `style`) {
@@ -22,16 +24,18 @@ function h(name, properties, children) {let props, on, style;
 
 const patch = snabbdom.init([props.default, style.default, eventlisteners.default]);
 
-function mount(dom, func) {let vnode, requested, interval;
+function mount(dom, func) {
+  let vnode, requested, interval;
   vnode = func();
-  patch(document.body, vnode)
+  patch(dom, vnode)
   requested = false;
-  function refresh() {let requested;
+  function refresh() {
     if (requested) {
       return
     }
     requested = true;
-    window.requestAnimationFrame(() =>  {let newVnode, requested;
+    window.requestAnimationFrame(() =>  {
+      let newVnode;
       newVnode = func();
       patch(vnode, newVnode)
       vnode = newVnode;

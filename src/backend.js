@@ -1,6 +1,9 @@
+utils = require('./utils')
+
 let namespacesVN;
 let namespacesFCT;
 let needHyperscriptFunction;
+let stream, input;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1]
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN()
@@ -9,6 +12,28 @@ const popNameSpaceVN = () => namespacesVN.pop()
 const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1]
 const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT()
 const popNameSpaceFCT = () => namespacesFCT.pop()
+
+function checkRedefinition(name, node, explicit) {
+  if(explicit) return;
+  const current = currentNameSpaceFCT()
+  namespacesFCT.forEach(ns => {
+    let upperScopeNode = ns[name];
+    if(upperScopeNode && ns !== current) {
+      const token = upperScopeNode.token;
+      const redefinedBy = stream[node.stream_index];
+      const sourceContext = utils.streamContext(input, token, token, stream)
+      const redefineContext = utils.streamContext(input, redefinedBy, redefinedBy, stream)
+      let error = new Error(`Redefinition of ${name} from upper scope. Use explicit := or rename ${name}
+      ${sourceContext}
+
+      Redefined by
+      ${redefineContext}
+      `)
+      error.token = redefinedBy
+      throw error
+    }
+  })
+}
 
 uid_i = 0;
 const uid = (hint) => {
@@ -62,7 +87,8 @@ const backend = {
     if(node.named.name) {
       const ns = currentNameSpaceFCT()
       if(!ns[node.named.name.value] && !node.named.explicit_assign) {
-        ns[node.named.name.value] = node
+        checkRedefinition(node.named.name.value, node, node.named.explicit_assign)
+        ns[node.named.name.value] = { node, token: node.named.name }
       }
       output.push(...generateCode(node.named.name))
     } else {
@@ -263,8 +289,8 @@ const backend = {
     const ns = addNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
-        node.hoist = false;
-        parentns[node.named.name.value] = node
+        // node.hoist = false;
+        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name }
         output.push(node.named.name.value)
       }
       output.push(`(`)
@@ -280,12 +306,11 @@ const backend = {
       }
       output.push(`function `)
       if(node.named.name) {
-        node.hoist = false;
-        parentns[node.named.name.value] = node
+        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name }
         output.push(node.named.name.value)
       }
       output.push(`(`)
-      if(node.named.params) { 
+      if(node.named.params) {
         output.push(...generateCode(node.named.params))
       }
       output.push(`)`)
@@ -300,8 +325,7 @@ const backend = {
   'class_def': node => {
     let output = [];
     const ns = currentNameSpaceFCT()
-    node.hoist = false;
-    ns[node.named.name.value] = node
+    ns[node.named.name.value] = { node, hoist: false, token: node.named.name }
     output.push('class ')
     output.push(node.named.name.value)
     output.push(' {')
@@ -314,8 +338,7 @@ const backend = {
   'class_func_def': node => {
     let output = [];
     const ns = addNameSpaceFCT()
-    node.hoist = false;
-    ns[node.named.name.value] = node
+    ns[node.named.name.value] = { node, hoist: false, token: node.named.name }
     output.push(node.named.name.value)
     output.push(`(`)
     if(node.named.params) { 
@@ -328,8 +351,7 @@ const backend = {
   },
   'func_def_params': node => {
     const ns = currentNameSpaceFCT()
-    node.hoist = false;
-    ns[node.named.name.value] = node
+    ns[node.named.name.value] = { node, hoist: false, token: node.named.name }
     let output = [];
     for(var i=0; i<node.children.length; i++) {
       output.push(...generateCode(node.children[i]))
@@ -383,9 +405,11 @@ function generateCode(node) {
 }
 
 module.exports = {
-  generateCode: (node) => { 
+  generateCode: (node, _stream, _input) => { 
     uid_i = 0;
     needHyperscriptFunction = false;
+    stream = _stream
+    input = _input
     namespacesVN = [{}]
     namespacesFCT = [{}]
     const output = generateCode(node)
