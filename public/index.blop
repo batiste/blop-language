@@ -3,7 +3,6 @@ import { TodoListItem, Button } from './TodoListItem.blop'
 import { Router } from './router.blop'
 import { mount } from 'blop'
 
-router = new Router()
 state = {
   todoList: [
     'some task 1',
@@ -11,6 +10,8 @@ state = {
   ],
   dog: null
 }
+
+router = new Router()
 
 def doggyHanlder(params) {
   console.log('doggyHanlder called with', params)
@@ -37,14 +38,14 @@ def getNewDog() {
   })
 }
 
-Input = (attrs) => <input
+Input = (state) => <input
   type="text"
-  value=attrs.value
-  on=attrs.on
+  value=state.value
+  on=state.on
   style={ fontSize: '16px', padding: '0.5em' } />
 
-Title = (attrs, children) => {
-  <h1 style={ fontSize: ''attrs.size || 18'px' }>children</h1>
+Title = (state, children) => {
+  <h1 style={ fontSize: ''state.size || 18'px' }>children</h1>
 }
 
 TodoList = (state) => {

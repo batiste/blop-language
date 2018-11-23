@@ -3863,7 +3863,7 @@ function operation_2(stream, index) {
   let children = [];
   let named = {};
   let node = {children, stream_index: index, name: "operation", subRule: 2, type: "operation", named}
-  if(stream[i].type !== '=>') {
+  if(stream[i].type !== '>=') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'operation', sub_rule_index: 2, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -4694,6 +4694,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`]`)) {
    return [`]`, `]`];
+  }
+  if(input.startsWith(`>=`)) {
+   return [`>=`, `>=`];
   }
   if(input.startsWith(`=>`)) {
    return [`=>`, `=>`];

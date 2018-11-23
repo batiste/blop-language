@@ -182,7 +182,7 @@ grammar = {
   'operation': [
     ['operator', 'w','exp'],
     ['==', 'w','exp'],
-    ['=>', 'w','exp'],
+    ['>=', 'w','exp'],
     ['<=', 'w','exp'],
     ['!=', 'w','exp'],
     ['>', 'w','exp'],

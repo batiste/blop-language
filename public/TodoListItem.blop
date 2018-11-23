@@ -1,23 +1,23 @@
 
-Button = (attrs, children) => {
+Button = (state, children) => {
   <button
-    style={ fontSize: ''attrs.size || 16`px` }
-    on=attrs.on>children</button>
+    style={ fontSize: ''state.size || 16`px` }
+    on=state.on>children</button>
 }
 
-TodoListItem = (attrs, children) => {
+TodoListItem = (state, children) => {
   { value,
     changeItem as change,
     removeItem,
     editItem
-  } = attrs
+  } = state
   style = { padding: '0.5em 1em', fontSize: '16px;' }
   <li>
     <div>
       <div style={ float: "right" }>
         <Button on={ click: removeItem }>'delete'</Button>
       </div>
-      if attrs.editMode {
+      if state.editMode {
         <input type="text" value style on={ change } />
       } else {
         <div on={ click: editItem } style>
