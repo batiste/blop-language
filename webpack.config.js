@@ -29,7 +29,7 @@ module.exports = {
         use: [
           {
             loader: path.resolve('./src/loader.js'),
-            options: {debug: false}
+            options: {debug: true}
           }
         ]
       }

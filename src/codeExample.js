@@ -28,6 +28,8 @@ class Test2 {}
   a: 1
 }
 
+something() => 1
+
 for key: int, value in array {
   console.log(key)
 }

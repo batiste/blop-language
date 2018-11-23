@@ -5,7 +5,10 @@ import { mount } from 'blop'
 
 router = new Router()
 state = {
-  todoList: ['some task 1', 'some task 2'],
+  todoList: [
+    'some task 1',
+    'some task 2'
+  ],
   dog: null
 }
 
@@ -66,11 +69,6 @@ TodoList = (state) => {
     state.editItemIndex = false
     state.todoList.splice(index, 1)
   }
-  getRandomInt = (min, max) => {
-    min = Math.ceil(min)
-    max = Math.floor(max)
-    return Math.floor(Math.random() * (max - min)) + min
-  }
 
   <div>
     <Title size=24>state.choosenDoggy || `Todo list`</Title>
@@ -104,8 +102,6 @@ TodoList = (state) => {
   </div>
 }
 
-def binded() {
-  return TodoList(state)
-}
+render = () => TodoList(state)
 
-mount(document.body, binded)
+{ umount, refresh } = mount(document.body, render)
