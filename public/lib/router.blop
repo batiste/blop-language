@@ -27,7 +27,7 @@ class Router {
     })
   }
   def init() {
-    this.go(window.location.pathname, false)
+    this.go(window.location.pathname, true)
   }
   def add(route) {
     { regexp, names } = createRegExp(route.path)

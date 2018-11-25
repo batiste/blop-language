@@ -18,4 +18,5 @@ def indexHandler(params) {
 
 router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: doggyHanlder })
 router.add({ path: '/', name: 'root', handler: indexHandler })
+
 router.init()
