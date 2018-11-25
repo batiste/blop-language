@@ -1,0 +1,18 @@
+state = {
+  todoList: [
+    'some task 1',
+    'some task 2'
+  ],
+  dog: null,
+  loading: false
+}
+
+def getNewDog() {
+  state.loading = true
+  fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
+    message = (await response.json()).message
+    bits = message.split('/')
+    state.loading = false
+    state.dog = { url: message, breed: bits[4], image: bits[5] }
+  })
+}

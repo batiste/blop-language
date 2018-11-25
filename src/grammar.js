@@ -153,7 +153,8 @@ grammar = {
   'import_statement': [
     ['import', 'name:name', 'w', 'from', 'str:file'],
     ['import', '{', 'w', 'destructuring_values:dest_values', 'w', '}', 'w', 'from', 'str:file'],
-    ['import', 'str:module', 'w', 'as', 'name:name']
+    ['import', 'str:module', 'w', 'as', 'name:name'],
+    ['import', 'str:file']
   ],
   'object_literal_key' : [['str'], ['name']],
   'virtual_node': [

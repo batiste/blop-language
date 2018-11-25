@@ -3184,8 +3184,34 @@ function import_statement_2(stream, index) {
   return node
 }
 
+function import_statement_3(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "import_statement", subRule: 3, type: "import_statement", named}
+  if(stream[i].type !== 'import') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'str') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'import_statement', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['file'] = stream[i]
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
 function import_statement(stream, index) {
-  return import_statement_0(stream, index) || import_statement_1(stream, index) || import_statement_2(stream, index)
+  return import_statement_0(stream, index) || import_statement_1(stream, index) || import_statement_2(stream, index) || import_statement_3(stream, index)
 }
 function object_literal_key_0(stream, index) {
   let i = index;

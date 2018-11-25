@@ -1,42 +1,8 @@
 
 import { TodoListItem, Button } from './TodoListItem.blop'
-import { Router } from './router.blop'
+import { state, getNewDog } from './state.blop'
 import { mount } from 'blop'
-
-state = {
-  todoList: [
-    'some task 1',
-    'some task 2'
-  ],
-  dog: null
-}
-
-router = new Router()
-
-def doggyHanlder(params) {
-  console.log('doggyHanlder called with', params)
-  state.dog = { breed: params.breed, image: params.image }
-  state.choosenDoggy = 'My dog is a 'params.breed''
-}
-
-def indexHandler(params) {
-  console.log('indexHandler called')
-  delete state.choosenDoggy
-  delete state.dog
-  getNewDog()
-}
-
-router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: doggyHanlder })
-router.add({ path: '/', name: 'root', handler: indexHandler })
-router.init()
-
-def getNewDog() {
-  fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
-    message = (await response.json()).message
-    bits = message.split('/')
-    state.dog = { url: message, breed: bits[4], image: bits[5] }
-  })
-}
+import { router } from './routing.blop'
 
 Input = (state) => <input
   type="text"
@@ -87,19 +53,23 @@ TodoList = (state) => {
         value />
     }
     </ul>
-    if state.dog {
+    if state.dog && !state.loading {
       dog = state.dog
-      <button on={ click: (e) => getNewDog() } type='button'>
-        <h3>'Get a new dog'</h3>
-      </button>
-      <br/>
-      <br/>
-      <button type='button'
-        on={ click: (e) => router.go('/dogs/'dog.breed'/'dog.image'') }>
-        <h3>'Click to chose this dog'</h3>
-        <img src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image'' style={ maxWidth: '400px' } />
-      </button>
-    }
+        <Button on={ click: getNewDog } type='button'>
+          <h3>'Get a new dog'</h3>
+        </Button>
+        <br/>
+        <br/>
+        <Button type='button'
+          on={ click: (e) => router.go('/dogs/'dog.breed'/'dog.image'') }>
+          <h3>'Click to chose this dog'</h3>
+          <img
+            src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+            style={ maxWidth: '400px' } />
+        </Button>
+      } else {
+        <h3>'Loading...'</h3>
+      }
   </div>
 }
 

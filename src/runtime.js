@@ -9,8 +9,8 @@ function h(name, properties, children) {
   props = {};
   on = null;
   style = null;
-  Object.entries(properties).forEach(__1 => {
-    let [index, value] = __1;
+  Object.entries(properties).forEach(prop => {
+    let [index, value] = prop;
     if (index === `on`) {
       on = value;
     } else if (index === `style`) {
@@ -42,7 +42,7 @@ function mount(dom, func) {
       requested = false;
     })
   }
-  interval = setInterval(refresh, 60);
+  interval = setInterval(refresh, 100);
   return ({ refresh, umount: () => clearInterval(interval) })
 }
 
