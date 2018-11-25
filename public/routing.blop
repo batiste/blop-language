@@ -1,4 +1,4 @@
-import { Router } from './router.blop'
+import { Router } from './lib/router.blop'
 import { state, getNewDog } from './state.blop'
 
 router = new Router()
