@@ -16,7 +16,7 @@ const popNameSpaceFCT = () => namespacesFCT.pop()
 function checkRedefinition(name, node, explicit) {
   if(explicit) return;
   const current = currentNameSpaceFCT()
-  namespacesFCT.forEach(ns => {
+  namespacesFCT.slice().reverse().forEach(ns => {
     let upperScopeNode = ns[name];
     if(upperScopeNode && ns !== current) {
       const token = upperScopeNode.token;
@@ -146,6 +146,8 @@ const backend = {
       output.push('let { ')
       output.push(...generateCode(node.named.dest_values))
       output.push(` } = ${_module};`)
+    } else {
+      output.push(`require(${node.named.file.value})`);
     }
     return output;
   },
