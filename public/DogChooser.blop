@@ -1,0 +1,26 @@
+import { state, getNewDog } from './state.blop'
+import { Button } from './TodoListItem.blop'
+import { router } from './routing.blop'
+
+def DogChooser(state) {
+  state = state.state
+  <div>
+    if state.dog && !state.loading {
+      dog = state.dog
+      <Button on={ click: getNewDog } type='button'>
+        <h3>'Get a new dog'</h3>
+      </Button>
+      <br/>
+      <br/>
+      <Button type='button'
+        on={ click: (e) => router.go('/dogs/'dog.breed'/'dog.image'') }>
+        <h3>'Click to chose this dog'</h3>
+        <img
+          src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+          style={ maxWidth: '400px' } />
+      </Button>
+    } else {
+      <h3>'Loading...'</h3>
+    }
+  </div>
+}
