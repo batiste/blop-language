@@ -46,7 +46,7 @@ Hello = {
 () => {}
 `
 var a = []
-for(var i=0; i<10; i++) {
+for(var i=0; i<500; i++) {
   a.push(code)
 }
 const lcode = a.join('')

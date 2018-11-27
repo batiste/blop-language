@@ -24,11 +24,13 @@ function h(name, properties, children) {
 
 const patch = snabbdom.init([props.default, style.default, eventlisteners.default]);
 
-function mount(dom, func) {
+function mount(dom, render) {
   let vnode, requested, interval;
-  vnode = func();
-  patch(dom, vnode)
-  requested = false;
+  function init() {
+    vnode = render();
+    patch(dom, vnode);
+    requested = false;
+  }
   function refresh() {
     if (requested) {
       return
@@ -36,14 +38,18 @@ function mount(dom, func) {
     requested = true;
     window.requestAnimationFrame(() =>  {
       let newVnode;
-      newVnode = func();
+      newVnode = render();
+      // nothing to update?
+      if(!newVnode) {
+        requested = false;
+        return
+      }
       patch(vnode, newVnode)
       vnode = newVnode;
       requested = false;
     })
   }
-  interval = setInterval(refresh, 100);
-  return ({ refresh, umount: () => clearInterval(interval) })
+  return ({ refresh, init })
 }
 
 module.exports = { h, patch, mount }

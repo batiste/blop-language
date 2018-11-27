@@ -1,9 +1,8 @@
-import { state, getNewDog } from './state.blop'
 import { Button } from './TodoListItem.blop'
 import { router } from './routing.blop'
+import { getNewDog } from './state.blop'
 
 def DogChooser(state) {
-  state = state.state
   <div>
     if state.dog && !state.loading {
       dog = state.dog

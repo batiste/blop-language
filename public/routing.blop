@@ -1,18 +1,16 @@
 import { Router } from './lib/router.blop'
-import { state, getNewDog } from './state.blop'
+import { proxiedState, getNewDog } from './state.blop'
 
 router = new Router()
 
 def doggyHanlder(params) {
   console.log('doggyHanlder called with', params)
-  state.dog = { breed: params.breed, image: params.image }
-  state.choosenDoggy = 'My dog is a 'params.breed''
+  proxiedState.dog = { breed: params.breed, image: params.image }
+  proxiedState.choosenDoggy = 'My dog is a 'params.breed''
 }
 
 def indexHandler(params) {
   console.log('indexHandler called')
-  delete state.choosenDoggy
-  delete state.dog
   getNewDog()
 }
 

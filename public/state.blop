@@ -1,3 +1,5 @@
+import create from './lib/state.js'
+
 state = {
   todoList: [
     'some task 1',
@@ -7,12 +9,17 @@ state = {
   loading: false
 }
 
+modificationTable = []
+proxiedState = create(state, modificationTable, false)
+
 def getNewDog() {
-  state.loading = true
+  proxiedState.loading = true
+  delete proxiedState.choosenDoggy
+  delete proxiedState.dog
   fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
     message = (await response.json()).message
     bits = message.split('/')
-    state.loading = false
-    state.dog = { url: message, breed: bits[4], image: bits[5] }
+    proxiedState.loading = false
+    proxiedState.dog = { url: message, breed: bits[4], image: bits[5] }
   })
 }
