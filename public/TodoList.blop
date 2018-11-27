@@ -14,6 +14,7 @@ Title = (state, children) => {
 }
 
 TodoList = (state) => {
+  state = state.state
   todoList = state.todoList
 
   addItem = (e) => {
@@ -54,6 +55,5 @@ TodoList = (state) => {
         value />
     }
     </ul>
-    <DogChooser dog=state.dog loading=state.loading></DogChooser>
   </div>
 }

@@ -1,7 +1,15 @@
 import create from './lib/state.js'
 import { mount } from 'blop'
 import { TodoList } from './TodoList.blop'
+import { DogChooser } from './DogChooser.blop'
 import { proxiedState } from './state.blop'
+
+Index = (state) => {
+  <div>
+    <TodoList state=state></TodoList>
+    <DogChooser dog=state.dog loading=state.loading></DogChooser>
+  </div>
+}
 
 firstRender = true
 
@@ -10,7 +18,7 @@ render = () => {
     return
   }
   firstRender := false
-  tree = TodoList(proxiedState)
+  tree = Index(proxiedState)
   proxiedState.flush()
   return tree
 }
