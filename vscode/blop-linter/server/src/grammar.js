@@ -145,9 +145,9 @@ grammar = {
     ['{', 'w', 'destructuring_values', 'single_space_or_newline', '}', 'w', '=', 'w', 'exp']
   ],
   'destructuring_values': [
-    ['name:name', ',', 'single_space_or_newline', 'destructuring_values'],
-    ['name:name', 'w', 'as:destruct', 'name:as', ',', 'single_space_or_newline', 'destructuring_values'],
-    ['name:name', 'w', 'as:destruct', 'name:as'],
+    ['name:name', ',', 'single_space_or_newline', 'destructuring_values:more'],
+    ['name:name', 'w', 'as', 'name:rename', ',', 'single_space_or_newline', 'destructuring_values:more'],
+    ['name:name', 'w', 'as', 'name:rename'],
     ['name:name'],
   ],
   'import_statement': [

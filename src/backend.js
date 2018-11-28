@@ -115,6 +115,23 @@ const backend = {
     }
     return output;
   },
+  'destructuring_values': node => {
+    let output = [], name;
+    const ns = currentNameSpaceFCT();
+    if(node.named.rename) {
+      name = node.named.rename.value;
+      output.push(`${node.named.name.value}: ${name}`)
+    } else {
+      name = node.named.name.value;
+      output.push(name)
+    }
+    ns[name] = { node, token: node.named.name, hoist: false }
+    if(node.named.more) {
+      output.push(', ')
+      output.push(...generateCode(node.named.more))
+    }
+    return output;
+  },
   'as': node => {
     return [':']
   },
@@ -165,9 +182,6 @@ const backend = {
       output.push(`${a_uid} = `)
       output.push(...generateCode(node.named.exp))
       output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});\n `)
-      // output.push(`${_uid}c.push(`)
-      // output.push(...generateCode(node.named.exp))
-      // output.push(`);\n `)
     }
     popNameSpaceVN()
     let start = node.named.opening.value
@@ -291,7 +305,6 @@ const backend = {
     const ns = addNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
-        // node.hoist = false;
         parentns[node.named.name.value] = { node, hoist: false, token: node.named.name }
         output.push(node.named.name.value)
       }

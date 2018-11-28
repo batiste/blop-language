@@ -25,7 +25,7 @@ function h(name, properties, children) {
 const patch = snabbdom.init([props.default, style.default, eventlisteners.default]);
 
 function mount(dom, render) {
-  let vnode, requested, interval;
+  let vnode, requested;
   function init() {
     vnode = render();
     patch(dom, vnode);
@@ -37,8 +37,7 @@ function mount(dom, render) {
     }
     requested = true;
     window.requestAnimationFrame(() =>  {
-      let newVnode;
-      newVnode = render();
+      let newVnode = render();
       // nothing to update?
       if(!newVnode) {
         requested = false;

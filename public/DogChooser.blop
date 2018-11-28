@@ -1,23 +1,23 @@
-import { Button } from './TodoListItem.blop'
 import { router } from './routing.blop'
 import { getNewDog } from './state.blop'
 
-def DogChooser(state) {
+def DogChooser(state, children) {
+  { dog, loading } = state
   <div>
-    if state.dog && !state.loading {
-      dog = state.dog
-      <Button on={ click: getNewDog } type='button'>
-        <h3>'Get a new dog'</h3>
-      </Button>
+    <h3>children</h3>
+    if dog && !loading {
+      <button on={ click: getNewDog } type='button' className="btn btn-primary">
+        = 'Get a new dog'
+      </button>
       <br/>
       <br/>
-      <Button type='button'
+      <button type='button' className="btn btn-primary"
         on={ click: (e) => router.go('/dogs/'dog.breed'/'dog.image'') }>
-        <h3>'Click to chose this dog'</h3>
+        <p>'Click to chose this dog'</p>
         <img
           src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
           style={ maxWidth: '400px' } />
-      </Button>
+      </button>
     } else {
       <h3>'Loading...'</h3>
     }

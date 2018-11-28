@@ -2,7 +2,7 @@
 
 function isObject(value) {
   if (value === null || value === undefined) return false;
-  else return value.constructor === Object;
+  else return value.constructor === Object || typeof value === 'object';
 }
 
 export function create(state, modificationTable, readOnly=false) {
@@ -10,8 +10,16 @@ export function create(state, modificationTable, readOnly=false) {
   function flush() {
     modificationTable = []
   }
-  function connect(callback) {
+  function listen(callback) {
     callbacks.push(callback)
+  }
+  function trigger (path) {
+    callbacks.forEach(fct => fct(path))
+  }
+  const protectedProp = {
+    flush,
+    listen,
+    trigger
   }
   function handler(currentState, path='', parentState) {
     function hasChanged() {
@@ -25,14 +33,11 @@ export function create(state, modificationTable, readOnly=false) {
           return new Proxy(currentState[prop], 
             handler(currentState[prop], path + '.' + prop, currentState))
         }
+        if(protectedProp[prop]) {
+          return protectedProp[prop]
+        }
         if(prop === 'hasChanged') {
           return hasChanged
-        }
-        if(prop === 'flush') {
-          return flush
-        }
-        if(prop === 'connect') {
-          return connect
         }
         return obj[prop]
       },
@@ -40,12 +45,12 @@ export function create(state, modificationTable, readOnly=false) {
         if(readOnly) {
           throw new Error(`${obj}.${prop} is read only`)
         }
-        if(prop === 'peel') {
-          throw new Error('You cannot redefine the peel function')
+        if(protectedProp[prop]) {
+          throw new Error(`You cannot redefine the ${prop} property in a proxied state`)
         }
         modificationTable.push({path: path + '.' + prop, action: 'set', value})
         obj[prop] = value
-        callbacks.forEach(fct => fct(path + '.' + prop))
+        trigger(path + '.' + prop)
         return true;
       },
       deleteProperty(target, prop) {
@@ -58,7 +63,7 @@ export function create(state, modificationTable, readOnly=false) {
         } else {
           return false
         }
-        callbacks.forEach(fct => fct(path + '.' + prop))
+        trigger(path + '.' + prop)
         return true
       }
     }

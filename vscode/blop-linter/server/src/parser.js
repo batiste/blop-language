@@ -2872,6 +2872,7 @@ function destructuring_values_0(stream, index) {
   i = _rule_2.last_index;
   const _rule_3 = destructuring_values(stream, i);
   if(!_rule_3) return;
+    named['more'] = _rule_3
   children.push(_rule_3);
   i = _rule_3.last_index;
   node.success = i === stream.length; node.last_index = i
@@ -2907,7 +2908,6 @@ function destructuring_values_1(stream, index) {
      }
      return;
   }
-    named['destruct'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== 'name') {
     if(i > best_failure_index) {
@@ -2916,7 +2916,7 @@ function destructuring_values_1(stream, index) {
      }
      return;
   }
-    named['as'] = stream[i]
+    named['rename'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== ',') {
     if(i > best_failure_index) {
@@ -2932,6 +2932,7 @@ function destructuring_values_1(stream, index) {
   i = _rule_5.last_index;
   const _rule_6 = destructuring_values(stream, i);
   if(!_rule_6) return;
+    named['more'] = _rule_6
   children.push(_rule_6);
   i = _rule_6.last_index;
   node.success = i === stream.length; node.last_index = i
@@ -2967,7 +2968,6 @@ function destructuring_values_2(stream, index) {
      }
      return;
   }
-    named['destruct'] = stream[i]
   children.push(stream[i]); i++;
   if(stream[i].type !== 'name') {
     if(i > best_failure_index) {
@@ -2976,7 +2976,7 @@ function destructuring_values_2(stream, index) {
      }
      return;
   }
-    named['as'] = stream[i]
+    named['rename'] = stream[i]
   children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i
   return node

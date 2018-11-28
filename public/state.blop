@@ -14,8 +14,6 @@ proxiedState = create(state, modificationTable, false)
 
 def getNewDog() {
   proxiedState.loading = true
-  delete proxiedState.choosenDoggy
-  delete proxiedState.dog
   fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
     message = (await response.json()).message
     bits = message.split('/')
