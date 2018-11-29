@@ -12,12 +12,11 @@ state = {
 modificationTable = []
 proxiedState = create(state, modificationTable, false)
 
-def getNewDog() {
+async def getNewDog() {
   proxiedState.loading = true
-  fetch(`https://dog.ceo/api/breeds/image/random`).then(async (response) => {
-    message = (await response.json()).message
-    bits = message.split('/')
-    proxiedState.loading = false
-    proxiedState.dog = { url: message, breed: bits[4], image: bits[5] }
-  })
+  response = await fetch(`https://dog.ceo/api/breeds/image/random`)
+  message = (await response.json()).message
+  bits = message.split('/')
+  proxiedState.loading = false
+  proxiedState.dog = { url: message, breed: bits[4], image: bits[5] }
 }
