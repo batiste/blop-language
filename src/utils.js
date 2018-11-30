@@ -1,7 +1,7 @@
 
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+RED='\x1B[0;31m'
+YELLOW='\x1B[1;33m'
+NC='\x1B[0m'
 
 function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r')
@@ -67,7 +67,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
     let token = bestFailure.token
     let firstToken = bestFailure.first_token
     let positions = tokenPosition(input, token)
-    let = failingToken = ''
+    let failingToken = ''
     for(i=0; i<sub_rules.length; i++) {
       var sr = sub_rules[i];
       if(tokensDefinition[sr] && tokensDefinition[sr].verbose) {
