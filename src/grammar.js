@@ -81,15 +81,15 @@ grammar = {
   ],
   'func_call': [
     ['(', ')', '.', 'DOTTED_PATH'],
-    ['(', 'func_call_params', ')', '.', 'DOTTED_PATH'],
+    ['(', 'newline_and_space?', 'func_call_params', ')', '.', 'DOTTED_PATH'],
     ['(', ')', 'func_call'],
-    ['(', 'func_call_params', ')', 'func_call'],
+    ['(', 'newline_and_space?', 'func_call_params', ')', 'func_call'],
     ['(', ')'],
-    ['(', 'func_call_params', ')'],
+    ['(', 'newline_and_space?', 'func_call_params', ')'],
   ],
   'func_call_params': [
     ['name', '=', 'exp'],
-    ['exp', ',', 'w', 'func_call_params'],
+    ['exp', ',', 'single_space_or_newline', 'func_call_params'],
     ['exp']
   ],
   'func_body': [
@@ -135,6 +135,7 @@ grammar = {
     ['w'],
     ['newline', 'w?', 'W?']
   ],
+  'newline_and_space': [['newline', 'w?', 'W?']],
   'object_literal_body': [
     ['object_literal_key', 'colon', 'w', 'exp', ',', 'single_space_or_newline', 'object_literal_body'],
     ['object_literal_key', ',', 'single_space_or_newline', 'object_literal_body'],

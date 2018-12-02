@@ -1,7 +1,7 @@
 
 
 def isObject(value) {
-  if (value == null || value == undefined) {
+  if value == null || value == undefined {
     return false
   }
   return value.constructor == Object || typeof value == 'object'
@@ -25,12 +25,16 @@ def create(state, modificationTable, readOnly) {
   }
   def handler(currentState, path='', parentState) {
     def hasChanged() {
-      return !!modificationTable.find((modification) => modification.path.startsWith(path))
+      return !!modificationTable.find(
+        (modification) => modification.path.startsWith(path))
     }
     return {
       get: def (obj, prop) {
         if isObject(obj[prop]) {
-          return new Proxy(currentState[prop], handler(currentState[prop], path + '.' + prop, currentState))
+          return new Proxy(
+            currentState[prop],
+            handler(currentState[prop],
+            path + '.' + prop, currentState))
         }
         if protectedProp[prop] {
           return protectedProp[prop]

@@ -1590,19 +1590,16 @@ function func_call_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = func_call_params(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
-  if(stream[i].type !== ')') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'func_call', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
+  const _rule_1 = newline_and_space(stream, i);
+  if(_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
   }
-  children.push(stream[i]); i++;
-  if(stream[i].type !== '.') {
+  const _rule_2 = func_call_params(stream, i);
+  if(!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  if(stream[i].type !== ')') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'func_call', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -1610,10 +1607,18 @@ function func_call_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_4 = DOTTED_PATH(stream, i);
-  if(!_rule_4) return;
-  children.push(_rule_4);
-  i = _rule_4.last_index;
+  if(stream[i].type !== '.') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'func_call', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 4, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  const _rule_5 = DOTTED_PATH(stream, i);
+  if(!_rule_5) return;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -1660,22 +1665,27 @@ function func_call_3(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = func_call_params(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
+  const _rule_1 = newline_and_space(stream, i);
+  if(_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+  }
+  const _rule_2 = func_call_params(stream, i);
+  if(!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
   if(stream[i].type !== ')') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'func_call', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'func_call', sub_rule_index: 3, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_3 = func_call(stream, i);
-  if(!_rule_3) return;
-  children.push(_rule_3);
-  i = _rule_3.last_index;
+  const _rule_4 = func_call(stream, i);
+  if(!_rule_4) return;
+  children.push(_rule_4);
+  i = _rule_4.last_index;
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -1718,13 +1728,18 @@ function func_call_5(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = func_call_params(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
+  const _rule_1 = newline_and_space(stream, i);
+  if(_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+  }
+  const _rule_2 = func_call_params(stream, i);
+  if(!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
   if(stream[i].type !== ')') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'func_call', sub_rule_index: 5, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'func_call', sub_rule_index: 5, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -1783,14 +1798,10 @@ function func_call_params_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  if(stream[i].type !== 'w') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'func_call_params', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
+  const _rule_2 = single_space_or_newline(stream, i);
+  if(!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
   const _rule_3 = func_call_params(stream, i);
   if(!_rule_3) return;
   children.push(_rule_3);
@@ -2644,6 +2655,32 @@ function single_space_or_newline_1(stream, index) {
 
 function single_space_or_newline(stream, index) {
   return single_space_or_newline_0(stream, index) || single_space_or_newline_1(stream, index)
+}
+function newline_and_space_0(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "newline_and_space", subRule: 0, type: "newline_and_space", named}
+  if(stream[i].type !== 'newline') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'newline_and_space', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type == 'w') {
+    children.push(stream[i]); i++;
+  }
+  if(stream[i].type == 'W') {
+    children.push(stream[i]); i++;
+  }
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function newline_and_space(stream, index) {
+  return newline_and_space_0(stream, index)
 }
 function object_literal_body_0(stream, index) {
   let i = index;

@@ -36,6 +36,11 @@ b = !b
 
 typeof b
 
+function.call(
+  1,
+  2,
+  3)
+
 a = 1 - (1 + 2) + (2 + 4) + 2
 
 Hello = {
