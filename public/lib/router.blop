@@ -21,7 +21,8 @@ class Router {
       if e.state == null {
         initial && initial()
       } else {
-        matchedRoute = this.routes.find((route) => route.path == e.state.path)
+        matchedRoute = this.routes.find(
+          (route) => route.path == e.state.path)
         matchedRoute && matchedRoute.handler(e.state.params)
       }
     })
@@ -64,7 +65,8 @@ class Router {
         name: m.route.name,
         path: m.route.path,
         params: m.params
-      }, m.route.name, path)
+      },
+      m.route.name, path)
     }
     if m.route.handler {
       m.route.handler(m.params)

@@ -60,7 +60,7 @@ def create(state, modificationTable, readOnly) {
         if readOnly {
           throw new Error(`${target}.${prop} is read only`)
         }
-        if target.includes(prop) {
+        if target.hasOwnProperty(prop) {
           modificationTable.push({ path: path + '.' + prop, action: 'delete' })
           delete target[prop]
         } else {
