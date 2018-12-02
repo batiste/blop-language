@@ -1,0 +1,71 @@
+
+
+def isObject(value) {
+  if (value == null || value == undefined) {
+    return false
+  }
+  return value.constructor == Object || typeof value == 'object'
+}
+
+def create(state, modificationTable, readOnly) {
+  callbacks = []
+  def flush() {
+    modificationTable := []
+  }
+  def listen(callback) {
+    callbacks.push(callback)
+  }
+  def trigger(path) {
+    callbacks.forEach((fct) => fct(path))
+  }
+  protectedProp = {
+    flush,
+    listen,
+    trigger
+  }
+  def handler(currentState, path='', parentState) {
+    def hasChanged() {
+      return !!modificationTable.find((modification) => modification.path.startsWith(path))
+    }
+    return {
+      get: def (obj, prop) {
+        if isObject(obj[prop]) {
+          return new Proxy(currentState[prop], handler(currentState[prop], path + '.' + prop, currentState))
+        }
+        if protectedProp[prop] {
+          return protectedProp[prop]
+        }
+        if prop == 'hasChanged' {
+          return hasChanged
+        }
+        return obj[prop]
+      },
+      set: def (obj, prop, value) {
+        if readOnly {
+          throw new Error(`${obj}.${prop} is read only`)
+        }
+        if protectedProp[prop] {
+          throw new Error(`You cannot redefine the ${prop} property in a proxied state`)
+        }
+        modificationTable.push({ path: path + '.' + prop, action: 'set', value })
+        obj[prop] = value
+        trigger(path + '.' + prop)
+        return true
+      },
+      deleteProperty: def (target, prop) {
+        if readOnly {
+          throw new Error(`${target}.${prop} is read only`)
+        }
+        if target.includes(prop) {
+          modificationTable.push({ path: path + '.' + prop, action: 'delete' })
+          delete target[prop]
+        } else {
+          return false
+        }
+        trigger(path + '.' + prop)
+        return true
+      }
+    }
+  }
+  return new Proxy(state, handler(state))
+}

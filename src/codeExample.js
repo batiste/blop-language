@@ -34,6 +34,8 @@ for key: int, value in array {
 
 b = !b
 
+typeof b
+
 a = 1 - (1 + 2) + (2 + 4) + 2
 
 Hello = {

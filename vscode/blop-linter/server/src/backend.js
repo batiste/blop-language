@@ -125,8 +125,7 @@ const backend = {
       name = node.named.name.value;
       output.push(name)
     }
-    ns[name] = { node, token: node.named.name }
-    output.push(name)
+    ns[name] = { node, token: node.named.name, hoist: false }
     if(node.named.more) {
       output.push(', ')
       output.push(...generateCode(node.named.more))
@@ -306,7 +305,6 @@ const backend = {
     const ns = addNameSpaceFCT()
     if(node.named['fat-arrow']) {
       if(node.named.name) {
-        // node.hoist = false;
         parentns[node.named.name.value] = { node, hoist: false, token: node.named.name }
         output.push(node.named.name.value)
       }

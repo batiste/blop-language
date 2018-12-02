@@ -210,6 +210,7 @@ grammar = {
     ['(', 'exp', ')', 'func_call'],
     ['(', 'exp', ')', '.', 'DOTTED_PATH'],
     ['(', 'exp', ')'],
+    ['operand', 'exp'],
     ['unary', 'exp'],
     ['object_literal'],
     ['array_literal', '.', 'name', 'func_call'],
@@ -220,7 +221,7 @@ grammar = {
     ['virtual_node_exp'],
     ['new', 'exp'],
     ['throw', 'exp'],
-    ['delete', 'exp']
+    ['delete', 'exp'],
   ]
 };
 
