@@ -7,7 +7,8 @@ import { proxiedState } from './state.blop'
 Index = (state) => {
   <div className="container py-md-3">
     <TodoList todo=state></TodoList>
-    <DogChooser dog=state.dog loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
+    <DogChooser dog=state.dog
+      loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
   </div>
 }
 

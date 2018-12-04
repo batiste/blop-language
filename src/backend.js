@@ -2,7 +2,6 @@ utils = require('./utils')
 
 let namespacesVN;
 let namespacesFCT;
-let needHyperscriptFunction;
 let stream, input;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1]
@@ -169,19 +168,34 @@ const backend = {
     return output;
   },
   'virtual_node': node => {
-    let output = [];
-    needHyperscriptFunction = true;
+    let output = [], renderGuard = null;
+
     const parent = currentNameSpaceVN()['currentVNode']
     const _uid = uid()
     output.push(`const ${_uid}c = []; const ${_uid}a = {};`)
-    addNameSpaceVN()['currentVNode'] = _uid
+    addNameSpaceVN()['currentVNode'] = _uid    
     node.named.attrs ? node.named.attrs.forEach(attr => output.push(...generateCode(attr))) : null
+
+    // optimization with snabbdom to not render children
+    if(node.named.attrs) {
+      node.named.attrs.forEach(attr => { 
+        if( attr.named.name.value === 'needRender') {
+          output.push(`if (`);
+          renderGuard = attr.named.exp ? generateCode(attr.named.exp): [attr.named.name.value];
+          output.push(renderGuard);
+          output.push(' !== false) {');
+        }
+      })
+    }
     node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     if(node.named.exp) {
       const a_uid = uid()
       output.push(`const ${a_uid} = `)
       output.push(...generateCode(node.named.exp))
       output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});\n `)
+    }
+    if(renderGuard) {
+      output.push(`}`)
     }
     popNameSpaceVN()
     let start = node.named.opening.value
@@ -198,7 +212,6 @@ const backend = {
     return output;
   },
   'virtual_node_exp': node => {
-    needHyperscriptFunction = true;
     let output = [];
     output.push('(() => {')
     output.push(...backend['virtual_node'](node))
@@ -425,7 +438,6 @@ function generateCode(node) {
 module.exports = {
   generateCode: (node, _stream, _input) => { 
     uid_i = 0;
-    needHyperscriptFunction = false;
     stream = _stream
     input = _input
     namespacesVN = [{}]
