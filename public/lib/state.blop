@@ -9,8 +9,10 @@ def isObject(value) {
 
 def create(state, modificationTable, readOnly) {
   callbacks = []
+  hasBeenFlushed = false
   def flush() {
     modificationTable := []
+    hasBeenFlushed := true
   }
   def listen(callback) {
     callbacks.push(callback)
@@ -24,23 +26,27 @@ def create(state, modificationTable, readOnly) {
     trigger
   }
   def handler(currentState, path='', parentState) {
-    def hasChanged() {
+    def hasChanged(extrapath='') {
+      if !hasBeenFlushed {
+        return true
+      }
+      p = ''path''extrapath''
       return !!modificationTable.find(
-        (modification) => modification.path.startsWith(path))
+        (modification) => modification.path.startsWith(p))
     }
     return {
       get: def (obj, prop) {
+        if prop == 'hasChanged' {
+          return hasChanged
+        }
+        if protectedProp[prop] {
+          return protectedProp[prop]
+        }
         if isObject(obj[prop]) {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
             path + '.' + prop, currentState))
-        }
-        if protectedProp[prop] {
-          return protectedProp[prop]
-        }
-        if prop == 'hasChanged' {
-          return hasChanged
         }
         return obj[prop]
       },

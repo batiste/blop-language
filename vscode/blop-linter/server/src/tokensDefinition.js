@@ -59,6 +59,7 @@ var tokensDefinition = {
   'in': {str: 'in '},
   'await': {str: 'await '},
   'async': {str: 'async '},
+  'extends': {str: 'extends '},
   'elseif': {str: 'elseif '},
   'return': {str: 'return ', verbose:'return'},
   'throw': {str: 'throw ', verbose:'throw'},

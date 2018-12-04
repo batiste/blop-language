@@ -1906,9 +1906,92 @@ function class_def_0(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  if(stream[i].type !== '{') {
+  if(stream[i].type !== 'extends') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 4, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['extends'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 5, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 6, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_7 = CLASS_STATEMENT(stream, i);
+  while(_rule_7) {
+    named['stats'] ? null : named['stats'] = []
+    named['stats'].push(_rule_7)
+    children.push(_rule_7);
+    i = _rule_7.last_index;
+    _rule_7 = CLASS_STATEMENT(stream, i);
+  }
+  if(stream[i].type !== '}') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 8, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i
+  return node
+}
+
+function class_def_1(stream, index) {
+  let i = index;
+  let children = [];
+  let named = {};
+  let node = {children, stream_index: index, name: "class_def", subRule: 1, type: "class_def", named}
+  if(stream[i].type !== 'clazz') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 0, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'name') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+    named['name'] = stream[i]
+  children.push(stream[i]); i++;
+  if(stream[i].type !== 'w') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 2, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  if(stream[i].type !== '{') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'class_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -1924,7 +2007,7 @@ function class_def_0(stream, index) {
   }
   if(stream[i].type !== '}') {
     if(i > best_failure_index) {
-      best_failure = {rule_name: 'class_def', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 5, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure = {rule_name: 'class_def', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 5, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
      }
      return;
@@ -1935,7 +2018,7 @@ function class_def_0(stream, index) {
 }
 
 function class_def(stream, index) {
-  return class_def_0(stream, index)
+  return class_def_0(stream, index) || class_def_1(stream, index)
 }
 function class_func_def_0(stream, index) {
   let i = index;
@@ -4729,6 +4812,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if(input.startsWith(`async `)) {
    return [`async `, `async`];
+  }
+  if(input.startsWith(`extends `)) {
+   return [`extends `, `extends`];
   }
   if(input.startsWith(`elseif `)) {
    return [`elseif `, `elseif`];

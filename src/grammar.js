@@ -97,6 +97,7 @@ grammar = {
     ['exp:exp']
   ],
   'class_def': [
+    ['clazz', 'name:name', 'w', 'extends', 'name:extends', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
     ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}']
   ],
   'class_func_def': [

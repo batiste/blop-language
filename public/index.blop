@@ -11,13 +11,10 @@ Index = (state) => {
   </div>
 }
 
-firstRender = true
-
 render = () => {
-  if !proxiedState.hasChanged() && !firstRender {
+  if !proxiedState.hasChanged() {
     return
   }
-  firstRender := false
   tree = Index(proxiedState)
   proxiedState.flush()
   console.log('render executed')

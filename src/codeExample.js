@@ -22,7 +22,7 @@ class Test {
     return blop
   }
 }
-class Test2 {}
+class Test2 extends Test {}
 
 () => {
   a: 1

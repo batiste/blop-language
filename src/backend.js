@@ -179,14 +179,14 @@ const backend = {
     node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null
     if(node.named.exp) {
       const a_uid = uid()
-      output.push(`${a_uid} = `)
+      output.push(`const ${a_uid} = `)
       output.push(...generateCode(node.named.exp))
       output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});\n `)
     }
     popNameSpaceVN()
     let start = node.named.opening.value
     if(/^[A-Z]/.test(node.named.opening.value)) {
-      output.push(`const ${_uid} = ${start}(${_uid}a, ${_uid}c);`)
+      output.push(`const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c);`)
     } else {
       output.push(`const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`)
     }
@@ -343,6 +343,9 @@ const backend = {
     ns[node.named.name.value] = { node, hoist: false, token: node.named.name }
     output.push('class ')
     output.push(node.named.name.value)
+    if(node.named.extends) {
+      output.push(` extends ${node.named.extends.value}`)
+    }
     output.push(' {')
     if(node.named.stats) {
       node.named.stats.forEach(stat => output.push(...generateCode(stat)))

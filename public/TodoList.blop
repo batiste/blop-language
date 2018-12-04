@@ -2,6 +2,8 @@
 import { TodoListItem } from './TodoListItem.blop'
 import { DogChooser } from './DogChooser.blop'
 import { router } from './routing.blop'
+import { Component } from 'blop'
+
 
 Input = (state) => <input
   type="text"
@@ -55,14 +57,19 @@ TodoList = (state) => {
         </div>
       </div>
     </form>
-    <ul>
-      for index, value in todo.todoList {
-        <TodoListItem
-          removeItem=(e) => remove(e, index)
-          editItem=(e) => editItem(e, index)
-          changeItem=(e) => changeItem(e, index)
-          editMode=todo.editItemIndex == index
-          value />
+    // needRender is an optimization
+    todoNeedRender = todo.todoList.hasChanged() || todo.hasChanged('.editItemIndex')
+    <ul needRender=todoNeedRender>
+      // this can be integrated into the language
+      if todoNeedRender {
+        for index, value in todo.todoList {
+          <TodoListItem
+            removeItem=(e) => remove(e, index)
+            editItem=(e) => editItem(e, index)
+            changeItem=(e) => changeItem(e, index)
+            editMode=todo.editItemIndex == index
+            value />
+        }
       }
     </ul>
   </div>
