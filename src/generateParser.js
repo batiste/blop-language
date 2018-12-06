@@ -12,7 +12,6 @@ const { performance, PerformanceObserver } = require('perf_hooks');
 const obs = new PerformanceObserver((items) => {
   const measurement = items.getEntries()[0]
   console.log('\x1b[32m%s\x1b[0m ', `${measurement.name}: ${parseInt(measurement.duration)}ms`);
-  // performance.clearMarks();
 });
 obs.observe({ entryTypes: ['measure'] });
 

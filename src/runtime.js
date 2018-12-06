@@ -28,7 +28,7 @@ function copyToThunk(vnode, thunk) {
 
 function prepatch(oldVnode, newNode) {
   if(newNode.data.props.needRender === false) {
-    console.log('patching avoided')
+    console.log(`patching avoided for ${newNode.sel}`)
     copyToThunk(oldVnode, newNode)
   }
 }

@@ -29,7 +29,7 @@ class Test2 extends Test {}
 }
 
 for key: int, value in array {
-  console.log(key)
+  a.b.c = 1
 }
 
 b = !b
