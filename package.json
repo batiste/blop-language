@@ -26,12 +26,17 @@
   },
   "devDependencies": {
     "eslint": "^5.9.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-ie11": "^1.0.0",
+    "eslint-plugin-import": "^2.14.0",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.10"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
+    "loader-utils": "^1.1.0",
+    "schema-utils": "^1.0.0",
     "snabbdom": "^0.7.2"
   }
 }

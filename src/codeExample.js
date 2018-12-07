@@ -1,4 +1,4 @@
-var code = `
+const code = `
 root = document.body
 
 def render(number) {
@@ -54,13 +54,14 @@ Hello = {
   return 1
 }
 () => {}
-`
-var a = []
-for(var i=0; i<500; i++) {
-  a.push(code)
+`;
+
+const a = [];
+for (let i = 0; i < 500; i++) {
+  a.push(code);
 }
-const lcode = a.join('')
+const lcode = a.join('');
 
 module.exports = {
-  code: lcode
-}
+  code: lcode,
+};

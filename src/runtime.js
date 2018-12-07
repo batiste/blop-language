@@ -1,19 +1,19 @@
-let snabbdom = require('snabbdom');
-let props = require('snabbdom/modules/props');
-let style = require('snabbdom/modules/style');
-let eventlisteners = require('snabbdom/modules/eventlisteners');
-let snabbdomh = require('snabbdom/h');
+const snabbdom = require('snabbdom');
+const props = require('snabbdom/modules/props');
+const style = require('snabbdom/modules/style');
+const eventlisteners = require('snabbdom/modules/eventlisteners');
+const snabbdomh = require('snabbdom/h');
 
 class Component {}
 Component.prototype.render = function render() {
-  throw new Error(`Blop Component need to implement the render method`);
+  throw new Error('Blop Component need to implement the render method');
 };
 
-function createComponent(object, attributes, children) {
-  if(object.prototype && object.prototype.render) {
-    return (new object(attributes, children)).render(attributes, children)
+function createComponent(Comp, attributes, children) {
+  if (Comp.prototype && Comp.prototype.render) {
+    return (new Comp(attributes, children)).render(attributes, children);
   }
-  return object(attributes, children)
+  return Comp(attributes, children);
 }
 
 function copyToThunk(vnode, thunk) {
@@ -27,22 +27,21 @@ function copyToThunk(vnode, thunk) {
 }
 
 function prepatch(oldVnode, newNode) {
-  if(newNode.data.props.needRender === false) {
-    console.log(`patching avoided for ${newNode.sel}`)
-    copyToThunk(oldVnode, newNode)
+  if (newNode.data.props.needRender === false) {
+    console.log(`patching avoided for ${newNode.sel}`);
+    copyToThunk(oldVnode, newNode);
   }
 }
 
 function h(name, properties, children) {
-  let props, on, style;
-  props = {};
-  on = null;
-  style = null;
-  Object.entries(properties).forEach(prop => {
-    let [index, value] = prop;
-    if (index === `on`) {
+  const props = {};
+  let on;
+  let style;
+  Object.entries(properties).forEach((prop) => {
+    const [index, value] = prop;
+    if (index === 'on') {
       on = value;
-    } else if (index === `style`) {
+    } else if (index === 'style') {
       style = value;
     } else {
       props[index] = value;
@@ -50,15 +49,18 @@ function h(name, properties, children) {
   });
   return snabbdomh.default(
     name,
-    {on: on, style: style, props: props, hook: {prepatch}},
-    children
-  )
-};
+    {
+      on, style, props, hook: { prepatch },
+    },
+    children,
+  );
+}
 
 const patch = snabbdom.init([props.default, style.default, eventlisteners.default]);
 
 function mount(dom, render) {
-  let vnode, requested;
+  let vnode; let
+    requested;
   function init() {
     vnode = render();
     patch(dom, vnode);
@@ -66,22 +68,22 @@ function mount(dom, render) {
   }
   function refresh() {
     if (requested) {
-      return
+      return;
     }
     requested = true;
-    window.requestAnimationFrame(() =>  {
-      let newVnode = render();
+    window.requestAnimationFrame(() => {
+      const newVnode = render();
       // nothing to update?
-      if(!newVnode) {
+      if (!newVnode) {
         requested = false;
-        return
+        return;
       }
-      patch(vnode, newVnode)
+      patch(vnode, newVnode);
       vnode = newVnode;
       requested = false;
-    })
+    });
   }
-  return ({ refresh, init })
+  return ({ refresh, init });
 }
 
 module.exports = {
@@ -89,5 +91,5 @@ module.exports = {
   patch,
   mount,
   Component,
-  c: createComponent
-}
+  c: createComponent,
+};

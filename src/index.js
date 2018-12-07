@@ -1,6 +1,6 @@
-const grammar = require('./grammar').grammar
-const tokensDefinition = require('./tokensDefinition').tokensDefinition
-const backend = require('./backend')
+const { grammar } = require('./grammar');
+const { tokensDefinition } = require('./tokensDefinition');
+const backend = require('./backend');
 const utils = require('./utils');
 const parser = require('./parser');
 const meta = require('./metaParserGenerator');
@@ -13,5 +13,5 @@ module.exports = {
   utils,
   parser,
   meta,
-  loader
-}
+  loader,
+};

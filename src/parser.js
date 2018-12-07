@@ -3512,7 +3512,7 @@ function virtual_node_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ return }
+if(!(node => node.named.opening.value === node.named.closing.value)(node)){ return }
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -3585,7 +3585,7 @@ function virtual_node_2(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ return }
+if(!(node => node.named.opening.value === node.named.closing.value)(node)){ return }
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -3709,7 +3709,7 @@ function virtual_node_exp_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ return }
+if(!(node => node.named.opening.value === node.named.closing.value)(node)){ return }
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -3782,7 +3782,7 @@ function virtual_node_exp_2(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-if(!((node) => node.named.opening.value === node.named.closing.value)(node)){ return }
+if(!(node => node.named.opening.value === node.named.closing.value)(node)){ return }
   node.success = i === stream.length; node.last_index = i
   return node
 }
