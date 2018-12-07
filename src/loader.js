@@ -16,7 +16,7 @@ module.exports = function loader(source) {
   const options = getOptions(this);
   validateOptions(schema, options, 'Blop Loader');
   const name = require.resolve(path.join(__dirname, './runtime.js'));
-  const file = stringifyRequest(this, `! ${name}`);
+  const file = stringifyRequest(this, `!${name}`);
   const header = `const blop = require(${file});\n\n`;
 
   const stream = parser.tokenize(tokensDefinition, source);
