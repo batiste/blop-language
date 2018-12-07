@@ -25,6 +25,7 @@ grammar = {
     ['assign'],
     ['class_def'],
     ['object_destructuring'],
+    ['try_catch'],
     ['for_loop'],
     ['while_loop'],
     ['import_statement'],
@@ -38,6 +39,7 @@ grammar = {
     ['assign'],
     ['virtual_node'],
     ['object_destructuring'],
+    ['try_catch'],
     ['for_loop'],
     ['while_loop'],
     ['return', 'exp'],
@@ -197,6 +199,10 @@ grammar = {
   'inner_str_expression': [
     ['exp:exp', 'str:str', 'inner_str_expression:str_exp'],
     ['exp:exp', 'str:str'],
+  ],
+  'try_catch': [
+    ['try', '{', 'SCOPED_STATEMENTS*:statstry', '}', 
+      'w', 'catch','name:name', 'w','{', 'SCOPED_STATEMENTS*:statscatch','}'],
   ],
   'exp': [
     ['func_def'],

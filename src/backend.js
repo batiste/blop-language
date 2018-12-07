@@ -411,6 +411,16 @@ const backend = {
     }
     return output;
   },
+  'try_catch': node => {
+    let output = ['try {']
+    node.named.statstry.forEach(stat => output.push(...generateCode(stat)))
+    output.push(`} catch(`)
+    output.push(...generateCode(node.named.name))
+    output.push(`) {`)
+    node.named.statscatch.forEach(stat => output.push(...generateCode(stat)))
+    output.push(`}`)
+    return output;
+  },
   'comment': node => node.value.replace('#', '//'),
   '==': node => [`===`],
   '!=': node => [`!==`]

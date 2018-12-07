@@ -49,6 +49,8 @@ var tokensDefinition = {
   'operator': {reg: /^(\+|\-|\*|\|\|?|\&\&?)/},
   'as': {str: 'as '},
   'clazz': {str: 'class '},
+  'try': {str: 'try '},
+  'catch': {str: 'catch '},
   'def': {str: 'def '},
   'new': {str: 'new '},
   'delete': {str: 'delete '},

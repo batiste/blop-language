@@ -5,14 +5,14 @@ module.exports = env => {
   return {
     mode: 'development',
     stats: 'minimal',
-    entry: './public/index.blop',
+    entry: './example/index.blop',
     output: {
-      path: path.resolve(__dirname, 'public', 'dist'),
+      path: path.resolve(__dirname, 'example', 'dist'),
       filename: 'bundle.js'
     },
     devServer: {
       stats: 'minimal',
-      contentBase: path.join(__dirname, 'public'),
+      contentBase: path.join(__dirname, 'example'),
       index: 'index.html',
       historyApiFallback: {
         rewrites: [

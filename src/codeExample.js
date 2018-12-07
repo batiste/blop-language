@@ -32,9 +32,12 @@ for key: int, value in array {
   a.b.c = 1
 }
 
-b = !b
-
-typeof b
+try {
+  b = !b
+  typeof b
+} catch hello {
+  throw hello
+}
 
 function.call(
   1,
