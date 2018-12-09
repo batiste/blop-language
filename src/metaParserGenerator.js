@@ -44,7 +44,7 @@ function generateTokenizer(tokenDef) {
   output.push('  while(char < len) {');
   output.push('    [candidate, key] = _tokenize(tokenDef, input, stream);');
   const rest = `    if(candidate !== null) {
-      lastToken = {type:key, value:candidate, start:char, index:index, len:candidate.length};
+      lastToken = {type:key, value:candidate, start:char, stream_index:index, len:candidate.length};
       stream.push(lastToken);
       index++;
       char += candidate.length;

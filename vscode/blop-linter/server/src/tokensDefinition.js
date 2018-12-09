@@ -21,6 +21,9 @@ function regExpDef(input) {
     let i = 1;
     while (input.charAt(i)) {
       const ch = input.charAt(i);
+      if (ch === '\n') {
+        return
+      }
       if (ch === '\\') {
         i++;
       } else if (ch === '/') {
@@ -46,7 +49,6 @@ const tokensDefinition = {
   'number': { reg: /^[0-9]+(\.[0-9]*)?/ },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
   'multiline_comment': { reg: /^\/\*+[^*]*\*+(?:[^/*][^*]*\*+)*\//, verbose: 'comment' },
-  'operator': { reg: /^(\+|-|\*|\|\|?|&&?)/ },
   'as': { str: 'as ' },
   'clazz': { str: 'class ' },
   'try': { str: 'try ' },
@@ -84,14 +86,15 @@ const tokensDefinition = {
   '<=': { str: '<=' },
   '==': { str: '==' },
   '!=': { str: '!=' },
-  'unary': { str: '!' },
   '>': { str: '>' },
   '<': { str: '<' },
+  'regexp': { func: regExpDef }, // problematic with a / b / c
+  'operator': { reg: /^(\+|\/|-|\*|\|\|?|&&?)/ },
+  'unary': { str: '!' },
   'explicit_assign': { str: ':=', verbose: 'explicit assign' },
   '=': { str: '=' },
   'colon': { str: ':' },
   'newline': { str: '\n' },
-  'regexp': { func: regExpDef },
   'str': { func: strDef, verbose: 'string' },
   'w': { func: singleSpace, verbose: 'single white space' },
   'W': { reg: /^[\s]+/, verbose: 'multiple white spaces' },

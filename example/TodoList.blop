@@ -1,9 +1,5 @@
 
 import { TodoListItem } from './TodoListItem.blop'
-import { DogChooser } from './DogChooser.blop'
-import { router } from './routing.blop'
-import { Component } from 'blop'
-
 
 Input = (state) => <input
   type="text"

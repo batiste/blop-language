@@ -1,5 +1,7 @@
 const code = `
 root = document.body
+array = [1, 4,
+  5]
 
 def render(number) {
   <div>
@@ -24,6 +26,8 @@ class Test {
 }
 class Test2 extends Test {}
 
+a = 1
+
 () => {
   a: 1
 }
@@ -39,7 +43,7 @@ try {
   throw hello
 }
 
-function.call(
+render.call(
   1,
   2,
   3)

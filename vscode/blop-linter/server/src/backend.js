@@ -3,8 +3,8 @@ const utils = require('./utils');
 let namespacesVN;
 let namespacesFCT;
 let backend;
-let stream; let
-  input;
+let stream;
+let input;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -34,6 +34,31 @@ function checkRedefinition(name, node, explicit) {
       throw error;
     }
   });
+}
+
+let native = ['false', 'true', 'Proxy', 'window', 'null', 'console', 'fetch',
+  'this', 'RegExp', 'history', 'Object', 'Error', 'return', 'document', 'undefined'];
+
+function shouldBeDefined(name, node) {
+  if(native.includes(name)) {
+    return
+  }
+  let defined = false
+  namespacesFCT.slice().reverse().forEach((ns) => {
+    if(ns[name]) {
+      defined = true
+      return
+    }
+  });
+  if(!defined) {
+    const token = stream[node.stream_index];
+    const sourceContext = utils.streamContext(input, token, token, stream);
+    const error = new Error(`Token ${name} is undefined in the current scope
+    ${sourceContext}
+`);
+    error.token = token;
+    throw error;
+  }
 }
 
 function generateCode(node) {
@@ -104,14 +129,16 @@ backend = {
   'annotation': () => [],
   'assign': (node) => {
     const output = [];
+    const ns = currentNameSpaceFCT();
     if (node.named.name) {
-      const ns = currentNameSpaceFCT();
       if (!ns[node.named.name.value] && !node.named.explicit_assign) {
         checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
         ns[node.named.name.value] = { node, token: node.named.name };
       }
       output.push(...generateCode(node.named.name));
     } else {
+      const name = node.named.path.children[0];
+      shouldBeDefined(name.value, node.named.path);
       output.push(...generateCode(node.named.path));
     }
     output.push(' = ');
@@ -173,11 +200,14 @@ backend = {
         module = `require(${node.named.file.value})`;
       }
     }
+    const ns = currentNameSpaceFCT()
     if (node.named.module) {
       const name = node.named.name.value;
+      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(`let ${name} = require(${node.named.module.value});`);
     } else if (node.named.name) {
       const name = node.named.name.value;
+      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(`let ${name} = ${module}.${name};`);
     } else if (node.named.dest_values) {
       output.push('let { ');
@@ -221,7 +251,8 @@ backend = {
     }
     popNameSpaceVN();
     const start = node.named.opening.value;
-    if (/^[A-Z]/.test(node.named.opening.value)) {
+    if (/^[A-Z]/.test(start)) {
+      shouldBeDefined(start, node.named.opening)
       output.push(`const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c);`);
     } else {
       output.push(`const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
@@ -264,9 +295,13 @@ backend = {
     return output;
   },
   'for_loop': (node) => {
+    const ns = addNameSpaceFCT();
     const output = [];
     const key = (node.named.key && node.named.key.value) || '__index';
     const { value } = node.named.value;
+    ns[key] = { node: node.named.key, hoist: false, token: node.named.key };
+    ns[value] = { node: node.named.value, hoist: false, token: node.named.value };
+
     const isArray = (node.named.keyannotation
       && node.named.keyannotation.children[2].value === 'int')
       || (node.named.objectannotation
@@ -290,6 +325,7 @@ backend = {
       ) : null;
       output.push('});');
     }
+    popNameSpaceFCT();
     return output;
   },
   'condition': (node) => {
@@ -302,6 +338,19 @@ backend = {
     });
     output.push('}');
     output.push(...generateCode(node.named.elseif));
+    return output;
+  },
+  'exp': (node) => {
+    const output = [];
+    if (node.children) {
+      if(node.children[0].type === 'DOTTED_PATH') {
+        const name = node.children[0].children[0];
+        shouldBeDefined(name.value, node)
+      }
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+    }
     return output;
   },
   'conditionelseif': (node) => {
@@ -344,7 +393,8 @@ backend = {
     addNameSpaceFCT();
     if (node.named['fat-arrow']) {
       if (node.named.name) {
-        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name };
+        parentns[node.named.name.value] = { node, hoist: false,
+          token: node.named.name, annotation: node.named.annotation  };
         output.push(node.named.name.value);
       }
       output.push('(');
@@ -359,7 +409,8 @@ backend = {
       }
       output.push('function ');
       if (node.named.name) {
-        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name };
+        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name,
+          annotation: node.named.annotation  };
         output.push(node.named.name.value);
       }
       output.push('(');
@@ -407,7 +458,9 @@ backend = {
   },
   'func_def_params': (node) => {
     const ns = currentNameSpaceFCT();
-    ns[node.named.name.value] = { node, hoist: false, token: node.named.name };
+    ns[node.named.name.value] = {
+      node, hoist: false, token: node.named.name,
+      annotation: node.named.annotation };
     const output = [];
     for (let i = 0; i < node.children.length; i++) {
       output.push(...generateCode(node.children[i]));
@@ -440,6 +493,8 @@ backend = {
     const output = ['try {'];
     node.named.statstry.forEach(stat => output.push(...generateCode(stat)));
     output.push('} catch(');
+    const ns = currentNameSpaceFCT();
+    ns[node.named.name.value] = { node: node.named.name, hoist: false, token: node.named.name };
     output.push(...generateCode(node.named.name));
     output.push(') {');
     node.named.statscatch.forEach(stat => output.push(...generateCode(stat)));
@@ -455,6 +510,9 @@ backend = {
 module.exports = {
   generateCode: (node, _stream, _input) => {
     uid_i = 0;
+    if(!_stream) {
+      throw _stream
+    }
     stream = _stream;
     input = _input;
     namespacesVN = [{}];

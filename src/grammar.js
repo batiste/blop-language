@@ -46,9 +46,9 @@ const grammar = {
     ['exp_statement'],
   ],
   'DOTTED_PATH': [
+    ['name', '.', 'DOTTED_PATH*'],
     ['name', 'func_call'],
     ['name', '[', 'exp', ']'],
-    ['name', '.', 'DOTTED_PATH*'],
     ['name'],
   ],
   'math': [
@@ -67,19 +67,19 @@ const grammar = {
     ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'func_def': [
-    ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
-    ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
-    ['(', 'func_def_params:params', ')', 'annotation?', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
-    ['(', ')', 'annotation?', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+    ['def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+    ['(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
   ],
   'annotation': [
     ['colon', 'w', 'name:name'],
   ],
   'func_def_params': [
-    ['name:name', '=', 'exp', 'annotation?', ',', 'w', 'func_def_params'],
-    ['name:name', '=', 'exp', 'annotation?'],
-    ['name:name', 'annotation?', ',', 'w', 'func_def_params'],
-    ['name:name', 'annotation?'],
+    ['name:name', '=', 'exp', 'annotation?:annotation', ',', 'w', 'func_def_params'],
+    ['name:name', '=', 'exp', 'annotation?:annotation'],
+    ['name:name', 'annotation?:annotation', ',', 'w', 'func_def_params'],
+    ['name:name', 'annotation?:annotation'],
   ],
   'func_call': [
     ['(', ')', '.', 'DOTTED_PATH'],

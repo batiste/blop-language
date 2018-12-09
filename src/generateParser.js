@@ -50,7 +50,7 @@ performance.mark('K');
 performance.measure('Parsing', 'E', 'K');
 
 performance.mark('F');
-backend.generateCode(tree).join('');
+backend.generateCode(tree, stream, code).join('');
 performance.mark('G');
 performance.measure('Code generation', 'F', 'G');
 

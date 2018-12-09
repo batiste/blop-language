@@ -1,4 +1,3 @@
-import create from './lib/state.blop'
 import { mount } from 'blop'
 import { TodoList } from './TodoList.blop'
 import { DogChooser } from './DogChooser.blop'

@@ -535,10 +535,20 @@ function DOTTED_PATH_0(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = func_call(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
+  if(stream[i].type !== '.') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 0, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
+  }
+  children.push(stream[i]); i++;
+  let _rule_2 = DOTTED_PATH(stream, i);
+  while(_rule_2) {
+    children.push(_rule_2);
+    i = _rule_2.last_index;
+    _rule_2 = DOTTED_PATH(stream, i);
+  }
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -556,26 +566,10 @@ function DOTTED_PATH_1(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  if(stream[i].type !== '[') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if(!_rule_2) return;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  if(stream[i].type !== ']') {
-    if(i > best_failure_index) {
-      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 1, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
-      best_failure_index = i
-     }
-     return;
-  }
-  children.push(stream[i]); i++;
+  const _rule_1 = func_call(stream, i);
+  if(!_rule_1) return;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -593,7 +587,7 @@ function DOTTED_PATH_2(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  if(stream[i].type !== '.') {
+  if(stream[i].type !== '[') {
     if(i > best_failure_index) {
       best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 2, sub_rule_stream_index: i - index, sub_rule_token_index: 1, stream_index: i, token: stream[i], first_token: stream[index], success: false}
       best_failure_index = i
@@ -601,12 +595,18 @@ function DOTTED_PATH_2(stream, index) {
      return;
   }
   children.push(stream[i]); i++;
-  let _rule_2 = DOTTED_PATH(stream, i);
-  while(_rule_2) {
-    children.push(_rule_2);
-    i = _rule_2.last_index;
-    _rule_2 = DOTTED_PATH(stream, i);
+  const _rule_2 = exp(stream, i);
+  if(!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  if(stream[i].type !== ']') {
+    if(i > best_failure_index) {
+      best_failure = {rule_name: 'DOTTED_PATH', sub_rule_index: 2, sub_rule_stream_index: i - index, sub_rule_token_index: 3, stream_index: i, token: stream[i], first_token: stream[index], success: false}
+      best_failure_index = i
+     }
+     return;
   }
+  children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -1163,6 +1163,7 @@ function func_def_0(stream, index) {
   const _rule_4 = annotation(stream, i);
   if(_rule_4) {
     children.push(_rule_4);
+    named['annotation'] = _rule_4
     i = _rule_4.last_index;
   }
   if(stream[i].type !== 'w') {
@@ -1223,6 +1224,7 @@ function func_def_1(stream, index) {
   const _rule_5 = annotation(stream, i);
   if(_rule_5) {
     children.push(_rule_5);
+    named['annotation'] = _rule_5
     i = _rule_5.last_index;
   }
   if(stream[i].type !== 'w') {
@@ -1271,6 +1273,7 @@ function func_def_2(stream, index) {
   const _rule_3 = annotation(stream, i);
   if(_rule_3) {
     children.push(_rule_3);
+    named['annotation'] = _rule_3
     i = _rule_3.last_index;
   }
   if(stream[i].type !== 'w') {
@@ -1331,6 +1334,7 @@ function func_def_3(stream, index) {
   const _rule_2 = annotation(stream, i);
   if(_rule_2) {
     children.push(_rule_2);
+    named['annotation'] = _rule_2
     i = _rule_2.last_index;
   }
   if(stream[i].type !== 'w') {
@@ -1436,6 +1440,7 @@ function func_def_params_0(stream, index) {
   const _rule_3 = annotation(stream, i);
   if(_rule_3) {
     children.push(_rule_3);
+    named['annotation'] = _rule_3
     i = _rule_3.last_index;
   }
   if(stream[i].type !== ',') {
@@ -1491,6 +1496,7 @@ function func_def_params_1(stream, index) {
   const _rule_3 = annotation(stream, i);
   if(_rule_3) {
     children.push(_rule_3);
+    named['annotation'] = _rule_3
     i = _rule_3.last_index;
   }
   node.success = i === stream.length; node.last_index = i
@@ -1514,6 +1520,7 @@ function func_def_params_2(stream, index) {
   const _rule_1 = annotation(stream, i);
   if(_rule_1) {
     children.push(_rule_1);
+    named['annotation'] = _rule_1
     i = _rule_1.last_index;
   }
   if(stream[i].type !== ',') {
@@ -1557,6 +1564,7 @@ function func_def_params_3(stream, index) {
   const _rule_1 = annotation(stream, i);
   if(_rule_1) {
     children.push(_rule_1);
+    named['annotation'] = _rule_1
     i = _rule_1.last_index;
   }
   node.success = i === stream.length; node.last_index = i
@@ -4900,10 +4908,6 @@ function _tokenize(tokenDef, input, stream) {
   if(match !== null) {
    return [match[0], `multiline_comment`];
   }
-  match = input.match(tokenDef.operator.reg);
-  if(match !== null) {
-   return [match[0], `operator`];
-  }
   if(input.startsWith(`as `)) {
    return [`as `, `as`];
   }
@@ -5017,14 +5021,22 @@ function _tokenize(tokenDef, input, stream) {
   if(input.startsWith(`!=`)) {
    return [`!=`, `!=`];
   }
-  if(input.startsWith(`!`)) {
-   return [`!`, `unary`];
-  }
   if(input.startsWith(`>`)) {
    return [`>`, `>`];
   }
   if(input.startsWith(`<`)) {
    return [`<`, `<`];
+  }
+  match = tokenDef.regexp.func(input, stream);
+  if(match !== undefined) {
+   return [match, `regexp`];
+  }
+  match = input.match(tokenDef.operator.reg);
+  if(match !== null) {
+   return [match[0], `operator`];
+  }
+  if(input.startsWith(`!`)) {
+   return [`!`, `unary`];
   }
   if(input.startsWith(`:=`)) {
    return [`:=`, `explicit_assign`];
@@ -5039,10 +5051,6 @@ function _tokenize(tokenDef, input, stream) {
 `)) {
    return [`
 `, `newline`];
-  }
-  match = tokenDef.regexp.func(input, stream);
-  if(match !== undefined) {
-   return [match, `regexp`];
   }
   match = tokenDef.str.func(input, stream);
   if(match !== undefined) {
@@ -5066,7 +5074,7 @@ function tokenize(tokenDef, input) {
   while(char < len) {
     [candidate, key] = _tokenize(tokenDef, input, stream);
     if(candidate !== null) {
-      lastToken = {type:key, value:candidate, start:char, index:index, len:candidate.length};
+      lastToken = {type:key, value:candidate, start:char, stream_index:index, len:candidate.length};
       stream.push(lastToken);
       index++;
       char += candidate.length;
