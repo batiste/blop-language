@@ -2855,6 +2855,7 @@ function object_literal_body_1(stream, index) {
   let node = {children, stream_index: index, name: "object_literal_body", subRule: 1, type: "object_literal_body", named}
   const _rule_0 = object_literal_key(stream, i);
   if(!_rule_0) return;
+    named['key'] = _rule_0
   children.push(_rule_0);
   i = _rule_0.last_index;
   if(stream[i].type !== ',') {
@@ -2917,6 +2918,7 @@ function object_literal_body_3(stream, index) {
   let node = {children, stream_index: index, name: "object_literal_body", subRule: 3, type: "object_literal_body", named}
   const _rule_0 = object_literal_key(stream, i);
   if(!_rule_0) return;
+    named['key'] = _rule_0
   children.push(_rule_0);
   i = _rule_0.last_index;
   node.success = i === stream.length; node.last_index = i

@@ -141,9 +141,9 @@ const grammar = {
   'newline_and_space': [['newline', 'w?', 'W?']],
   'object_literal_body': [
     ['object_literal_key', 'colon', 'w', 'exp', ',', 'single_space_or_newline', 'object_literal_body'],
-    ['object_literal_key', ',', 'single_space_or_newline', 'object_literal_body'],
+    ['object_literal_key:key', ',', 'single_space_or_newline', 'object_literal_body'],
     ['object_literal_key', 'colon', 'w', 'exp'],
-    ['object_literal_key'],
+    ['object_literal_key:key'],
   ],
   'object_destructuring': [
     ['{', 'w', 'destructuring_values', 'single_space_or_newline', '}', 'w', '=', 'w', 'exp'],

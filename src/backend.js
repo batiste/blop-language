@@ -163,8 +163,8 @@ backend = {
     return output;
   },
   'destructuring_values': (node) => {
-    const output = []; let
-      name;
+    const output = [];
+    let name;
     const ns = currentNameSpaceFCT();
     if (node.named.rename) {
       name = node.named.rename.value;
@@ -188,6 +188,17 @@ backend = {
       output.push(...generateCode(node.children[i]));
     }
     output.push(')');
+    return output;
+  },
+  'object_literal_body': (node) => {
+    const output = [];
+    if(node.named.key) {
+      const name = node.named.key.children[0].value
+      shouldBeDefined(name, node.named.key.children[0]);
+    }
+    for (let i = 0; i < node.children.length; i++) {
+      output.push(...generateCode(node.children[i]));
+    }
     return output;
   },
   'import_statement': (node) => {
