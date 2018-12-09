@@ -14,7 +14,12 @@ proxiedState = create(state, modificationTable, false)
 
 async def getNewDog() {
   proxiedState.loading = true
-  response = await fetch(`https://dog.ceo/api/breeds/image/random`)
+  try {
+    response = await fetch(`https://dog.ceo/api/breeds/image/random`)
+  } catch e {
+    proxiedState.loading = e.message
+    return
+  }
   message = (await response.json()).message
   bits = message.split('/')
   proxiedState.loading = false
