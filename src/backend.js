@@ -36,8 +36,10 @@ function checkRedefinition(name, node, explicit) {
   });
 }
 
-const native = ['false', 'true', 'Proxy', 'window', 'null', 'console', 'fetch',
-  'this', 'RegExp', 'history', 'Object', 'Error', 'return', 'document', 'undefined'];
+let native = ['false', 'true', 'window', 'null', 'console', 'fetch',
+  'this', 'RegExp', 'history', 'Object', 'Error', 'document', 'undefined',
+  'NaN', 'Infinity', 'eval', 'parseInt', 'parseFloat', 'return', 'Proxy'
+];
 
 function shouldBeDefined(name, node) {
   if (native.includes(name)) {
@@ -299,6 +301,7 @@ backend = {
     if (node.named.exp) {
       output.push(...generateCode(node.named.exp));
     } else {
+      shouldBeDefined(node.named.name.value, node.named.name);
       output.push(node.named.name.value);
     }
     output.push('; ');

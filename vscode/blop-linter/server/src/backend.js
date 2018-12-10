@@ -300,6 +300,7 @@ backend = {
     if (node.named.exp) {
       output.push(...generateCode(node.named.exp));
     } else {
+      shouldBeDefined(node.named.name.value, node.named.name);
       output.push(node.named.name.value);
     }
     output.push('; ');
