@@ -22,7 +22,7 @@ function regExpDef(input) {
     while (input.charAt(i)) {
       const ch = input.charAt(i);
       if (ch === '\n') {
-        return
+        return;
       }
       if (ch === '\\') {
         i++;

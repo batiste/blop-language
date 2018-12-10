@@ -36,21 +36,20 @@ function checkRedefinition(name, node, explicit) {
   });
 }
 
-let native = ['false', 'true', 'Proxy', 'window', 'null', 'console', 'fetch',
+const native = ['false', 'true', 'Proxy', 'window', 'null', 'console', 'fetch',
   'this', 'RegExp', 'history', 'Object', 'Error', 'return', 'document', 'undefined'];
 
 function shouldBeDefined(name, node) {
-  if(native.includes(name)) {
-    return
+  if (native.includes(name)) {
+    return;
   }
-  let defined = false
+  let defined = false;
   namespacesFCT.slice().reverse().forEach((ns) => {
-    if(ns[name]) {
-      defined = true
-      return
+    if (ns[name]) {
+      defined = true;
     }
   });
-  if(!defined) {
+  if (!defined) {
     const token = stream[node.stream_index];
     const sourceContext = utils.streamContext(input, token, token, stream);
     const error = new Error(`Token ${name} is undefined in the current scope
@@ -192,8 +191,8 @@ backend = {
   },
   'object_literal_body': (node) => {
     const output = [];
-    if(node.named.key) {
-      const name = node.named.key.children[0].value
+    if (node.named.key) {
+      const name = node.named.key.children[0].value;
       shouldBeDefined(name, node.named.key.children[0]);
     }
     for (let i = 0; i < node.children.length; i++) {
@@ -211,7 +210,7 @@ backend = {
         module = `require(${node.named.file.value})`;
       }
     }
-    const ns = currentNameSpaceFCT()
+    const ns = currentNameSpaceFCT();
     if (node.named.module) {
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
@@ -263,7 +262,7 @@ backend = {
     popNameSpaceVN();
     const start = node.named.opening.value;
     if (/^[A-Z]/.test(start)) {
-      shouldBeDefined(start, node.named.opening)
+      shouldBeDefined(start, node.named.opening);
       output.push(`const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c);`);
     } else {
       output.push(`const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
@@ -354,9 +353,9 @@ backend = {
   'exp': (node) => {
     const output = [];
     if (node.children) {
-      if(node.children[0].type === 'DOTTED_PATH') {
+      if (node.children[0].type === 'DOTTED_PATH') {
         const name = node.children[0].children[0];
-        shouldBeDefined(name.value, node)
+        shouldBeDefined(name.value, node);
       }
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
@@ -404,8 +403,12 @@ backend = {
     addNameSpaceFCT();
     if (node.named['fat-arrow']) {
       if (node.named.name) {
-        parentns[node.named.name.value] = { node, hoist: false,
-          token: node.named.name, annotation: node.named.annotation  };
+        parentns[node.named.name.value] = {
+          node,
+          hoist: false,
+          token: node.named.name,
+          annotation: node.named.annotation,
+        };
         output.push(node.named.name.value);
       }
       output.push('(');
@@ -420,8 +423,12 @@ backend = {
       }
       output.push('function ');
       if (node.named.name) {
-        parentns[node.named.name.value] = { node, hoist: false, token: node.named.name,
-          annotation: node.named.annotation  };
+        parentns[node.named.name.value] = {
+          node,
+          hoist: false,
+          token: node.named.name,
+          annotation: node.named.annotation,
+        };
         output.push(node.named.name.value);
       }
       output.push('(');
@@ -470,8 +477,11 @@ backend = {
   'func_def_params': (node) => {
     const ns = currentNameSpaceFCT();
     ns[node.named.name.value] = {
-      node, hoist: false, token: node.named.name,
-      annotation: node.named.annotation };
+      node,
+      hoist: false,
+      token: node.named.name,
+      annotation: node.named.annotation,
+    };
     const output = [];
     for (let i = 0; i < node.children.length; i++) {
       output.push(...generateCode(node.children[i]));
@@ -521,8 +531,8 @@ backend = {
 module.exports = {
   generateCode: (node, _stream, _input) => {
     uid_i = 0;
-    if(!_stream) {
-      throw _stream
+    if (!_stream) {
+      throw _stream;
     }
     stream = _stream;
     input = _input;
