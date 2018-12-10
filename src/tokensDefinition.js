@@ -45,6 +45,17 @@ function singleSpace(input) {
   }
 }
 
+function returnDef(input) {
+  if (input.startsWith('return')) {
+    if(input[6] === ' ') {
+      return 'return ';
+    }
+    if(input[6] === '\n') {
+      return 'return'
+    }
+  }
+}
+
 const tokensDefinition = {
   'number': { reg: /^[0-9]+(\.[0-9]*)?/ },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
@@ -65,7 +76,7 @@ const tokensDefinition = {
   'async': { str: 'async ' },
   'extends': { str: 'extends ' },
   'elseif': { str: 'elseif ' },
-  'return': { str: 'return ', verbose: 'return' },
+  'return': { func: returnDef, verbose: 'return' },
   'throw': { str: 'throw ', verbose: 'throw' },
   'import': { str: 'import ' },
   'from': { str: 'from ' },

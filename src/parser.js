@@ -499,9 +499,10 @@ function SCOPED_STATEMENT_7(stream, index) {
   }
   children.push(stream[i]); i++;
   const _rule_1 = exp(stream, i);
-  if(!_rule_1) return;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
+  if(_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+  }
   node.success = i === stream.length; node.last_index = i
   return node
 }
@@ -4958,8 +4959,9 @@ function _tokenize(tokenDef, input, stream) {
   if(input.startsWith(`elseif `)) {
    return [`elseif `, `elseif`];
   }
-  if(input.startsWith(`return `)) {
-   return [`return `, `return`];
+  match = tokenDef.return.func(input, stream);
+  if(match !== undefined) {
+   return [match, `return`];
   }
   if(input.startsWith(`throw `)) {
    return [`throw `, `throw`];

@@ -1,4 +1,5 @@
 const utils = require('./utils');
+const { builtin, webapi } = require('./builtin');
 
 let namespacesVN;
 let namespacesFCT;
@@ -42,7 +43,7 @@ let native = ['false', 'true', 'window', 'null', 'console', 'fetch',
 ];
 
 function shouldBeDefined(name, node) {
-  if (native.includes(name)) {
+  if (builtin[name] || webapi[name]) {
     return;
   }
   let defined = false;

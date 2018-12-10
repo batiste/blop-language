@@ -42,7 +42,7 @@ const grammar = {
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
-    ['return', 'exp'],
+    ['return', 'exp?'],
     ['exp_statement'],
   ],
   'DOTTED_PATH': [
