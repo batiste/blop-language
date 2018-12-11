@@ -22,7 +22,7 @@ function regExpDef(input) {
     while (input.charAt(i)) {
       const ch = input.charAt(i);
       if (ch === '\n') {
-        return
+        return;
       }
       if (ch === '\\') {
         i++;
@@ -42,6 +42,17 @@ function regExpDef(input) {
 function singleSpace(input) {
   if (input[0] === ' ' && input[1] !== ' ') {
     return ' ';
+  }
+}
+
+function returnDef(input) {
+  if (input.startsWith('return')) {
+    if(input[6] === ' ') {
+      return 'return ';
+    }
+    if(input[6] === '\n') {
+      return 'return'
+    }
   }
 }
 
@@ -65,7 +76,7 @@ const tokensDefinition = {
   'async': { str: 'async ' },
   'extends': { str: 'extends ' },
   'elseif': { str: 'elseif ' },
-  'return': { str: 'return ', verbose: 'return' },
+  'return': { func: returnDef, verbose: 'return' },
   'throw': { str: 'throw ', verbose: 'throw' },
   'import': { str: 'import ' },
   'from': { str: 'from ' },

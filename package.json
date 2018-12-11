@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/generateParser && webpack-dev-server",
     "debug": "node src/generateParser && BLOP_DEBUG=true webpack-dev-server",
-    "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
+    "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
     "link-extensions": "`ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/blop-linter && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/blop-syntax-highlighter`"
   },
   "repository": {
