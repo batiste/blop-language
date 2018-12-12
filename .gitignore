@@ -2,4 +2,3 @@ out.js
 node_modules
 .DS_Store
 public/dist
-package-lock.json

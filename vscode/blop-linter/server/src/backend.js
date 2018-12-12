@@ -37,11 +37,6 @@ function checkRedefinition(name, node, explicit) {
   });
 }
 
-let native = ['false', 'true', 'window', 'null', 'console', 'fetch',
-  'this', 'RegExp', 'history', 'Object', 'Error', 'document', 'undefined',
-  'NaN', 'Infinity', 'eval', 'parseInt', 'parseFloat', 'return', 'Proxy'
-];
-
 function shouldBeDefined(name, node) {
   if (builtin[name] || webapi[name]) {
     return;
