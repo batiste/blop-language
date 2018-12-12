@@ -11,7 +11,11 @@ module.exports = {
     "no-underscore-dangle": "off",
     "no-param-reassign": "off",
     "no-shadow": "off",
-    "consistent-return": "off"
+    // for the generated parser
+    "consistent-return": "off",
+    "object-property-newline": "off",
+    "dot-notation": "off",
+    "no-use-before-define": "off"
   },
   "plugins": [
     "ie11"
