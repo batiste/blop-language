@@ -1,3 +1,4 @@
+const fs = require('fs');
 
 const builtin = {
   Infinity: { type: 'Value' },
@@ -57,11 +58,18 @@ const builtin = {
   Proxy: { type: 'Object' },
   arguments: { type: 'Object' },
   this: { type: 'Reference' },
+  ArrayBuffer: { type: 'Object' },
+  SharedArrayBuffer: { type: 'Object' },
+  Atomics: { type: 'Object' },
+  DataView: { type: 'Object' },
+  JSON: { type: 'Object' },
 };
 
 const webapi = {
   setTimeout: { type: 'Function' },
   setInterval: { type: 'Function' },
+  alert: { type: 'Function' },
+  prompt: { type: 'Function' },
   fetch: { type: 'Function' },
   document: { type: 'Object' },
   console: { type: 'Object' },
@@ -69,7 +77,26 @@ const webapi = {
   history: { type: 'Object' },
 };
 
+function generateProperties() {
+  const keys = Object.keys(builtin);
+  const properties = {};
+  keys.forEach((key) => {
+    if (!this[key]) {
+      return;
+    }
+    properties[key] = Object.getOwnPropertyNames(this[key]);
+  });
+  fs.writeFileSync('./src/properties.json', JSON.stringify(properties, null, 2), (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+generateProperties();
+
 module.exports = {
+  generateProperties,
   builtin,
   webapi,
 };

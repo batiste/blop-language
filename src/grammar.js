@@ -46,7 +46,7 @@ const grammar = {
     ['exp_statement'],
   ],
   'DOTTED_PATH': [
-    ['name', '.', 'DOTTED_PATH*'],
+    ['name', '.', 'DOTTED_PATH'],
     ['name', 'func_call'],
     ['name', '[', 'exp', ']'],
     ['name'],

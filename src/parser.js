@@ -715,12 +715,10 @@ function DOTTED_PATH_0(stream, index) {
     return;
   }
   children.push(stream[i]); i++;
-  let _rule_2 = DOTTED_PATH(stream, i);
-  while (_rule_2) {
-    children.push(_rule_2);
-    i = _rule_2.last_index;
-    _rule_2 = DOTTED_PATH(stream, i);
-  }
+  const _rule_2 = DOTTED_PATH(stream, i);
+  if (!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 }

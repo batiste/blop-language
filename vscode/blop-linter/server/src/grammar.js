@@ -42,11 +42,11 @@ const grammar = {
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
-    ['return', 'exp?'],
+    ['return', 'exp_statement?'],
     ['exp_statement'],
   ],
   'DOTTED_PATH': [
-    ['name', '.', 'DOTTED_PATH*'],
+    ['name', '.', 'DOTTED_PATH'],
     ['name', 'func_call'],
     ['name', '[', 'exp', ']'],
     ['name'],

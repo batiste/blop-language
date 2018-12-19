@@ -1,3 +1,4 @@
+const fs = require('fs');
 
 const builtin = {
   Infinity: { type: 'Value' },
@@ -76,7 +77,24 @@ const webapi = {
   history: { type: 'Object' },
 };
 
+function generateProperties() {
+  const keys = Object.keys(builtin);
+  const properties = {};
+  keys.forEach((key) => {
+    if (!this[key]) {
+      return;
+    }
+    properties[key] = Object.getOwnPropertyNames(this[key]);
+  });
+  fs.writeFileSync('./src/properties.json', JSON.stringify(properties, null, 2), (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
 module.exports = {
+  generateProperties,
   builtin,
   webapi,
 };

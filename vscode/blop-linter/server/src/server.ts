@@ -15,7 +15,7 @@ import {
 	DidChangeConfigurationNotification,
 	CompletionItem,
 	CompletionItemKind,
-	TextDocumentPositionParams
+	TextDocumentPositionParams,
 } from 'vscode-languageserver';
 
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
@@ -23,6 +23,7 @@ const parser = require('./parser');
 const displayError = require('./utils').displayError
 const grammar = require('./grammar').grammar;
 const backend = require("./backend")
+const properties = require("./properties.js")
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -55,7 +56,8 @@ connection.onInitialize((params: InitializeParams) => {
 			textDocumentSync: documents.syncKind,
 			// Tell the client that the server supports code completion
 			completionProvider: {
-				resolveProvider: true
+        resolveProvider: true,
+        triggerCharacters: [ '.' ]
 			}
 		}
 	};
@@ -210,19 +212,32 @@ connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
 		// The pass parameter contains the position of the text document in
 		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
-		return [
-			{
-				label: 'TypeScript',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'JavaScript',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}
-		];
+    // info and always provide the same completion items.
+    const document = documents.get(_textDocumentPosition.textDocument.uri)
+    const line = _textDocumentPosition.position.line
+    const text = document.getText({
+      start: { line, character: 0 },
+      end : { line, character : _textDocumentPosition.position.character }
+    })
+    const reg = /\s([\w]+)\./
+    const result = reg.exec(text)
+    if(result) {
+      const name = result[1];
+      console.log(name, properties)
+      if(properties[name]) {
+        const array: any[] = []
+        properties[name].forEach((item: String) => {
+          array.push(
+            {
+              label: item,
+              kind: CompletionItemKind.Text,
+            }
+          )
+        })
+        return array
+      }
+    }
+    return []
 	}
 );
 
@@ -230,13 +245,8 @@ connection.onCompletion(
 // the completion list.
 connection.onCompletionResolve(
 	(item: CompletionItem): CompletionItem => {
-		if (item.data === 1) {
-			(item.detail = 'TypeScript details'),
-				(item.documentation = 'TypeScript documentation');
-		} else if (item.data === 2) {
-			(item.detail = 'JavaScript details'),
-				(item.documentation = 'JavaScript documentation');
-		}
+		item.detail = 'Blop details'
+		item.documentation = 'Blop documentation'
 		return item;
 	}
 );

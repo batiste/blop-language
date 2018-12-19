@@ -47,11 +47,11 @@ function singleSpace(input) {
 
 function returnDef(input) {
   if (input.startsWith('return')) {
-    if(input[6] === ' ') {
+    if (input[6] === ' ') {
       return 'return ';
     }
-    if(input[6] === '\n') {
-      return 'return'
+    if (input[6] === '\n') {
+      return 'return';
     }
   }
 }

@@ -116,10 +116,8 @@ backend = {
     }
 
     final.push(module.join(''));
-    final.push('module.exports = {');
-    Object.keys(ns).forEach((key) => {
-      final.push(` ${key},`);
-    });
+    final.push('\nmodule.exports = {');
+    final.push(Object.keys(ns).join(', '));
     final.push('}');
     return final;
   },
@@ -157,6 +155,7 @@ backend = {
     for (let i = 0; i < node.children.length; i++) {
       output.push(...generateCode(node.children[i]));
     }
+    output.push(';');
     return output;
   },
   'destructuring_values': (node) => {
@@ -326,9 +325,9 @@ backend = {
     // any other objects
     } else {
       const f_uid = uid();
-      output.push('Object.entries(');
+      output.push(`let ${f_uid} = `);
       output.push(...generateCode(node.named.exp));
-      output.push(`).forEach(${f_uid} => {let [${key}, ${value}] = ${f_uid}; `);
+      output.push(`; Object.keys(${f_uid}).forEach(${key} => {let ${value} = ${f_uid}[${key}]; `);
       node.named.stats ? node.named.stats.forEach(
         stat => output.push(...generateCode(stat)),
       ) : null;
@@ -414,7 +413,7 @@ backend = {
       if (node.named.params) {
         output.push(...generateCode(node.named.params));
       }
-      output.push(') => ');
+      output.push(') =>');
       output.push(...generateCode(node.named.body));
     } else {
       if (!node.named.name) {
@@ -463,13 +462,14 @@ backend = {
     const output = [];
     const ns = addNameSpaceFCT();
     ns[node.named.name.value] = { node, hoist: false, token: node.named.name };
-    output.push(node.named.name.value);
+    output.push(`${node.named.name.value}`);
     output.push('(');
     if (node.named.params) {
       output.push(...generateCode(node.named.params));
     }
     output.push(')');
     output.push(...generateCode(node.named.body));
+    output.push('\n');
     popNameSpaceFCT();
     return output;
   },
@@ -525,7 +525,6 @@ backend = {
   '==': () => ['==='],
   '!=': () => ['!=='],
 };
-
 
 module.exports = {
   generateCode: (node, _stream, _input) => {
