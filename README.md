@@ -1,15 +1,26 @@
 # The blop language
 
-The blop language ressembles modern JavaScript and offers JSX like features.
-
-Blop natively understand nested HTML tags and components and you are not limited to simple expressions. You can mix any statement, expressions, and HTML tags within the same 
-function.
+Blop natively understand nested HTML tags and components. Unlike JSX you are not limited to expressions. 
+You can mix any statement, expressions, and HTML tags within the same function.
 
 The HTML tags and components are converted into virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
 
-Blop compiles to modern JavaScript using a compiler that is generated using a grammar and token definition.
+Blop compiles to ES6 using a compiler that is generated using a grammar and token definition.
 
 <img src="/img/carbon.png" width="800">
+
+## Language features
+
+  * Virtual DOM generation is natively supported by the language.
+  * Fast compilation (+30'000 lines by second).
+  * A linter is integrated into the language: no linter debate.
+  * Integration with Visual Studio Code: linter and syntactic coloration.
+  * Similar syntax and features than ES6.
+
+## Language features missing
+
+  * No real type checking (but type annotation is possible)
+  * The language is still in beta
 
 ## Installation
 

@@ -647,7 +647,7 @@ function SCOPED_STATEMENT_7(stream, index) {
     return;
   }
   children.push(stream[i]); i++;
-  const _rule_1 = exp(stream, i);
+  const _rule_1 = exp_statement(stream, i);
   if (_rule_1) {
     children.push(_rule_1);
     i = _rule_1.last_index;

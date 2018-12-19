@@ -62,6 +62,8 @@ const builtin = {
 const webapi = {
   setTimeout: { type: 'Function' },
   setInterval: { type: 'Function' },
+  alert: { type: 'Function' },
+  prompt: { type: 'Function' },
   fetch: { type: 'Function' },
   document: { type: 'Object' },
   console: { type: 'Object' },
