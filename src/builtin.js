@@ -57,6 +57,11 @@ const builtin = {
   Proxy: { type: 'Object' },
   arguments: { type: 'Object' },
   this: { type: 'Reference' },
+  ArrayBuffer: { type: 'Object' },
+  SharedArrayBuffer: { type: 'Object' },
+  Atomics: { type: 'Object' },
+  DataView: { type: 'Object' },
+  JSON: { type: 'Object' },
 };
 
 const webapi = {
