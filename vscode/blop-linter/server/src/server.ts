@@ -219,10 +219,10 @@ connection.onCompletion(
       start: { line, character: 0 },
       end : { line, character : _textDocumentPosition.position.character }
     })
-    const reg = /\s([\w]+)\./
+    const reg = /(\s|^)([\w]+)\./
     const result = reg.exec(text)
     if(result) {
-      const name = result[1];
+      const name = result[2];
       console.log(name, properties)
       if(properties[name]) {
         const array: any[] = []
@@ -230,7 +230,7 @@ connection.onCompletion(
           array.push(
             {
               label: item,
-              kind: CompletionItemKind.Text,
+              kind: CompletionItemKind.Function,
             }
           )
         })

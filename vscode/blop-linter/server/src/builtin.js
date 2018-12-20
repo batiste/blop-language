@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 const builtin = {
   Infinity: { type: 'Value' },
@@ -69,7 +70,6 @@ const webapi = {
   setTimeout: { type: 'Function' },
   setInterval: { type: 'Function' },
   alert: { type: 'Function' },
-  prompt: { type: 'Function' },
   fetch: { type: 'Function' },
   document: { type: 'Object' },
   console: { type: 'Object' },
@@ -77,26 +77,32 @@ const webapi = {
   history: { type: 'Object' },
 };
 
-function generateProperties() {
-  const keys = Object.keys(builtin);
-  const properties = {};
+function generateAutoCompleteFile() {
+  const all = { ...builtin, ...this, ...webapi };
+  const keys = Object.keys(all);
+  const output = ['module.exports = {'];
   keys.forEach((key) => {
     if (!this[key]) {
       return;
     }
-    properties[key] = Object.getOwnPropertyNames(this[key]);
+    const properties = JSON.stringify(Object.getOwnPropertyNames(this[key]))
+      .replace(/",/g, '", ')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "'");
+    output.push(`  '${key}': ${properties},`);
   });
-  fs.writeFileSync('./src/properties.json', JSON.stringify(properties, null, 2), (err) => {
+  const filename = path.resolve(__dirname, '../vscode/blop-linter/server/src/properties.js');
+  output.push('};\n');
+  fs.writeFileSync(filename, output.join('\n'), (err) => {
     if (err) {
       console.log(err);
     }
   });
 }
 
-generateProperties();
 
 module.exports = {
-  generateProperties,
+  generateAutoCompleteFile,
   builtin,
   webapi,
 };

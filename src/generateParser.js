@@ -1,6 +1,7 @@
 // Meta programming: generate an efficient parser from
 // a grammar and a token definition
 const fs = require('fs');
+const path = require('path');
 const { performance, PerformanceObserver } = require('perf_hooks');
 const { grammar } = require('./grammar');
 const { tokensDefinition } = require('./tokensDefinition');
@@ -16,11 +17,12 @@ obs.observe({ entryTypes: ['measure'] });
 
 performance.mark('A');
 
-fs.writeFileSync('./src/parser.js', meta.generate(grammar, tokensDefinition, false).join('\n'), (err) => {
-  if (err) {
-    console.log(err);
-  }
-});
+fs.writeFileSync(path.resolve(__dirname, './parser.js'),
+  meta.generate(grammar, tokensDefinition, false).join('\n'), (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
 
 performance.mark('B');
 performance.measure('Writting parser code', 'A', 'B');
