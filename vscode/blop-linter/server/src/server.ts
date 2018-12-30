@@ -16,6 +16,8 @@ import {
 	CompletionItem,
 	CompletionItemKind,
 	TextDocumentPositionParams,
+	DiagnosticRelatedInformation,
+	Location
 } from 'vscode-languageserver';
 
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
@@ -182,16 +184,37 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     try {
       backend.generateCode(tree, stream, text)
     } catch(e) {
-      let token = e.token || {start:0, end: text.length}
+	  let token = e.token || {start:0, end: text.length}
+	  let related: DiagnosticRelatedInformation
+
+	  if (e.related) {
+		let location: Location = {
+			uri: textDocument.uri,
+			range: {
+				start: textDocument.positionAt(e.related.start),
+				end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
+			}
+		}
+		related = {
+			location,
+			message: 'This token is redefined'
+		}
+	  }
+	  let messageParts = e.message.split('\n')
+
       let diagnosic: Diagnostic = {
         severity: DiagnosticSeverity.Error,
         range: {
           start: textDocument.positionAt(token.start),
           end: textDocument.positionAt(token.start + Math.max(1, token.len))
         },
-        message: e.message,
+        message: messageParts[0],
         source: 'blop'
-      };
+	  };
+	  if (related) {
+		diagnosic.relatedInformation = [related]
+	  }
+
       diagnostics.push(diagnosic);
       connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
       return

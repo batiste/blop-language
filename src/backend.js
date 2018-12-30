@@ -31,6 +31,7 @@ function checkRedefinition(name, node, explicit) {
       Redefined by
       ${redefineContext}
       `);
+      error.related = token
       error.token = redefinedBy;
       throw error;
     }
