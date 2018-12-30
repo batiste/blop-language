@@ -65,7 +65,7 @@ Here is a link to the extensions on the visualstudio marketplace
 
  Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
 
-<img src="/img/extension.png" width="500">
+<img src="/img/extensions.png" width="600">
 
 ### Install them throught github
 
@@ -78,4 +78,4 @@ for you:
 
 Relaunch vscode and open a `.blop` file to see if the linter and coloration work
 
-<img src="/img/example.png" width="500">
+<img src="/img/example.png" width="600">
