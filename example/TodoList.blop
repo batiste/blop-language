@@ -8,12 +8,6 @@ Input = (state) => <input
   on=state.on
   style={ fontSize: '16px', padding: '0.5em' } />
 
-Button = (state, children) => {
-  <button
-    type="button" className="btn btn-primary"
-    on=state.on>children</button>
-}
-
 TodoList = (state) => {
   { todo } = state
 
