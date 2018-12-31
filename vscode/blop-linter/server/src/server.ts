@@ -197,7 +197,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		}
 		related = {
 			location,
-			message: 'This token is redefined'
+			message: 'This variable is redefined'
 		}
 	  }
 	  let messageParts = e.message.split('\n')

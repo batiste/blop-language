@@ -17,10 +17,9 @@ const popNameSpaceFCT = () => namespacesFCT.pop();
 
 function checkRedefinition(name, node, explicit) {
   if (explicit) return;
-  const current = currentNameSpaceFCT();
   namespacesFCT.slice().reverse().forEach((ns) => {
     const upperScopeNode = ns[name];
-    if (upperScopeNode && ns !== current) {
+    if (upperScopeNode) {
       const { token } = upperScopeNode;
       const redefinedBy = stream[node.stream_index];
       const sourceContext = utils.streamContext(input, token, token, stream);
@@ -31,7 +30,7 @@ function checkRedefinition(name, node, explicit) {
       Redefined by
       ${redefineContext}
       `);
-      error.related = token
+      error.related = token;
       error.token = redefinedBy;
       throw error;
     }
@@ -127,7 +126,7 @@ backend = {
     const output = [];
     const ns = currentNameSpaceFCT();
     if (node.named.name) {
-      if (!ns[node.named.name.value] && !node.named.explicit_assign) {
+      if (!node.named.explicit_assign) {
         checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
         ns[node.named.name.value] = { node, token: node.named.name };
       }

@@ -1,7 +1,6 @@
 
 import { TodoListItem } from './TodoListItem.blop'
 
-
 Input = (state) => <input
   type="text"
   value=state.value

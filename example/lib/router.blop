@@ -4,14 +4,14 @@ def escapeRegExp(str) {
 }
 
 def createRegExp(str) {
-  str = escapeRegExp(str)
+  escapedStr = escapeRegExp(str)
   reg = /\:(\w+)/
   names = []
-  str1 = str.replace(/\:(\w+)/g, (a, b) => {
+  escapedStr := escapedStr.replace(/\:(\w+)/g, (a, b) => {
     names.push(b)
     return '([\\w\\.\\-\\_]+)'
   })
-  return { regexp: `^`str1``, names }
+  return { regexp: `^`escapedStr``, names }
 }
 
 class Router {
