@@ -1,20 +1,4 @@
 const code = `
-root = document.body
-array = [1, 4,
-  5]
-
-def render(number) {
-  <div>
-      <h1>
-       = "Hello"
-      </h1>
-      [1, 2].forEach((i) => {
-        <p class="hello" + i>
-          = "Hello " + i
-        </p>
-      })
-  </div>
-}
 
 class Test {
   def constructor(a) {
@@ -26,38 +10,59 @@ class Test {
 }
 class Test2 extends Test {}
 
-a = 1
+def scope() {
+  root = document.body
+  array = [1, 4,
+    5]
 
-() => {
-  a: 1
+  def render(number) {
+    <div>
+        <h1>
+        = "Hello"
+        </h1>
+        [1, 2].forEach((i) => {
+          <p class="hello" + i>
+            = "Hello " + i
+          </p>
+        })
+    </div>
+  }
+
+  a = 1
+
+  () => {
+    a: 1
+  }
+
+  for key: int, value in array {
+    a.b.c = 1
+  }
+
+  try {
+    b = !b
+    typeof b
+  } catch hello {
+    throw hello
+  }
+
+  render.call(
+    1,
+    2,
+    3)
+
+
+  c = 1 - (1 + 2) + (2 + 4) + 2
+
+  Hello = {
+    view: render
+  }
+
+  () => {
+    return 1
+  }
+  () => {}
+
 }
-
-for key: int, value in array {
-  a.b.c = 1
-}
-
-try {
-  b = !b
-  typeof b
-} catch hello {
-  throw hello
-}
-
-render.call(
-  1,
-  2,
-  3)
-
-a = 1 - (1 + 2) + (2 + 4) + 2
-
-Hello = {
-  view: render
-}
-
-() => {
-  return 1
-}
-() => {}
 `;
 
 const a = [];

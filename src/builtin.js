@@ -100,7 +100,6 @@ function generateAutoCompleteFile() {
   });
 }
 
-
 module.exports = {
   generateAutoCompleteFile,
   builtin,
