@@ -14,7 +14,7 @@ import {
 	InitializeParams,
 	DidChangeConfigurationNotification,
 	CompletionItem,
-	CompletionItemKind,
+	// CompletionItemKind,
 	TextDocumentPositionParams,
 	DiagnosticRelatedInformation,
 	Location
@@ -24,6 +24,7 @@ const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const parser = require('./parser');
 const displayError = require('./utils').displayError
 const grammar = require('./grammar').grammar;
+const builtin = require('./builtin').builtin;
 const backend = require("./backend")
 const properties = require("./properties.js")
 
@@ -188,17 +189,17 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	  let related: DiagnosticRelatedInformation
 
 	  if (e.related) {
-		let location: Location = {
-			uri: textDocument.uri,
-			range: {
-				start: textDocument.positionAt(e.related.start),
-				end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
-			}
-		}
-		related = {
-			location,
-			message: 'This variable is redefined'
-		}
+      let location: Location = {
+        uri: textDocument.uri,
+        range: {
+          start: textDocument.positionAt(e.related.start),
+          end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
+        }
+      }
+      related = {
+        location,
+        message: 'This variable is redefined'
+      }
 	  }
 	  let messageParts = e.message.split('\n')
 
@@ -244,18 +245,22 @@ connection.onCompletion(
     })
     const reg = /(\s|^)([\w]+)\./
     const result = reg.exec(text)
+    const kindMap:any = { 'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12 }
     if(result) {
       const name = result[2];
-      console.log(name, properties)
       if(properties[name]) {
         const array: any[] = []
         properties[name].forEach((item: String) => {
-          array.push(
-            {
-              label: item,
-              kind: CompletionItemKind.Function,
-            }
-          )
+          let builtinForItem = (builtin[item.toString()] || { type: 'Function' })
+          let documentation = builtinForItem.documentation
+          let detail = builtinForItem.detail
+          let type = kindMap[builtinForItem.type]
+          array.push({
+            label: item,
+            detail,
+            kind: type,
+            documentation
+          })
         })
         return array
       }
@@ -268,8 +273,6 @@ connection.onCompletion(
 // the completion list.
 connection.onCompletionResolve(
 	(item: CompletionItem): CompletionItem => {
-		item.detail = 'Blop details'
-		item.documentation = 'Blop documentation'
 		return item;
 	}
 );
