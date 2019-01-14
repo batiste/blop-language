@@ -58,6 +58,24 @@ function shouldBeDefined(name, node) {
   }
 }
 
+function registerVirtualNode(node) {
+  const currentFct = currentNameSpaceFCT();
+  const parent = currentNameSpaceVN().currentVNode;
+  if (node.type !== 'virtual_node_exp' && !parent) {
+    if (currentFct.returnVirtualNode) {
+      const token = stream[node.stream_index];
+      const sourceContext = utils.streamContext(input, token, token, stream);
+      const error = new Error(`A root virtual node is already defined in this function
+      ${sourceContext}
+`);
+      error.token = token;
+      throw error;
+    } else {
+      currentFct.returnVirtualNode = node;
+    }
+  }
+}
+
 function generateCode(node) {
   const output = [];
   if (backend[node.type]) {
@@ -228,6 +246,8 @@ backend = {
   'virtual_node': (node) => {
     const output = []; let
       renderGuard = null;
+
+    registerVirtualNode(node);
 
     const parent = currentNameSpaceVN().currentVNode;
     const _uid = uid();
