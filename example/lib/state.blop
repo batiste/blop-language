@@ -52,10 +52,10 @@ def create(state, modificationTable, readOnly) {
       },
       set: def (obj, prop, value) {
         if readOnly {
-          throw new Error(`${obj}.${prop} is read only`)
+          throw new Error(``obj`.`prop` is read only`)
         }
         if protectedProp[prop] {
-          throw new Error(`You cannot redefine the ${prop} property in a proxied state`)
+          throw new Error(`You cannot redefine the `prop` property in a proxied state`)
         }
         modificationTable.push({ path: path + '.' + prop, action: 'set', value })
         obj[prop] = value
@@ -64,10 +64,10 @@ def create(state, modificationTable, readOnly) {
       },
       deleteProperty: def (target, prop) {
         if readOnly {
-          throw new Error(`${target}.${prop} is read only`)
+          throw new Error(`target.`prop` is read only`)
         }
         if target.hasOwnProperty(prop) {
-          modificationTable.push({ path: path + '.' + prop, action: 'delete' })
+          modificationTable.push({ path: ''path'.'prop'', action: 'delete' })
           delete target[prop]
         } else {
           return false
