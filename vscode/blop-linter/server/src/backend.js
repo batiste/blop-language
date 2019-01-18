@@ -1,5 +1,5 @@
 const utils = require('./utils');
-const { builtin, webapi } = require('./builtin');
+const { builtin, webapi, jestapi } = require('./builtin');
 
 let namespacesVN;
 let namespacesFCT;
@@ -38,7 +38,7 @@ function checkRedefinition(name, node, explicit) {
 }
 
 function shouldBeDefined(name, node) {
-  if (builtin[name] || webapi[name]) {
+  if (builtin[name] || webapi[name] || jestapi[name]) {
     return;
   }
   let defined = false;
@@ -508,6 +508,11 @@ backend = {
     return output;
   },
   'func_body': (node) => {
+    const output = [];
+    output.push(...backend.func_body_fat(node));
+    return output;
+  },
+  'func_body_fat': (node) => {
     const ns = currentNameSpaceFCT();
     let output = [];
     if (node.named.exp) {

@@ -1,10 +1,12 @@
 {
   "name": "blop-language",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Blop language is JavaScript-like language for the web",
   "main": "src/index.js",
   "loader": "src/loader.js",
+  "jest-transform": "src/jest.js",
   "scripts": {
+    "test": "jest",
     "start": "node src/generateParser && webpack-dev-server",
     "debug": "node src/generateParser && BLOP_DEBUG=true webpack-dev-server",
     "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
@@ -29,9 +31,10 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-ie11": "^1.0.0",
     "eslint-plugin-import": "^2.14.0",
+    "jest": "^23.6.0",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.10"
+    "webpack-dev-server": "^3.1.14"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {

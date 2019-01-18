@@ -794,6 +794,24 @@ function DOTTED_PATH_1(stream, index) {
   if (!_rule_1) return;
   children.push(_rule_1);
   i = _rule_1.last_index;
+
+  if (stream[i].type !== '.') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_3 = DOTTED_PATH(stream, i);
+  if (!_rule_3) return;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
@@ -820,38 +838,10 @@ function DOTTED_PATH_2(stream, index) {
   }
 
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== '[') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'DOTTED_PATH', sub_rule_index: 2,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-
-  if (stream[i].type !== ']') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'DOTTED_PATH', sub_rule_index: 2,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return;
-  }
-
-  children.push(stream[i]); i++;
+  const _rule_1 = func_call(stream, i);
+  if (!_rule_1) return;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
@@ -878,6 +868,140 @@ function DOTTED_PATH_3(stream, index) {
   }
 
   children.push(stream[i]); i++;
+
+  if (stream[i].type !== '[') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+
+  if (stream[i].type !== ']') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '.') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_5 = DOTTED_PATH(stream, i);
+  if (!_rule_5) return;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
+function DOTTED_PATH_4(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'DOTTED_PATH',
+    subRule: 4, type: 'DOTTED_PATH', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 4,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '[') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 4,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+
+  if (stream[i].type !== ']') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 4,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
+function DOTTED_PATH_5(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'DOTTED_PATH',
+    subRule: 5, type: 'DOTTED_PATH', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'DOTTED_PATH', sub_rule_index: 5,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
@@ -886,7 +1010,9 @@ function DOTTED_PATH(stream, index) {
   return DOTTED_PATH_0(stream, index)
     || DOTTED_PATH_1(stream, index)
     || DOTTED_PATH_2(stream, index)
-    || DOTTED_PATH_3(stream, index);
+    || DOTTED_PATH_3(stream, index)
+    || DOTTED_PATH_4(stream, index)
+    || DOTTED_PATH_5(stream, index);
 }
 function math_0(stream, index) {
   let i = index;
@@ -1918,7 +2044,7 @@ function func_def_2(stream, index) {
   }
 
   children.push(stream[i]); i++;
-  const _rule_7 = func_body(stream, i);
+  const _rule_7 = func_body_fat(stream, i);
   if (!_rule_7) return;
   named['body'] = _rule_7;
   children.push(_rule_7);
@@ -2012,7 +2138,7 @@ function func_def_3(stream, index) {
   }
 
   children.push(stream[i]); i++;
-  const _rule_6 = func_body(stream, i);
+  const _rule_6 = func_body_fat(stream, i);
   if (!_rule_6) return;
   named['body'] = _rule_6;
   children.push(_rule_6);
@@ -2745,6 +2871,75 @@ function func_call_params(stream, index) {
     || func_call_params_1(stream, index)
     || func_call_params_2(stream, index);
 }
+function func_body_fat_0(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'func_body_fat',
+    subRule: 0, type: 'func_body_fat', named,
+  };
+
+  if (stream[i].type !== '{') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'func_body_fat', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  let _rule_1 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_1) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_1);
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+    _rule_1 = SCOPED_STATEMENTS(stream, i);
+  }
+
+  if (stream[i].type !== '}') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'func_body_fat', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
+function func_body_fat_1(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'func_body_fat',
+    subRule: 1, type: 'func_body_fat', named,
+  };
+  const _rule_0 = exp(stream, i);
+  if (!_rule_0) return;
+  named['exp'] = _rule_0;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
+function func_body_fat(stream, index) {
+  return func_body_fat_0(stream, index)
+    || func_body_fat_1(stream, index);
+}
 function func_body_0(stream, index) {
   let i = index;
   const children = [];
@@ -2793,26 +2988,8 @@ function func_body_0(stream, index) {
   return node;
 }
 
-function func_body_1(stream, index) {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'func_body',
-    subRule: 1, type: 'func_body', named,
-  };
-  const _rule_0 = exp(stream, i);
-  if (!_rule_0) return;
-  named['exp'] = _rule_0;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-}
-
 function func_body(stream, index) {
-  return func_body_0(stream, index)
-    || func_body_1(stream, index);
+  return func_body_0(stream, index);
 }
 function class_def_0(stream, index) {
   let i = index;

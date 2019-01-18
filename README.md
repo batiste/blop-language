@@ -52,7 +52,23 @@ module.exports = {
       }
     ]
   }
-}
+};
+```
+
+## Configure Jest for blop
+
+```javascript
+// jest.config.js
+module.exports = {
+  moduleFileExtensions: [
+    'blop',
+    'js',
+  ],
+  testMatch: ['**/*.test.blop'],
+  transform: {
+    '^.+\\.blop$': 'blop-language/jest-transform',
+  },
+};
 ```
 
 ## Install Visual Studio Code extensions

@@ -12,11 +12,16 @@ const schema = {
   type: 'object',
 };
 
-module.exports = function loader(source) {
-  const options = getOptions(this);
+module.exports = function loader(source, env = 'webpack') {
+  const options = getOptions(this) || { debug: false };
   validateOptions(schema, options, 'Blop Loader');
   const name = require.resolve(path.join(__dirname, './runtime.js'));
-  const file = stringifyRequest(this, `!${name}`);
+  let file;
+  if (env === 'webpack') {
+    file = stringifyRequest(this, `!${name}`);
+  } else {
+    file = stringifyRequest(this, name);
+  }
   const header = `const blop = require(${file});\n\n`;
 
   const stream = parser.tokenize(tokensDefinition, source);

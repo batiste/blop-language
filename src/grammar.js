@@ -47,7 +47,9 @@ const grammar = {
   ],
   'DOTTED_PATH': [
     ['name', '.', 'DOTTED_PATH'],
+    ['name', 'func_call', '.', 'DOTTED_PATH'],
     ['name', 'func_call'],
+    ['name', '[', 'exp', ']', '.', 'DOTTED_PATH'],
     ['name', '[', 'exp', ']'],
     ['name'],
   ],
@@ -69,8 +71,8 @@ const grammar = {
   'func_def': [
     ['def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
     ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
-    ['(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
-    ['(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body:body'],
+    ['(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
+    ['(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
   ],
   'annotation': [
     ['colon', 'w', 'name:name'],
@@ -94,9 +96,12 @@ const grammar = {
     ['exp', ',', 'single_space_or_newline', 'func_call_params'],
     ['exp'],
   ],
-  'func_body': [
+  'func_body_fat': [
     ['{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['exp:exp'],
+  ],
+  'func_body': [
+    ['{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'class_def': [
     ['clazz', 'name:name', 'w', 'extends', 'name:extends', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],

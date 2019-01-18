@@ -1,0 +1,32 @@
+import { TodoListItem } from './TodoListItem.blop'
+
+def someHtml(content) {
+  <div>
+    = content
+  </div>
+}
+
+test('Virtual DOM content', () => {
+  content = 'some content'
+  node = someHtml(content)
+  expect(node.children[0].text).toBe(content)
+})
+
+def SomeComponent(attributes, children) {
+  <div>
+    = attributes.content
+    = children
+  </div>
+}
+
+test('Virtual DOM component with children', () => {
+  component = () => <SomeComponent content='text'>
+      <p>'hello'</p>
+      <p>'world'</p>
+    </SomeComponent>
+
+  node = component()
+  expect(node.children[0].text).toBe('text')
+  expect(node.children[1].children[0].text).toBe('hello')
+  expect(node.children[2].children[0].text).toBe('world')
+})

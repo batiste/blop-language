@@ -1,5 +1,5 @@
 import { mount } from 'blop'
-import { TodoList } from './TodoList.blop'
+import { TodoList } from './TodoList/TodoList.blop'
 import { DogChooser } from './DogChooser.blop'
 import { proxiedState } from './state.blop'
 
