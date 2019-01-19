@@ -1,0 +1,11 @@
+
+array = [1,
+    4,
+    5]
+
+squares = [1, 2].map((i) => i * i)
+
+test('array access', () => {
+  expect(array[1]).toBe(4)
+  expect(squares[1]).toBe(4)
+})

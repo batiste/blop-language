@@ -1,0 +1,6 @@
+
+c = 10 - (1 + 2) + (2 + 4) + 2
+
+test('expression', () => {
+  expect(c).toBe(15)
+})

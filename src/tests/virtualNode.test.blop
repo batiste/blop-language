@@ -1,0 +1,9 @@
+
+def render(text) {
+  <h1>text</h1>
+}
+
+test('virtual node', () => {
+  test = render('hello')
+  expect(test.children[0].text).toBe('hello')
+})
