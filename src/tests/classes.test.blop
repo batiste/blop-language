@@ -1,0 +1,24 @@
+class Test {
+  def constructor(a) {
+    this.a = a
+  }
+  def blop(a) {
+    return this.a
+  }
+  def blip() {
+    return 2
+  }
+}
+class Test2 extends Test {
+  def blop() {
+    return 3
+  }
+}
+
+test('class method', () => {
+  test = new Test('hello')
+  expect(test.blop()).toBe('hello')
+  test2 = new Test2('hello')
+  expect(test2.blop()).toBe(3)
+  expect(test2.blip()).toBe(2)
+})

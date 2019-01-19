@@ -1,15 +1,5 @@
 const code = `
 
-class Test {
-  def constructor(a) {
-    this.a = a
-  }
-  def blop(a) {
-    return blop
-  }
-}
-class Test2 extends Test {}
-
 def scope() {
   root = document.body
   array = [1, 4,
