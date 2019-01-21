@@ -1,5 +1,7 @@
 # The blop language
 
+<img src="/img/blop.png" width="120">
+
 Blop natively understand nested HTML tags and components. Unlike JSX you are not limited to expressions. 
 You can mix any statement, expressions, and HTML tags within the same function.
 
