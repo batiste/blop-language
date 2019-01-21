@@ -87,11 +87,12 @@ const jestapi = {
   expect: { type: 'Function', detail: 'expect(expression).toBe(value)', documentation: 'https://jestjs.io/docs/en/expect' },
 };
 
+const all = {
+  ...builtin, ...webapi, ...jestapi,
+};
+
 function generateAutoCompleteFile() {
-  const all = {
-    ...builtin, ...this, ...webapi, ...jestapi,
-  };
-  const keys = Object.keys(all);
+  const keys = Object.keys({...this, ...all});
   const output = ['module.exports = {'];
   keys.forEach((key) => {
     if (!this[key]) {
@@ -117,4 +118,5 @@ module.exports = {
   builtin,
   webapi,
   jestapi,
+  all
 };

@@ -1,5 +1,5 @@
 const utils = require('./utils');
-const { builtin, webapi, jestapi } = require('./builtin');
+const { all } = require('./builtin');
 
 let namespacesVN;
 let namespacesFCT;
@@ -38,7 +38,7 @@ function checkRedefinition(name, node, explicit) {
 }
 
 function shouldBeDefined(name, node) {
-  if (builtin[name] || webapi[name] || jestapi[name]) {
+  if (all[name]) {
     return;
   }
   let defined = false;

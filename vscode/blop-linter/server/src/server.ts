@@ -24,7 +24,7 @@ const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const parser = require('./parser');
 const displayError = require('./utils').displayError
 const grammar = require('./grammar').grammar;
-const builtin = require('./builtin').builtin;
+const builtin = require('./builtin').all;
 const backend = require("./backend")
 const properties = require("./properties.js")
 
@@ -242,12 +242,13 @@ connection.onCompletion(
     const text = document.getText({
       start: { line, character: 0 },
       end : { line, character : _textDocumentPosition.position.character }
-    })
-    const reg = /(\s|^)([\w]+)\./
-    const result = reg.exec(text)
-    const kindMap:any = { 'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12 }
+	})
+	const kindMap:any = { 'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12 }
+	// Object.<something completion>
+	const reg1 = /(\s|^)([\w]+)\./
+    const result = reg1.exec(text)
     if(result) {
-      const name = result[2];
+	  const name = result[2];
       if(properties[name]) {
         const array: any[] = []
         properties[name].forEach((item: String) => {
@@ -261,9 +262,27 @@ connection.onCompletion(
             kind: type,
             documentation
           })
-        })
-        return array
-      }
+		})
+		return array
+	  }
+	}
+	// basic builtin 'completion'
+	const reg0 = /(\s|^)([\w]{3,})/
+	const result2 = reg0.exec(text)
+    if(result2) {
+	  const name = result2[2];
+	  if(builtin[name]) {
+		let builtinForItem = builtin[name]
+		let documentation = builtinForItem.documentation
+		let detail = builtinForItem.detail
+		let type = kindMap[builtinForItem.type]
+		return [{
+		  label: name,
+		  detail,
+		  kind: type,
+		  documentation
+		}]
+	  }
     }
     return []
 	}
