@@ -4,7 +4,7 @@ import { createRouter } from './routing.blop'
 import { Index } from './index.blop'
 
 proxiedState = createState()
-router = createRouter(proxiedState)
+router = createRouter(proxiedState, window)
 
 render = () => {
   if !proxiedState.hasChanged() {

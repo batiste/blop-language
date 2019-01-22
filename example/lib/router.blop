@@ -14,23 +14,18 @@ def createRegExp(str) {
   return { regexp: `^`escapedStr``, names }
 }
 
-global = null
-if (SERVER == true) {
-  global := {
-    addEventListener: () => {},
-    location: { pathname: '/' },
-    history: { pushState: () => {} }
-  }
-}
-if (SERVER == false) {
-  global := window
+mockWindow = {
+  addEventListener: () => {},
+  location: { pathname: '/' },
+  history: { pushState: () => {} }
 }
 
 class Router {
-  def constructor(initial, state) {
+  def constructor(initial, state, global=mockWindow) {
     this.routes = []
     this.state = state
     this.state.connectRouter(this)
+    this.global = global
     global.addEventListener('popstate', (e) => {
       if e.state == null {
         initial && initial()
@@ -42,7 +37,7 @@ class Router {
     })
   }
   def init() {
-    this.go(global.location.pathname, true)
+    this.go(this.global.location.pathname, true)
   }
   def add(route) {
     { regexp, names } = createRegExp(route.path)
@@ -75,7 +70,7 @@ class Router {
       return
     }
     if push {
-      global.history.pushState({
+      this.global.history.pushState({
           name: m.route.name,
           path: m.route.path,
           params: m.params

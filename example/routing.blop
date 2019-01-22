@@ -27,8 +27,8 @@ async def indexHandler(params, state) {
   await getNewDog(state)
 }
 
-def createRouter(state) {
-  router = new Router(null, state)
+def createRouter(state, global) {
+  router = new Router(null, state, global)
 
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: doggyHanlder })
   router.add({ path: '/', name: 'root', handler: indexHandler })
