@@ -1,3 +1,4 @@
+const path = require('path');
 const utils = require('./utils');
 const { all } = require('./builtin');
 
@@ -38,7 +39,7 @@ function checkRedefinition(name, node, explicit) {
 }
 
 function shouldBeDefined(name, node) {
-  if (all[name]) {
+  if (all[name] || name === name.toUpperCase()) {
     return;
   }
   let defined = false;
@@ -227,19 +228,26 @@ backend = {
     }
     const ns = currentNameSpaceFCT();
     if (node.named.module) {
+      // import 'module' as name
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(`let ${name} = require(${node.named.module.value});`);
     } else if (node.named.name) {
+      // import name from 'filename'
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(`let ${name} = ${module}.${name};`);
     } else if (node.named.dest_values) {
+      // import { destructuring } from 'filename'
       output.push('let { ');
       output.push(...generateCode(node.named.dest_values));
       output.push(` } = ${module};`);
     } else {
-      output.push(`require(${node.named.file.value})`);
+      // import 'file'
+      const { file } = node.named;
+      const { name } = path.parse(path.basename(file.value.slice(1, -1)));
+      ns[name] = { node: file, hoist: false, token: file };
+      output.push(`const ${name} = ${module};`);
     }
     return output;
   },
@@ -419,6 +427,9 @@ backend = {
     const output = [];
     const parentns = currentNameSpaceFCT();
     addNameSpaceFCT();
+    if (node.named['async']) {
+      output.push('async ');
+    }
     if (node.named['fat-arrow']) {
       if (node.named.name) {
         parentns[node.named.name.value] = {
@@ -482,6 +493,9 @@ backend = {
     const output = [];
     const ns = addNameSpaceFCT();
     ns[node.named.name.value] = { node, hoist: false, token: node.named.name };
+    if (node.named['async']) {
+      output.push('async ');
+    }
     output.push(`${node.named.name.value}`);
     output.push('(');
     if (node.named.params) {

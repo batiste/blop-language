@@ -1,0 +1,8 @@
+bla = { moduleParam3: 30 }
+
+if (false) {
+  moduleParam1 = 10
+}
+
+moduleParam2 = 20
+{ moduleParam3 } = bla

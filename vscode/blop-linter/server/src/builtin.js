@@ -68,6 +68,7 @@ const builtin = {
   Atomics: { type: 'Object' },
   DataView: { type: 'Object' },
   JSON: { type: 'Object' },
+  __dirname: { type: 'String' }
 };
 
 const webapi = {
@@ -118,5 +119,5 @@ module.exports = {
   builtin,
   webapi,
   jestapi,
-  all
+  all,
 };

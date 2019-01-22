@@ -14,21 +14,35 @@ def createRegExp(str) {
   return { regexp: `^`escapedStr``, names }
 }
 
+global = null
+if (SERVER == true) {
+  global := {
+    addEventListener: () => {},
+    location: { pathname: '/' },
+    history: { pushState: () => {} }
+  }
+}
+if (SERVER == false) {
+  global := window
+}
+
 class Router {
-  def constructor(initial) {
+  def constructor(initial, state) {
     this.routes = []
-    window.addEventListener('popstate', (e) => {
+    this.state = state
+    this.state.connectRouter(this)
+    global.addEventListener('popstate', (e) => {
       if e.state == null {
         initial && initial()
       } else {
         matchedRoute = this.routes.find(
           (route) => route.path == e.state.path)
-        matchedRoute && matchedRoute.handler(e.state.params)
+        matchedRoute && matchedRoute.handler(e.state.params, this.state)
       }
     })
   }
   def init() {
-    this.go(window.location.pathname, true)
+    this.go(global.location.pathname, true)
   }
   def add(route) {
     { regexp, names } = createRegExp(route.path)
@@ -54,22 +68,22 @@ class Router {
       return { route: matchedRoute, params: params }
     }
   }
-  def go(path, push=true) {
+  async def go(path, push=true) {
     m = this.match(path)
     if !m {
       console.log('No route for path 'path'')
       return
     }
     if push {
-      history.pushState({
-        name: m.route.name,
-        path: m.route.path,
-        params: m.params
-      },
-      m.route.name, path)
+      global.history.pushState({
+          name: m.route.name,
+          path: m.route.path,
+          params: m.params
+        },
+        m.route.name, path)
     }
     if m.route.handler {
-      m.route.handler(m.params)
+      await m.route.handler(m.params, this.state)
     }
   }
 }

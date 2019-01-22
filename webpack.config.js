@@ -1,26 +1,16 @@
 const path = require('path');
 const webpack = require('webpack');
+const nodeExternals = require('webpack-node-externals');
 
-module.exports = () => ({
+const serverConfig = {
   mode: 'development',
   stats: 'minimal',
-  entry: './example/index.blop',
+  target: 'node',
+  externals: [nodeExternals()],
+  entry: './example/server.blop',
   output: {
-    path: path.resolve(__dirname, 'example', 'dist'),
-    filename: 'bundle.js',
-  },
-  devServer: {
-    stats: 'minimal',
-    contentBase: path.join(__dirname, 'example'),
-    index: 'index.html',
-    historyApiFallback: {
-      rewrites: [
-        { from: /^\/dogs\/.*/, to: '/index.html' },
-      ],
-    },
-    port: 9000,
-    overlay: true,
-    watchContentBase: true,
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'server.js',
   },
   module: {
     rules: [
@@ -37,5 +27,40 @@ module.exports = () => ({
   },
   plugins: [
     new webpack.SourceMapDevToolPlugin({}),
+    new webpack.DefinePlugin({
+      SERVER: true,
+    }),
   ],
-});
+};
+
+const clientConfig = {
+  mode: 'development',
+  stats: 'minimal',
+  target: 'web',
+  entry: './example/client.blop',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'client.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.blop$/,
+        use: [
+          {
+            loader: path.resolve('./src/loader.js'),
+            options: { debug: !!process.env.BLOP_DEBUG },
+          },
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new webpack.SourceMapDevToolPlugin({}),
+    new webpack.DefinePlugin({
+      SERVER: false,
+    }),
+  ],
+};
+
+module.exports = [serverConfig, clientConfig];

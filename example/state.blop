@@ -1,4 +1,5 @@
 import create from './lib/state.blop'
+import { default as fetch } from 'node-fetch'
 
 state = {
   todoList: [
@@ -9,19 +10,6 @@ state = {
   loading: false
 }
 
-modificationTable = []
-proxiedState = create(state, modificationTable, false)
-
-async def getNewDog() {
-  proxiedState.loading = true
-  try {
-    response = await fetch(`https://dog.ceo/api/breeds/image/random`)
-  } catch e {
-    proxiedState.loading = e.message
-    return
-  }
-  message = (await response.json()).message
-  bits = message.split('/')
-  proxiedState.loading = false
-  proxiedState.dog = { url: message, breed: bits[4], image: bits[5] }
+def createState() {
+  return create(state)
 }

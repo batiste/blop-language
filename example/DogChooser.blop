@@ -1,18 +1,17 @@
-import { router } from './routing.blop'
-import { getNewDog } from './state.blop'
+import { getNewDog } from './routing.blop'
 
-def DogChooser(state, children) {
-  { dog, loading } = state
+def DogChooser(attributes, children) {
+  { dog, loading, state } = attributes
   <div>
     <h3>children</h3>
     if dog && !loading {
-      <button on={ click: getNewDog } type='button' className="btn btn-primary">
+      <button on={ click: () => getNewDog(state) } type='button' className="btn btn-primary">
         = 'Get a new dog'
       </button>
       <br/>
       <br/>
       <button type='button' className="btn btn-primary"
-        on={ click: (e) => router.go('/dogs/'dog.breed'/'dog.image'') }>
+        on={ click: (e) => state.router.go('/dogs/'dog.breed'/'dog.image'') }>
         <p>'Click to chose this dog'</p>
         <img
           src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''

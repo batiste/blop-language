@@ -1,0 +1,22 @@
+import { moduleParam1, moduleParam2, moduleParam3 } from './lib.blop'
+import './lib.blop' as moduleRenamed
+import './lib.blop'
+import { another } from './lib.blop'
+
+test('Module import deconstruction', () => {
+  expect(moduleParam1).toBe(undefined)
+  expect(moduleParam2).toBe(20)
+  expect(moduleParam3).toBe(30)
+})
+
+test('Module import as', () => {
+  expect(moduleRenamed.moduleParam1).toBe(undefined)
+  expect(moduleRenamed.moduleParam2).toBe(20)
+  expect(moduleRenamed.moduleParam3).toBe(30)
+})
+
+test('Module import file', () => {
+  expect(lib.moduleParam1).toBe(undefined)
+  expect(lib.moduleParam2).toBe(20)
+  expect(lib.moduleParam3).toBe(30)
+})

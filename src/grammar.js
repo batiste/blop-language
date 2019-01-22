@@ -69,10 +69,10 @@ const grammar = {
     ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'func_def': [
-    ['def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
-    ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
-    ['(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
-    ['(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
+    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
+    ['async?:async', '(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
   ],
   'annotation': [
     ['colon', 'w', 'name:name'],
@@ -108,8 +108,8 @@ const grammar = {
     ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
   ],
   'class_func_def': [
-    ['def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
-    ['def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
   ],
   'CLASS_STATEMENT': [
     ['newline', 'w?', 'W?', 'class_func_def', 'wcomment?'],
@@ -229,7 +229,6 @@ const grammar = {
     ['array_literal', '.', 'name', 'func_call'],
     ['array_literal'],
     ['await', 'exp'],
-    ['async', 'exp'],
     ['virtual_node_assign'],
     ['virtual_node_exp'],
     ['new', 'exp'],

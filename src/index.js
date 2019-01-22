@@ -5,6 +5,7 @@ const utils = require('./utils');
 const parser = require('./parser');
 const meta = require('./metaParserGenerator');
 const loader = require('./loader');
+const jest = require('./jest');
 
 module.exports = {
   grammar,
@@ -14,4 +15,5 @@ module.exports = {
   parser,
   meta,
   loader,
+  jest,
 };

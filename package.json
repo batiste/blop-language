@@ -8,10 +8,11 @@
   "scripts": {
     "test": "jest",
     "parser": "node src/generateParser",
-    "start": "webpack-dev-server",
-    "debug": "BLOP_DEBUG=true webpack-dev-server",
+    "start": "node_modules/webpack/bin/webpack.js && node dist/server.js",
+    "debug": "BLOP_DEBUG=true node_modules/webpack/bin/webpack.js && node dist/server.js",
     "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
-    "link-extensions": "`ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/blop-linter && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/blop-syntax-highlighter`"
+    "link-extensions": "`ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/blop-linter && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/blop-syntax-highlighter`",
+    "build": "npm run parser && npm run test && npm run linter"
   },
   "repository": {
     "type": "git",
@@ -32,10 +33,13 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-ie11": "^1.0.0",
     "eslint-plugin-import": "^2.14.0",
+    "express": "^4.16.4",
     "jest": "^23.6.0",
+    "node-fetch": "^2.3.0",
+    "snabbdom-to-html": "^5.1.1",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.14"
+    "webpack-node-externals": "^1.7.2"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {

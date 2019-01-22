@@ -18,6 +18,7 @@ Blop compiles to ES6 using a compiler that is generated using a grammar and toke
   * A linter is integrated into the language: no linter debate.
   * Integration with Visual Studio Code: linter and syntactic coloration.
   * Similar syntax and features than ES6.
+  * Server Side Rendering in the example.
 
 ## Language features missing
 

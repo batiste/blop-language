@@ -1,5 +1,3 @@
-
-
 def isObject(value) {
   if value == null || value == undefined {
     return false
@@ -7,8 +5,11 @@ def isObject(value) {
   return value.constructor == Object || typeof value == 'object'
 }
 
-def create(state, modificationTable, readOnly) {
+def create(state, options={ readOnly: false }) {
+  modificationTable = []
   callbacks = []
+  router = null
+  { readOnly } = options
   hasBeenFlushed = false
   def flush() {
     modificationTable := []
@@ -20,10 +21,15 @@ def create(state, modificationTable, readOnly) {
   def trigger(path) {
     callbacks.forEach((fct) => fct(path))
   }
+  def connectRouter(newrouter) {
+    router := newrouter
+  }
   protectedProp = {
     flush,
     listen,
-    trigger
+    trigger,
+    router,
+    connectRouter
   }
   def handler(currentState, path='', parentState) {
     def hasChanged(extrapath='') {
@@ -38,6 +44,15 @@ def create(state, modificationTable, readOnly) {
       get: def (obj, prop) {
         if prop == 'hasChanged' {
           return hasChanged
+        }
+        if prop == 'connectRouter' {
+          return connectRouter
+        }
+        if prop == 'router' {
+          if !router {
+            throw new Error('No router not connected to this state')
+          }
+          return router
         }
         if protectedProp[prop] {
           return protectedProp[prop]

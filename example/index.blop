@@ -1,4 +1,3 @@
-import { mount } from 'blop'
 import { TodoList } from './TodoList/TodoList.blop'
 import { DogChooser } from './DogChooser.blop'
 import { proxiedState } from './state.blop'
@@ -6,26 +5,7 @@ import { proxiedState } from './state.blop'
 Index = (state) => {
   <div className="container py-md-3">
     <TodoList todo=state></TodoList>
-    <DogChooser dog=state.dog
+    <DogChooser dog=state.dog state=state
       loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
   </div>
 }
-
-render = () => {
-  if !proxiedState.hasChanged() {
-    return
-  }
-  tree = Index(proxiedState)
-  proxiedState.flush()
-  console.log('render executed')
-  return tree
-}
-
-{ refresh, init } = mount(document.body, render)
-init()
-
-proxiedState.listen((path) => {
-  console.log(''path' has changed')
-  refresh()
-})
-

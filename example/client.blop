@@ -1,0 +1,26 @@
+import { mount } from 'blop'
+import { createState } from './state.blop'
+import { createRouter } from './routing.blop'
+import { Index } from './index.blop'
+
+proxiedState = createState()
+router = createRouter(proxiedState)
+
+render = () => {
+  if !proxiedState.hasChanged() {
+    return
+  }
+  tree = Index(proxiedState)
+  proxiedState.flush()
+  console.log('Client renderer executed')
+  return tree
+}
+
+// boot up the app on the client
+{ refresh, init } = mount(document.body, render)
+init()
+
+proxiedState.listen((path) => {
+  console.log(''path' has changed')
+  refresh()
+})
