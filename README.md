@@ -33,8 +33,8 @@ Or if you want to use the development version with examples
 
     git clone this repo
     npm install
-    npm run start
-    open http://localhost:9000
+    npm start
+    open http://localhost:3000
 
 ## Configure Webpack loader for blop
 
