@@ -1,11 +1,16 @@
 import { TodoList } from './TodoList/TodoList.blop'
 import { DogChooser } from './DogChooser.blop'
+import { MemePage } from './MemePage.blop'
+import { DogPage } from './DogPage.blop'
 import { proxiedState } from './state.blop'
+
 
 Index = (state) => {
   <div className="container py-md-3">
-    <TodoList todo=state></TodoList>
-    <DogChooser dog=state.dog state=state
-      loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
+    if state.page == 'dog' {
+      <DogPage state=state></DogPage>
+    } elseif state.page == 'meme' {
+      <MemePage state=state></MemePage>
+    }
   </div>
 }

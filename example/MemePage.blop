@@ -1,0 +1,25 @@
+
+def MemePage(attributes) {
+  { state } = attributes
+  def dogPage(e) {
+    state.router.go('/')
+    e.preventDefault()
+  }
+  <div>
+    <h1>'Meme page'</h1>
+    <p>
+      <a href="/" on={ click: dogPage }>'Back to the Dog page'</a>
+    </p>
+    <ul>
+    for meme in state.memes {
+      <li style={ marginBottom: '5px' }>
+        = meme.name
+        <br />
+        <img
+          src=meme.url
+          style={ maxWidth: '400px' } />
+      </li>
+    }
+    </ul>
+  </div>
+}

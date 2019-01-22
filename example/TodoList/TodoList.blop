@@ -47,10 +47,7 @@ TodoList = (state) => {
         </div>
       </div>
     </form>
-    // needRender attribute is an optimization offered to avoid useless rendering and patching
-    needRender = todo.todoList.hasChanged() || todo.hasChanged('.editItemIndex')
-    <ul needRender>
-      // if needRender === false, this part of the code will not be executed
+    <ul>
       for index, value in todo.todoList {
         <TodoListItem
           removeItem=(e) => remove(e, index)
