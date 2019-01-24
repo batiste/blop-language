@@ -11,6 +11,8 @@ Blop compiles to ES6 using a compiler that is generated using a grammar and toke
 
 <img src="/img/carbon.png" width="800">
 
+[![Edit blop-language](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/batiste/blop-language/tree/master/)
+
 ## Language features
 
   * Virtual DOM generation is natively supported by the language.
