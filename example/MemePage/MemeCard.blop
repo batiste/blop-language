@@ -1,0 +1,14 @@
+
+def MemeCard(attributes) {
+  { meme } = attributes
+  <div className="card mb-4 shadow-sm" style={ minWidth: '200px' }>
+    <div className="card-header">
+      <h4 className="my-0 font-weight-normal">meme.name</h4>
+    </div>
+    <div className="card-body">
+      <img
+        src=meme.url
+        style={ width: '100%' } />
+    </div>
+  </div>
+}

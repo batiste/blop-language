@@ -4,7 +4,7 @@ const nodeExternals = require('webpack-node-externals');
 
 const serverConfig = {
   mode: 'development',
-  stats: 'minimal',
+  stats: 'normal',
   target: 'node',
   externals: [nodeExternals()],
   entry: './example/server.blop',
@@ -35,7 +35,7 @@ const serverConfig = {
 
 const clientConfig = {
   mode: 'development',
-  stats: 'minimal',
+  stats: 'normal',
   target: 'web',
   entry: './example/client.blop',
   output: {

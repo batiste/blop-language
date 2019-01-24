@@ -1,3 +1,4 @@
+import { MemeCard } from './MemeCard.blop'
 
 def MemePage(attributes) {
   { state } = attributes
@@ -10,16 +11,10 @@ def MemePage(attributes) {
     <p>
       <a href="/" on={ click: dogPage }>'Back to the Dog page'</a>
     </p>
-    <ul>
-    for meme in state.memes {
-      <li style={ marginBottom: '5px' }>
-        = meme.name
-        <br />
-        <img
-          src=meme.url
-          style={ maxWidth: '400px' } />
-      </li>
-    }
-    </ul>
+    <div className="card-deck mb-3 text-center">
+      for meme in state.memes {
+        <MemeCard meme></MemeCard>
+      }
+    </div>
   </div>
 }

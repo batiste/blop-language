@@ -1,4 +1,4 @@
-import { getNewDog } from './routing.blop'
+import { getNewDog } from '../routing.blop'
 
 def DogChooser(attributes, children) {
   { dog, loading, state } = attributes

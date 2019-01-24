@@ -2,6 +2,9 @@ const path = require('path');
 const utils = require('./utils');
 const { all } = require('./builtin');
 
+const config = utils.getConfig();
+const configGlobals = config.globals || {};
+
 let namespacesVN;
 let namespacesFCT;
 let backend;
@@ -39,7 +42,7 @@ function checkRedefinition(name, node, explicit) {
 }
 
 function shouldBeDefined(name, node) {
-  if (all[name] || name === name.toUpperCase()) {
+  if (all[name] || configGlobals[name]) {
     return;
   }
   let defined = false;

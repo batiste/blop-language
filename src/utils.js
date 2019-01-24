@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 
 const RED = '\x1B[0;31m';
 const YELLOW = '\x1B[1;33m';
@@ -140,7 +142,31 @@ function preprocessGrammar(rules) {
   }, {});
 }
 
+function lookUp(dir, name) {
+  const up = [];
+  let currentDir = dir;
+  while (fs.existsSync(currentDir) && currentDir.length > 1) {
+    const filename = path.join(dir, ...up, name);
+    if (fs.existsSync(filename)) {
+      return filename;
+    }
+    up.push('..');
+    currentDir = path.join(dir, ...up);
+  }
+}
+
+function getConfig() {
+  const filename = lookUp(__dirname, 'blop.config.js');
+  if (!filename) {
+    return {};
+  }
+  // eslint-disable-next-line import/no-dynamic-require global-require
+  return require(filename);
+}
+
 module.exports = {
+  getConfig,
+  lookUp,
   streamContext,
   preprocessGrammar,
   checkGrammarAndTokens,
