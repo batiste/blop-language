@@ -8,11 +8,14 @@
   "scripts": {
     "test": "jest",
     "parser": "node src/generateParser",
-    "start": "node_modules/webpack/bin/webpack.js && node dist/server.js",
+    "start": "npm run webpack-watch & npm run server",
+    "server": "node_modules/nodemon/bin/nodemon.js dist/server.js",
+    "webpack": "node_modules/webpack/bin/webpack.js",
+    "webpack-watch": "node_modules/webpack/bin/webpack.js --watch",
     "debug": "BLOP_DEBUG=true node_modules/webpack/bin/webpack.js && node dist/server.js",
     "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
     "link-extensions": "`ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/blop-linter && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/blop-syntax-highlighter`",
-    "build": "npm run parser && npm run test && npm run linter"
+    "build": "npm run parser && npm run test && npm run linter && npm run webpack"
   },
   "repository": {
     "type": "git",
@@ -39,7 +42,8 @@
     "snabbdom-to-html": "^5.1.1",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "nodemon": "^1.18.9"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
