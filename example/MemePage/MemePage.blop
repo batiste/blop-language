@@ -11,7 +11,7 @@ def MemePage(attributes) {
     <p>
       <a href="/" on={ click: dogPage }>'Back to the Dog page'</a>
     </p>
-    <div className="card-deck mb-3 text-center">
+    <div class={ "card-deck": true, "mb-3": true, 'text-center': true }>
       for meme in state.memes {
         <MemeCard meme></MemeCard>
       }

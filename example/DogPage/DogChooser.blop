@@ -2,6 +2,7 @@ import { getNewDog } from '../routing.blop'
 
 def DogChooser(attributes, children) {
   { dog, loading, state } = attributes
+  // https://github.com/snabbdom/snabbdom/issues/415
   <div>
     <h3>children</h3>
     if dog && !loading {

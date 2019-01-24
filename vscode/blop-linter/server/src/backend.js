@@ -219,6 +219,13 @@ backend = {
     }
     return output;
   },
+  'object_literal_key': (node) => {
+    const child = node.children[0];
+    if (child.type === 'str') {
+      return [`'${child.value.slice(1, -1)}'`];
+    }
+    return [child.value];
+  },
   'import_statement': (node) => {
     const output = []; let
       module;

@@ -1,8 +1,10 @@
 const snabbdom = require('snabbdom');
 const props = require('snabbdom/modules/props');
 const style = require('snabbdom/modules/style');
+const sclass = require('snabbdom/modules/class');
 const eventlisteners = require('snabbdom/modules/eventlisteners');
 const snabbdomh = require('snabbdom/h');
+const toVNode = require('snabbdom/tovnode').default;
 
 class Component {}
 Component.prototype.render = function render() {
@@ -37,12 +39,15 @@ function h(name, properties, children) {
   const props = {};
   let on;
   let style;
+  let sclass;
   Object.entries(properties).forEach((prop) => {
     const [index, value] = prop;
     if (index === 'on') {
       on = value;
     } else if (index === 'style') {
       style = value;
+    } else if (index === 'class') {
+      sclass = value;
     } else {
       props[index] = value;
     }
@@ -50,20 +55,25 @@ function h(name, properties, children) {
   return snabbdomh.default(
     name,
     {
-      on, style, props, hook: { prepatch },
+      on, style, props, hook: { prepatch }, class: sclass,
     },
     children,
   );
 }
 
-const patch = snabbdom.init([props.default, style.default, eventlisteners.default]);
+const patch = snabbdom.init([
+  props.default,
+  style.default,
+  eventlisteners.default,
+  sclass.default,
+]);
 
 function mount(dom, render) {
   let vnode; let
     requested;
   function init() {
     vnode = render();
-    patch(dom, vnode);
+    patch(toVNode(dom), vnode);
     requested = false;
   }
   function refresh() {
