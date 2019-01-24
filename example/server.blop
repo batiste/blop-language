@@ -24,7 +24,7 @@ app.get('/favicon.ico', (req, res) => {
 })
 
 app.use(async (req, res) => {
-  html = '' // toHTML(await render(req.path))
+  html = toHTML(await render(req.path))
   res.send(`
     <html>
       <head>
