@@ -33,12 +33,19 @@ async def getMemes(state) {
 }
 
 async def indexHandler(params, state) {
-  state.page = 'dog'
+  state.page = 'index'
   console.log('indexHandler called')
-  await getNewDog(state)
 }
 
-def doggyHandler(params, state) {
+async def dogPageIndexHandler(params, state) {
+  if (!state.dog) {
+    await getNewDog(state)
+  }
+  state.page = 'dog'
+  console.log('doggyIndexHandler called with', params)
+}
+
+def dogPageHandler(params, state) {
   state.page = 'dog'
   console.log('doggyHanlder called with', params)
   state.dog = { breed: params.breed, image: params.image }
@@ -51,11 +58,18 @@ async def memePageHandler(params, state) {
   await getMemes(state)
 }
 
+def todoPageHandler(params, state) {
+  state.page = 'todo'
+  console.log('todoIndexHandler called with', params)
+}
+
 def createRouter(state, global) {
   router = new Router(null, state, global)
 
+  router.add({ path: '/todo', name: 'todo', handler: todoPageHandler })
   router.add({ path: '/meme', name: 'meme', handler: memePageHandler })
-  router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: doggyHandler })
+  router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
+  router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })
   router.add({ path: '/', name: 'root', handler: indexHandler })
 
   router.init()

@@ -1,5 +1,5 @@
 const snabbdom = require('snabbdom');
-const props = require('snabbdom/modules/props');
+const attributes = require('snabbdom/modules/attributes');
 const style = require('snabbdom/modules/style');
 const sclass = require('snabbdom/modules/class');
 const eventlisteners = require('snabbdom/modules/eventlisteners');
@@ -29,40 +29,44 @@ function copyToThunk(vnode, thunk) {
 }
 
 function prepatch(oldVnode, newNode) {
-  if (newNode.data.props.needRender === false) {
+  if (newNode.data.attrs.needRender === false) {
     console.log(`patching avoided for ${newNode.sel}`);
     copyToThunk(oldVnode, newNode);
   }
 }
 
-function h(name, properties, children) {
-  const props = {};
+function h(name, attributes, children) {
+  const attrs = {};
   let on;
   let style;
   let sclass;
-  Object.entries(properties).forEach((prop) => {
-    const [index, value] = prop;
+  Object.entries(attributes).forEach((attr) => {
+    const [index, value] = attr;
     if (index === 'on') {
       on = value;
     } else if (index === 'style') {
       style = value;
     } else if (index === 'class') {
-      sclass = value;
+      if(typeof value === 'string') {
+        attrs[index] = value;
+      } else {
+        sclass = value;
+      }
     } else {
-      props[index] = value;
+      attrs[index] = value;
     }
   });
   return snabbdomh.default(
     name,
     {
-      on, style, props, hook: { prepatch }, class: sclass,
+      on, style, attrs, hook: { prepatch }, class: sclass,
     },
     children,
   );
 }
 
 const patch = snabbdom.init([
-  props.default,
+  attributes.default,
   style.default,
   eventlisteners.default,
   sclass.default,

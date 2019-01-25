@@ -2,16 +2,15 @@ import { getNewDog } from '../routing.blop'
 
 def DogChooser(attributes, children) {
   { dog, loading, state } = attributes
-  // https://github.com/snabbdom/snabbdom/issues/415
   <div>
     <h3>children</h3>
     if dog && !loading {
-      <button on={ click: () => getNewDog(state) } type='button' className="btn btn-primary">
+      <button on={ click: () => getNewDog(state) } type='button' class="btn btn-primary">
         = 'Get a new dog'
       </button>
       <br/>
       <br/>
-      <button type='button' className="btn btn-primary"
+      <button type='button' class="btn btn-primary"
         on={ click: (e) => state.router.go('/dogs/'dog.breed'/'dog.image'') }>
         <p>'Click to chose this dog'</p>
         <img

@@ -4,11 +4,11 @@ import { TodoListItem } from './TodoListItem.blop'
 Input = (state) => <input
   type="text"
   value=state.value
-  className="form-control"
+  class="form-control"
   on=state.on
   style={ fontSize: '16px', padding: '0.5em' } />
 
-TodoList = (state) => {
+TodoListPage = (state) => {
   { todo } = state
 
   addItem = (e) => {
@@ -36,13 +36,13 @@ TodoList = (state) => {
   <div>
     <h3>`Todo list`</h3>
     <form on={ submit: addItem }>
-      <div className="form-row">
-        <div className="col">
+      <div class="form-row">
+        <div class="col">
           <Input value=todo.inputValue on={ change } />
         </div>
-        <div className="col">
+        <div class="col">
           <button
-            type="button" className="btn btn-primary"
+            type="button" class="btn btn-primary"
             on={ click: addItem }>"Add to list"</button>
         </div>
       </div>

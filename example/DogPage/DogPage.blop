@@ -1,17 +1,8 @@
-import { TodoList } from './TodoList/TodoList.blop'
 import { DogChooser } from './DogChooser.blop'
 
 def DogPage(attributes) {
   { state } = attributes
-  def memePage(e) {
-    state.router.go('/meme')
-    e.preventDefault()
-  }
   <div>
-    <TodoList todo=state></TodoList>
-    <p>
-      <a href="/meme" on={ click: memePage }>'Got to the meme page'</a>
-    </p>
     <DogChooser dog=state.dog state=state
       loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
   </div>
