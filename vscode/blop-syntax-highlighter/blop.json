@@ -59,6 +59,26 @@
         "name":"string.blop"
       },
       {  
+        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*[ |\\n]",
+        "name":"keyword.html.compare.blop"
+      },
+      {  
+        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*\\>",
+        "name":"keyword.html.compare.blop"
+      },
+      {  
+        "match":"\\<\\/[a-zA-Z][a-zA-Z_0-9]*\\>",
+        "name":"keyword.html.compare.blop"
+      },
+      {  
+        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*\\/>",
+        "name":"keyword.html.compare.blop"
+      },
+      {  
+        "match":"\\/>",
+        "name":"keyword.html.compare.blop"
+      },
+      {  
         "match":"\\=\\=|\\<\\=|\\:\\=|\\>\\=|\\=|\\&\\&?|\\<|\\>|\\+|\\-|\\|\\|?|\\=",
         "name":"keyword.other.compare.blop"
       },
@@ -77,14 +97,6 @@
       {  
         "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
         "name":"meta.object-literal.key.blop"
-      },
-      {  
-        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*[ |\\n]",
-        "name":"support.function.other.blop"
-      },
-      {  
-        "match":"\\<\\/[a-zA-Z][a-zA-Z_0-9]*\\>",
-        "name":"support.function.other.blop"
       },
       {  
         "match":"def |if |else|elseif |for |delete |new |extends |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this|typeof |instanceof ",
