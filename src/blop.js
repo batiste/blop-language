@@ -4,8 +4,6 @@ const program = require('commander');
 const fs = require('fs');
 const loader = require('./loader');
 
-const RED = '\x1B[0;31m';
-const YELLOW = '\x1B[1;33m';
 const GREEN = '\x1b[32m';
 const NC = '\x1B[0m';
 
