@@ -63,10 +63,10 @@ function shouldBeDefined(name, node) {
 }
 
 function registerVirtualNode(node) {
-  const currentFct = currentNameSpaceFCT();
+  const currentFctNS = currentNameSpaceFCT();
   const parent = currentNameSpaceVN().currentVNode;
   if (node.type !== 'virtual_node_exp' && !parent) {
-    if (currentFct.returnVirtualNode) {
+    if (currentFctNS.returnVirtualNode) {
       const token = stream[node.stream_index];
       const sourceContext = utils.streamContext(input, token, token, stream);
       const error = new Error(`A root virtual node is already defined in this function
@@ -75,7 +75,7 @@ function registerVirtualNode(node) {
       error.token = token;
       throw error;
     } else {
-      currentFct.returnVirtualNode = node;
+      currentFctNS.returnVirtualNode = { node, hoist: false };
     }
   }
 }
@@ -107,7 +107,10 @@ const uid = () => {
 
 backend = {
   'def': () => ['function '],
-  'str': node => [`\`${node.value.slice(1, -1)}\``],
+  'str': (node) => {
+    const str = node.value.slice(1, -1);
+    return [`'${str}'`];
+  },
   'str_expression': (node) => {
     const output = ['`', node.named.str.value.slice(1, -1)];
     output.push(...generateCode(node.named.str_exp));
@@ -138,9 +141,9 @@ backend = {
     }
 
     final.push(module.join(''));
-    final.push('\nmodule.exports = {');
+    final.push('\nmodule.exports = { ');
     final.push(Object.keys(ns).join(', '));
-    final.push('}');
+    final.push(' };\n');
     return final;
   },
   'annotation': () => [],
@@ -287,9 +290,9 @@ backend = {
     node.named.stats ? node.named.stats.forEach(stat => output.push(...generateCode(stat))) : null;
     if (node.named.exp) {
       const a_uid = uid();
-      output.push(`const ${a_uid} = `);
+      output.push(` const ${a_uid} = `);
       output.push(...generateCode(node.named.exp));
-      output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});\n `);
+      output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});`);
     }
     if (renderGuard) {
       output.push('}');
@@ -298,14 +301,14 @@ backend = {
     const start = node.named.opening.value;
     if (/^[A-Z]/.test(start)) {
       shouldBeDefined(start, node.named.opening);
-      output.push(`const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c);`);
+      output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c);`);
     } else {
-      output.push(`const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
+      output.push(` const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
     }
     if (parent && node.type !== 'virtual_node_exp') {
-      output.push(`${parent}c.push(${_uid}); `);
+      output.push(` ${parent}c.push(${_uid});`);
     } else {
-      output.push(`return ${_uid}; `);
+      output.push(` return ${_uid};`);
     }
     return output;
   },
@@ -337,7 +340,7 @@ backend = {
       shouldBeDefined(node.named.name.value, node.named.name);
       output.push(node.named.name.value);
     }
-    output.push('; ');
+    output.push(';');
     return output;
   },
   'for_loop': (node) => {
