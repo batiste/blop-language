@@ -43,5 +43,7 @@ app.use(async (req, res) => {
 })
 
 app.listen(3000, () => {
-  console.log('Running on http://localhost:3000')
+  GREEN = '\x1b[32m'
+  NC = '\x1B[0m'
+  console.log(''GREEN'[server]'NC' Running on http://localhost:3000')
 })

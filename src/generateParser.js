@@ -7,9 +7,13 @@ const { grammar } = require('./grammar');
 const { tokensDefinition } = require('./tokensDefinition');
 const meta = require('./metaParserGenerator');
 
+const GREEN = '\x1b[32m';
+const NC = '\x1B[0m';
+
+
 const obs = new PerformanceObserver((items) => {
   const measurement = items.getEntries()[0];
-  console.log('\x1b[32m%s\x1b[0m ', `${measurement.name}: ${parseInt(measurement.duration, 10)}ms`);
+  console.log(`${GREEN}[blop]${NC} ${measurement.name}: ${parseInt(measurement.duration, 10)}ms`);
 });
 obs.observe({ entryTypes: ['measure'] });
 

@@ -38,6 +38,12 @@ Or if you want to use the development version with examples
     npm start
     open http://localhost:3000
 
+## Command line usage
+
+To convert a single file
+
+    blop -i input.blop -o output.js
+
 ## Configure Webpack loader for blop
 
 Add this rule into your `webpack.config.js`

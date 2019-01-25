@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "loader": "src/loader.js",
   "jest-transform": "src/jest.js",
+  "bin" : { "blop" : "./src/blop.js" },
   "scripts": {
     "test": "jest",
     "parser": "node src/generateParser",
@@ -15,7 +16,7 @@
     "debug": "BLOP_DEBUG=true node_modules/webpack/bin/webpack.js && node dist/server.js",
     "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js} vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm run compile",
     "link-extensions": "`ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/blop-linter && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/blop-syntax-highlighter`",
-    "build": "npm run parser && npm run test && npm run linter && npm run webpack"
+    "build": "npm run parser && npm run test && node src/updateAutocompleteFile.js && npm run linter && npm run webpack"
   },
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
+    "commander": "^2.19.0",
     "loader-utils": "^1.1.0",
     "schema-utils": "^1.0.0",
     "snabbdom": "^0.7.3"
