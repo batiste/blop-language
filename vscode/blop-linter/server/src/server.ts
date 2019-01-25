@@ -138,9 +138,7 @@ documents.onDidChangeContent(change => {
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	// In this simple example we get the settings for every validate run.
 	let settings = await getDocumentSettings(textDocument.uri);
-
 	let text = textDocument.getText();
-
 	let diagnostics: Diagnostic[] = [];
 
 	let stream = []
@@ -178,31 +176,32 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 			source: 'blop'
 		};
 		if (hasDiagnosticRelatedInformationCapability) { }
-		diagnostics.push(diagnosic);
+    diagnostics.push(diagnosic);
+    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    return
   }
   
   if(tree.success && settings.maxNumberOfProblems > 0) {
     try {
       backend.generateCode(tree, stream, text)
     } catch(e) {
-	  let token = e.token || {start:0, end: text.length}
-	  let related: DiagnosticRelatedInformation
+      let token = e.token || {start:0, end: text.length}
+      let related: DiagnosticRelatedInformation
 
-	  if (e.related) {
-      let location: Location = {
-        uri: textDocument.uri,
-        range: {
-          start: textDocument.positionAt(e.related.start),
-          end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
+      if (e.related) {
+        let location: Location = {
+          uri: textDocument.uri,
+          range: {
+            start: textDocument.positionAt(e.related.start),
+            end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
+          }
+        }
+        related = {
+          location,
+          message: 'This variable is redefined'
         }
       }
-      related = {
-        location,
-        message: 'This variable is redefined'
-      }
-	  }
-	  let messageParts = e.message.split('\n')
-
+      let messageParts = e.message.split('\n')
       let diagnosic: Diagnostic = {
         severity: DiagnosticSeverity.Error,
         range: {
@@ -211,10 +210,10 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         },
         message: messageParts[0],
         source: 'blop'
-	  };
-	  if (related) {
-		diagnosic.relatedInformation = [related]
-	  }
+      };
+      if (related) {
+        diagnosic.relatedInformation = [related]
+      }
 
       diagnostics.push(diagnosic);
       connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -246,23 +245,23 @@ connection.onCompletion(
 	const kindMap:any = { 'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12 }
 	// Object.<something completion>
 	const reg1 = /(\s|^)([\w]+)\./
-    const result = reg1.exec(text)
-    if(result) {
-	  const name = result[2];
-      if(properties[name]) {
-        const array: any[] = []
-        properties[name].forEach((item: String) => {
-          let builtinForItem = (builtin[item.toString()] || { type: 'Function' })
-          let documentation = builtinForItem.documentation
-          let detail = builtinForItem.detail
-          let type = kindMap[builtinForItem.type]
-          array.push({
-            label: item,
-            detail,
-            kind: type,
-            documentation
-          })
-		})
+  const result = reg1.exec(text)
+  if(result) {
+    const name = result[2];
+    if(properties[name]) {
+      const array: any[] = []
+      properties[name].forEach((item: String) => {
+        let builtinForItem = (builtin[item.toString()] || { type: 'Function' })
+        let documentation = builtinForItem.documentation
+        let detail = builtinForItem.detail
+        let type = kindMap[builtinForItem.type]
+        array.push({
+          label: item,
+          detail,
+          kind: type,
+          documentation
+        })
+		  })
 		return array
 	  }
 	}
@@ -270,19 +269,19 @@ connection.onCompletion(
 	const reg0 = /(\s|^)([\w]{3,})/
 	const result2 = reg0.exec(text)
     if(result2) {
-	  const name = result2[2];
-	  if(builtin[name]) {
-		let builtinForItem = builtin[name]
-		let documentation = builtinForItem.documentation
-		let detail = builtinForItem.detail
-		let type = kindMap[builtinForItem.type]
-		return [{
-		  label: name,
-		  detail,
-		  kind: type,
-		  documentation
-		}]
-	  }
+      const name = result2[2];
+      if(builtin[name]) {
+        let builtinForItem = builtin[name]
+        let documentation = builtinForItem.documentation
+        let detail = builtinForItem.detail
+        let type = kindMap[builtinForItem.type]
+        return [{
+          label: name,
+          detail,
+          kind: type,
+          documentation
+        }]
+      }
     }
     return []
 	}
