@@ -2,15 +2,8 @@ import { MemeCard } from './MemeCard.blop'
 
 def MemePage(attributes) {
   { state } = attributes
-  def dogPage(e) {
-    state.router.go('/')
-    e.preventDefault()
-  }
   <div>
     <h1>'Meme page'</h1>
-    <p>
-      <a href="/" on={ click: dogPage }>'Back to the Dog page'</a>
-    </p>
     <div class={ "card-deck": true, "mb-3": true, 'text-center': true }>
       for meme in state.memes {
         <MemeCard meme></MemeCard>
