@@ -1,0 +1,58 @@
+import { getNewDog } from '../routing.blop'
+
+def DogGame(attributes, children) {
+  { page, loading, state } = attributes
+  dog = page.choice
+  input = <input type="text" class="form-control" placeholder="Breed" />
+
+  def check() {
+    guess = input.elm.value.toLowerCase().replace(' ', '-')
+    input.elm.value = ''
+    page.attempt = page.attempt + 1
+    if (guess == dog.breed) {
+      delete page.lastMistake
+      page.success = page.success + 1
+    } else {
+      page.lastMistake = { breed: dog.breed, guess }
+    }
+    getNewDog(state)
+  }
+
+  def hint() {
+    input.elm.value = dog.breed.slice(0, 2)
+  }
+
+  <div>
+    <h3>'Dog breed game'</h3>
+
+    <p>'Attempt: 'page.attempt''</p>
+    <p>'Success: 'page.success''</p>
+
+    if (page.lastMistake) {
+      <p>
+        = 'Breed was '
+        <b>page.lastMistake.breed</b>
+        = ' and you guessed '
+        <b>page.lastMistake.guess</b>
+      </p>
+    }
+
+    <form>
+      <div class="form-group">
+        <label for="exampleInputPassword1">'You guess on the breed'</label>
+        = input
+      </div>
+      <button type="button" on={ click: check } class="btn btn-primary">'Check'</button>
+      <button type="button" on={ click: hint } class="btn">'Hint'</button>
+    </form>
+
+    if dog && !loading {
+      <img
+        src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+        style={ maxWidth: '400px' } />
+    } else {
+      <h3>'Loading...'</h3>
+    }
+
+  </div>
+}

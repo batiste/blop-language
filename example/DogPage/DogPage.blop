@@ -1,9 +1,9 @@
-import { DogChooser } from './DogChooser.blop'
+import { DogGame } from './DogBreedGame.blop'
 
 def DogPage(attributes) {
   { state } = attributes
   <div>
-    <DogChooser dog=state.dog state=state
-      loading=state.loading>state.choosenDoggy || 'Dog choser'</DogChooser>
+    <DogGame page=state.dogPage state=state
+      loading=state.loading>state.dogPage.choosenDoggy || 'Dog choser'</DogGame>
   </div>
 }

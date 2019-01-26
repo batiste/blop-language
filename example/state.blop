@@ -6,7 +6,7 @@ state = {
     'some task 1',
     'some task 2'
   ],
-  dog: null,
+  dogPage: { score: 0, attempt: 0, success: 0 },
   page: 'dog',
   memes: [],
   loading: false

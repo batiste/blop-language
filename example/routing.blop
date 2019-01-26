@@ -14,7 +14,7 @@ async def getNewDog(state) {
   bits = message.split('/')
   state.loading = false
 
-  state.dog = { url: message, breed: bits[4], image: bits[5] }
+  state.dogPage.choice = { url: message, breed: bits[4], image: bits[5] }
 }
 
 async def getMemes(state) {
@@ -38,7 +38,7 @@ async def indexHandler(params, state) {
 }
 
 async def dogPageIndexHandler(params, state) {
-  if (!state.dog) {
+  if (!state.dogPage.choice) {
     await getNewDog(state)
   }
   state.page = 'dog'
@@ -48,8 +48,8 @@ async def dogPageIndexHandler(params, state) {
 def dogPageHandler(params, state) {
   state.page = 'dog'
   console.log('doggyHanlder called with', params)
-  state.dog = { breed: params.breed, image: params.image }
-  state.choosenDoggy = 'My dog is a 'params.breed''
+  state.dogPage.choice = { breed: params.breed, image: params.image }
+  state.dogPage.choosenDoggy = 'My dog is a 'params.breed''
 }
 
 async def memePageHandler(params, state) {
