@@ -68,8 +68,8 @@ def createRouter(state, global) {
 
   router.add({ path: '/todo', name: 'todo', handler: todoPageHandler })
   router.add({ path: '/meme', name: 'meme', handler: memePageHandler })
-  router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })
+  router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
   router.add({ path: '/', name: 'root', handler: indexHandler })
 
   router.init()
