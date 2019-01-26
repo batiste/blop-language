@@ -2,9 +2,16 @@ import 'express'
 import { Index } from './index.blop'
 import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
+import 'webpack'
+import 'webpack-dev-middleware' as middleware
 import 'snabbdom-to-html' as toHTML
 import 'path'
+import '../webpack.config.js' as webpackConf
+
 app = express()
+// we only rebuild the client config
+clientConfig = webpackConf[1]
+compiler = webpack(clientConfig)
 
 render = async (path) => {
   state = createState()
@@ -15,9 +22,9 @@ render = async (path) => {
   return tree
 }
 
-app.get('/bundle', (req, res) => {
-  res.sendFile(path.resolve('./dist/client.js'))
-})
+app.use(middleware(compiler, {
+  publicPath: '/bundle'
+}))
 
 app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.resolve('./img/blop.png'))
@@ -37,7 +44,7 @@ app.use(async (req, res) => {
       <body>
         `html`
       </body>
-      <script src="/bundle"></script>
+      <script src="/bundle/client.js"></script>
     </html>
   `)
 })

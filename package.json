@@ -5,12 +5,14 @@
   "main": "src/index.js",
   "loader": "src/loader.js",
   "jest-transform": "src/jest.js",
-  "bin" : { "blop" : "./src/blop.js" },
+  "bin": {
+    "blop": "./src/blop.js"
+  },
   "scripts": {
     "test": "jest",
     "parser": "node src/generateParser",
-    "start": "npm run webpack-watch & npm run server",
-    "server": "node_modules/nodemon/bin/nodemon.js dist/server.js",
+    "start": "npm run server",
+    "server": "npm run webpack && node dist/server.js",
     "webpack": "node_modules/webpack/bin/webpack.js",
     "webpack-watch": "node_modules/webpack/bin/webpack.js --watch",
     "debug": "BLOP_DEBUG=true node_modules/webpack/bin/webpack.js && node dist/server.js",
@@ -40,11 +42,12 @@
     "express": "^4.16.4",
     "jest": "^23.6.0",
     "node-fetch": "^2.3.0",
+    "nodemon": "^1.18.9",
     "snabbdom-to-html": "^5.1.1",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
-    "webpack-node-externals": "^1.7.2",
-    "nodemon": "^1.18.9"
+    "webpack-dev-middleware": "^3.5.1",
+    "webpack-node-externals": "^1.7.2"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
