@@ -109,6 +109,9 @@ backend = {
   'def': () => ['function '],
   'str': (node) => {
     const str = node.value.slice(1, -1);
+    if(str.split('\n').length > 1) {
+      return [`\`${str}\``];
+    }
     return [`'${str}'`];
   },
   'str_expression': (node) => {

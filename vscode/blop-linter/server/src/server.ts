@@ -163,7 +163,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	let tree = parser.parse(stream, 0)
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
-		let errorMsg = displayError(text, stream, tokensDefinition, grammar, tree)
+    let errorMsg
+    try {
+      displayError(text, stream, tokensDefinition, grammar, tree)
+    } catch(error) {
+      errorMsg = error.message
+    }
 
 		const token = tree.token
 		let diagnosic: Diagnostic = {
