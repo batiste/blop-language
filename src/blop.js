@@ -13,7 +13,7 @@ program
   .option('-o, --output <file>', 'file output')
   .parse(process.argv);
 
-if (!process.argv.slice(2).length) {
+if (!process.argv.slice(2).length || !program.input) {
   program.outputHelp();
 }
 

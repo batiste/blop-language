@@ -278,13 +278,13 @@ backend = {
       // import name from 'file'
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
-      output.push(`const ${name} = ${module}.${name};`);
+      output.push(`let ${name} = ${module}.${name};`);
     } else {
       // import 'file'
       const { file } = node.named;
       const { name } = path.parse(path.basename(file.value.slice(1, -1)));
       ns[name] = { node: file, hoist: false, token: file };
-      output.push(`const ${name} = ${module};`);
+      output.push(`let ${name} = ${module};`);
     }
     return output;
   },
