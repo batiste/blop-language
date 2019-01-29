@@ -48,13 +48,13 @@ function checkFileExist(name, node) {
     return;
   }
   // does it looks like a filename
-  if (path.basename(name).indexOf('.') === -1) {
+  if (name.indexOf('.') === -1) {
     return;
   }
   const p = path.resolve(path.dirname(checkFilename), name);
   if (!fs.existsSync(p)) {
     const token = stream[node.stream_index];
-    const error = new Error(`File ${name} doesn't seems exist relative to current file`);
+    const error = new Error(`File doesn't exist relative to current file`);
     error.token = token;
     throw error;
   }
