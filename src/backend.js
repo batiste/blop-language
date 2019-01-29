@@ -48,7 +48,7 @@ function checkFileExist(name, node) {
     return;
   }
   // does it looks like a filename
-  if (path.basename(checkFilename).indexOf('.') > -1) {
+  if (path.basename(name).indexOf('.') === -1) {
     return;
   }
   const p = path.resolve(path.dirname(checkFilename), name);
@@ -254,12 +254,13 @@ backend = {
   'import_statement': (node) => {
     const output = []; let
       module;
-    if (node.named.file) {
-      if (node.named.file.value.slice(1, -1) === 'blop') {
+    const fileNode = node.named.file || node.named.module
+    if (fileNode) {
+      if (fileNode.value.slice(1, -1) === 'blop') {
         module = 'blop';
       } else {
-        module = `require(${node.named.file.value})`;
-        checkFileExist(node.named.file.value.slice(1, -1), node.named.file);
+        module = `require(${fileNode.value})`;
+        checkFileExist(fileNode.value.slice(1, -1), fileNode);
       }
     }
     const ns = currentNameSpaceFCT();
@@ -267,7 +268,7 @@ backend = {
       // import 'module' as name
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
-      output.push(`let ${name} = ${module}.${name};`);
+      output.push(`let ${name} = ${module};`);
     } else if (node.named.dest_values) {
       // import { destructuring } from 'filename'
       output.push('let { ');

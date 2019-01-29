@@ -9,7 +9,7 @@ test('Module import deconstruction', () => {
   expect(moduleParam3).toBe(30)
 })
 
-test('Module import as', () => {
+test('Module import as something', () => {
   expect(moduleRenamed.moduleParam1).toBe(undefined)
   expect(moduleRenamed.moduleParam2).toBe(20)
   expect(moduleRenamed.moduleParam3).toBe(30)
