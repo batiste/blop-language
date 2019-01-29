@@ -40,12 +40,15 @@ function h(name, attributes, children) {
   let on;
   let style;
   let sclass;
+  let hook = { prepatch }
   Object.entries(attributes).forEach((attr) => {
     const [index, value] = attr;
     if (index === 'on') {
       on = value;
     } else if (index === 'style') {
       style = value;
+    } else if (index === 'hooks') {
+      hook = { ...hook, ...value }
     } else if (index === 'class') {
       if(typeof value === 'string') {
         attrs[index] = value;
@@ -59,7 +62,7 @@ function h(name, attributes, children) {
   return snabbdomh.default(
     name,
     {
-      on, style, attrs, hook: { prepatch }, class: sclass,
+      on, style, attrs, hook, class: sclass,
     },
     children,
   );

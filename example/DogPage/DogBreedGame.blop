@@ -3,7 +3,17 @@ import { getNewDog } from '../routing.blop'
 def DogGame(attributes, children) {
   { page, loading, state } = attributes
   dog = page.choice
-  input = <input type="text" class="form-control" placeholder="Breed" />
+  // hooks lifecycle example
+  hooks = {
+    create: (n1, n2) => {
+      console.log('create', n2)
+    },
+    update: (n1, n2) => {
+      console.log('update', n2)
+    }
+  }
+  input = <input type="text"
+    class="form-control" hooks placeholder="Breed" />
 
   def check() {
     guess = input.elm.value.toLowerCase().replace(' ', '-')
