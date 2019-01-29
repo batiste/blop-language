@@ -49,7 +49,6 @@ def dogPageHandler(params, state) {
   state.page = 'dog'
   console.log('doggyHanlder called with', params)
   state.dogPage.choice = { breed: params.breed, image: params.image }
-  state.dogPage.choosenDoggy = 'My dog is a 'params.breed''
 }
 
 async def memePageHandler(params, state) {

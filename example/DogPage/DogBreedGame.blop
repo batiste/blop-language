@@ -23,7 +23,7 @@ def DogGame(attributes, children) {
   }
 
   <div>
-    <h3>'Dog breed game'</h3>
+    <h3>children</h3>
 
     <p>'Attempt: 'page.attempt''</p>
     <p>'Success: 'page.success''</p>

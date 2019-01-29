@@ -2,8 +2,7 @@ import { DogGame } from './DogBreedGame.blop'
 
 def DogPage(attributes) {
   { state } = attributes
-  <div>
-    <DogGame page=state.dogPage state=state
-      loading=state.loading>state.dogPage.choosenDoggy || 'Dog choser'</DogGame>
-  </div>
+  <DogGame page=state.dogPage state=state loading=state.loading>
+    = 'Dog breed game'
+  </DogGame>
 }

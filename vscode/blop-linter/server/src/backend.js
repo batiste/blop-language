@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const utils = require('./utils');
 const { all } = require('./builtin');
 
@@ -10,6 +11,7 @@ let namespacesFCT;
 let backend;
 let stream;
 let input;
+let checkFilename;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -39,6 +41,23 @@ function checkRedefinition(name, node, explicit) {
       throw error;
     }
   });
+}
+
+function checkFileExist(name, node) {
+  if (!checkFilename) {
+    return;
+  }
+  // does it looks like a filename
+  if (path.basename(checkFilename).indexOf('.') > -1) {
+    return;
+  }
+  const p = path.resolve(path.dirname(checkFilename), name);
+  if (!fs.existsSync(p)) {
+    const token = stream[node.stream_index];
+    const error = new Error(`File ${name} doesn't seems exist relative to current file`);
+    error.token = token;
+    throw error;
+  }
 }
 
 function shouldBeDefined(name, node) {
@@ -109,7 +128,7 @@ backend = {
   'def': () => ['function '],
   'str': (node) => {
     const str = node.value.slice(1, -1);
-    if(str.split('\n').length > 1) {
+    if (str.split('\n').length > 1) {
       return [`\`${str}\``];
     }
     return [`'${str}'`];
@@ -240,16 +259,12 @@ backend = {
         module = 'blop';
       } else {
         module = `require(${node.named.file.value})`;
+        checkFileExist(node.named.file.value.slice(1, -1), node.named.file);
       }
     }
     const ns = currentNameSpaceFCT();
     if (node.named.module) {
       // import 'module' as name
-      const name = node.named.name.value;
-      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
-      output.push(`let ${name} = require(${node.named.module.value});`);
-    } else if (node.named.name) {
-      // import name from 'filename'
       const name = node.named.name.value;
       ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(`let ${name} = ${module}.${name};`);
@@ -258,6 +273,11 @@ backend = {
       output.push('let { ');
       output.push(...generateCode(node.named.dest_values));
       output.push(` } = ${module};`);
+    } else if (node.named.name) {
+      // import name from 'file'
+      const name = node.named.name.value;
+      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
+      output.push(`const ${name} = ${module};`);
     } else {
       // import 'file'
       const { file } = node.named;
@@ -582,13 +602,14 @@ backend = {
 };
 
 module.exports = {
-  generateCode: (node, _stream, _input) => {
+  generateCode: (node, _stream, _input, _filename = false) => {
     uid_i = 0;
     if (!_stream) {
       throw _stream;
     }
     stream = _stream;
     input = _input;
+    checkFilename = _filename;
     namespacesVN = [{}];
     namespacesFCT = [{}];
     const output = generateCode(node);

@@ -188,7 +188,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   
   if(tree.success && settings.maxNumberOfProblems > 0) {
     try {
-      backend.generateCode(tree, stream, text)
+      backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1])
     } catch(e) {
       let token = e.token || {start:0, end: text.length}
       let related: DiagnosticRelatedInformation
