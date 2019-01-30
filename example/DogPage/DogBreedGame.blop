@@ -35,34 +35,41 @@ def DogGame(attributes, children) {
   <div>
     <h3>children</h3>
 
-    <p>'Attempt: 'page.attempt''</p>
-    <p>'Success: 'page.success''</p>
+    percent = 0
+    if (page.attempt) {
+      percent := Math.floor(page.success / page.attempt)
+    }
+    <p>'Correct answers: 'page.success' / 'page.attempt' ('percent'%)'</p>
 
     if (page.lastMistake) {
       <p>
-        = 'Breed was '
+        <span style={ color: 'red' }>'Wrong'</span>
+        = ' the breed was '
         <b>page.lastMistake.breed</b>
-        = ' and you guessed '
+        = ' and you guessed "'
         <b>page.lastMistake.guess</b>
+        = '"'
       </p>
     }
 
     <form>
       <div class="form-group">
-        <label for="exampleInputPassword1">'You guess on the breed'</label>
+        <label for="exampleInputPassword1">'Your guess on the breed'</label>
         = input
       </div>
       <button type="button" on={ click: check } class="btn btn-primary">'Check'</button>
       <button type="button" on={ click: hint } class="btn">'Hint'</button>
     </form>
 
-    if dog && !loading {
-      <img
-        src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
-        style={ maxWidth: '400px' } />
-    } else {
-      <h3>'Loading...'</h3>
-    }
+    <div style={ minHeight: '400px' }>
+      if dog && !loading {
+        <img
+          src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+          style={ maxWidth: '400px' } />
+      } else {
+        <h3>'Loading...'</h3>
+      }
+    </div>
 
   </div>
 }
