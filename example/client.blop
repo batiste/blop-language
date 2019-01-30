@@ -3,7 +3,7 @@ import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
 import { Index } from './index.blop'
 
-proxiedState = createState()
+proxiedState = createState(window.INITIAL_STATE)
 router = createRouter(proxiedState, window)
 
 render = () => {
@@ -17,7 +17,7 @@ render = () => {
 }
 
 // boot up the app on the client
-{ refresh, init } = mount(document.body, render)
+{ refresh, init } = mount(document.getElementById('app'), render)
 init()
 
 proxiedState.listen((path) => {

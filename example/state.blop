@@ -1,5 +1,4 @@
 import create from './lib/state.blop'
-import { default as fetch } from 'node-fetch'
 
 state = {
   todoList: [
@@ -12,6 +11,6 @@ state = {
   loading: false
 }
 
-def createState() {
-  return create(state)
+def createState(initialState) {
+  return create(initialState || state)
 }

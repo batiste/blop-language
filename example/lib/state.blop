@@ -24,33 +24,32 @@ def create(state, options={ readOnly: false }) {
   def connectRouter(newrouter) {
     router := newrouter
   }
+  raw = state
   protectedProp = {
     flush,
     listen,
     trigger,
     router,
-    connectRouter
+    connectRouter,
+    raw
   }
   def handler(currentState, path='', parentState) {
     def hasChanged(extrapath='') {
       if !hasBeenFlushed {
         return true
       }
-      p = ''path''extrapath''
+      completePath = ''path''extrapath''
       return !!modificationTable.find(
-        (modification) => modification.path.startsWith(p))
+        (modification) => modification.path.startsWith(completePath))
     }
     return {
       get: def (obj, prop) {
         if prop == 'hasChanged' {
           return hasChanged
         }
-        if prop == 'connectRouter' {
-          return connectRouter
-        }
         if prop == 'router' {
           if !router {
-            throw new Error('No router not connected to this state')
+            throw new Error('No router has been connected to this state')
           }
           return router
         }

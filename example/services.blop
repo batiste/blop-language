@@ -1,0 +1,53 @@
+import { state as rawState } from './state.blop'
+import { default as fetch } from 'node-fetch'
+
+async def getNewDog(state) {
+  state.loading = true
+  try {
+    response = await fetch(`https://dog.ceo/api/breeds/image/random`)
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  message = (await response.json()).message
+  bits = message.split('/')
+  state.loading = false
+
+  state.dogPage.choice = { url: message, breed: bits[4], image: bits[5] }
+}
+
+async def getMemes(state) {
+  state.loading = true
+  try {
+    response = await fetch(`https://api.imgflip.com/get_memes`)
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  message = await response.json()
+  state.loading = false
+
+  state.memes = message.data.memes
+}
+
+async def saveState(state) {
+  body = JSON.stringify(state.raw)
+  state.loading = true
+  try {
+    response = await fetch(`/api/saveState`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body
+    })
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  console.log(await response.text())
+  state.loading = false
+}

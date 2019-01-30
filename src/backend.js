@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs');
 const utils = require('./utils');
 const { all } = require('./builtin');
 
@@ -21,7 +20,16 @@ const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
 const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
 const popNameSpaceFCT = () => namespacesFCT.pop();
 
-function checkRedefinition(name, node, explicit) {
+function registerName(name, node, token, hoist = false) {
+  checkRedefinition(name, node);
+  if (!token) {
+    token = node;
+  }
+  const ns = currentNameSpaceFCT();
+  ns[name] = { node, token, hoist };
+}
+
+function checkRedefinition(name, node, explicit = false) {
   if (explicit) return;
   namespacesFCT.slice().reverse().forEach((ns) => {
     const upperScopeNode = ns[name];
@@ -47,14 +55,14 @@ function checkFileExist(name, node) {
   if (!checkFilename) {
     return;
   }
-  // does it looks like a filename
-  if (name.indexOf('.') === -1) {
-    return;
-  }
-  const p = path.resolve(path.dirname(checkFilename), name);
-  if (!fs.existsSync(p)) {
+  try {
+    if (name.startsWith('.')) {
+      require.resolve(name, { paths: [path.dirname(checkFilename)] });
+    } else {
+      require.resolve(name);
+    }
+  } catch (error) {
     const token = stream[node.stream_index];
-    const error = new Error(`File doesn't exist relative to current file`);
     error.token = token;
     throw error;
   }
@@ -208,15 +216,15 @@ backend = {
   'destructuring_values': (node) => {
     const output = [];
     let name;
-    const ns = currentNameSpaceFCT();
     if (node.named.rename) {
       name = node.named.rename.value;
+      registerName(name, node.named.rename);
       output.push(`${node.named.name.value}: ${name}`);
     } else {
       name = node.named.name.value;
+      registerName(name, node.named.name);
       output.push(name);
     }
-    ns[name] = { node, token: node.named.name, hoist: false };
     if (node.named.more) {
       output.push(', ');
       output.push(...generateCode(node.named.more));
@@ -252,9 +260,9 @@ backend = {
     return [child.value];
   },
   'import_statement': (node) => {
-    const output = []; let
-      module;
-    const fileNode = node.named.file || node.named.module
+    const output = [];
+    let module;
+    const fileNode = node.named.file || node.named.module;
     if (fileNode) {
       if (fileNode.value.slice(1, -1) === 'blop') {
         module = 'blop';
@@ -263,11 +271,10 @@ backend = {
         checkFileExist(fileNode.value.slice(1, -1), fileNode);
       }
     }
-    const ns = currentNameSpaceFCT();
     if (node.named.module) {
       // import 'module' as name
       const name = node.named.name.value;
-      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
+      registerName(name, node.named.name);
       output.push(`let ${name} = ${module};`);
     } else if (node.named.dest_values) {
       // import { destructuring } from 'filename'
@@ -277,13 +284,13 @@ backend = {
     } else if (node.named.name) {
       // import name from 'file'
       const name = node.named.name.value;
-      ns[name] = { node: node.named.name, hoist: false, token: node.named.name };
+      registerName(name, node.named.name);
       output.push(`let ${name} = ${module}.${name};`);
     } else {
       // import 'file'
       const { file } = node.named;
       const { name } = path.parse(path.basename(file.value.slice(1, -1)));
-      ns[name] = { node: file, hoist: false, token: file };
+      registerName(name, file);
       output.push(`let ${name} = ${module};`);
     }
     return output;
@@ -546,6 +553,7 @@ backend = {
   },
   'func_def_params': (node) => {
     const ns = currentNameSpaceFCT();
+    registerName(node.named.name.value, node.named.name);
     ns[node.named.name.value] = {
       node,
       hoist: false,

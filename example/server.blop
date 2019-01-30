@@ -5,16 +5,23 @@ import { createRouter } from './routing.blop'
 import 'webpack'
 import 'webpack-dev-middleware' as middleware
 import 'snabbdom-to-html' as toHTML
-import 'path'
+import 'path' as nodepath
 import '../webpack.config.js' as webpackConf
+import 'body-parser' as bodyParser
 
 app = express()
+app.use(bodyParser.json())
+
 // we only rebuild the client config
 clientConfig = webpackConf[1]
 compiler = webpack(clientConfig)
 
+// a singleton in memory, should be in a DB
+// and for each user
+savedState = null
+
 render = async (path) => {
-  state = createState()
+  state = createState(savedState)
   router = createRouter(state)
   await router.go(path)
   tree = Index(state)
@@ -27,11 +34,17 @@ app.use(middleware(compiler, {
 }))
 
 app.get('/favicon.ico', (req, res) => {
-  res.sendFile(path.resolve('./img/blop.png'))
+  res.sendFile(nodepath.resolve('./img/blop.png'))
+})
+
+app.post('/api/saveState', (req, res) => {
+  savedState := req.body
+  res.send('Application state properly saved on server')
 })
 
 app.use(async (req, res) => {
   html = toHTML(await render(req.path))
+  state = createState(savedState)
   res.send(`
     <html>
       <head>
@@ -42,8 +55,11 @@ app.use(async (req, res) => {
           crossorigin="anonymous">
       </head>
       <body>
-        `html`
+        <div id="app">
+          `html`
+        </div>
       </body>
+      <script>window.INITIAL_STATE = `JSON.stringify(savedState || state)`</script>
       <script src="/bundle/client.js"></script>
     </html>
   `)
