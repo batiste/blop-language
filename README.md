@@ -5,9 +5,9 @@
 Blop is a turing complete language that natively and elegantly generates Virtual DOM using a familiar HTML like syntax. Unlike JSX you are not limited to expressions and can use the full power of the language to generate Virtual DOM.
 You can mix any statement, expressions, and HTML like syntax within the same function.
 
-The HTML tags withing the language are converted into Virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
+The HTML tags written with blop are converted into Virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
 
-The Blop lanugae compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
+The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
 
 <img src="/img/carbon.png" width="800">
 
@@ -17,8 +17,9 @@ The Blop lanugae compiles to ES6 compliant JavaScript. The language is mostly se
 
   * Virtual DOM generation is natively supported by the language.
   * Fast compilation (+30'000 lines by second).
+  * Blop syntax is arguably simple and natural to understand.
   * A linter is integrated into the language: no linter debate.
-  * Integration with Visual Studio Code: linter and syntactic coloration.
+  * Good integration with Visual Studio Code: linter and syntactic coloration.
   * Similar syntax and features than ES6.
   * Server Side Rendering in the example.
 
