@@ -2,12 +2,12 @@
 
 <img src="/img/blop.png" width="120">
 
-Blop natively understand nested HTML tags and components. Unlike JSX you are not limited to expressions. 
-You can mix any statement, expressions, and HTML tags within the same function.
+Blop is a turing complete language that natively and elegantly generates Virtual DOM using a familiar HTML like syntax. Unlike JSX you are not limited to expressions and can use the full power of the language to generate Virtual DOM.
+You can mix any statement, expressions, and HTML like syntax within the same function.
 
-The HTML tags and components are converted into virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
+The HTML tags withing the language are converted into Virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
 
-Blop compiles to ES6 using a compiler that is generated using a grammar and token definition.
+The Blop lanugae compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
 
 <img src="/img/carbon.png" width="800">
 
