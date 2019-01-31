@@ -51,7 +51,7 @@ function checkRedefinition(name, node, explicit = false) {
   });
 }
 
-function checkFileExist(name, node) {
+function resolveImport(name, node) {
   if (!checkFilename) {
     return;
   }
@@ -268,7 +268,7 @@ backend = {
         module = 'blop';
       } else {
         module = `require(${fileNode.value})`;
-        checkFileExist(fileNode.value.slice(1, -1), fileNode);
+        resolveImport(fileNode.value.slice(1, -1), fileNode);
       }
     }
     if (node.named.module) {

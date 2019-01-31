@@ -12,7 +12,7 @@ const schema = {
   type: 'object',
 };
 
-module.exports = function loader(source, env = 'webpack') {
+module.exports = function loader(source, env = 'webpack', filename = false) {
   const options = getOptions(this) || { debug: false };
   validateOptions(schema, options, 'Blop Loader');
   const name = require.resolve(path.join(__dirname, './runtime.js'));
@@ -29,7 +29,7 @@ module.exports = function loader(source, env = 'webpack') {
   if (!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree);
   }
-  const code = header + backend.generateCode(tree, stream, source).join('');
+  const code = header + backend.generateCode(tree, stream, source, filename).join('');
   if (options.debug) {
     console.log(code);
   }

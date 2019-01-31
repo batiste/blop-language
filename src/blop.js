@@ -11,6 +11,7 @@ program
   .version('0.1.0')
   .option('-i, --input <file>', 'file input')
   .option('-o, --output <file>', 'file output')
+  .option('-r, --resolve', 'resolve import statements')
   .parse(process.argv);
 
 if (!process.argv.slice(2).length || !program.input) {
@@ -19,7 +20,8 @@ if (!process.argv.slice(2).length || !program.input) {
 
 if (program.input) {
   const source = fs.readFileSync(program.input);
-  const output = loader(source.toString(), 'node');
+  const filename = program.resolve ? program.input : false;
+  const output = loader(source.toString(), 'node', filename);
   if (program.output) {
     fs.writeFile(program.output, output, (err) => {
       if (err) throw err;
