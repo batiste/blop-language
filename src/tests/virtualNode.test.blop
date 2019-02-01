@@ -3,6 +3,23 @@ def render(text) {
   <h1>text</h1>
 }
 
+// should produce no warning
+def testConditions() {
+  if (true) {
+    if (1) {
+      <div>2</div>
+    } elseif (1) {
+      <div>2</div>
+    } else {
+      <div>2</div>
+    }
+  } elseif (1) {
+    <div>1</div>
+  } else {
+    <div>1</div>
+  }
+}
+
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')

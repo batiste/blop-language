@@ -62,7 +62,7 @@ def DogGame(attributes, children) {
     </form>
 
     <div style={ minHeight: '400px' }>
-      if dog && !loading {
+      if dog {
         <img
           src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
           style={ maxWidth: '400px' } />

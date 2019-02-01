@@ -2,7 +2,7 @@
 
 const program = require('commander');
 const fs = require('fs');
-const loader = require('./loader');
+const { compileFile } = require('./compile');
 
 const GREEN = '\x1b[32m';
 const NC = '\x1B[0m';
@@ -21,7 +21,7 @@ if (!process.argv.slice(2).length || !program.input) {
 if (program.input) {
   const source = fs.readFileSync(program.input);
   const filename = program.resolve ? program.input : false;
-  const output = loader(source.toString(), 'node', filename);
+  const output = compileFile(source.toString(), 'node', filename);
   if (program.output) {
     fs.writeFile(program.output, output, (err) => {
       if (err) throw err;

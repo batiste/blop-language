@@ -5,12 +5,15 @@ const { all } = require('./builtin');
 const config = utils.getConfig();
 const configGlobals = config.globals || {};
 
-let namespacesVN;
-let namespacesFCT;
+let namespacesVN; // namespace for virtual nodes
+let namespacesFCT; // namespace for functions
+let namespacesCDT; // namespace for conditions
 let backend;
 let stream;
 let input;
 let checkFilename;
+let errors;
+let warnings;
 
 const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
 const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -19,6 +22,10 @@ const popNameSpaceVN = () => namespacesVN.pop();
 const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
 const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
 const popNameSpaceFCT = () => namespacesFCT.pop();
+
+const currentNamespacesCDT = () => namespacesCDT[namespacesCDT.length - 1];
+const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
+const popNameSpaceCDT = () => namespacesCDT.pop();
 
 function registerName(name, node, token, hoist = false) {
   checkRedefinition(name, node);
@@ -46,7 +53,7 @@ function checkRedefinition(name, node, explicit = false) {
       `);
       error.related = token;
       error.token = redefinedBy;
-      throw error;
+      errors.push(error);
     }
   });
 }
@@ -64,7 +71,7 @@ function resolveImport(name, node) {
   } catch (error) {
     const token = stream[node.stream_index];
     error.token = token;
-    throw error;
+    warnings.push(error);
   }
 }
 
@@ -85,22 +92,40 @@ function shouldBeDefined(name, node) {
     ${sourceContext}
 `);
     error.token = token;
-    throw error;
+    errors.push(error);
   }
 }
 
 function registerVirtualNode(node) {
   const currentFctNS = currentNameSpaceFCT();
+  const currentCdtNS = currentNamespacesCDT();
   const parent = currentNameSpaceVN().currentVNode;
   if (node.type !== 'virtual_node_exp' && !parent) {
     if (currentFctNS.returnVirtualNode) {
-      const token = stream[node.stream_index];
-      const sourceContext = utils.streamContext(input, token, token, stream);
+      const { opening, closing } = node.named;
+      opening.len = closing.start - opening.start + closing.len;
+      const sourceContext = utils.streamContext(input, opening, opening, stream);
       const error = new Error(`A root virtual node is already defined in this function
       ${sourceContext}
 `);
-      error.token = token;
-      throw error;
+      error.token = opening;
+      warnings.push(error);
+    } else if (namespacesCDT.length > 1) {
+      let isRedefined = false;
+      namespacesCDT.slice().reverse().forEach((ns) => {
+        if (ns.returnVirtualNode) {
+          isRedefined = true;
+        }
+      });
+      if (isRedefined) {
+        const { opening, closing } = node.named;
+        opening.len = closing.start - opening.start + closing.len;
+        const error = new Error('A root virtual node is already defined in this branch');
+        error.token = opening;
+        warnings.push(error);
+      } else {
+        currentCdtNS.returnVirtualNode = { node, hoist: false };
+      }
     } else {
       currentFctNS.returnVirtualNode = { node, hoist: false };
     }
@@ -410,6 +435,7 @@ backend = {
   },
   'condition': (node) => {
     const output = [];
+    addNameSpaceCDT();
     output.push(`${node.named.type.value}(`);
     output.push(...generateCode(node.named.exp));
     output.push(') {');
@@ -417,6 +443,7 @@ backend = {
       output.push(...generateCode(stat));
     });
     output.push('}');
+    popNameSpaceCDT();
     output.push(...generateCode(node.named.elseif));
     return output;
   },
@@ -440,19 +467,23 @@ backend = {
     }
     if (node.named.type.type === 'else') {
       output.push(' else {');
+      addNameSpaceCDT();
       node.named.stats.forEach((stat) => {
         output.push(...generateCode(stat));
       });
       output.push('}');
+      popNameSpaceCDT();
       return output;
     }
     output.push(' else if (');
     output.push(...generateCode(node.named.exp));
     output.push(') {');
+    addNameSpaceCDT();
     node.named.stats.forEach((stat) => {
       output.push(...generateCode(stat));
     });
     output.push('}');
+    popNameSpaceCDT();
     output.push(...generateCode(node.named.elseif));
     return output;
   },
@@ -618,10 +649,19 @@ module.exports = {
     }
     stream = _stream;
     input = _input;
+    errors = [];
+    warnings = [];
     checkFilename = _filename;
     namespacesVN = [{}];
     namespacesFCT = [{}];
+    namespacesCDT = [{}];
     const output = generateCode(node);
-    return output;
+    return {
+      code: output.join(''),
+      success: errors.length === 0,
+      perfect: errors.length === 0 && warnings.length === 0,
+      warnings,
+      errors,
+    };
   },
 };

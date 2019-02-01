@@ -19,7 +19,10 @@ const clientConfig = {
         use: [
           {
             loader: path.resolve('./src/loader.js'),
-            options: { debug: !!process.env.BLOP_DEBUG },
+            options: {
+              debug: !!process.env.BLOP_DEBUG,
+              strictness: 'perfect',
+            },
           },
         ],
       },

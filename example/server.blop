@@ -18,8 +18,8 @@ instance = middleware(compiler, {
   publicPath: '/bundle'
 })
 
-// a singleton in memory, should be in a DB
-// and for each user
+/* a singleton in memory, should be in a DB
+   and for each user */
 savedState = null
 
 render = async (path) => {

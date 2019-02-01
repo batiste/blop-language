@@ -135,6 +135,46 @@ documents.onDidChangeContent(change => {
 	validateTextDocument(change.document);
 });
 
+class BlopError extends Error {
+  related: {start: number, len: number}
+  token: {start: number, len: number}
+}
+
+function generateDiagnosis(error: BlopError, textDocument: TextDocument, severity: DiagnosticSeverity) {
+  let text = textDocument.getText();
+  let token = error.token || {start:0, len: text.length}
+  let related: DiagnosticRelatedInformation
+
+  if (error.related) {
+    let location: Location = {
+      uri: textDocument.uri,
+      range: {
+        start: textDocument.positionAt(error.related.start),
+        end: textDocument.positionAt(error.related.start + Math.max(1, error.related.len))
+      }
+    }
+    related = {
+      location,
+      message: 'This variable is redefined'
+    }
+  }
+  let messageParts = error.message.split('\n')
+  let diagnosic: Diagnostic = {
+    severity,
+    range: {
+      start: textDocument.positionAt(token.start),
+      end: textDocument.positionAt(token.start + Math.max(1, token.len))
+    },
+    message: messageParts[0],
+    source: 'blop'
+  };
+  if (related) {
+    diagnosic.relatedInformation = [related]
+  }
+
+  return diagnosic
+}
+
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	// In this simple example we get the settings for every validate run.
 	let settings = await getDocumentSettings(textDocument.uri);
@@ -187,42 +227,19 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   }
   
   if(tree.success && settings.maxNumberOfProblems > 0) {
-    try {
-      backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1])
-    } catch(e) {
-      let token = e.token || {start:0, end: text.length}
-      let related: DiagnosticRelatedInformation
+    const result = backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1])
 
-      if (e.related) {
-        let location: Location = {
-          uri: textDocument.uri,
-          range: {
-            start: textDocument.positionAt(e.related.start),
-            end: textDocument.positionAt(e.related.start + Math.max(1, e.related.len))
-          }
-        }
-        related = {
-          location,
-          message: 'This variable is redefined'
-        }
-      }
-      let messageParts = e.message.split('\n')
-      let diagnosic: Diagnostic = {
-        severity: DiagnosticSeverity.Error,
-        range: {
-          start: textDocument.positionAt(token.start),
-          end: textDocument.positionAt(token.start + Math.max(1, token.len))
-        },
-        message: messageParts[0],
-        source: 'blop'
-      };
-      if (related) {
-        diagnosic.relatedInformation = [related]
-      }
-
-      diagnostics.push(diagnosic);
-      connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-      return
+    if(!result.perfect) {
+      result.errors.forEach((error: any) => {
+        diagnostics.push(
+          generateDiagnosis(error, textDocument, DiagnosticSeverity.Error)
+        )
+      })
+      result.warnings.forEach((error: any) => {
+        diagnostics.push(
+          generateDiagnosis(error, textDocument, DiagnosticSeverity.Warning)
+        )
+      })
     }
   }
 
