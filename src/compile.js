@@ -5,6 +5,7 @@ const { tokensDefinition } = require('./tokensDefinition');
 const backend = require('./backend');
 const utils = require('./utils');
 const parser = require('./parser');
+const { check } = require('./inference');
 
 const config = utils.getConfig();
 
@@ -23,6 +24,8 @@ function compileFile(source, env = 'webpack', filename = false) {
   if (!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree);
   }
+  check(tree);
+
   const result = backend.generateCode(tree, stream, source, filename);
   if (!result.success) {
     throw result.errors[0];

@@ -100,7 +100,7 @@ const tokensDefinition = {
   '>': { str: '>' },
   '<': { str: '<' },
   'regexp': { func: regExpDef }, // problematic with a / b / c
-  'operator': { reg: /^(\+|\/|-|\*|\|\|?|&&?)/ },
+  'operator': { reg: /^(\+|\/|-|\*|%|\|\|?|&&?)/ },
   'unary': { str: '!' },
   'explicit_assign': { str: ':=', verbose: 'explicit assign' },
   '=': { str: '=' },

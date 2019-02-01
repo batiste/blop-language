@@ -1,6 +1,11 @@
 
+a = 10 % 3
+b = 2 * 2 / 4
 c = 10 - (1 + 2) + (2 + 4) + 2
+
 
 test('expression', () => {
   expect(c).toBe(15)
+  expect(a).toBe(1)
+  expect(b).toBe(1)
 })
