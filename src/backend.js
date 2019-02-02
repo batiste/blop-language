@@ -507,11 +507,11 @@ backend = {
     }
     if (node.named['fat-arrow']) {
       if (node.named.name) {
+        checkRedefinition(node.named.name.value, node.named.name)
         parentns[node.named.name.value] = {
           node,
           hoist: false,
           token: node.named.name,
-          annotation: node.named.annotation,
         };
         output.push(node.named.name.value);
       }
@@ -527,11 +527,11 @@ backend = {
       }
       output.push('function ');
       if (node.named.name) {
+        checkRedefinition(node.named.name.value, node.named.name)
         parentns[node.named.name.value] = {
           node,
           hoist: false,
           token: node.named.name,
-          annotation: node.named.annotation,
         };
         output.push(node.named.name.value);
       }

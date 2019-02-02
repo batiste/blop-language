@@ -54,9 +54,9 @@ const grammar = {
     ['name'],
   ],
   'math': [
-    ['(', 'math', ')', 'w', 'operator', 'w', 'exp'],
+    ['(', 'math', ')', 'w', 'math_operator', 'w', 'exp'],
     ['(', 'math', ')'],
-    ['number', 'w', 'operator', 'w', 'exp'],
+    ['number', 'w', 'math_operator', 'w', 'exp'],
     ['number'],
   ],
   'assign': [
@@ -84,12 +84,11 @@ const grammar = {
     ['name:name', 'annotation?:annotation'],
   ],
   'func_call': [
-    ['(', ')', '.', 'DOTTED_PATH'],
-    ['(', 'newline_and_space?', 'func_call_params', ')', '.', 'DOTTED_PATH'],
-    ['(', ')', 'func_call'],
-    ['(', 'newline_and_space?', 'func_call_params', ')', 'func_call'],
-    ['(', ')'],
     ['(', 'newline_and_space?', 'func_call_params', ')'],
+    ['(', ')'],
+  ],
+  'named_func_call': [
+    ['name:name', 'func_call'],
   ],
   'func_call_params': [
     ['name', '=', 'exp'],
@@ -190,13 +189,10 @@ const grammar = {
     ['w', 'name:name'],
   ],
   'operation': [
-    ['operator', 'w', 'exp'],
-    ['==', 'w', 'exp'],
-    ['>=', 'w', 'exp'],
-    ['<=', 'w', 'exp'],
-    ['!=', 'w', 'exp'],
-    ['>', 'w', 'exp'],
-    ['<', 'w', 'exp'],
+    ['math_operator:math_op', 'w', 'exp'],
+    ['boolean_operator:boolean_op', 'w', 'exp'],
+    ['<:boolean_op', 'w', 'exp'],
+    ['>:boolean_op', 'w', 'exp'],
   ],
   'str_expression': [
     ['str:str', 'inner_str_expression:str_exp'],

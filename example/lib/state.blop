@@ -60,7 +60,7 @@ def create(state, options={ readOnly: false }) {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
-            path + '.' + prop, currentState))
+            ''path'.'prop'', currentState))
         }
         return obj[prop]
       },
@@ -71,9 +71,9 @@ def create(state, options={ readOnly: false }) {
         if protectedProp[prop] {
           throw new Error(`You cannot redefine the `prop` property in a proxied state`)
         }
-        modificationTable.push({ path: path + '.' + prop, action: 'set', value })
+        modificationTable.push({ path: ''path'.'prop'', action: 'set', value })
         obj[prop] = value
-        trigger(path + '.' + prop)
+        trigger(''path'.'prop'')
         return true
       },
       deleteProperty: def (target, prop) {
@@ -86,7 +86,7 @@ def create(state, options={ readOnly: false }) {
         } else {
           return false
         }
-        trigger(path + '.' + prop)
+        trigger(''path'.'prop'')
         return true
       }
     }

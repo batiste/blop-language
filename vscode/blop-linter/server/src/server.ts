@@ -26,6 +26,7 @@ const displayError = require('./utils').displayError
 const grammar = require('./grammar').grammar;
 const builtin = require('./builtin').all;
 const backend = require("./backend")
+const { inference } = require('./inference')
 const properties = require("./properties.js")
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -240,7 +241,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           generateDiagnosis(error, textDocument, DiagnosticSeverity.Warning)
         )
       })
-    }
+		}
+		inference(tree, stream).forEach((warning: any) => {
+			diagnostics.push(
+				generateDiagnosis(warning, textDocument, DiagnosticSeverity.Warning)
+			)
+		})
   }
 
 	// Send the computed diagnostics to VSCode.

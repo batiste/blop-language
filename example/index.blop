@@ -31,7 +31,7 @@ Index = (state) => {
       }
     '</style>
     <button on={ click: saveStateEvent } class="btn btn-secondary" style={ float: 'right' }>
-      = 'Save state on the server'
+      = 'Save locale state on server'
     </button>
     <h1>
       = 'Blop language '

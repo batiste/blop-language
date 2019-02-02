@@ -45,7 +45,7 @@ class Router {
     route.params = names
     this.routes.push(route)
   }
-  def match(path) {
+  def match(path: string) {
     m = null
     params = {}
     matchedRoute = this.routes.find((route) => {
@@ -63,7 +63,7 @@ class Router {
       return { route: matchedRoute, params: params }
     }
   }
-  async def go(path, push=true) {
+  async def go(path: string, push=true) {
     m = this.match(path)
     if !m {
       console.log('No route for path 'path'')
