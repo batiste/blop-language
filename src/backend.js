@@ -211,10 +211,13 @@ backend = {
         ns[node.named.name.value] = { node, token: node.named.name };
       }
       output.push(...generateCode(node.named.name));
-    } else {
+    } else if (node.named.path) {
       const name = node.named.path.children[0];
       shouldBeDefined(name.value, node.named.path);
       output.push(...generateCode(node.named.path));
+    } else {
+      console.log(node.name.destructuring)
+      output.push(...generateCode(node.named.destructuring));
     }
     output.push(' = ');
     output.push(...generateCode(node.named.exp));

@@ -47,11 +47,12 @@ const grammar = {
   ],
   'DOTTED_PATH': [
     ['name', '.', 'DOTTED_PATH'],
-    ['name', 'func_call', '.', 'DOTTED_PATH'],
-    ['name', 'func_call'],
-    ['name', '[', 'exp', ']', '.', 'DOTTED_PATH'],
-    ['name', '[', 'exp', ']'],
     ['name'],
+  ],
+  'object_access': [
+    ['.', 'DOTTED_PATH', 'object_access?'],
+    ['func_call', 'object_access?'],
+    ['[', 'exp', ']', 'object_access?'],
   ],
   'math': [
     ['(', 'math', ')', 'w', 'math_operator', 'w', 'exp'],
@@ -62,6 +63,8 @@ const grammar = {
   'assign': [
     ['name:name', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'w', '=', 'w', 'exp:exp'],
+    ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
+    ['DOTTED_PATH:path', 'object_access', 'w', '=', 'w', 'exp:exp'],
     ['DOTTED_PATH:path', 'w', '=', 'w', 'exp:exp'],
   ],
   'for_loop': [
@@ -207,6 +210,7 @@ const grammar = {
   ],
   'exp': [
     ['func_def'],
+    ['DOTTED_PATH', 'object_access'],
     ['DOTTED_PATH', 'w', 'operation'],
     ['DOTTED_PATH'],
     ['math', 'w', 'operation'],
@@ -216,13 +220,12 @@ const grammar = {
     ['str', 'w', 'operation'],
     ['str'],
     ['regexp'],
-    ['(', 'exp', ')', 'func_call'],
-    ['(', 'exp', ')', '.', 'DOTTED_PATH'],
+    ['(', 'exp', ')', 'object_access'],
     ['(', 'exp', ')'],
     ['operand', 'exp'],
     ['unary', 'exp'],
     ['object_literal'],
-    ['array_literal', '.', 'name', 'func_call'],
+    ['array_literal', 'object_access'],
     ['array_literal'],
     ['await', 'exp'],
     ['virtual_node_assign'],
