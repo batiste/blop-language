@@ -90,9 +90,9 @@ const grammar = {
     ['(', 'newline_and_space?', 'func_call_params', ')'],
     ['(', ')'],
   ],
-  'named_func_call': [
-    ['name:name', 'func_call'],
-  ],
+  // 'named_func_call': [
+  //   ['name:name', 'func_call'],
+  // ],
   'func_call_params': [
     ['name', '=', 'exp'],
     ['exp', ',', 'single_space_or_newline', 'func_call_params'],
@@ -210,6 +210,7 @@ const grammar = {
   ],
   'exp': [
     ['func_def'],
+    ['DOTTED_PATH', 'object_access', 'w', 'operation'],
     ['DOTTED_PATH', 'object_access'],
     ['DOTTED_PATH', 'w', 'operation'],
     ['DOTTED_PATH'],

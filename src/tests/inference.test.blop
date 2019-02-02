@@ -1,0 +1,13 @@
+
+def inference(a: number, b: string) {
+  return parseInt(b) + a
+}
+
+def inference2(c: number, d: number): number {
+  return d + c
+}
+
+test('Module inference', () => {
+  expect(inference('1', 2)).toBe(3)
+  expect(inference2(1, 2)).toBe(3)
+})
