@@ -1,5 +1,5 @@
 
-def inference(a: number, b: string) {
+def inference(a: number, b: string): number {
   return parseInt(b) + a
 }
 
@@ -7,7 +7,13 @@ def inference2(c: number, d: number): number {
   return d + c
 }
 
+(1 + inference2()) || inference2()
+
+def scoped() {
+  return 1 + inference2()
+}
+
 test('Module inference', () => {
-  expect(inference('1', 2)).toBe(3)
+  expect(inference(1, '2')).toBe(3)
   expect(inference2(1, 2)).toBe(3)
 })

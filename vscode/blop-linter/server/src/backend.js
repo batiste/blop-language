@@ -212,11 +212,11 @@ backend = {
       }
       output.push(...generateCode(node.named.name));
     } else if (node.named.path) {
-      const name = node.named.path.children[0];
+      const name = node.named.path.value;
       shouldBeDefined(name.value, node.named.path);
       output.push(...generateCode(node.named.path));
+      output.push(...generateCode(node.named.access));
     } else {
-      console.log(node.name.destructuring)
       output.push(...generateCode(node.named.destructuring));
     }
     output.push(' = ');

@@ -9,18 +9,60 @@ function pushInference(node, inference) {
   node.inference.push(inference);
 }
 
+function checkStatment(node, parent) {
+  visitChildren(node);
+  if(node.inference) {
+    const types = node.inference;
+    for (let i = 0; i < types.length; i++) {
+      const t = types[i];
+      // if(!t) {
+      //   throw new Error(`types ${types.length} ${i} ${node.inference}`)
+      // }
+      if(t && t.type === 'math_operator') {
+        if(types[i-1] && types[i-1] !== 'number') {
+          console.log(types)
+          pushWarning(t, `Math operator error on ${types[i-1]}`);
+        }
+        if(types[i-2] && types[i-2] !== 'number') {
+          console.log(types)
+          pushWarning(t, `Math operator error on ${types[i-2]}`);
+        }
+        // console.log('before splice', types)
+        types.splice(i - 1, 2);
+        i = i - 2;
+        // console.log('after splice', types)
+      }
+      if(t && t.type === 'boolean_operator') {
+        types[i-2] = 'boolean'
+        types.splice(i - 1, 2);
+        i = i - 2;
+      }
+    }
+  }
+};
+
+function pushToParent(node, parent) {
+  if (!node.inference || !parent) {
+    return;
+  }
+  for (let i = 0; i < node.inference.length; i++) {
+    pushInference(parent, node.inference[i]);
+  }
+}
+
+function visitChildren(node) {
+  if (node.children) {
+    for (let i = 0; i < node.children.length; i++) {
+      visit(node.children[i], node);
+    }
+  }
+}
+
 const namespace = {};
 
 const backend = {
   'math': (node, parent) => {
-    for (let i = 0; i < node.children.length; i++) {
-      visit(node.children[i], node);
-    }
-    for (let i = 0; i < node.inference.length; i++) {
-      if (node.inference[i] !== 'number') {
-        pushWarning(node, `Cannot do a math operation with ${node.inference[i]}`);
-      }
-    }
+    visitChildren(node);
     pushInference(parent, 'number');
   },
   'number': (node, parent) => {
@@ -37,11 +79,7 @@ const backend = {
     }
   },
   'func_def_params': (node, parent) => {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        visit(node.children[i], node);
-      }
-    }
+    visitChildren(node);
     if(node.named.annotation) {
       namespace[node.named.name.value] = {
         type: node.named.annotation.named.name.value
@@ -49,24 +87,13 @@ const backend = {
     }
   },
   'operation': (node, parent) => {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        visit(node.children[i], node);
-      }
+    visitChildren(node);
+    pushToParent(node, parent);
+    if (node.named.math_op) {
+      pushInference(parent, node.named.math_op);
     }
-    if(!node.inference) {
-      return;
-    }
-    if (node.named.math_op && node.inference) {
-      if (node.inference[0] !== 'number') {
-        pushWarning(node, `Math operation ${node.named.math_op.value} with ${node.inference[0]}`);
-      }
-      if(parent.inference && parent.inference[0] !== 'number') {
-        pushWarning(node, `Math operation ${node.named.math_op.value} with ${parent.inference[0]}`);
-      }
-      pushInference(parent, 'number');
-    } else {
-      pushInference(parent, 'boolean');
+    if (node.named.boolean_op) {
+      pushInference(parent, node.named.boolean_op);
     }
   },
   'str': (node, parent) => {
@@ -75,24 +102,26 @@ const backend = {
   'func_call': (node, parent) => {
 
   },
-  'func_def': (node, parent) => {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        visit(node.children[i], node);
-      }
+  'named_func_call': (node, parent) => {
+    visitChildren(node);
+    const name = node.named.name
+    if(name && namespace[name.value]) {
+      pushInference(parent, namespace[name.value].type);
     }
-    if(node.named.named && node.named.annotation) {
+  },
+  'func_def': (node, parent) => {
+    visitChildren(node);
+    if(node.named.name && node.named.annotation) {
       namespace[node.named.name.value] = {
-        type: node.named.annotation.named.name.value
+        type: node.named.annotation.named.name.value,
+        node: node
       }
     }
   },
+  'GLOBAL_STATEMENT': checkStatment,
+  'SCOPED_STATEMENTS': checkStatment,
   'assign': (node, parent) => {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        visit(node.children[i], node);
-      }
-    }
+    visitChildren(node);
     let name;
     if (node.named.name && node.inference) {
       name = node.named.name.value;
@@ -109,14 +138,8 @@ function visit(node, parent) {
   } else if (backend[node.rule_name]) {
     backend[node.rule_name](node, parent);
   } else {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        visit(node.children[i], node);
-      }
-    }
-    if (node.inference && parent) {
-      pushInference(parent, node.inference[0]);
-    }
+    visitChildren(node);
+    pushToParent(node, parent);
   }
 }
 

@@ -24,6 +24,7 @@ function compileFile(source, env = 'webpack', filename = false) {
   if (!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree);
   }
+  // utils.printTree(tree, ' ')
 
   const result = backend.generateCode(tree, stream, source, filename);
   if (!result.success) {
