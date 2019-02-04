@@ -16,6 +16,15 @@ def scoped() {
 
 backLink = <p><a on={ click: inference2 }>'Back'</a></p>
 
+def match(path) {
+  m = null
+  params = {}
+  route = {}
+  for index, value in route: array {
+    params := m[1 + index]
+  }
+}
+
 test('Module inference', () => {
   // backLink + 1
   expect(inference(1, '2')).toBe(3)

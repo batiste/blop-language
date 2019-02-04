@@ -11,6 +11,7 @@ state: object = {
   loading: false
 }
 
+
 def createState(initialState) {
   return create(initialState || state)
 }

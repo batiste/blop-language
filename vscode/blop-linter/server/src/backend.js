@@ -451,13 +451,17 @@ backend = {
     output.push(...generateCode(node.named.elseif));
     return output;
   },
+  'name_exp': (node) => {
+    const output = [];
+    shouldBeDefined(node.named.name.value, node);
+    for (let i = 0; i < node.children.length; i++) {
+      output.push(...generateCode(node.children[i]));
+    }
+    return output;
+  },
   'exp': (node) => {
     const output = [];
     if (node.children) {
-      if (node.children[0].type === 'DOTTED_PATH') {
-        const name = node.children[0].children[0];
-        shouldBeDefined(name.value, node);
-      }
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }

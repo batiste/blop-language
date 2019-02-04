@@ -45,7 +45,7 @@ function checkStatment(node, parent) {
           };
         }
         // it has to be a name (check grammar)
-        if (t.named.name && types[i - 1] && types[i - 2]) {
+        if (t.named.name && !t.named.explicit_assign && types[i - 1] && types[i - 2]) {
           if (types[i - 1] !== types[i - 2]) {
             pushWarning(t, `Cannot assign ${types[i - 1]} to ${types[i - 2]}`);
           }
@@ -114,22 +114,29 @@ const backend = {
     pushInference(parent, 'string');
   },
   'func_call': (node, parent) => {
-
+    visitChildren(node);
   },
   'object_literal': (node, parent) => {
     pushInference(parent, 'object');
   },
   'new': (node, parent) => {
+    visitChildren(node);
     pushInference(parent, 'object');
   },
   'virtual_node': (node, parent) => {
+    visitChildren(node);
     pushInference(parent, 'VNode');
   },
   'virtual_node_exp': (node, parent) => {
+    visitChildren(node);
     pushInference(parent, 'VNode');
   },
   'array_literal': (node, parent) => {
+    visitChildren(node);
     pushInference(parent, 'array');
+  },
+  'access_or_operation': (node, parent) => {
+    visitChildren(node);
   },
   'named_func_call': (node, parent) => {
     visitChildren(node);

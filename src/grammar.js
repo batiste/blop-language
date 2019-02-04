@@ -202,12 +202,15 @@ const grammar = {
     ['object_access'],
     ['w', 'operation'],
   ],
+  'name_exp': [
+    ['name:name', 'access_or_operation'],
+    ['name:name'],
+  ],
   'exp': [
     ['func_def'],
     ['named_func_call', 'access_or_operation'],
     ['named_func_call'],
-    ['name', 'access_or_operation'],
-    ['name'],
+    ['name_exp'],
     ['number', 'access_or_operation'],
     ['number'],
     ['str_expression', 'w', 'operation'],
