@@ -410,6 +410,7 @@ backend = {
     ns[key] = { node: node.named.key, hoist: false, token: node.named.key };
     ns[value] = { node: node.named.value, hoist: false, token: node.named.value };
 
+    // generate a different type of loop using annotation
     const isArray = (node.named.keyannotation
       && node.named.keyannotation.children[2].value === 'int')
       || (node.named.objectannotation

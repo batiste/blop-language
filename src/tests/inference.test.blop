@@ -11,9 +11,13 @@ def inference2(c: number, d: number): number {
 
 def scoped() {
   return 1 + inference2()
+  hello: number = 1
 }
 
+backLink = <p><a on={ click: inference2 }>'Back'</a></p>
+
 test('Module inference', () => {
+  // backLink + 1
   expect(inference(1, '2')).toBe(3)
   expect(inference2(1, 2)).toBe(3)
 })

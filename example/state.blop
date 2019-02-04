@@ -1,6 +1,6 @@
 import create from './lib/state.blop'
 
-state = {
+state: object = {
   todoList: [
     'some task 1',
     'some task 2'
