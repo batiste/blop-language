@@ -21,7 +21,6 @@ function checkStatment(node) {
       if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
         const t1 = types[i - 1];
         const t2 = types[i - 2];
-        console.log(node.inference);
         if (t1 !== 'number' && t1 !== 'any') {
           pushWarning(t, `Math operator not allowed on ${t1}`);
         }
@@ -102,6 +101,7 @@ const backend = {
       return;
     }
     if (namespace[node.value]) {
+      // console.log(node.value, namespace[node.value])
       pushInference(parent, namespace[node.value].type);
     }
   },
@@ -175,9 +175,12 @@ const backend = {
   'GLOBAL_STATEMENT': checkStatment,
   'SCOPED_STATEMENTS': checkStatment,
   'assign': (node, parent) => {
-    visitChildren(node);
-    pushToParent(node, parent);
-    pushInference(parent, node);
+    if (node.named.name) {
+      visitChildren(node.named.name);
+      pushInference(parent, node);
+      visitChildren(node.named.exp);
+      pushToParent(node, parent);
+    }
     // annotation operation?
   },
 };
