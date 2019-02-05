@@ -1,20 +1,24 @@
 
-def inference(a: number, b: string): number {
-  return parseInt(b) + a
-}
+// def inference(a: number, b: string): number {
+//   return parseInt(b) + a
+// }
 
-def inference2(c: number, d: number): number {
-  return d + c
-}
+// def inference2(c: number, d: number): number {
+//   return d + c
+// }
 
-(1 + inference2()) || inference2()
+// (1 + inference2()) || inference2()
 
-def scoped() {
-  return 1 + inference2()
-  hello: number = 1
-}
+// def scoped() {
+//   return 1 + inference2()
+//   hello: number = 1
+// }
 
-backLink = <p><a on={ click: inference2 }>'Back'</a></p>
+// backLink = <p>1</p>
+// content: string = backLink.elm
+// { page } = 1
+
+// page.attempt = page.attempt + 1
 
 def match(path) {
   m = null
@@ -25,8 +29,8 @@ def match(path) {
   }
 }
 
-test('Module inference', () => {
-  // backLink + 1
-  expect(inference(1, '2')).toBe(3)
-  expect(inference2(1, 2)).toBe(3)
-})
+// test('Module inference', () => {
+//   // backLink + 1
+//   expect(inference(1, '2')).toBe(3)
+//   expect(inference2(1, 2)).toBe(3)
+// })

@@ -6091,6 +6091,7 @@ function access_or_operation_0(stream, index) {
   };
   const _rule_0 = object_access(stream, i);
   if (!_rule_0) return;
+  named['access'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
 
@@ -6125,6 +6126,7 @@ function access_or_operation_1(stream, index) {
   };
   const _rule_0 = object_access(stream, i);
   if (!_rule_0) return;
+  named['access'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
   node.success = i === stream.length; node.last_index = i;

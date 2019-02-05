@@ -9,7 +9,7 @@ function pushInference(node, inference) {
   node.inference.push(inference);
 }
 
-function checkStatment(node, parent) {
+function checkStatment(node) {
   visitChildren(node);
   if (node.inference) {
     const types = node.inference;
@@ -18,13 +18,17 @@ function checkStatment(node, parent) {
       // if(!t) {
       //   throw new Error(`types ${types.length} ${i} ${node.inference}`)
       // }
-      if (t && t.type === 'math_operator') {
-        if (types[i - 1] && types[i - 1] !== 'number') {
-          pushWarning(t, `Math operator not allowed on ${types[i - 1]}`);
+      if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
+        const t1 = types[i - 1];
+        const t2 = types[i - 2];
+        console.log(node.inference);
+        if (t1 !== 'number' && t1 !== 'any') {
+          pushWarning(t, `Math operator not allowed on ${t1}`);
         }
-        if (types[i - 2] && types[i - 2] !== 'number') {
-          pushWarning(t, `Math operator not allowed on ${types[i - 2]}`);
+        if (t2 !== 'number' && t2 !== 'any') {
+          pushWarning(t, `Math operator not allowed on ${t2}`);
         }
+        types[i - 2] = 'number';
         types.splice(i - 1, 2);
         i = i - 2;
       }
@@ -35,21 +39,30 @@ function checkStatment(node, parent) {
       }
       if (t && t.type === 'assign') {
         const { annotation } = t.named;
-        if (annotation && types[i - 1] && annotation.named.name.value !== types[i - 1]) {
-          pushWarning(t, `Cannot assign ${types[i - 1]} to ${annotation.named.name.value}`);
+        const t1 = types[i - 1];
+        const t2 = types[i - 2];
+        if (annotation && t1) {
+          if (annotation.named.name.value !== t1 && t1 !== 'any') {
+            pushWarning(t, `Cannot assign ${t1} to ${annotation.named.name.value}`);
+          }
         }
-        if (types[i - 1] && t.named.name) {
+        if (t1 && t.named.name) {
           namespace[t.named.name.value] = {
-            type: types[i - 1],
+            type: t1,
             t,
           };
         }
         // it has to be a name (check grammar)
-        if (t.named.name && !t.named.explicit_assign && types[i - 1] && types[i - 2]) {
-          if (types[i - 1] !== types[i - 2]) {
-            pushWarning(t, `Cannot assign ${types[i - 1]} to ${types[i - 2]}`);
+        if (t.named.name && !t.named.explicit_assign && t1 && t2) {
+          if (types[i - 1] !== t2 && t2 !== 'any') {
+            pushWarning(t, `Cannot assign ${t1} to ${t2}`);
           }
         }
+      }
+      if (t && t.type === 'object_access' && types[i - 1]) {
+        types[i - 1] = 'any';
+        types.splice(i, 1);
+        i = i - 1;
       }
     }
   }
@@ -114,17 +127,18 @@ const backend = {
     pushInference(parent, 'string');
   },
   'func_call': (node, parent) => {
-    visitChildren(node);
+    checkStatment(node);
   },
   'object_literal': (node, parent) => {
+    checkStatment(node);
     pushInference(parent, 'object');
   },
   'new': (node, parent) => {
-    visitChildren(node);
+    checkStatment(node);
     pushInference(parent, 'object');
   },
   'virtual_node': (node, parent) => {
-    visitChildren(node);
+    checkStatment(node);
     pushInference(parent, 'VNode');
   },
   'virtual_node_exp': (node, parent) => {
@@ -137,6 +151,10 @@ const backend = {
   },
   'access_or_operation': (node, parent) => {
     visitChildren(node);
+    pushToParent(node, parent);
+    if (node.named.access) {
+      pushInference(parent, node.named.access);
+    }
   },
   'named_func_call': (node, parent) => {
     visitChildren(node);

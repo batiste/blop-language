@@ -80,7 +80,7 @@ const grammar = {
     ['(', ')'],
   ],
   'named_func_call': [
-     ['name:name', 'func_call'],
+    ['name:name', 'func_call'],
   ],
   'func_call_params': [
     ['name', '=', 'exp'],
@@ -198,8 +198,8 @@ const grammar = {
       'w', 'catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
   'access_or_operation': [
-    ['object_access', 'w', 'operation'],
-    ['object_access'],
+    ['object_access:access', 'w', 'operation'],
+    ['object_access:access'],
     ['w', 'operation'],
   ],
   'name_exp': [
