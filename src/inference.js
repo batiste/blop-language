@@ -1,6 +1,20 @@
 
 let warnings;
 let stream;
+let namespacesFCT;
+
+const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
+const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
+const popNameSpaceFCT = () => namespacesFCT.pop();
+
+function getType(name) {
+  namespacesFCT.slice().reverse().forEach((ns) => {
+    const upperScopeNode = ns[name];
+    if (upperScopeNode) {
+      return upperScopeNode;
+    }
+  });
+}
 
 function pushInference(node, inference) {
   if (!node.inference) {
@@ -13,7 +27,6 @@ function checkStatment(node) {
   visitChildren(node);
   if (node.inference) {
     const types = node.inference;
-    console.log(node.inference)
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
       // if(!t) {
@@ -47,10 +60,12 @@ function checkStatment(node) {
           }
         }
         if (t1 && name && t1 !== 'any') {
-          if (namespace[name.value] && namespace[name.value].type !== t1) {
-            pushWarning(t, `Cannot assign ${t1} to ${namespace[name.value].type}`);
+          const ns = currentNameSpaceFCT();
+          const type = getType(name.value);
+          if (type && type.type !== t1) {
+            pushWarning(t, `Cannot assign ${t1} to ${type.type}`);
           } else {
-            namespace[name.value] = {
+            ns[name.value] = {
               type: t1,
               node: t,
             };
@@ -66,7 +81,6 @@ function checkStatment(node) {
       if (t && t.type === 'object_access' && types[i - 1]) {
         types[i - 1] = 'any';
         types.splice(i, 1);
-        console.log(types)
         i = i - 1;
       }
     }
@@ -90,8 +104,6 @@ function visitChildren(node) {
   }
 }
 
-const namespace = {};
-
 const backend = {
   'math': (node, parent) => {
     visitChildren(node);
@@ -101,22 +113,34 @@ const backend = {
     pushInference(parent, 'number');
   },
   'name_exp': (node, parent) => {
+    const ns = currentNameSpaceFCT();
+    const { name, access, op } = node.named;
+    if (access) {
+      visitChildren(access);
+      pushInference(parent, 'any');
+      return;
+    }
     // todo integrate boolean in the language
-    if (node.value === 'true' || node.value === 'false') {
+    if (name.value === 'true' || name.value === 'false') {
       pushInference(parent, 'boolean');
-    } else if (namespace[node.value]) {
-      pushInference(parent, namespace[node.value].type);
+    } else if (ns[name.value]) {
+      pushInference(parent, ns[name.value].type);
     } else {
       pushInference(parent, 'any');
     }
+    if (op) {
+      backend['operation'](op, node);
+      pushToParent(node, parent);
+    }
   },
-  'func_def_params': (node, parent) => {
-    visitChildren(node);
+  'func_def_params': (node) => {
     if (node.named.annotation) {
-      namespace[node.named.name.value] = {
+      const ns = currentNameSpaceFCT();
+      ns[node.named.name.value] = {
         type: node.named.annotation.named.name.value,
       };
     }
+    visitChildren(node);
   },
   'operation': (node, parent) => {
     visitChildren(node);
@@ -131,7 +155,7 @@ const backend = {
   'str': (node, parent) => {
     pushInference(parent, 'string');
   },
-  'func_call': (node, parent) => {
+  'func_call': (node) => {
     checkStatment(node);
   },
   'object_literal': (node, parent) => {
@@ -164,18 +188,22 @@ const backend = {
   'named_func_call': (node, parent) => {
     visitChildren(node);
     const { name } = node.named;
-    if (name && namespace[name.value]) {
-      pushInference(parent, namespace[name.value].type);
+    const type = getType(name.value);
+    if (name && type) {
+      pushInference(parent, type.type);
     }
   },
-  'func_def': (node, parent) => {
-    visitChildren(node);
+  'func_def': (node) => {
+    const parentns = currentNameSpaceFCT();
+    addNameSpaceFCT();
     if (node.named.name && node.named.annotation) {
-      namespace[node.named.name.value] = {
+      parentns[node.named.name.value] = {
         type: node.named.annotation.named.name.value,
         node,
       };
     }
+    visitChildren(node);
+    popNameSpaceFCT();
   },
   'GLOBAL_STATEMENT': checkStatment,
   'SCOPED_STATEMENTS': checkStatment,
@@ -210,6 +238,7 @@ function pushWarning(node, message) {
 
 function inference(node, _stream) {
   warnings = [];
+  namespacesFCT = [{}];
   stream = _stream;
   visit(node);
   return warnings;

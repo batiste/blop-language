@@ -1,36 +1,44 @@
 
-// def inference(a: number, b: string): number {
-//   return parseInt(b) + a
-// }
+def inference(a: number, b: string): number {
+  return parseInt(b) + a
+}
 
-// def inference2(c: number, d: number): number {
-//   return d + c
-// }
+def inference2(c: number, d: number): number {
+  return d + c
+}
 
-// (1 + inference2()) || inference2()
+(1 + inference2()) || inference2()
 
-// def scoped() {
-//   return 1 + inference2()
-//   hello = inference2()
-// }
+def scoped() {
+  return 1 + inference2()
+  hello: number = 1
+}
 
-// backLink = <p>1</p>
-// content: string = backLink.elm
-page = { attempt: 1, success: 2 }
-page.success / page.attempt
-// page.attempt = page.attempt + 1
+backLink = <p>1</p>
+content: string = backLink.elm
+page = { attempt: 1 }
 
-// def match(path) {
-//   m = null
-//   params = 9
-//   route = {}
-//   for index, value in route: array {
-//     params := 1 + index
-//   }
-// }
+page.attempt = page.attempt + 1
 
-// test('Module inference', () => {
-//   // backLink + 1
-//   expect(inference(1, '2')).toBe(3)
-//   expect(inference2(1, 2)).toBe(3)
-// })
+percent = 0
+if (page.attempt) {
+  percent := Math.floor(page.success / page.attempt)
+}
+
+def yop(params: number) {
+  params + 1
+}
+
+def match(path) {
+  m = null
+  params = 1
+  route = {}
+  for index, value in route: array {
+    params := 1 + index
+  }
+}
+
+test('Module inference', () => {
+  expect(inference(1, '2')).toBe(3)
+  expect(inference2(1, 2)).toBe(3)
+})

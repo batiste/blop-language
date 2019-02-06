@@ -203,7 +203,8 @@ const grammar = {
     ['w', 'operation:op'],
   ],
   'name_exp': [
-    ['name:name', 'access_or_operation'],
+    ['name:name', 'w', 'operation:op'],
+    ['name:name', 'access_or_operation:access'],
     ['name:name'],
   ],
   'exp': [
