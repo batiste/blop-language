@@ -33,9 +33,9 @@ function compileFile(source, env = 'webpack', filename = false) {
   if (config.strictness === 'perfect' && !result.perfect) {
     throw result.warnings[0];
   }
-  if(config.inference) {
-    let warnings = inference(tree, stream)
-    if(warnings.length) {
+  if (config.inference) {
+    const warnings = inference(tree, stream);
+    if (warnings.length) {
       throw warnings[0];
     }
   }

@@ -19,13 +19,13 @@ The Blop language compiles to ES6 compliant JavaScript. The language is mostly s
   * Fast compilation (+30'000 lines by second).
   * Blop syntax is arguably simple and natural to understand.
   * A linter is integrated into the language: no linter debate.
+  * Type annotation with basic type inference warnings
   * Good integration with Visual Studio Code: linter and syntactic coloration.
   * Similar syntax and features than ES6.
   * Server Side Rendering in the example.
 
 ## Language features missing
 
-  * No real type checking (but type annotation is possible)
   * The language is still in beta
 
 ## Installation
