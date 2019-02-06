@@ -26,7 +26,10 @@ if (page.attempt) {
 }
 
 def yop(params: number) {
-  params + 1
+  d = ''
+  c = d
+  g = c
+  g + 1
 }
 
 def match(path) {
