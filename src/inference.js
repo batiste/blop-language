@@ -37,26 +37,30 @@ function checkStatment(node) {
         i = i - 2;
       }
       if (t && t.type === 'assign') {
-        const { annotation } = t.named;
+        const { annotation, name } = t.named;
         const t1 = types[i - 1];
-        const t2 = types[i - 2];
-        if (annotation && t1) {
+        // const t2 = types[i - 2];
+        if (annotation && t1 && t1 !== 'any') {
           if (annotation.named.name.value !== t1 && t1 !== 'any') {
             pushWarning(t, `Cannot assign ${t1} to ${annotation.named.name.value}`);
           }
         }
-        if (t1 && t.named.name) {
-          namespace[t.named.name.value] = {
-            type: t1,
-            t,
-          };
-        }
-        // it has to be a name (check grammar)
-        if (t.named.name && !t.named.explicit_assign && t1 && t2) {
-          if (types[i - 1] !== t2 && t2 !== 'any') {
-            pushWarning(t, `Cannot assign ${t1} to ${t2}`);
+        if (t1 && name && t1 !== 'any') {
+          if (namespace[name.value] && namespace[name.value].type !== t1) {
+            pushWarning(t, `Cannot assign ${t1} to ${namespace[name.value].type}`);
+          } else {
+            namespace[name.value] = {
+              type: t1,
+              node: t,
+            };
           }
         }
+        // it has to be a name (check grammar)
+        // if (t.named.name && !t.named.explicit_assign && t1 && t2) {
+        //   if (types[i - 1] !== t2 && t2 !== 'any') {
+        //     pushWarning(t, `Cannot assign ${t1} to ${t2}`);
+        //   }
+        // }
       }
       if (t && t.type === 'object_access' && types[i - 1]) {
         types[i - 1] = 'any';
@@ -98,11 +102,10 @@ const backend = {
     // todo integrate boolean in the language
     if (node.value === 'true' || node.value === 'false') {
       pushInference(parent, 'boolean');
-      return;
-    }
-    if (namespace[node.value]) {
-      // console.log(node.value, namespace[node.value])
+    } else if (namespace[node.value]) {
       pushInference(parent, namespace[node.value].type);
+    } else {
+      pushInference(parent, 'any');
     }
   },
   'func_def_params': (node, parent) => {
@@ -151,7 +154,8 @@ const backend = {
   },
   'access_or_operation': (node, parent) => {
     visitChildren(node);
-    pushToParent(node, parent);
+    pushInference(parent, node.inference[0]);
+    // pushToParent(node, parent);
     if (node.named.access) {
       pushInference(parent, node.named.access);
     }
@@ -176,10 +180,10 @@ const backend = {
   'SCOPED_STATEMENTS': checkStatment,
   'assign': (node, parent) => {
     if (node.named.name) {
-      visitChildren(node.named.name);
-      pushInference(parent, node);
-      visitChildren(node.named.exp);
+      // visit(node.named.name, node);
+      visit(node.named.exp, node);
       pushToParent(node, parent);
+      pushInference(parent, node);
     }
     // annotation operation?
   },
