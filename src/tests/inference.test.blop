@@ -29,7 +29,7 @@ def yop(params: number) {
   d = ''
   c = d
   g = c
-  g + 1
+  // g + 1
 }
 
 def match(path) {
