@@ -154,11 +154,10 @@ const backend = {
   },
   'access_or_operation': (node, parent) => {
     visitChildren(node);
-    pushInference(parent, node.inference[0]);
-    // pushToParent(node, parent);
     if (node.named.access) {
       pushInference(parent, node.named.access);
     }
+    pushToParent(node, parent);
   },
   'named_func_call': (node, parent) => {
     visitChildren(node);

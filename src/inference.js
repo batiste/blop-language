@@ -13,6 +13,7 @@ function checkStatment(node) {
   visitChildren(node);
   if (node.inference) {
     const types = node.inference;
+    console.log(node.inference)
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
       // if(!t) {
@@ -65,6 +66,7 @@ function checkStatment(node) {
       if (t && t.type === 'object_access' && types[i - 1]) {
         types[i - 1] = 'any';
         types.splice(i, 1);
+        console.log(types)
         i = i - 1;
       }
     }
@@ -98,7 +100,7 @@ const backend = {
   'number': (node, parent) => {
     pushInference(parent, 'number');
   },
-  'name': (node, parent) => {
+  'name_exp': (node, parent) => {
     // todo integrate boolean in the language
     if (node.value === 'true' || node.value === 'false') {
       pushInference(parent, 'boolean');
@@ -154,8 +156,7 @@ const backend = {
   },
   'access_or_operation': (node, parent) => {
     visitChildren(node);
-    pushInference(parent, node.inference[0]);
-    // pushToParent(node, parent);
+    pushToParent(node, parent);
     if (node.named.access) {
       pushInference(parent, node.named.access);
     }

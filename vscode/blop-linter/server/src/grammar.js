@@ -198,9 +198,9 @@ const grammar = {
       'w', 'catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
   'access_or_operation': [
-    ['object_access:access', 'w', 'operation'],
+    ['object_access:access', 'w', 'operation:op'],
     ['object_access:access'],
-    ['w', 'operation'],
+    ['w', 'operation:op'],
   ],
   'name_exp': [
     ['name:name', 'access_or_operation'],

@@ -1,38 +1,36 @@
 
-def inference(a: number, b: string): number {
-  return parseInt(b) + a
-}
+// def inference(a: number, b: string): number {
+//   return parseInt(b) + a
+// }
 
-def inference2(c: number, d: number): number {
-  return d + c
-}
+// def inference2(c: number, d: number): number {
+//   return d + c
+// }
 
-(1 + inference2()) || inference2()
+// (1 + inference2()) || inference2()
 
-def scoped() {
-  return 1 + inference2()
-  hello = inference2()
-}
+// def scoped() {
+//   return 1 + inference2()
+//   hello = inference2()
+// }
 
-backLink = <p>1</p>
-content: string = backLink.elm
+// backLink = <p>1</p>
+// content: string = backLink.elm
 page = { attempt: 1, success: 2 }
 page.success / page.attempt
-page.attempt = page.attempt + 1
+// page.attempt = page.attempt + 1
 
-def match(path) {
-  m = null
-  params = 9
-  route = {}
-  for index, value in route: array {
-    params := 1 + index
-  }
-}
+// def match(path) {
+//   m = null
+//   params = 9
+//   route = {}
+//   for index, value in route: array {
+//     params := 1 + index
+//   }
+// }
 
-page.success / page.attempt
-
-test('Module inference', () => {
-  // backLink + 1
-  expect(inference(1, '2')).toBe(3)
-  expect(inference2(1, 2)).toBe(3)
-})
+// test('Module inference', () => {
+//   // backLink + 1
+//   expect(inference(1, '2')).toBe(3)
+//   expect(inference2(1, 2)).toBe(3)
+// })
