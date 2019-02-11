@@ -201,12 +201,12 @@ const backend = {
   'func_def': (node) => {
     const parentns = currentNameSpaceFCT();
     addNameSpaceFCT();
-    if (node.named.name && node.named.annotation) {
+    if (node.named.name) {
+      const annotation = node.named.annotation;
+      const type = annotation ? annotation.named.name.value : 'any'
       parentns[node.named.name.value] = {
-        source: 'func_def',
-        type: node.named.annotation.named.name.value,
-        node,
-      };
+        source: 'func_def', type, node
+      }
     }
     visitChildren(node);
     popNameSpaceFCT();
