@@ -29,7 +29,7 @@ if (page.attempt) {
 
 def yop() {
   d = ''
-  def () {
+  return def () {
     // d + 1
   }
 }
