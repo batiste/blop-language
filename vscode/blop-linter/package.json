@@ -61,5 +61,10 @@
 		"@types/mocha": "^5.2.0",
 		"@types/node": "^8.0.0",
 		"typescript": "2.8.3"
+	},
+	"__metadata": {
+		"id": "07add166-e641-478f-9747-eca9ab6e361a",
+		"publisherDisplayName": "Batiste Bieler",
+		"publisherId": "c8efe3df-da8c-47b9-9227-097d18e9b6f5"
 	}
 }

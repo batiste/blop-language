@@ -98,12 +98,12 @@
         "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
         "name":"meta.object-literal.key.blop"
       },
-      {  
+      {
         "match":"def |if |else|elseif |for |delete |new |extends |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this|typeof |instanceof ",
         "name":"keyword.other.blop"
       },
-      {  
-        "match":" int| string| array| object| any",
+      {
+        "match":" int| string| array| object| any| number| function| boolean| VNode",
         "name":"keyword.other.blop"
       },
       {  
@@ -115,7 +115,7 @@
             "name":"parens"
           }
         },
-        "match":"([a-zA-Z][a-zA-Z_]*)(?:\\()",
+        "match":"([a-zA-Z][a-zA-Z_0-9]*)(?:\\()",
         "name":"func.call.blop"
       },
       {  

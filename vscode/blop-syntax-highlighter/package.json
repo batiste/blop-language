@@ -1,33 +1,49 @@
 {
-  "name": "blop",
+	"name": "blop",
 	"displayName": "Blop language syntax highlighter",
 	"description": "A Javascript-like language that offers a JSX syntax",
 	"version": "1.0.6",
 	"publisher": "batistebieler",
-	"engines": { "vscode": "*" },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
+	"engines": {
+		"vscode": "*"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
 		"type": "git",
 		"url": "https://github.com/batiste/blop-language/vscode/blop-syntax-highlighter"
 	},
-  "icon": "blop.png",
-  "author": "Batiste Bieler",
-  "contributes": {
-    "files.associations": {
-      "*.blop": "blop"
-    },
-    "languages": [{
-      "id": "blop",
-      "extensions": [ ".blop" ],
-      "aliases": [ "Blop", "blop" ],
-      "configuration": "./blop-language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "blop",
-      "scopeName": "source.blop",
-      "path": "./blop.json"
-    }]
-  }
+	"icon": "blop.png",
+	"author": "Batiste Bieler",
+	"contributes": {
+		"files.associations": {
+			"*.blop": "blop"
+		},
+		"languages": [
+			{
+				"id": "blop",
+				"extensions": [
+					".blop"
+				],
+				"aliases": [
+					"Blop",
+					"blop"
+				],
+				"configuration": "./blop-language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "blop",
+				"scopeName": "source.blop",
+				"path": "./blop.json"
+			}
+		]
+	},
+	"__metadata": {
+		"id": "cc5c50fe-b6f5-40fb-b8fc-156e70f54699",
+		"publisherDisplayName": "Batiste Bieler",
+		"publisherId": "c8efe3df-da8c-47b9-9227-097d18e9b6f5"
+	}
 }

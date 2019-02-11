@@ -1,11 +1,11 @@
 import { MemeCard } from './MemeCard.blop'
 
-def MemePage(attributes) {
+def MemePage(attributes: object) {
   { state } = attributes
   <div>
     <h1>'Meme page'</h1>
     <div class={ "card-deck": true, "mb-3": true, 'text-center': true }>
-      for meme in state.memes {
+      for meme in state.memes: array {
         <MemeCard meme></MemeCard>
       }
     </div>

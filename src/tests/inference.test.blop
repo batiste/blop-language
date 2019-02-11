@@ -3,6 +3,8 @@ def inference(a: number, b: string): number {
   return parseInt(b) + a
 }
 
+1 + inference()
+
 def inference2(c: number, d: number): number {
   return d + c
 }
@@ -25,11 +27,11 @@ if (page.attempt) {
   percent := Math.floor(page.success / page.attempt)
 }
 
-def yop(params: number) {
+def yop() {
   d = ''
-  c = d
-  g = c
-  // g + 1
+  def () {
+    // d + 1
+  }
 }
 
 def match(path) {

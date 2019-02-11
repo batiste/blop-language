@@ -7,13 +7,14 @@ const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
 const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
 const popNameSpaceFCT = () => namespacesFCT.pop();
 
-function getType(name) {
-  namespacesFCT.slice().reverse().forEach((ns) => {
-    const upperScopeNode = ns[name];
+function getNSDef(name) {
+  const ns = namespacesFCT.slice().reverse();
+  for (let i = 0; i < ns.length; i++) {
+    const upperScopeNode = ns[i][name];
     if (upperScopeNode) {
       return upperScopeNode;
     }
-  });
+  }
 }
 
 function pushInference(node, inference) {
@@ -60,11 +61,11 @@ function checkStatment(node) {
           }
         }
         if (t1 && name && t1 !== 'any') {
-          const ns = currentNameSpaceFCT();
-          const type = getType(name.value);
-          if (type && type.type !== t1) {
-            pushWarning(t, `Cannot assign ${t1} to ${type.type}`);
+          const def = getNSDef(name.value);
+          if (def && def.type !== t1) {
+            pushWarning(t, `Cannot assign ${t1} to ${def.type}`);
           } else {
+            const ns = currentNameSpaceFCT();
             ns[name.value] = {
               type: t1,
               node: t,
@@ -113,7 +114,6 @@ const backend = {
     pushInference(parent, 'number');
   },
   'name_exp': (node, parent) => {
-    const ns = currentNameSpaceFCT();
     const { name, access, op } = node.named;
     if (access) {
       visitChildren(access);
@@ -121,10 +121,15 @@ const backend = {
       return;
     }
     // todo integrate boolean in the language
+    const def = getNSDef(name.value);
     if (name.value === 'true' || name.value === 'false') {
       pushInference(parent, 'boolean');
-    } else if (ns[name.value]) {
-      pushInference(parent, ns[name.value].type);
+    } else if (def) {
+      if (def.source === 'func_def') {
+        pushInference(parent, 'function');
+      } else {
+        pushInference(parent, def.type);
+      }
     } else {
       pushInference(parent, 'any');
     }
@@ -188,9 +193,9 @@ const backend = {
   'named_func_call': (node, parent) => {
     visitChildren(node);
     const { name } = node.named;
-    const type = getType(name.value);
-    if (name && type) {
-      pushInference(parent, type.type);
+    const def = getNSDef(name.value);
+    if (name && def) {
+      pushInference(parent, def.type);
     }
   },
   'func_def': (node) => {
@@ -198,6 +203,7 @@ const backend = {
     addNameSpaceFCT();
     if (node.named.name && node.named.annotation) {
       parentns[node.named.name.value] = {
+        source: 'func_def',
         type: node.named.annotation.named.name.value,
         node,
       };

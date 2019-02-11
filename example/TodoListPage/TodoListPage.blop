@@ -18,17 +18,17 @@ TodoListPage = (state) => {
       todo.inputValue = ''
     }
   }
-  editItem = (e, index) => {
+  editItem = (e, index: number) => {
     todo.editItemIndex = index
   }
-  changeItem = (e, index) => {
+  changeItem = (e, index: number) => {
     todo.editItemIndex = false
     todo.todoList[index] = e.target.value
   }
   change = (e) => {
     todo.inputValue = e.target.value
   }
-  remove = (e, index) => {
+  remove = (e, index: number) => {
     todo.editItemIndex = false
     todo.todoList.splice(index, 1)
   }

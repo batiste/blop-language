@@ -1,5 +1,5 @@
 
-TodoListItem = (state, children) => {
+TodoListItem = (state: object, children: array): VNode => {
   { value,
     changeItem as change,
     removeItem,
