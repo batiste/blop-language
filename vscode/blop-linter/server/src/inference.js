@@ -44,12 +44,12 @@ function checkStatment(node) {
         }
         types[i - 2] = 'number';
         types.splice(i - 1, 2);
-        i = i - 2;
+        i -= 2;
       }
       if (t && t.type === 'boolean_operator') {
         types[i - 2] = 'boolean';
         types.splice(i - 1, 2);
-        i = i - 2;
+        i -= 2;
       }
       if (t && t.type === 'assign') {
         const { annotation, name } = t.named;
@@ -82,7 +82,7 @@ function checkStatment(node) {
       if (t && t.type === 'object_access' && types[i - 1]) {
         types[i - 1] = 'any';
         types.splice(i, 1);
-        i = i - 1;
+        i -= 1;
       }
     }
   }
@@ -139,11 +139,18 @@ const backend = {
     }
   },
   'func_def_params': (node) => {
+    const ns = currentNameSpaceFCT();
+    if (!ns.__currentFctParams) {
+      ns.__currentFctParams = [];
+    }
     if (node.named.annotation) {
-      const ns = currentNameSpaceFCT();
+      const annotation = node.named.annotation.named.name.value;
       ns[node.named.name.value] = {
-        type: node.named.annotation.named.name.value,
+        type: annotation,
       };
+      ns.__currentFctParams.push(annotation);
+    } else {
+      ns.__currentFctParams.push('any');
     }
     visitChildren(node);
   },
@@ -160,9 +167,9 @@ const backend = {
   'str': (node, parent) => {
     pushInference(parent, 'string');
   },
-  'func_call': (node) => {
-    checkStatment(node);
-  },
+  // 'func_call': (node) => {
+  //   checkStatment(node);
+  // },
   'object_literal': (node, parent) => {
     checkStatment(node);
     pushInference(parent, 'object');
@@ -195,20 +202,34 @@ const backend = {
     const { name } = node.named;
     const def = getNSDef(name.value);
     if (name && def) {
-      pushInference(parent, def.type);
+      if (node.inference) {
+        for (let i = 0; i < def.params.length; i++) {
+          const param = node.inference[i];
+          const signature = def.params[i];
+          if (param && signature && def.params[i] !== param && param !== 'any' && signature !== 'any') {
+            pushWarning(name, `function ${name.value} expected ${signature} for param ${i + 1} but got ${param}`);
+          }
+        }
+      }
+      pushInference(name, parent, def.type);
     }
   },
+  // 'func_call_params': (node, parent) => {
+  //   visitChildren(node);
+  //   pushToParent(node, parent);
+  // },
   'func_def': (node) => {
     const parentns = currentNameSpaceFCT();
-    addNameSpaceFCT();
-    if (node.named.name) {
-      const annotation = node.named.annotation;
-      const type = annotation ? annotation.named.name.value : 'any'
-      parentns[node.named.name.value] = {
-        source: 'func_def', type, node
-      }
-    }
+    const ns = addNameSpaceFCT();
+    ns.__currentFctParams = [];
     visitChildren(node);
+    if (node.named.name) {
+      const { annotation } = node.named;
+      const type = annotation ? annotation.named.name.value : 'any';
+      parentns[node.named.name.value] = {
+        source: 'func_def', type, node, params: ns.__currentFctParams,
+      };
+    }
     popNameSpaceFCT();
   },
   'GLOBAL_STATEMENT': checkStatment,

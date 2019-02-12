@@ -3,7 +3,7 @@ def inference(a: number, b: string): number {
   return parseInt(b) + a
 }
 
-1 + inference()
+inference(1, '1')
 
 def inference2(c: number, d: number): number {
   return d + c
