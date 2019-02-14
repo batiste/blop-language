@@ -1,5 +1,5 @@
 import 'express'
-import { Inssdex } from './index.blop'
+import { Index } from './index.blop'
 import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
 import 'webpack'
