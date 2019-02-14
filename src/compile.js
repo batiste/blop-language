@@ -20,7 +20,7 @@ function compileFile(source, env = 'webpack', filename = false) {
   const header = `const blop = require(${file});\n\n`;
 
   const stream = parser.tokenize(tokensDefinition, source);
-  const tree = parser.parse(stream, 0);
+  const tree = parser.parse(stream);
   if (!tree.success) {
     utils.displayError(source, stream, tokensDefinition, grammar, tree);
   }
