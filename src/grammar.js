@@ -1,4 +1,5 @@
 
+
 const grammar = {
   'START': [
     ['GLOBAL_STATEMENT', 'GLOBAL_STATEMENTS*', 'EOS'],
