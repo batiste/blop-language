@@ -728,8 +728,8 @@ function _backend(node, _stream, _input, _filename = false) {
 
   const output = generateCode(node);
   const sourceMapGen = rootSource.toStringWithSourceMap({ file: _filename }).map;
-  relativePathURL = '/example/state.blop'
-  output.push(`\n//# sourceMappingURL=${relativePathURL}.map`)
+  // relativePathURL = '/example/state.blop'
+  // output.push(`\n//# sourceMappingURL=${relativePathURL}.map`)
   // console.log(_input.length, sourceMapGen.toString().length)
   return {
     sourceMap: sourceMapGen.toString(),

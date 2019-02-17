@@ -9,7 +9,7 @@ const { inference } = require('./inference');
 
 const config = utils.getConfig();
 
-function compileFile(source, env = 'webpack', filename = false) {
+function compileSource(source, env = 'webpack', filename = false) {
   const name = require.resolve(path.join(__dirname, './runtime.js'));
   let file;
   if (env === 'webpack') {
@@ -40,9 +40,9 @@ function compileFile(source, env = 'webpack', filename = false) {
     }
   }
   const code = header + result.code;
-  return code;
+  return { code, sourceMap: result.sourceMap };
 }
 
 module.exports = {
-  compileFile,
+  compileSource,
 };

@@ -5,6 +5,7 @@ const webpack = require('webpack');
 
 const clientConfig = {
   mode: 'development',
+  // devtool: 'source-map',
   stats: 'normal',
   target: 'web',
   entry: './example/client.blop',
