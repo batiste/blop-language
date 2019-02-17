@@ -1,4 +1,5 @@
 import 'express'
+import 'fs'
 import { Index } from './index.blop'
 import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
@@ -8,6 +9,9 @@ import 'snabbdom-to-html' as toHTML
 import 'path' as nodepath
 import '../webpack.client.js' as webpackClientConf
 import 'body-parser' as bodyParser
+import '../src/parser.js' as parser
+import '../src/backend.js' as backend
+import { tokensDefinition } from '../src/tokensDefinition.js'
 
 app = express()
 app.use(bodyParser.json())
@@ -41,6 +45,17 @@ app.post('/api/saveState', (req, res) => {
   savedState := req.body
   res.send('Application state properly saved on server')
 })
+
+// app.get('/*.blop.map', (req, res) => {
+//   filename = ''req.params[0]'.blop'
+//   source = fs.readFileSync(filename).toString('utf8')
+//   stream = parser.tokenize(tokensDefinition, source)
+//   tree = parser.parse(stream)
+//   if (tree.success) {
+//     result = backend.generateCode(tree, stream, source, filename)
+//   }
+//   res.send(result.sourceMap)
+// })
 
 app.use(async (req, res) => {
   html = toHTML(await render(req.path))

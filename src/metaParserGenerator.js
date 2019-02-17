@@ -67,6 +67,8 @@ function generateTokenizer(tokenDef) {
   const len = input.length;
   let char = 0;
   let index = 0;
+  let line = 0;
+  let column = 0;
   while (char < len) {
     [candidate, key] = _tokenize(tokenDef, input, stream);
     if (candidate !== null) {
@@ -76,7 +78,18 @@ function generateTokenizer(tokenDef) {
         start: char,
         stream_index: index,
         len: candidate.length,
+        lineStart: line,
+        columnStart: column
       };
+      lines = candidate.split('\\n');
+      if(lines > 1) {
+        line += lines.length - 1;
+        column = lines[lines.length - 1].length;
+      } else {
+        column += candidate.length;
+      }
+      lastToken.lineEnd = line;
+      lastToken.columnEnd = column;
       stream.push(lastToken);
       index++;
       char += candidate.length;

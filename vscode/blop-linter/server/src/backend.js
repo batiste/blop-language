@@ -1,9 +1,11 @@
 const path = require('path');
 const fs = require('fs');
+const sourceMap = require('source-map');
 const utils = require('./utils');
 const { all } = require('./builtin');
 const parser = require('./parser');
 const { tokensDefinition } = require('./tokensDefinition');
+
 
 const config = utils.getConfig();
 const configGlobals = config.globals || {};
@@ -40,6 +42,9 @@ function _backend(node, _stream, _input, _filename = false) {
   const namespacesFCT = [{}]; // namespace for functions
   const namespacesCDT = [{}]; // namespace for conditions
   let exportKeys = [];
+  let line = 0;
+  const rootSource = new sourceMap.SourceNode(null, null, _filename);
+
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
   const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -199,10 +204,17 @@ function _backend(node, _stream, _input, _filename = false) {
   };
 
   const backend = {
+    'newline': () => {
+      // need to be done in comment
+      line += 1;
+      return ['\n'];
+    },
     'def': () => ['function '],
     'str': (node) => {
       const str = node.value.slice(1, -1);
-      if (str.split('\n').length > 1) {
+      const lines = str.split('\n');
+      line += lines;
+      if (lines.length > 1) {
         return [`\`${str}\``];
       }
       return [`'${str}'`];
@@ -240,6 +252,18 @@ function _backend(node, _stream, _input, _filename = false) {
       final.push(exportKeys.join(', '));
       final.push(' };\n');
       return final;
+    },
+    'GLOBAL_STATEMENT': (node) => {
+      const output = [];
+      node.children.forEach(child => output.push(...generateCode(child)));
+      const token = stream[node.stream_index];
+      rootSource.add(new sourceMap.SourceNode(
+        token.lineStart + 1,
+        token.columnStart + 1,
+        _filename,
+        output.join('')
+      ));
+      return output;
     },
     'annotation': () => [],
     'assign': (node) => {
@@ -703,7 +727,10 @@ function _backend(node, _stream, _input, _filename = false) {
   };
 
   const output = generateCode(node);
+  const sourceMapGen = rootSource.toStringWithSourceMap({ file: _filename }).map;
+  output.push(`n//# sourceMappingURL=${_filename}.map`)
   return {
+    sourceMap: sourceMapGen.toString(),
     code: output.join(''),
     success: errors.length === 0,
     perfect: errors.length === 0 && warnings.length === 0,
