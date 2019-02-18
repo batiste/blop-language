@@ -1,5 +1,4 @@
 import 'express'
-import 'fs'
 import { Index } from './index.blop'
 import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
@@ -9,7 +8,6 @@ import 'snabbdom-to-html' as toHTML
 import 'path' as nodepath
 import '../webpack.client.js' as webpackClientConf
 import 'body-parser' as bodyParser
-import { tokensDefinition } from '../src/tokensDefinition.js'
 
 app = express()
 app.use(bodyParser.json())
