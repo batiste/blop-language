@@ -6,7 +6,6 @@ const { all } = require('./builtin');
 const parser = require('./parser');
 const { tokensDefinition } = require('./tokensDefinition');
 
-
 const config = utils.getConfig();
 const configGlobals = config.globals || {};
 
@@ -28,7 +27,7 @@ function getKeys(filename) {
   return [];
 }
 
-function _backend(node, _stream, _input, _filename = false) {
+function _backend(node, _stream, _input, _filename = false, rootSource) {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -42,9 +41,6 @@ function _backend(node, _stream, _input, _filename = false) {
   const namespacesFCT = [{}]; // namespace for functions
   const namespacesCDT = [{}]; // namespace for conditions
   let exportKeys = [];
-  let line = 0;
-  const rootSource = new sourceMap.SourceNode(null, null, _filename);
-
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
   const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -179,7 +175,7 @@ function _backend(node, _stream, _input, _filename = false) {
     }
   }
 
-  function generateCode(node) {
+  const _generateCode = function gen(node) {
     const output = [];
     if (backend[node.type]) {
       output.push(...backend[node.type](node));
@@ -196,6 +192,28 @@ function _backend(node, _stream, _input, _filename = false) {
       }
     }
     return output;
+  };
+
+  function sourceMapDecorator(func) {
+    return function dec(node) {
+      const output = func(node);
+      if (node.lineStart !== undefined) {
+        rootSource.add(new sourceMap.SourceNode(
+          node.lineStart || 1,
+          node.columnStart + 1,
+          _filename,
+          output.join(''),
+        ));
+      }
+      return output;
+    };
+  }
+
+  let generateCode;
+  if (rootSource) {
+    generateCode = sourceMapDecorator(_generateCode);
+  } else {
+    generateCode = _generateCode;
   }
 
   const uid = () => {
@@ -204,16 +222,11 @@ function _backend(node, _stream, _input, _filename = false) {
   };
 
   const backend = {
-    'newline': () => {
-      // need to be done in comment
-      line += 1;
-      return ['\n'];
-    },
+    'newline': () => ['\n'],
     'def': () => ['function '],
     'str': (node) => {
       const str = node.value.slice(1, -1);
       const lines = str.split('\n');
-      line += lines;
       if (lines.length > 1) {
         return [`\`${str}\``];
       }
@@ -252,18 +265,6 @@ function _backend(node, _stream, _input, _filename = false) {
       final.push(exportKeys.join(', '));
       final.push(' };\n');
       return final;
-    },
-    'GLOBAL_STATEMENT': (node) => {
-      const output = [];
-      node.children.forEach(child => output.push(...generateCode(child)));
-      const token = stream[node.stream_index];
-      rootSource.add(new sourceMap.SourceNode(
-        token.lineStart + 1,
-        token.columnStart + 1,
-        _filename,
-        output.join('')
-      ));
-      return output;
     },
     'annotation': () => [],
     'assign': (node) => {
@@ -536,6 +537,14 @@ function _backend(node, _stream, _input, _filename = false) {
       }
       return output;
     },
+    'named_func_call': (node) => {
+      const output = [];
+      shouldBeDefined(node.named.name.value, node);
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      return output;
+    },
     'exp': (node) => {
       const output = [];
       if (node.children) {
@@ -727,12 +736,7 @@ function _backend(node, _stream, _input, _filename = false) {
   };
 
   const output = generateCode(node);
-  const sourceMapGen = rootSource.toStringWithSourceMap({ file: _filename }).map;
-  // relativePathURL = '/example/state.blop'
-  // output.push(`\n//# sourceMappingURL=${relativePathURL}.map`)
-  // console.log(_input.length, sourceMapGen.toString().length)
   return {
-    sourceMap: sourceMapGen.toString(),
     code: output.join(''),
     success: errors.length === 0,
     perfect: errors.length === 0 && warnings.length === 0,

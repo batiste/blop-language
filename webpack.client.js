@@ -5,7 +5,7 @@ const webpack = require('webpack');
 
 const clientConfig = {
   mode: 'development',
-  // devtool: 'source-map',
+  devtool: 'eval-source-map',
   stats: 'normal',
   target: 'web',
   entry: './example/client.blop',
@@ -22,6 +22,7 @@ const clientConfig = {
             loader: path.resolve('./src/loader.js'),
             options: {
               debug: !!process.env.BLOP_DEBUG,
+              sourceMap: true,
               strictness: 'perfect',
             },
           },

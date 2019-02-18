@@ -9,8 +9,6 @@ import 'snabbdom-to-html' as toHTML
 import 'path' as nodepath
 import '../webpack.client.js' as webpackClientConf
 import 'body-parser' as bodyParser
-import '../src/parser.js' as parser
-import '../src/backend.js' as backend
 import { tokensDefinition } from '../src/tokensDefinition.js'
 
 app = express()
@@ -26,7 +24,7 @@ instance = middleware(compiler, {
    and for each user */
 savedState = null
 
-render = async (path) => {
+render = async (path: string) => {
   state = createState(savedState)
   router = createRouter(state)
   await router.go(path)
@@ -45,17 +43,6 @@ app.post('/api/saveState', (req, res) => {
   savedState := req.body
   res.send('Application state properly saved on server')
 })
-
-// app.get('/*.blop.map', (req, res) => {
-//   filename = ''req.params[0]'.blop'
-//   source = fs.readFileSync(filename).toString('utf8')
-//   stream = parser.tokenize(tokensDefinition, source)
-//   tree = parser.parse(stream)
-//   if (tree.success) {
-//     result = backend.generateCode(tree, stream, source, filename)
-//   }
-//   res.send(result.sourceMap)
-// })
 
 app.use(async (req, res) => {
   html = toHTML(await render(req.path))

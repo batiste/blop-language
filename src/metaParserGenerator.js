@@ -79,10 +79,10 @@ function generateTokenizer(tokenDef) {
         stream_index: index,
         len: candidate.length,
         lineStart: line,
-        columnStart: column
+        columnStart: column,
       };
-      lines = candidate.split('\\n');
-      if(lines > 1) {
+      const lines = candidate.split('\\n');
+      if (lines.length > 1) {
         line += lines.length - 1;
         column = lines[lines.length - 1].length;
       } else {

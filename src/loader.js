@@ -9,22 +9,18 @@ const schema = {
 module.exports = function loader(source) {
   const options = loaderUtils.getOptions(this) || { debug: false };
   validateOptions(schema, options, 'Blop Loader');
-  const { code, sourceMap } = compileSource(source, 'webpack', this.resourcePath);
+  const { code, sourceMap } = compileSource(source, 'webpack', this.resourcePath, this.sourceMap);
   if (options.debug) {
     console.log(code);
   }
-  if(this.sourceMap) {
-    //
-    // var jsRequest = loaderUtils.getCurrentRequest(this);
-    // console.log('--->', coffeeRequest, jsRequest)
+  if (options.sourceMap) {
+    const current = loaderUtils.getRemainingRequest(this);
+    const sourceFilename = loaderUtils.getRemainingRequest(this);
+    sourceMap.sourcesContent = [source];
+    sourceMap.file = current;
+    sourceMap.sources = [sourceFilename];
+    this.callback(null, code, sourceMap);
+  } else {
+    this.callback(null, code);
   }
-  var current = loaderUtils.getRemainingRequest(this);
-  var sourceFilename = loaderUtils.getRemainingRequest(this);
-  const map = JSON.parse(sourceMap);
-  map.sourcesContent = [source];
-  map.file = current;
-  map.sources = [sourceFilename];
-
-  this.callback(null, code, map);
-  return;
 };
