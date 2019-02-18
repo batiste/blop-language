@@ -1,4 +1,4 @@
-const { compileFile } = require('./compile');
+const { compileSource } = require('./compile');
 /**
  * Custom Jest transformer for BLOP files
  *
@@ -9,7 +9,7 @@ const { compileFile } = require('./compile');
 */
 
 module.exports = {
-  process(src, filename) {
-    return compileFile(src, 'jest', filename);
+  process(source, filename) {
+    return compileSource(source, 'jest', filename);
   },
 };

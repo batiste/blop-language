@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const sourceMap = require('source-map');
 const utils = require('./utils');
 const { all } = require('./builtin');
 const parser = require('./parser');
@@ -26,7 +27,7 @@ function getKeys(filename) {
   return [];
 }
 
-function _backend(node, _stream, _input, _filename = false) {
+function _backend(node, _stream, _input, _filename = false, rootSource) {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -174,7 +175,7 @@ function _backend(node, _stream, _input, _filename = false) {
     }
   }
 
-  function generateCode(node) {
+  const _generateCode = function gen(node) {
     const output = [];
     if (backend[node.type]) {
       output.push(...backend[node.type](node));
@@ -191,6 +192,28 @@ function _backend(node, _stream, _input, _filename = false) {
       }
     }
     return output;
+  };
+
+  function sourceMapDecorator(func) {
+    return function dec(node) {
+      const output = func(node);
+      if (node.lineStart !== undefined) {
+        rootSource.add(new sourceMap.SourceNode(
+          node.lineStart || 1,
+          node.columnStart + 1,
+          _filename,
+          output.join(''),
+        ));
+      }
+      return output;
+    };
+  }
+
+  let generateCode;
+  if (rootSource) {
+    generateCode = sourceMapDecorator(_generateCode);
+  } else {
+    generateCode = _generateCode;
   }
 
   const uid = () => {
@@ -199,10 +222,12 @@ function _backend(node, _stream, _input, _filename = false) {
   };
 
   const backend = {
+    'newline': () => ['\n'],
     'def': () => ['function '],
     'str': (node) => {
       const str = node.value.slice(1, -1);
-      if (str.split('\n').length > 1) {
+      const lines = str.split('\n');
+      if (lines.length > 1) {
         return [`\`${str}\``];
       }
       return [`'${str}'`];
@@ -505,6 +530,14 @@ function _backend(node, _stream, _input, _filename = false) {
       return output;
     },
     'name_exp': (node) => {
+      const output = [];
+      shouldBeDefined(node.named.name.value, node);
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      return output;
+    },
+    'named_func_call': (node) => {
       const output = [];
       shouldBeDefined(node.named.name.value, node);
       for (let i = 0; i < node.children.length; i++) {

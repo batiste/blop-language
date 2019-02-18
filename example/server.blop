@@ -22,7 +22,7 @@ instance = middleware(compiler, {
    and for each user */
 savedState = null
 
-render = async (path) => {
+render = async (path: string) => {
   state = createState(savedState)
   router = createRouter(state)
   await router.go(path)

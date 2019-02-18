@@ -68,7 +68,7 @@ const builtin = {
   Atomics: { type: 'Object' },
   DataView: { type: 'Object' },
   JSON: { type: 'Object' },
-  __dirname: { type: 'String' }
+  __dirname: { type: 'String' },
 };
 
 const webapi = {
@@ -93,7 +93,7 @@ const all = {
 };
 
 function generateAutoCompleteFile() {
-  const keys = Object.keys({...this, ...all});
+  const keys = Object.keys({ ...this, ...all });
   const output = ['module.exports = {'];
   keys.forEach((key) => {
     if (!this[key]) {
