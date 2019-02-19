@@ -40,7 +40,7 @@ function h(name, attributes, children) {
   let on;
   let style;
   let sclass;
-  let hook = { prepatch }
+  let hook = { prepatch };
   Object.entries(attributes).forEach((attr) => {
     const [index, value] = attr;
     if (index === 'on') {
@@ -48,9 +48,9 @@ function h(name, attributes, children) {
     } else if (index === 'style') {
       style = value;
     } else if (index === 'hooks') {
-      hook = { ...hook, ...value }
+      hook = { ...hook, ...value };
     } else if (index === 'class') {
-      if(typeof value === 'string') {
+      if (typeof value === 'string') {
         attrs[index] = value;
       } else {
         sclass = value;
@@ -89,8 +89,14 @@ function mount(dom, render) {
     }
     requested = true;
     window.requestAnimationFrame(() => {
-      const newVnode = render();
-      // nothing to update?
+      let newVnode;
+      try {
+        newVnode = render();
+      } catch (error) {
+        requested = false;
+        throw error;
+      }
+      // nothing to update
       if (!newVnode) {
         requested = false;
         return;
