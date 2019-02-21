@@ -40,6 +40,9 @@ Index = (state) => {
         <b>'... loading'</b>
       }
     </h1>
+    if (state.error) {
+      <p>'Error 'state.error''</p>
+    }
     <p>'Here are a few examples of what you can do'</p>
     backLink = <p><a href="/" on={ click: indexPage }>'Back'</a></p>
     if state.page == 'dog' {

@@ -13,19 +13,9 @@ function replaceInvisibleChars(v) {
   return v.replace(/ /g, '␣');
 }
 
-function tokenPosition(input, token) {
-  const charn = token.start || 0;
-  const lines = input.split('\n'); let i; let charCounter = 0; let
-    charOnLine = 0;
-  for (i = 0; i < lines.length; i++) {
-    charCounter += lines[i].length + 1;
-    if (charCounter >= charn) {
-      break;
-    }
-    charOnLine += lines[i].length + 1;
-  }
-  const lineNumber = Math.max(0, i) + 1; // line number
-  const charNumber = (charn - charOnLine) + 1;
+function tokenPosition(token) {
+  const lineNumber = token.lineStart;
+  const charNumber = token.columnStart;
   const end = charNumber + token.len;
   return { lineNumber, charNumber, end };
 }
@@ -33,7 +23,7 @@ function tokenPosition(input, token) {
 function streamContext(input, token, firstToken, stream) {
   const { index } = token;
   const firstTokenIndex = firstToken.index;
-  const { lineNumber } = tokenPosition(input, token);
+  const { lineNumber } = tokenPosition(token);
 
   let lineNb = 1;
   let streamIndex = 0;
@@ -66,7 +56,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
   let rule = '';
   const { token } = bestFailure;
   const firstToken = bestFailure.first_token;
-  const positions = tokenPosition(input, token);
+  const positions = tokenPosition(token);
   let failingToken = '';
   for (let i = 0; i < sub_rules.length; i++) {
     let sr = sub_rules[i];

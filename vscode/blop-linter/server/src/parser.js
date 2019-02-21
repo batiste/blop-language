@@ -5944,6 +5944,7 @@ function try_catch_0(stream, index) {
     return;
   }
 
+  named['try'] = stream[i];
   children.push(stream[i]); i++;
 
   if (stream[i].type !== '{') {
@@ -6008,6 +6009,7 @@ function try_catch_0(stream, index) {
     return;
   }
 
+  named['catch'] = stream[i];
   children.push(stream[i]); i++;
 
   if (stream[i].type !== 'name') {

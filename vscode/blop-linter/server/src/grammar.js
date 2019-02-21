@@ -195,8 +195,8 @@ const grammar = {
     ['exp:exp', 'str:str'],
   ],
   'try_catch': [
-    ['try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
-      'w', 'catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
+    ['try:try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
+      'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
   'access_or_operation': [
     ['object_access:access', 'w', 'operation:op'],

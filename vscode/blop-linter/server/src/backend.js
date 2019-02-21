@@ -719,9 +719,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       return output;
     },
     'try_catch': (node) => {
-      const output = ['try {'];
+      const output = [];
+      output.push(...generateCode(node.named.try));
       node.named.statstry.forEach(stat => output.push(...generateCode(stat)));
-      output.push('} catch(');
+      output.push(...generateCode(node.named.catch));
       const ns = currentNameSpaceFCT();
       ns[node.named.name.value] = { node: node.named.name, hoist: false, token: node.named.name };
       output.push(...generateCode(node.named.name));
@@ -731,6 +732,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       return output;
     },
     'comment': node => node.value.replace('#', '//'),
+    'try': () => ['try {'],
+    'catch': () => ['} catch('],
     '==': () => ['==='],
     '!=': () => ['!=='],
   };
