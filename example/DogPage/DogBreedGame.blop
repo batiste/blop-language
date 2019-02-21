@@ -37,7 +37,7 @@ def DogGame(attributes, children) {
 
     percent = 0
     if (page.attempt) {
-      percent := Math.floor(page.success / page.attempt)
+      percent := Math.floor(100 * (page.success / page.attempt))
     }
     <p>'Correct answers: 'page.success' / 'page.attempt' ('percent'%)'</p>
 
