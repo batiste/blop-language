@@ -3,13 +3,22 @@ TodoListItem = (state: object, children: array): VNode => {
   { value,
     changeItem as change,
     removeItem,
-    editItem
+    editItem,
+    editMode
   } = state
+
+  hooks = {
+    insert: (vnode) => {
+      vnode.elm.focus()
+      vnode.elm.select()
+    }
+  }
+
   <li style={ marginBottom: '5px' }>
     <div class="form-row">
       <div class="col">
-        if state.editMode {
-          <input class="form-control" type="text" value on={ change } />
+        if editMode {
+          <input hooks class="form-control" type="text" value on={ change } />
         } else {
           <div on={ click: editItem } style={ padding: '10px' }>
             = value

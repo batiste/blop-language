@@ -11,6 +11,20 @@ Input = (state) => <input
 TodoListPage = (state) => {
   { todo } = state
 
+  def unselect() {
+    todo.editItemIndex = false
+  }
+
+  hooks = {
+    insert: (vnode) => {
+      document.addEventListener('click', unselect)
+    },
+    remove: (vnode, removeCallback) => {
+      document.removeEventListener('click', unselect)
+      removeCallback()
+    }
+  }
+
   addItem = (e) => {
     e.preventDefault()
     if todo.inputValue {
@@ -19,6 +33,7 @@ TodoListPage = (state) => {
     }
   }
   editItem = (e, index: number) => {
+    e.stopPropagation()
     todo.editItemIndex = index
   }
   changeItem = (e, index: number) => {
@@ -33,7 +48,7 @@ TodoListPage = (state) => {
     todo.todoList.splice(index, 1)
   }
 
-  <div>
+  <div hooks>
     <h3>`Todo list`</h3>
     <form on={ submit: addItem }>
       <div class="form-row">

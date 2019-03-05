@@ -731,11 +731,18 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       output.push('}');
       return output;
     },
+    'boolean_operator': (node) => {
+      if (node.value === '==') {
+        return ['==='];
+      }
+      if (node.value === '!=') {
+        return ['!=='];
+      }
+      return [node.value];
+    },
     'comment': node => node.value.replace('#', '//'),
     'try': () => ['try {'],
     'catch': () => ['} catch('],
-    '==': () => ['==='],
-    '!=': () => ['!=='],
   };
 
   const output = generateCode(node);
