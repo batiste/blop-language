@@ -1,0 +1,28 @@
+import { default as fetch } from 'node-fetch'
+
+async def getPets(state) {
+  state.loading = true
+  try {
+    response = await fetch(`https://petstore.swagger.io/v2/pet/findByStatus?status=available`)
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  petList = (await response.json())
+  
+  state.loading = false
+  state.petStore = petList
+}
+
+async def deletePets(pet) {
+  try {
+    response = await fetch(`https://petstore.swagger.io/v2/pet/`pet.id``, {
+      method: 'DELETE'
+    })
+  } catch e {
+    console.log(e)
+    return
+  }
+  console.log(response)
+}

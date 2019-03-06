@@ -1,0 +1,26 @@
+import { deletePets } from './services.blop'
+
+def PetStore(attributes) {
+  { petStore } = attributes.state
+  deletePet = (index, pet) => {
+    deletePets(pet)
+    petStore.splice(index, 1)
+  }
+  <div>
+    for key, pet in petStore {
+      // the key help with the patching speed immensely
+      <p key=pet.id>
+        = pet.name
+        if pet.photoUrls {
+          for src in pet.photoUrls {
+            if src.startsWith('http') {
+              <img src style={ width: '200px' } />
+            }
+          }
+        }
+        = ' '
+        <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
+      </p>
+    }
+  </div>
+}

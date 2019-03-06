@@ -21,6 +21,6 @@ render = () => {
 init()
 
 proxiedState.listen((path) => {
-  console.log(''path' has changed')
+  // console.log(''path' has changed')
   refresh()
 })

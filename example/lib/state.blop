@@ -35,6 +35,7 @@ def create(state, options={ readOnly: false }) {
   }
   def handler(currentState, path='', parentState) {
     def hasChanged(extrapath='') {
+      // just to return true on the first time
       if !hasBeenFlushed {
         return true
       }
@@ -56,7 +57,8 @@ def create(state, options={ readOnly: false }) {
         if protectedProp[prop] {
           return protectedProp[prop]
         }
-        if isObject(obj[prop]) {
+        // implement instanceof in the language
+        if isObject(obj[prop]) && !(obj[prop].hasChanged) {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],

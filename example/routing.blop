@@ -1,5 +1,6 @@
 import { Router } from './lib/router.blop'
 import { getNewDog, getMemes } from './services.blop'
+import { getPets } from './PetStore/services.blop'
 
 async def indexHandler(params, state) {
   state.page = 'index'
@@ -31,6 +32,12 @@ def todoPageHandler(params, state) {
   console.log('todoIndexHandler called with', params)
 }
 
+async def petStorePageIndexHandler(params, state) {
+  state.page = 'petstore'
+  console.log('petStorePageIndexHandler called with', params)
+  await getPets(state)
+}
+
 def createRouter(state, global) {
   router = new Router(null, state, global)
 
@@ -38,6 +45,7 @@ def createRouter(state, global) {
   router.add({ path: '/meme', name: 'meme', handler: memePageHandler })
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })
   router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
+  router.add({ path: '/petstore', name: 'petstore', handler: petStorePageIndexHandler })
   router.add({ path: '/', name: 'root', handler: indexHandler })
 
   router.init()

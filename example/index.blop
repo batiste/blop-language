@@ -1,5 +1,6 @@
 import { MemePage } from './MemePage/MemePage.blop'
 import { DogPage } from './DogPage/DogPage.blop'
+import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { saveState } from './services.blop'
 
@@ -14,6 +15,10 @@ Index = (state) => {
   }
   def todoPage(e) {
     state.router.go('/todo')
+    e.preventDefault()
+  }
+  def petStorePage(e) {
+    state.router.go('/petstore')
     e.preventDefault()
   }
   def indexPage(e) {
@@ -54,9 +59,15 @@ Index = (state) => {
     } elseif state.page == 'todo' {
       = backLink
       <TodoListPage todo=state></TodoListPage>
+    } elseif state.page == 'petstore' {
+      = backLink
+      <PetStore state=state></PetStore>
     } else {
       <p>
         <a href="/dog" on={ click: dogPage }>'Got to the dog page'</a>
+      </p>
+      <p>
+        <a href="/petstore" on={ click: petStorePage }>'Got to the pet store'</a>
       </p>
       <p>
         <a href="/meme" on={ click: memePage }>'Got to the meme page'</a>

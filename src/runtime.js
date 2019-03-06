@@ -41,12 +41,15 @@ function h(name, attributes, children) {
   let style;
   let sclass;
   let hook = { prepatch };
+  let key;
   Object.entries(attributes).forEach((attr) => {
     const [index, value] = attr;
     if (index === 'on') {
       on = value;
     } else if (index === 'style') {
       style = value;
+    } else if (index === 'key') {
+      key = value;
     } else if (index === 'hooks') {
       hook = { ...hook, ...value };
     } else if (index === 'class') {
@@ -62,7 +65,7 @@ function h(name, attributes, children) {
   return snabbdomh.default(
     name,
     {
-      on, style, attrs, hook, class: sclass,
+      on, style, attrs, hook, class: sclass, key,
     },
     children,
   );
@@ -92,16 +95,17 @@ function mount(dom, render) {
       let newVnode;
       try {
         newVnode = render();
+        // nothing to update
+        if (!newVnode) {
+          requested = false;
+          return;
+        }
+        // error can happen during patching
+        patch(vnode, newVnode);
       } catch (error) {
         requested = false;
         throw error;
       }
-      // nothing to update
-      if (!newVnode) {
-        requested = false;
-        return;
-      }
-      patch(vnode, newVnode);
       vnode = newVnode;
       requested = false;
     });
