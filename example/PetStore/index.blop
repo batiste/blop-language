@@ -7,6 +7,8 @@ def PetStore(attributes) {
     petStore.splice(index, 1)
   }
   <div>
+    <p>'Rendering 'petStore.length' pets from https://petstore.swagger.io/'</p>
+    t1 = (new Date()).getTime()
     for key, pet in petStore {
       // the key help with the patching speed immensely
       <p key=pet.id>
@@ -22,5 +24,6 @@ def PetStore(attributes) {
         <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
       </p>
     }
+    t2 = (new Date()).getTime()
   </div>
 }

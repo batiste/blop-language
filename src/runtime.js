@@ -93,6 +93,7 @@ function mount(dom, render) {
     requested = true;
     window.requestAnimationFrame(() => {
       let newVnode;
+      const now = (new Date()).getTime()
       try {
         newVnode = render();
         // nothing to update
@@ -105,6 +106,11 @@ function mount(dom, render) {
       } catch (error) {
         requested = false;
         throw error;
+      }
+      const after = (new Date()).getTime()
+      const ms = after - now;
+      if (ms > 50) {
+        console.log(`Slow rendering ${ms}ms`)
       }
       vnode = newVnode;
       requested = false;
