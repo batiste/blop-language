@@ -8,11 +8,10 @@ def PetStore(attributes) {
   }
   <div>
     <p>'Rendering 'petStore.length' pets from https://petstore.swagger.io/'</p>
-    t1 = (new Date()).getTime()
     for key, pet in petStore {
-      // the key help with the patching speed immensely
-      <p key=pet.id>
-        = pet.name
+      // the key can help with the patching speed
+      <p key>
+        <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
         if pet.photoUrls {
           for src in pet.photoUrls {
             if src.startsWith('http') {
@@ -24,6 +23,5 @@ def PetStore(attributes) {
         <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
       </p>
     }
-    t2 = (new Date()).getTime()
   </div>
 }

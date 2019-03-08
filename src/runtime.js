@@ -86,19 +86,21 @@ function mount(dom, render) {
     patch(toVNode(dom), vnode);
     requested = false;
   }
-  function refresh() {
+  function refresh(callback) {
     if (requested) {
       return;
     }
     requested = true;
     window.requestAnimationFrame(() => {
       let newVnode;
-      const now = (new Date()).getTime()
+      const now = (new Date()).getTime();
       try {
         newVnode = render();
         // nothing to update
         if (!newVnode) {
           requested = false;
+          const after = (new Date()).getTime();
+          callback && callback(after - now);
           return;
         }
         // error can happen during patching
@@ -107,11 +109,8 @@ function mount(dom, render) {
         requested = false;
         throw error;
       }
-      const after = (new Date()).getTime()
-      const ms = after - now;
-      if (ms > 50) {
-        console.log(`Slow rendering ${ms}ms`)
-      }
+      const after = (new Date()).getTime();
+      callback && callback(after - now);
       vnode = newVnode;
       requested = false;
     });

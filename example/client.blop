@@ -21,6 +21,9 @@ render = () => {
 init()
 
 proxiedState.listen((path) => {
-  // console.log(''path' has changed')
-  refresh()
+  refresh((time) => {
+    if time > 50 {
+      console.log(`Slow rendering time `time`ms triggered by `path``)
+    }
+  })
 })

@@ -24,5 +24,4 @@ async def deletePets(pet) {
     console.log(e)
     return
   }
-  console.log(response)
 }

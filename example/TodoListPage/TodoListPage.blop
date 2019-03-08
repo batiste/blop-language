@@ -12,7 +12,9 @@ TodoListPage = (state) => {
   { todo } = state
 
   def unselect() {
-    todo.editItemIndex = false
+    if todo.editItemIndex != false {
+      todo.editItemIndex = false
+    }
   }
 
   hooks = {
