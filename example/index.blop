@@ -4,7 +4,7 @@ import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { saveState } from './services.blop'
 
-Index = (state) => {
+def linkList(state) {
   def memePage(e) {
     state.router.go('/meme')
     e.preventDefault()
@@ -21,6 +21,23 @@ Index = (state) => {
     state.router.go('/petstore')
     e.preventDefault()
   }
+  <div>
+    <p>
+      <a href="/dog" on={ click: dogPage }>'Got to the dog page'</a>
+    </p>
+    <p>
+      <a href="/petstore" on={ click: petStorePage }>'Got to the pet store'</a>
+    </p>
+    <p>
+      <a href="/meme" on={ click: memePage }>'Got to the meme page'</a>
+    </p>
+    <p>
+      <a href="/todo" on={ click: todoPage }>'Got to the todo page'</a>
+    </p>
+  </div>
+}
+
+Index = (state) => {
   def indexPage(e) {
     state.router.go('/')
     e.preventDefault()
@@ -63,18 +80,7 @@ Index = (state) => {
       = backLink
       <PetStore state=state></PetStore>
     } else {
-      <p>
-        <a href="/dog" on={ click: dogPage }>'Got to the dog page'</a>
-      </p>
-      <p>
-        <a href="/petstore" on={ click: petStorePage }>'Got to the pet store'</a>
-      </p>
-      <p>
-        <a href="/meme" on={ click: memePage }>'Got to the meme page'</a>
-      </p>
-      <p>
-        <a href="/todo" on={ click: todoPage }>'Got to the todo page'</a>
-      </p>
+      = linkList(state)
     }
   </div>
 }
