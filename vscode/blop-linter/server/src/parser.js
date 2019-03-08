@@ -7013,10 +7013,6 @@ function _tokenize(tokenDef, input, stream) {
   if (match !== null) {
     return [match[0], 'operand'];
   }
-  match = input.match(tokenDef.name.reg);
-  if (match !== null) {
-    return [match[0], 'name'];
-  }
   if (input.startsWith(',')) {
     return [',', ','];
   }
@@ -7059,6 +7055,10 @@ function _tokenize(tokenDef, input, stream) {
   }
   if (input.startsWith('<')) {
     return ['<', '<'];
+  }
+  match = input.match(tokenDef.name.reg);
+  if (match !== null) {
+    return [match[0], 'name'];
   }
   match = tokenDef.regexp.func(input, stream);
   if (match !== undefined) {

@@ -57,8 +57,8 @@ def create(state, options={ readOnly: false }) {
         if protectedProp[prop] {
           return protectedProp[prop]
         }
-        // implement instanceof in the language
-        if isObject(obj[prop]) && !(obj[prop].hasChanged) {
+        // be sure to not double wrap a Proxy
+        if isObject(obj[prop]) && !obj[prop].hasChanged {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
