@@ -12,7 +12,7 @@ async def getPets(state) {
   petList = (await response.json())
   
   state.loading = false
-  state.petStore = petList
+  state.petStore.pets = petList
 }
 
 async def deletePets(pet) {

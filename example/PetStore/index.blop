@@ -1,14 +1,49 @@
 import { deletePets } from './services.blop'
 
+pageSize = 10
+
+def pagination(petStore) {
+  pets = petStore.pets
+  pageIndex = petStore.pageIndex
+  nbPage = Math.ceil(pets.length / pageSize)
+  nextPage = (e) => {
+    e.preventDefault()
+    petStore.pageIndex = pageIndex + 1
+  }
+  previousPage = (e) => {
+    e.preventDefault()
+    petStore.pageIndex = pageIndex - 1
+  }
+  <p>
+    if pageIndex > 0 {
+      <a href='#' on={ click: previousPage }>'< Previous page'</a>
+      = ' '
+    }
+    = 'Page 'pageIndex + 1' on 'nbPage' '
+    if pageIndex < pets.length {
+      <a href='#' on={ click: nextPage }>'Next page >'</a>
+    }
+  </p>
+}
+
 def PetStore(attributes) {
   { petStore } = attributes.state
+  pets = petStore.pets
+  pageIndex = petStore.pageIndex
+  page = petStore.pets.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
+  nbPage = Math.ceil(pets.length / pageSize)
+
   deletePet = (index, pet) => {
     deletePets(pet)
-    petStore.splice(index, 1)
+    pets.splice(index, 1)
   }
   <div>
-    <p>'Rendering 'petStore.length' pets from https://petstore.swagger.io/'</p>
-    for key, pet in petStore {
+    <p>
+      = 'Rendering 'pets.length' pets from '
+      <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
+    </p>
+    = pagination(petStore)
+    for key, pet in page {
       // the key can help with the patching speed
       <p key>
         <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
@@ -23,5 +58,6 @@ def PetStore(attributes) {
         <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
       </p>
     }
+    = pagination(petStore)
   </div>
 }

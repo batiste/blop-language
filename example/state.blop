@@ -6,7 +6,7 @@ state: object = {
     'some task 2'
   ],
   dogPage: { score: 0, attempt: 0, success: 0 },
-  petStore: [],
+  petStore: { pets: [], pageIndex: 0 },
   page: 'dog',
   memes: [],
   loading: false

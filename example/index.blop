@@ -52,19 +52,25 @@ Index = (state) => {
         margin: 2em auto;
       }
     '</style>
-    <button on={ click: saveStateEvent } class="btn btn-secondary" style={ float: 'right' }>
-      = 'Save locale state on server'
-    </button>
+    <div style={ float: 'right' }>
+      <button on={ click: saveStateEvent } class="btn btn-secondary">
+        = 'Save locale state on server'
+      </button>
+    </div>
     <h1>
       = 'Blop language '
       <b>state.page</b>
-      if (state.loading) {
-        <b>'... loading'</b>
-      }
     </h1>
-    if (state.error) {
-      <p>'Error 'state.error''</p>
-    }
+    <div style={ float: 'right' }>
+      if (state.loading) {
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">'Loading...'</span>
+        </div>
+      }
+      if (state.error) {
+        <p>'Error 'state.error''</p>
+      }
+    </div>
     <p>'Here are a few examples of what you can do'</p>
     backLink = <p><a href="/" on={ click: indexPage }>'Back'</a></p>
     if state.page == 'dog' {
