@@ -1,0 +1,16 @@
+import { default as fetch } from 'node-fetch'
+
+async def getMemes(state) {
+  state.loading = true
+  try {
+    response = await fetch(`https://api.imgflip.com/get_memes`)
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  message = await response.json()
+  state.loading = false
+
+  state.memes = message.data.memes
+}

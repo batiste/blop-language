@@ -1,4 +1,4 @@
-import { getNewDog } from '../routing.blop'
+import { getNewDog } from './services.blop'
 
 def DogGame(attributes, children) {
   { page, loading, state } = attributes

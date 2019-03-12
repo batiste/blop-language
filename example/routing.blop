@@ -1,6 +1,7 @@
 import { Router } from './lib/router.blop'
-import { getNewDog, getMemes } from './services.blop'
+import { getMemes } from './MemePage/services.blop'
 import { getPets } from './PetStore/services.blop'
+import { getNewDog } from './DogPage/services.blop'
 
 async def indexHandler(params, state) {
   state.page = 'index'

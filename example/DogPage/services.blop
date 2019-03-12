@@ -1,0 +1,17 @@
+import { default as fetch } from 'node-fetch'
+
+async def getNewDog(state) {
+  state.loading = true
+  try {
+    response = await fetch(`https://dog.ceo/api/breeds/image/random`)
+  } catch e {
+    console.log(e)
+    state.loading = e.message
+    return
+  }
+  message = (await response.json()).message
+  bits = message.split('/')
+  state.loading = false
+
+  state.dogPage.choice = { url: message, breed: bits[4], image: bits[5] }
+}
