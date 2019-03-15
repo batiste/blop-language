@@ -42,6 +42,10 @@ app.post('/api/saveState', (req, res) => {
   res.send('Application state properly saved on server')
 })
 
+def escapeJSON(json) {
+  return JSON.stringify(json).replace(/</gm, '&lt;')
+}
+
 app.use(async (req, res) => {
   html = toHTML(await render(req.path))
   state = createState(savedState)
@@ -56,7 +60,7 @@ app.use(async (req, res) => {
           `html`
         </div>
       </body>
-      <script>window.INITIAL_STATE = `JSON.stringify(savedState || state)`</script>
+      <script>window.INITIAL_STATE = `escapeJSON(savedState || state)`</script>
       <script src="/bundle/client.js"></script>
     </html>
   `)

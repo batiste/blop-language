@@ -42,22 +42,24 @@ def PetStore(attributes) {
       = 'Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
     </p>
-    = pagination(petStore)
-    for key, pet in page {
-      // the key can help with the patching speed
-      <p key>
-        <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
-        if pet.photoUrls {
-          for src in pet.photoUrls {
-            if src.startsWith('http') {
-              <img src style={ width: '200px' } />
+    if petStore.pets.length {
+      = pagination(petStore)
+      for key, pet in page {
+        // the key can help with the patching speed
+        <p key>
+          <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
+          if pet.photoUrls {
+            for src in pet.photoUrls {
+              if src.startsWith('http') {
+                <img src style={ width: '200px' } />
+              }
             }
           }
-        }
-        = ' '
-        <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
-      </p>
+          = ' '
+          <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
+        </p>
+      }
+      = pagination(petStore)
     }
-    = pagination(petStore)
   </div>
 }
