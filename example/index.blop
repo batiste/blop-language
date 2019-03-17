@@ -23,16 +23,16 @@ def linkList(state) {
   }
   <div>
     <p>
-      <a href="/dog" on={ click: dogPage }>'Got to the dog page'</a>
+      <a href="/dog" on={ click: dogPage }>'Dog breed guessing game'</a>
     </p>
     <p>
-      <a href="/petstore" on={ click: petStorePage }>'Got to the pet store'</a>
+      <a href="/petstore" on={ click: petStorePage }>'A pet store'</a>
     </p>
     <p>
-      <a href="/meme" on={ click: memePage }>'Got to the meme page'</a>
+      <a href="/meme" on={ click: memePage }>'Blank meme page'</a>
     </p>
     <p>
-      <a href="/todo" on={ click: todoPage }>'Got to the todo page'</a>
+      <a href="/todo" on={ click: todoPage }>'A basic todo app'</a>
     </p>
   </div>
 }

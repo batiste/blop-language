@@ -11,6 +11,5 @@ async def getMemes(state) {
   }
   message = await response.json()
   state.loading = false
-
   state.memes = message.data.memes
 }
