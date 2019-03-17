@@ -37,56 +37,103 @@ def linkList(state) {
   </div>
 }
 
-Index = (state) => {
-  def indexPage(e) {
-    state.router.go('/')
+def navigation(state) {
+  def memePage(e) {
+    state.router.go('/meme')
+    e.preventDefault()
+  }
+  def dogPage(e) {
+    state.router.go('/dogs')
+    e.preventDefault()
+  }
+  def todoPage(e) {
+    state.router.go('/todo')
+    e.preventDefault()
+  }
+  def petStorePage(e) {
+    state.router.go('/petstore')
     e.preventDefault()
   }
   def saveStateEvent(e) {
     saveState(state)
     e.preventDefault()
   }
-  <div class="container">
-    <style>'
-      .container {
-        margin: 2em auto;
-      }
-    '</style>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">
+      <img
+        src="/favicon.ico"
+        width="38" height="30" class="d-inline-block align-top" alt="" />
+      = ' Blop'
+    </a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a href="/dog" class="nav-link" on={ click: dogPage }>
+            = 'Breed game'
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/petstore" class="nav-link" on={ click: petStorePage }>
+            = 'Pet store'
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/meme" class="nav-link" on={ click: memePage }>
+            = 'Meme page'
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/todo" class="nav-link" on={ click: todoPage }>
+            = 'A basic todo app'
+          </a>
+        </li>
+      </ul>
+    </div>
     <div style={ float: 'right' }>
       <button on={ click: saveStateEvent } class="btn btn-secondary">
         = 'Save locale state on server'
       </button>
     </div>
-    <h1>
-      = 'Blop language '
-      <b>state.page</b>
-    </h1>
-    <div style={ float: 'right' }>
-      if (state.loading) {
-        <div class="spinner-border text-primary" role="status">
-          <span class="sr-only">'Loading...'</span>
-        </div>
+  </nav>
+}
+
+Index = (state) => {
+  def indexPage(e) {
+    state.router.go('/')
+    e.preventDefault()
+  }
+  <div>
+    <style>'
+      .container {
+        margin: 2em auto;
       }
-      if (state.error) {
-        <p>'Error 'state.error''</p>
+    '</style>
+    = navigation()
+    <div class="container">
+      <h1>
+        <b>state.page</b>
+      </h1>
+      <div style={ float: 'right' }>
+        if (state.loading) {
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">'Loading...'</span>
+          </div>
+        }
+        if (state.error) {
+          <p>'Error 'state.error''</p>
+        }
+      </div>
+      if state.page == 'dog' {
+        <DogPage state=state></DogPage>
+      } elseif state.page == 'meme' {
+        <MemePage state=state></MemePage>
+      } elseif state.page == 'todo' {
+        <TodoListPage todo=state></TodoListPage>
+      } elseif state.page == 'petstore' {
+        <PetStore state=state></PetStore>
+      } else {
+        = linkList(state)
       }
     </div>
-    <p>'Here are a few examples of what you can do'</p>
-    backLink = <p><a href="/" on={ click: indexPage }>'Back'</a></p>
-    if state.page == 'dog' {
-      = backLink
-      <DogPage state=state></DogPage>
-    } elseif state.page == 'meme' {
-      = backLink
-      <MemePage state=state></MemePage>
-    } elseif state.page == 'todo' {
-      = backLink
-      <TodoListPage todo=state></TodoListPage>
-    } elseif state.page == 'petstore' {
-      = backLink
-      <PetStore state=state></PetStore>
-    } else {
-      = linkList(state)
-    }
   </div>
 }
