@@ -87,7 +87,15 @@ def navigation(state) {
         = navItem('todo', todoPage, 'A basic todo app')
       </ul>
     </div>
-    <div style={ float: 'right' }>
+    <div style={ float: 'right', display: 'flex' }>
+      if (state.loading) {
+        <div class="spinner-border text-primary" role="status" style={ marginRight: '1em' }>
+          <span class="sr-only">'Loading...'</span>
+        </div>
+      }
+      if (state.error) {
+        <p>'Error 'state.error''</p>
+      }
       <button on={ click: saveStateEvent } class="btn btn-secondary">
         = 'Save locale state on server'
       </button>
@@ -111,16 +119,6 @@ Index = (state) => {
       <h1>
         <b>state.page</b>
       </h1>
-      <div style={ float: 'right' }>
-        if (state.loading) {
-          <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">'Loading...'</span>
-          </div>
-        }
-        if (state.error) {
-          <p>'Error 'state.error''</p>
-        }
-      </div>
       if state.page == 'dog' {
         <DogPage state=state></DogPage>
       } elseif state.page == 'meme' {
