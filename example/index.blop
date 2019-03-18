@@ -58,6 +58,20 @@ def navigation(state) {
     saveState(state)
     e.preventDefault()
   }
+  state.page
+
+  def navItem(type, go, name) {
+    classes = "nav-item"
+    if state.page == type {
+      classes := ""classes" active"
+    }
+    <li class=classes>
+      <a href="/"type"" class="nav-link" on={ click: go }>
+        = name
+      </a>
+    </li>
+  }
+
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="/">
       <img
@@ -67,26 +81,10 @@ def navigation(state) {
     </a>
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav">
-        <li class="nav-item active">
-          <a href="/dog" class="nav-link" on={ click: dogPage }>
-            = 'Breed game'
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/petstore" class="nav-link" on={ click: petStorePage }>
-            = 'Pet store'
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/meme" class="nav-link" on={ click: memePage }>
-            = 'Meme page'
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/todo" class="nav-link" on={ click: todoPage }>
-            = 'A basic todo app'
-          </a>
-        </li>
+        = navItem('dog', dogPage, 'Breed game')
+        = navItem('petstore', petStorePage, 'Pet store')
+        = navItem('meme', memePage, 'Memes')
+        = navItem('todo', todoPage, 'A basic todo app')
       </ul>
     </div>
     <div style={ float: 'right' }>
@@ -108,7 +106,7 @@ Index = (state) => {
         margin: 2em auto;
       }
     '</style>
-    = navigation()
+    = navigation(state)
     <div class="container">
       <h1>
         <b>state.page</b>

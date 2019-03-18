@@ -51,7 +51,7 @@ TodoListPage = (state) => {
   }
 
   <div hooks>
-    <h3>`Todo list`</h3>
+    // <h3>`Todo list`</h3>
     <form on={ submit: addItem }>
       <div class="form-row">
         <div class="col">

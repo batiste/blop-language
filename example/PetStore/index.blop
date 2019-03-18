@@ -39,7 +39,7 @@ def PetStore(attributes) {
   }
   <div>
     <p>
-      = 'Rendering 'pets.length' pets from '
+      = 'Using the slow and buggy swagger pet API is a good test. Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
     </p>
     if petStore.pets.length {
