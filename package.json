@@ -35,7 +35,7 @@
     "url": "https://github.com/batiste/blop-language/issues"
   },
   "devDependencies": {
-    "eslint": "^5.13.0",
+    "eslint": "^5.15.3",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-ie11": "^1.0.0",
     "eslint-plugin-import": "^2.16.0",
@@ -44,9 +44,9 @@
     "node-fetch": "^2.3.0",
     "nodemon": "^1.18.10",
     "snabbdom-to-html": "^5.1.1",
-    "webpack": "^4.29.3",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-middleware": "^3.5.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-middleware": "^3.6.1",
     "webpack-node-externals": "^1.7.2"
   },
   "homepage": "https://github.com/batiste/blop-language",
