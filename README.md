@@ -9,6 +9,8 @@ The HTML tags written with blop are converted into Virtual DOM nodes using the [
 
 The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
 
+https://github.com/batiste/blop-language/wiki/Blop-syntax
+
 <img src="/img/carbon.png" width="800">
 
 [![Edit blop-language](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/batiste/blop-language/tree/master/)
