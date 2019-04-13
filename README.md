@@ -12,7 +12,7 @@ The Blop language compiles to ES6 compliant JavaScript. The language is mostly s
  * [Install the exemple application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
  * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
 
-<img src="/img/carbon.png" width="600">
+<img src="/img/carbon.png" width="700">
 
 [![Edit blop-language](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/batiste/blop-language/tree/master/)
 
