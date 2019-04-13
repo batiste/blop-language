@@ -9,7 +9,10 @@ The HTML tags written with blop are converted into Virtual DOM nodes using the [
 
 The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
 
-<img src="/img/carbon.png" width="800">
+ * [Install the exemple application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
+ * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
+
+<img src="/img/carbon.png" width="700">
 
 [![Edit blop-language](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/batiste/blop-language/tree/master/)
 
@@ -57,7 +60,7 @@ module.exports = {
         test: /\.blop$/,
         use: [
           {
-            loader: 'blop-language/loader',
+            loader: 'blop-language/src/loader',
             options: {debug: false}
           }
         ]
@@ -78,7 +81,7 @@ module.exports = {
   ],
   testMatch: ['**/*.test.blop'],
   transform: {
-    '^.+\\.blop$': 'blop-language/jest-transform',
+    '^.+\\.blop$': 'blop-language/src/jest',
   },
 };
 ```

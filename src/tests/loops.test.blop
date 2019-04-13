@@ -1,0 +1,23 @@
+
+a = 1
+b = 2
+
+while true {
+  a := 2
+  break
+  b := 3
+}
+
+c = 0
+for key, value in [1, 10, 100, 1000]: array {
+  if value > 99 {
+    // break is not possible yet because of forEach
+  }
+  c := key
+}
+
+test('loops', () => {
+  expect(a).toBe(2)
+  expect(b).toBe(2)
+  expect(c).toBe(3)
+})
