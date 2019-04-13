@@ -45,6 +45,7 @@ const grammar = {
     ['while_loop'],
     ['return', 'exp_statement?'],
     ['exp_statement'],
+    ['break'],
   ],
   'object_access': [
     ['.', 'name', 'object_access?'],

@@ -56,6 +56,14 @@ function returnDef(input) {
   }
 }
 
+function breakDef(input) {
+  if (input.startsWith('break')) {
+    if (input[5] === '\n') {
+      return 'break';
+    }
+  }
+}
+
 const tokensDefinition = {
   'number': { reg: /^[0-9]+(\.[0-9]*)?/ },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
@@ -77,6 +85,7 @@ const tokensDefinition = {
   'extends': { str: 'extends ' },
   'elseif': { str: 'elseif ' },
   'return': { func: returnDef, verbose: 'return' },
+  'break': { func: breakDef, verbose: 'break' },
   'throw': { str: 'throw ', verbose: 'throw' },
   'import': { str: 'import ' },
   'from': { str: 'from ' },

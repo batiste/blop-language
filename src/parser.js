@@ -713,6 +713,32 @@ function SCOPED_STATEMENT_8(stream, index) {
   return node;
 }
 
+function SCOPED_STATEMENT_9(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'SCOPED_STATEMENT',
+    subRule: 9, type: 'SCOPED_STATEMENT', named,
+  };
+
+  if (stream[i].type !== 'break') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'SCOPED_STATEMENT', sub_rule_index: 9,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
 function SCOPED_STATEMENT(stream, index) {
   return SCOPED_STATEMENT_0(stream, index)
     || SCOPED_STATEMENT_1(stream, index)
@@ -722,7 +748,8 @@ function SCOPED_STATEMENT(stream, index) {
     || SCOPED_STATEMENT_5(stream, index)
     || SCOPED_STATEMENT_6(stream, index)
     || SCOPED_STATEMENT_7(stream, index)
-    || SCOPED_STATEMENT_8(stream, index);
+    || SCOPED_STATEMENT_8(stream, index)
+    || SCOPED_STATEMENT_9(stream, index);
 }
 function object_access_0(stream, index) {
   let i = index;
@@ -6999,6 +7026,10 @@ function _tokenize(tokenDef, input, stream) {
   match = tokenDef.return.func(input, stream);
   if (match !== undefined) {
     return [match, 'return'];
+  }
+  match = tokenDef.break.func(input, stream);
+  if (match !== undefined) {
+    return [match, 'break'];
   }
   if (input.startsWith('throw ')) {
     return ['throw ', 'throw'];
