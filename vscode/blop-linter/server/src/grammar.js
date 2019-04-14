@@ -25,7 +25,6 @@ const grammar = {
     ['condition'],
     ['assign'],
     ['class_def'],
-    ['object_destructuring'],
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
@@ -39,7 +38,6 @@ const grammar = {
     ['condition'],
     ['assign'],
     ['virtual_node'],
-    ['object_destructuring'],
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
@@ -55,6 +53,7 @@ const grammar = {
   'assign': [
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
+    // ['object_destructuring:destructuring', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
     ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
   ],
@@ -144,7 +143,7 @@ const grammar = {
     ['object_literal_key:key'],
   ],
   'object_destructuring': [
-    ['{', 'w', 'destructuring_values', 'single_space_or_newline', '}', 'w', '=', 'w', 'exp'],
+    ['{', 'w', 'destructuring_values:values', 'single_space_or_newline', '}'],
   ],
   'destructuring_values': [
     ['name:name', ',', 'single_space_or_newline', 'destructuring_values:more'],

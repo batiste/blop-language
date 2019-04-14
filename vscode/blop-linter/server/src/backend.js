@@ -54,17 +54,17 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
   const popNameSpaceCDT = () => namespacesCDT.pop();
 
-  function registerName(name, node, token, hoist = false) {
-    checkRedefinition(name, node);
-    if (!token) {
+  function registerName(name, node, options = {}) {
+    checkRedefinition(name, node, !!options.explicit_assign);
+    if (!options.token) {
       token = node;
     }
     const ns = currentNameSpaceFCT();
-    ns[name] = { node, token, hoist };
+    ns[name] = { node, token, hoist: !!options.hoist };
   }
 
-  function checkRedefinition(name, node, explicit = false) {
-    if (explicit) return;
+  function checkRedefinition(name, node, explicit_assign = false) {
+    if (explicit_assign) return;
     namespacesFCT.slice().reverse().forEach((ns) => {
       const upperScopeNode = ns[name];
       if (upperScopeNode) {
@@ -273,8 +273,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       if (node.named.name) {
         if (!node.named.explicit_assign) {
           checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
-          ns[node.named.name.value] = { node, token: node.named.name };
         }
+        ns[node.named.name.value] = { node, token: node.named.name };
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {
         const name = node.named.path.value;
@@ -303,7 +303,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }
-      output.push(';');
       return output;
     },
     'destructuring_values': (node, exportKeys) => {
@@ -323,7 +322,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       }
       if (node.named.more) {
         output.push(', ');
-        output.push(...backend.destructuring_values(node.named.more, exportKeys));
+        output.push(...backend.destructuring_values(
+          node.named.more, exportKeys));
       }
       return output;
     },

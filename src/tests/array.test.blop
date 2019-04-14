@@ -5,6 +5,11 @@ array = [1,
 
 squares = [1, 2].map((i) => i * i)
 
+a = { test: 1, func: () => {
+  hello = 1
+  }
+}
+
 test('array access', () => {
   expect(array[1]).toBe(4)
   expect(squares[1]).toBe(4)
