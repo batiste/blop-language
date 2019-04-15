@@ -7,6 +7,7 @@ while true {
   break
   b := 3
   continue
+  <span>1</span>
 }
 
 c = 0

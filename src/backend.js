@@ -144,6 +144,15 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     const currentFctNS = currentNameSpaceFCT();
     const currentCdtNS = currentNamespacesCDT();
     const parent = currentNameSpaceVN().currentVNode;
+
+    if (namespacesFCT.length <= 1 && node.type !== 'virtual_node_exp') {
+      const { opening, closing } = node.named;
+      opening.len = closing.start - opening.start + closing.len;
+      const error = new Error('Virtual node statement cannot be use outside a function scope');
+      error.token = opening;
+      warnings.push(error);
+    }
+
     if (node.type !== 'virtual_node_exp' && !parent) {
       if (currentFctNS.returnVirtualNode) {
         const { opening, closing } = node.named;
