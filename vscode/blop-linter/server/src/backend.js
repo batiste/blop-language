@@ -56,6 +56,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
 
   function registerName(name, node, options = {}) {
     checkRedefinition(name, node, !!options.explicit_assign);
+    let token;
     if (!options.token) {
       token = node;
     }
@@ -323,7 +324,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       if (node.named.more) {
         output.push(', ');
         output.push(...backend.destructuring_values(
-          node.named.more, exportKeys));
+          node.named.more, exportKeys,
+        ));
       }
       return output;
     },

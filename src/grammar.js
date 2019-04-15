@@ -13,6 +13,10 @@ const grammar = {
     ['newline', 'w?', 'W?', 'SCOPED_STATEMENT', 'wcomment?'],
     ['newline', 'w?', 'W?', 'scomment?'],
   ],
+  'LOOP_STATEMENTS': [
+    ['newline', 'w?', 'W?', 'LOOP_STATEMENT', 'wcomment?'],
+    ['newline', 'w?', 'W?', 'scomment?'],
+  ],
   'wcomment': [
     ['w', 'comment'],
     ['w', 'multiline_comment'],
@@ -43,7 +47,18 @@ const grammar = {
     ['while_loop'],
     ['return', 'exp_statement?'],
     ['exp_statement'],
+  ],
+  'LOOP_STATEMENT': [
+    ['condition'],
+    ['assign'],
+    ['virtual_node'],
+    ['try_catch'],
+    ['for_loop'],
+    ['while_loop'],
+    ['return', 'exp_statement?'],
+    ['exp_statement'],
     ['break'],
+    ['continue'],
   ],
   'object_access': [
     ['.', 'name', 'object_access?'],
@@ -53,7 +68,6 @@ const grammar = {
   'assign': [
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
-    // ['object_destructuring:destructuring', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
     ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
   ],
@@ -125,7 +139,7 @@ const grammar = {
     ['w?'],
   ],
   'while_loop': [
-    ['while', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['while', 'exp:exp', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
   ],
   'object_literal': [
     ['{', 'single_space_or_newline', 'object_literal_body', 'single_space_or_newline', '}'],

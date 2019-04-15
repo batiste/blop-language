@@ -6,6 +6,7 @@ while true {
   a := 2
   break
   b := 3
+  continue
 }
 
 c = 0

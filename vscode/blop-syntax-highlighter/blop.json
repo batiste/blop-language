@@ -103,7 +103,7 @@
         "name":"keyword.other.blop"
       },
       {
-        "match":" int| string| array| object| any| number| function| boolean| VNode|break",
+        "match":" int| string| array| object| any| number| function| boolean| VNode|break|continue",
         "name":"keyword.other.blop"
       },
       {  
