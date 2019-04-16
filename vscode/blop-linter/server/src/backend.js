@@ -274,8 +274,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       if (node.named.name) {
         if (!node.named.explicit_assign) {
           checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
+          ns[node.named.name.value] = { node, token: node.named.name };
         }
-        ns[node.named.name.value] = { node, token: node.named.name };
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {
         const name = node.named.path.value;
