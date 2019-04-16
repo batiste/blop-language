@@ -54,6 +54,16 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
   const popNameSpaceCDT = () => namespacesCDT.pop();
 
+  function generateError(node, message) {
+    const token = stream[node.stream_index];
+    const sourceContext = utils.streamContext(input, token, token, stream);
+    const error = new Error(`${message}
+    ${sourceContext}
+`);
+    error.token = token;
+    errors.push(error);
+  }
+
   function registerName(name, node, options = {}) {
     checkRedefinition(name, node, !!options.explicit_assign);
     let token;
@@ -91,9 +101,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     for (let i = 0; i < importedKeys.length; i++) {
       const { key, node } = importedKeys[i];
       if (!keys.includes(key)) {
-        const error = new Error(`Imported key ${key} is not exported in ${filename}`);
-        error.token = node;
-        warnings.push(error);
+        generateError(node, `Imported key ${key} is not exported in ${filename}`);
       }
     }
   }
@@ -113,9 +121,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         checkImportKeys(filename, importedKeys);
       }
     } catch (error) {
-      const token = stream[node.stream_index];
-      error.token = token;
-      warnings.push(error);
+      generateError(node, error);
     }
   }
 
@@ -130,13 +136,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       }
     });
     if (!defined) {
-      const token = stream[node.stream_index];
-      const sourceContext = utils.streamContext(input, token, token, stream);
-      const error = new Error(`Token ${name} is undefined in the current scope
-      ${sourceContext}
-  `);
-      error.token = token;
-      errors.push(error);
+      generateError(node, `Token ${name} is undefined in the current scope`);
     }
   }
 
@@ -148,21 +148,14 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     if (namespacesFCT.length <= 1 && node.type !== 'virtual_node_exp') {
       const { opening, closing } = node.named;
       opening.len = closing.start - opening.start + closing.len;
-      const error = new Error('Virtual node statement cannot be use outside a function scope');
-      error.token = opening;
-      warnings.push(error);
+      generateError(opening, 'Virtual node statement cannot be use outside a function scope');
     }
 
     if (node.type !== 'virtual_node_exp' && !parent) {
       if (currentFctNS.returnVirtualNode) {
         const { opening, closing } = node.named;
         opening.len = closing.start - opening.start + closing.len;
-        const sourceContext = utils.streamContext(input, opening, opening, stream);
-        const error = new Error(`A root virtual node is already defined in this function
-        ${sourceContext}
-  `);
-        error.token = opening;
-        warnings.push(error);
+        generateError(opening, 'A root virtual node is already defined in this function');
       } else if (namespacesCDT.length > 1) {
         let isRedefined = false;
         namespacesCDT.slice().reverse().forEach((ns) => {
@@ -173,9 +166,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         if (isRedefined) {
           const { opening, closing } = node.named;
           opening.len = closing.start - opening.start + closing.len;
-          const error = new Error('A root virtual node is already defined in this branch');
-          error.token = opening;
-          warnings.push(error);
+          generateError(opening, 'A root virtual node is already defined in this branch');
         } else {
           currentCdtNS.returnVirtualNode = { node, hoist: false };
         }
@@ -494,7 +485,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     'for_loop': (node) => {
       const ns = addNameSpaceFCT();
       const output = [];
-      const key = (node.named.key && node.named.key.value) || '__index';
+      const key = (node.named.key && node.named.key.value) || `_i${uid()}`;
       const { value } = node.named.value;
       ns[key] = { node: node.named.key, hoist: false, token: node.named.key };
       ns[value] = { node: node.named.value, hoist: false, token: node.named.value };
@@ -506,22 +497,26 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
           && node.named.objectannotation.children[2].value === 'array');
       // an proper array is expected
       if (isArray) {
-        output.push(...generateCode(node.named.exp));
-        output.push(`.forEach((${value}, ${key}) => { `);
-        node.named.stats ? node.named.stats.forEach(
-          stat => output.push(...generateCode(stat)),
-        ) : null;
-        output.push('});');
-      // any other objects
-      } else {
         const f_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
-        output.push(`; Object.keys(${f_uid}).forEach(${key} => {let ${value} = ${f_uid}[${key}]; `);
+        output.push(`; for(let ${key}=0; ${key} < ${f_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;
-        output.push('});');
+        output.push('};');
+      // any other objects
+      } else {
+        const f_uid = uid();
+        const k_uid = uid();
+        output.push(`let ${f_uid} = `);
+        output.push(...generateCode(node.named.exp));
+        output.push(`; let ${k_uid} = Object.keys(${f_uid});`);
+        output.push(`for(let ${key}=0; ${key} < ${k_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
+        node.named.stats ? node.named.stats.forEach(
+          stat => output.push(...generateCode(stat)),
+        ) : null;
+        output.push('};');
       }
       popNameSpaceFCT();
       return output;
@@ -750,6 +745,12 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         return ['!=='];
       }
       return [node.value];
+    },
+    'return': (node) => {
+      if (namespacesFCT.length <= 1) {
+        generateError(node, 'return statement outside of a function scope');
+      }
+      return ['return '];
     },
     'comment': node => node.value.replace('#', '//'),
     'try': () => ['try {'],

@@ -7,13 +7,14 @@ while true {
   break
   b := 3
   continue
-  <span>1</span>
 }
 
 c = 0
+myobject = {}
 for key, value in [1, 10, 100, 1000]: array {
   if value > 99 {
-    // break is not possible yet because of forEach
+    myobject['m'key''] = value
+    // break
   }
   c := key
 }
@@ -22,4 +23,5 @@ test('loops', () => {
   expect(a).toBe(2)
   expect(b).toBe(2)
   expect(c).toBe(3)
+  expect(myobject).toEqual({ m2: 100, m3: 1000 })
 })

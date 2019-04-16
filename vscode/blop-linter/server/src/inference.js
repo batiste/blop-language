@@ -201,7 +201,7 @@ const backend = {
     visitChildren(node);
     const { name } = node.named;
     const def = getNSDef(name.value);
-    if (def) {
+    if (def && def.params) {
       if (node.inference) {
         for (let i = 0; i < def.params.length; i++) {
           const param = node.inference[i];

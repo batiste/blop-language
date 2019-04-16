@@ -28,6 +28,7 @@ const grammar = {
   'GLOBAL_STATEMENT': [
     ['condition'],
     ['assign'],
+    ['virtual_node'],
     ['class_def'],
     ['try_catch'],
     ['for_loop'],
@@ -72,8 +73,8 @@ const grammar = {
     ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
   ],
   'for_loop': [
-    ['for', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
-    ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['for', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
+    ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
   ],
   'func_def': [
     ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
