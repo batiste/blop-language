@@ -1,0 +1,17 @@
+
+array = [1, 2]
+value = 1
+
+def testFunc() {
+  b = 908
+  def testFunc2() {
+    b := 1000
+  }
+  testFunc2()
+  value := b
+}
+testFunc()
+
+test('assign test', () => {
+  expect(value).toBe(1000)
+})
