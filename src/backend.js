@@ -509,10 +509,11 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       } else {
         const f_uid = uid();
         const k_uid = uid();
+        const i_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
-        output.push(`; let ${k_uid} = Object.keys(${f_uid});`);
-        output.push(`for(let ${key}=0; ${key} < ${k_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
+        output.push(`; let ${k_uid} = Object.keys(${f_uid}); `);
+        output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { let ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;

@@ -19,9 +19,21 @@ for key, value in [1, 10, 100, 1000]: array {
   c := key
 }
 
+newArray = []
+for key, value in ['hello', 'world']: array {
+  newArray.push({ key, value })
+}
+
+newArray2 = []
+for key, value in { a: 1, b: 2 } {
+  newArray2.push({ key, value })
+}
+
 test('loops', () => {
   expect(a).toBe(2)
   expect(b).toBe(2)
   expect(c).toBe(3)
   expect(myobject).toEqual({ m2: 100, m3: 1000 })
+  expect(newArray).toEqual([{ key: 0, value: 'hello' }, { key: 1, value: 'world' }])
+  expect(newArray2).toEqual([{ key: 'a', value: 1 }, { key: 'b', value: 2 }])
 })

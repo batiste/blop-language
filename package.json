@@ -9,7 +9,7 @@
     "blop": "./src/blop.js"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --no-cache",
     "parser": "node src/generateParser",
     "start": "npm run server",
     "server": "node_modules/webpack/bin/webpack.js --config webpack.server.js && node dist/server.js",
