@@ -40,6 +40,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const namespacesVN = [{}]; // namespace for virtual nodes
   const namespacesFCT = [{}]; // namespace for functions
   const namespacesCDT = [{}]; // namespace for conditions
+  const namespacesLOOP = [{}];
   let exportKeys = [];
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
@@ -53,6 +54,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const currentNamespacesCDT = () => namespacesCDT[namespacesCDT.length - 1];
   const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
   const popNameSpaceCDT = () => namespacesCDT.pop();
+
+  const currentNamespacesLOOP = () => namespacesLOOP[namespacesLOOP.length - 1];
+  const addNameSpaceLOOP = () => namespacesLOOP.push({}) && currentNamespacesLOOP();
+  const popNameSpaceLOOP = () => namespacesLOOP.pop();
 
   function generateError(node, message) {
     const token = stream[node.stream_index];
@@ -483,10 +488,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       return output;
     },
     'for_loop': (node) => {
-      const ns = addNameSpaceFCT();
+      const ns = currentNameSpaceFCT();
+      addNameSpaceLOOP();
       const output = [];
       const key = (node.named.key && node.named.key.value) || `_i${uid()}`;
       const { value } = node.named.value;
+      checkRedefinition(key, node.named.key);
+      checkRedefinition(node.named.value.value, node.named.value);
       ns[key] = { node: node.named.key, hoist: false, token: node.named.key };
       ns[value] = { node: node.named.value, hoist: false, token: node.named.value };
 
@@ -519,7 +527,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         ) : null;
         output.push('};');
       }
-      popNameSpaceFCT();
+      popNameSpaceLOOP();
       return output;
     },
     'condition': (node) => {

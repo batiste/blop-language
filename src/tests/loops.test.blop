@@ -12,6 +12,7 @@ while true {
 c = 0
 myobject = {}
 for key, value in [1, 10, 100, 1000]: array {
+  hello = 12
   if value > 99 {
     myobject['m'key''] = value
     // break
@@ -20,13 +21,13 @@ for key, value in [1, 10, 100, 1000]: array {
 }
 
 newArray = []
-for key, value in ['hello', 'world']: array {
-  newArray.push({ key, value })
+for key2, value2 in ['hello', 'world']: array {
+  newArray.push({ key: key2, value: value2 })
 }
 
 newArray2 = []
-for key, value in { a: 1, b: 2 } {
-  newArray2.push({ key, value })
+for key3, value3 in { a: 1, b: 2 } {
+  newArray2.push({ key: key3, value: value3 })
 }
 
 test('loops', () => {
@@ -36,4 +37,6 @@ test('loops', () => {
   expect(myobject).toEqual({ m2: 100, m3: 1000 })
   expect(newArray).toEqual([{ key: 0, value: 'hello' }, { key: 1, value: 'world' }])
   expect(newArray2).toEqual([{ key: 'a', value: 1 }, { key: 'b', value: 2 }])
+  expect(hello).toBe(12)
+  expect(key).toBe(4)
 })

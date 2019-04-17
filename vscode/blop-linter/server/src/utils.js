@@ -68,10 +68,9 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
       rule += `${YELLOW}${sr}${NC} `;
     }
   }
-  throw new Error(`
-  Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-  token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
-`);
+  throw new Error(`Unexpected ${replaceInvisibleChars(token.value)}
+Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
+token "${replaceInvisibleChars(token.value)}" (type:${token.type}) doesn't match rule item ${failingToken}`);
 }
 
 function printTree(node, sp) {

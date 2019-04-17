@@ -71,7 +71,8 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
     }
   }
   throw new Error(`
-  ${RED}Parser error at line ${positions.lineNumber} char ${positions.charNumber} to ${positions.end} ${NC}
+  ${RED}Parser error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end} ${NC}
+  Unexpected ${YELLOW}${replaceInvisibleChars(token.value)}${NC}
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
   token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
