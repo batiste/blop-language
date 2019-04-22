@@ -261,7 +261,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       const module = [];
       node.children.forEach(stats => module.push(...generateCode(stats)));
       const ns = currentNameSpaceFCT();
-      exportKeys = Object.keys(ns);
+      exportKeys = Object.keys(ns).filter(key => ns[key].export !== false);
       const hoistKeys = Object.keys(ns).filter(key => ns[key].hoist !== false);
       if (hoistKeys.length > 0) {
         final.push(`let ${hoistKeys.join(', ')};\n`);
@@ -495,8 +495,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       const { value } = node.named.value;
       checkRedefinition(key, node.named.key);
       checkRedefinition(node.named.value.value, node.named.value);
-      ns[key] = { node: node.named.key, hoist: false, token: node.named.key };
-      ns[value] = { node: node.named.value, hoist: false, token: node.named.value };
+      ns[key] = {
+        node: node.named.key, hoist: false, export: false, token: node.named.key,
+      };
+      ns[value] = {
+        node: node.named.value,
+        export: false, hoist: false, token: node.named.value,
+      };
 
       // generate a different type of loop using annotation
       const isArray = (node.named.keyannotation
@@ -508,7 +513,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         const f_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
-        output.push(`; for(let ${key}=0; ${key} < ${f_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
+        output.push(`; let ${key}=0; for(; ${key} < ${f_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;
@@ -520,8 +525,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         const i_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
-        output.push(`; let ${k_uid} = Object.keys(${f_uid}); `);
-        output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { let ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
+        output.push(`; let ${k_uid} = Object.keys(${f_uid}); let ${key}; `);
+        output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;
