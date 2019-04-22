@@ -12,6 +12,7 @@ program
   .option('-i, --input <file>', 'file input')
   .option('-o, --output <file>', 'file output')
   .option('-r, --resolve', 'resolve import statements')
+  .option('-s, --sourceMap', 'add source maps')
   .parse(process.argv);
 
 if (!process.argv.slice(2).length || !program.input) {
@@ -21,7 +22,7 @@ if (!process.argv.slice(2).length || !program.input) {
 if (program.input) {
   const source = fs.readFileSync(program.input);
   const filename = program.resolve ? program.input : false;
-  const result = compileSource(source.toString(), 'node', filename);
+  const result = compileSource(source.toString(), 'node', filename, program.sourceMap);
   if (program.output) {
     fs.writeFile(program.output, result.code, (err) => {
       if (err) throw err;

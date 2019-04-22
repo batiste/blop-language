@@ -324,7 +324,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       } else {
         name = node.named.name.value;
         registerName(name, node.named.name);
-        output.push(name);
+        output.push(...generateCode(node.named.name));
       }
       if (node.named.more) {
         output.push(', ');
@@ -627,7 +627,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
             hoist: false,
             token: node.named.name,
           };
-          output.push(node.named.name.value);
+          output.push(...generateCode(node.named.name));
         }
         output.push('(');
         if (node.named.params) {
@@ -647,7 +647,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
             hoist: false,
             token: node.named.name,
           };
-          output.push(node.named.name.value);
+          output.push(...generateCode(node.named.name));
         }
         output.push('(');
         if (node.named.params) {
