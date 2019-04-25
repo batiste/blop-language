@@ -5,22 +5,24 @@ def render(text) {
 
 // should produce no warning
 def testConditions() {
-  if (true) {
-    if (1) {
-      <div>2</div>
-    } elseif (1) {
+  if true {
+    if false {
+      <div>1</div>
+    } elseif 1 {
       <div>2</div>
     } else {
-      <div>2</div>
+      <div>3</div>
     }
-  } elseif (1) {
-    <div>1</div>
+  } elseif 1 {
+    <div>4</div>
   } else {
-    <div>1</div>
+    <div>5</div>
   }
 }
 
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')
+  condition = testConditions()
+  expect(condition.children[0].text).toBe(2)
 })
