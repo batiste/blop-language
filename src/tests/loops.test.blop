@@ -6,16 +6,24 @@ while true {
   a := 2
   break
   b := 3
+}
+
+d = 4
+while d == 4 {
+  d := 10
   continue
+  d := 100
 }
 
 c = 0
 myobject = {}
-for key, value in [1, 10, 100, 1000]: array {
+for key, value in [1, 10, 100, 1000, 10000]: array {
   hello = 12
+  if value > 9999 {
+    break
+  }
   if value > 99 {
     myobject['m'key''] = value
-    // break
   }
   c := key
 }
@@ -34,6 +42,7 @@ test('loops', () => {
   expect(a).toBe(2)
   expect(b).toBe(2)
   expect(c).toBe(3)
+  expect(d).toBe(10)
   expect(myobject).toEqual({ m2: 100, m3: 1000 })
   expect(newArray).toEqual([{ key: 0, value: 'hello' }, { key: 1, value: 'world' }])
   expect(newArray2).toEqual([{ key: 'a', value: 1 }, { key: 'b', value: 2 }])

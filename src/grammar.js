@@ -13,10 +13,6 @@ const grammar = {
     ['newline', 'w?', 'W?', 'SCOPED_STATEMENT', 'wcomment?'],
     ['newline', 'w?', 'W?', 'scomment?'],
   ],
-  'LOOP_STATEMENTS': [
-    ['newline', 'w?', 'W?', 'LOOP_STATEMENT', 'wcomment?'],
-    ['newline', 'w?', 'W?', 'scomment?'],
-  ],
   'wcomment': [
     ['w', 'comment'],
     ['w', 'multiline_comment'],
@@ -48,16 +44,6 @@ const grammar = {
     ['while_loop'],
     ['return', 'exp_statement?'],
     ['exp_statement'],
-  ],
-  'LOOP_STATEMENT': [
-    ['condition'],
-    ['assign'],
-    ['virtual_node'],
-    ['try_catch'],
-    ['for_loop'],
-    ['while_loop'],
-    ['return', 'exp_statement?'],
-    ['exp_statement'],
     ['break'],
     ['continue'],
   ],
@@ -73,8 +59,8 @@ const grammar = {
     ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
   ],
   'for_loop': [
-    ['for', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
-    ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
+    ['for', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'func_def': [
     ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
@@ -140,7 +126,7 @@ const grammar = {
     ['w?'],
   ],
   'while_loop': [
-    ['while', 'exp:exp', 'w', '{', 'LOOP_STATEMENTS*:stats', '}'],
+    ['while', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'object_literal': [
     ['{', 'single_space_or_newline', 'object_literal_body', 'single_space_or_newline', '}'],

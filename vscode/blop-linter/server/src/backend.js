@@ -602,6 +602,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       return output;
     },
     'while_loop': (node) => {
+      addNameSpaceLOOP();
       const output = [];
       output.push('while(');
       output.push(...generateCode(node.named.exp));
@@ -610,6 +611,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         output.push(...generateCode(stat));
       });
       output.push('}');
+      popNameSpaceLOOP();
       return output;
     },
     'func_def': (node) => {
@@ -765,6 +767,18 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         generateError(node, 'return statement outside of a function scope');
       }
       return ['return '];
+    },
+    'break': (node) => {
+      if (namespacesLOOP.length <= 1) {
+        generateError(node, 'break statement outside of a loop scope');
+      }
+      return ['break'];
+    },
+    'continue': (node) => {
+      if (namespacesLOOP.length <= 1) {
+        generateError(node, 'continue statement outside of a loop scope');
+      }
+      return ['continue'];
     },
     'comment': node => node.value.replace('#', '//'),
     'try': () => ['try {'],
