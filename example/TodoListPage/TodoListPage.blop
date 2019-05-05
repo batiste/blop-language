@@ -71,6 +71,7 @@ TodoListPage = (state) => {
           editItem=(e) => editItem(e, index)
           changeItem=(e) => changeItem(e, index)
           editMode=todo.editItemIndex == index
+          todo
           value />
       }
     </ul>

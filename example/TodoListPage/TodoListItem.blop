@@ -1,11 +1,23 @@
+import { useState } from 'blop'
 
-TodoListItem = (state: object, children: array): VNode => {
+Counter = (attributes) => {
+  { value as counter, setState } = useState(0)
+  increase = () => {
+    console.log('increase')
+    setState(counter + 1)
+    attributes.todo.test = 1 // to trigger a re-render
+  }
+  <button on={ click: increase }>counter</button>
+}
+
+TodoListItem = (attributes: object, children: array): VNode => {
   { value,
     changeItem as change,
     removeItem,
     editItem,
-    editMode
-  } = state
+    editMode,
+    todo
+  } = attributes
 
   hooks = {
     insert: (vnode) => {
@@ -14,7 +26,14 @@ TodoListItem = (state: object, children: array): VNode => {
     }
   }
 
+  c1 = Counter(attributes)
+  c2 = Counter(attributes)
+  c3 = Counter(attributes)
+
   <li style={ marginBottom: '5px' }>
+    = c1
+    = c2
+    = c3
     <div class="form-row">
       <div class="col">
         if editMode {

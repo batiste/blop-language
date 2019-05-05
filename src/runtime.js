@@ -11,11 +11,27 @@ Component.prototype.render = function render() {
   throw new Error('Blop Component need to implement the render method');
 };
 
+const hooks = [];
+let currentHook = 0;
+
+function useState(initialValue) {
+  hooks[currentHook] = hooks[currentHook] || initialValue;
+  const setStateHookIndex = currentHook;
+  const setState = (newState) => {
+    hooks[setStateHookIndex] = newState;
+  };
+  return { value: hooks[currentHook++], setState };
+}
+
 function createComponent(Comp, attributes, children) {
+  let output;
   if (Comp.prototype && Comp.prototype.render) {
-    return (new Comp(attributes, children)).render(attributes, children);
+    output = (new Comp(attributes, children)).render(attributes, children);
+  } else {
+    output = Comp(attributes, children);
   }
-  return Comp(attributes, children);
+  currentHook = 0;
+  return output;
 }
 
 function copyToThunk(vnode, thunk) {
@@ -124,4 +140,5 @@ module.exports = {
   mount,
   Component,
   c: createComponent,
+  useState,
 };
