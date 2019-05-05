@@ -11,26 +11,43 @@ Component.prototype.render = function render() {
   throw new Error('Blop Component need to implement the render method');
 };
 
-const hooks = [];
-let currentHook = 0;
+// const nodeState = new WeakMap();
+let globalRefresh = null;
+let catchVNode = null;
+
+let currentNode = null;
+
+// todo: garbage collect the cache
+const cache = {};
 
 function useState(initialValue) {
-  hooks[currentHook] = hooks[currentHook] || initialValue;
+  const { hooks, currentHook } = currentNode;
+  currentNode.hooks[currentHook] = hooks[currentHook] || initialValue;
   const setStateHookIndex = currentHook;
   const setState = (newState) => {
     hooks[setStateHookIndex] = newState;
+    globalRefresh();
   };
-  return { value: hooks[currentHook++], setState };
+  currentNode.currentHook = currentHook + 1;
+  return { value: hooks[currentHook], setState };
 }
 
-function createComponent(Comp, attributes, children) {
+function createComponent(Comp, attributes, children, name) {
+  const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
+  const hooks = cache[path] || [];
+  const node = {
+    name, children: [], hooks, currentHook: 0, parent: currentNode, path,
+  };
+  currentNode && currentNode.children.push(node);
+  currentNode = node;
   let output;
   if (Comp.prototype && Comp.prototype.render) {
     output = (new Comp(attributes, children)).render(attributes, children);
   } else {
     output = Comp(attributes, children);
   }
-  currentHook = 0;
+  cache[path] = node.hooks;
+  currentNode = node.parent;
   return output;
 }
 
@@ -45,6 +62,10 @@ function copyToThunk(vnode, thunk) {
 }
 
 function prepatch(oldVnode, newNode) {
+  if (catchVNode) {
+    catchVNode(oldVnode);
+    catchVNode = null;
+  }
   if (newNode.data.attrs.needRender === false) {
     console.log(`patching avoided for ${newNode.sel}`);
     copyToThunk(oldVnode, newNode);
@@ -108,6 +129,7 @@ function mount(dom, render) {
     }
     requested = true;
     window.requestAnimationFrame(() => {
+      componentRenderStack = [];
       let newVnode;
       const now = (new Date()).getTime();
       try {
@@ -131,6 +153,7 @@ function mount(dom, render) {
       requested = false;
     });
   }
+  globalRefresh = refresh;
   return ({ refresh, init });
 }
 

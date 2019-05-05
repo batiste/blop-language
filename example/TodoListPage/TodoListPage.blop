@@ -67,7 +67,9 @@ TodoListPage = (state) => {
     <ul>
       for index, value in todo.todoList {
         <TodoListItem
-          removeItem=(e) => remove(e, index)
+          removeItem=(e) => {
+            remove(e, index)
+          }
           editItem=(e) => editItem(e, index)
           changeItem=(e) => changeItem(e, index)
           editMode=todo.editItemIndex == index

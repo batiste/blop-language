@@ -5,7 +5,7 @@ Counter = (attributes) => {
   increase = () => {
     console.log('increase')
     setState(counter + 1)
-    attributes.todo.test = 1 // to trigger a re-render
+    // attributes.todo.test = 1 // to trigger a re-render
   }
   <button on={ click: increase }>counter</button>
 }
