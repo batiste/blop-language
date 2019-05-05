@@ -34,18 +34,19 @@ TodoListPage = (state) => {
       todo.inputValue = ''
     }
   }
-  editItem = (e, index: number) => {
-    e.stopPropagation()
-    todo.editItemIndex = index
-  }
-  changeItem = (e, index: number) => {
-    todo.editItemIndex = false
-    todo.todoList[index] = e.target.value
-  }
   change = (e) => {
     todo.inputValue = e.target.value
   }
-  remove = (e, index: number) => {
+
+  editItem = (index: number) => (e) => {
+    e.stopPropagation()
+    todo.editItemIndex = index
+  }
+  changeItem = (index: number) => (e) => {
+    todo.editItemIndex = false
+    todo.todoList[index] = e.target.value
+  }
+  remove = (index: number) => (e) => {
     todo.editItemIndex = false
     todo.todoList.splice(index, 1)
   }
@@ -67,11 +68,9 @@ TodoListPage = (state) => {
     <ul>
       for index, value in todo.todoList {
         <TodoListItem
-          removeItem=(e) => {
-            remove(e, index)
-          }
-          editItem=(e) => editItem(e, index)
-          changeItem=(e) => changeItem(e, index)
+          removeItem=remove(index)
+          editItem=editItem(index)
+          changeItem=changeItem(index)
           editMode=todo.editItemIndex == index
           todo
           value />
