@@ -1,0 +1,32 @@
+import { useState } from 'blop'
+
+Counter = (attributes, children) => {
+  // copying the React weird hook interface
+  { value as counter, setState } = useState(0)
+  increase = () => setState(counter + 1)
+  decrease = () => setState(counter - 1)
+  <div>
+    <h4>attributes.name</h4>
+    <label>
+      <button class="btn btn-success" on={ click: increase }>'increase'</button>
+      <button class="btn btn-danger" on={ click: decrease }>'decrease'</button>
+      <b style={ 'font-size': '20px' }>' 'counter' '</b>
+    </label>
+    if children && counter < 3 {
+      = children
+    }
+  </div>
+}
+
+CounterPage = (attributes) => {
+  <div>
+    <p>
+      = 'An example on how you can have state stored inside a component
+      Reloading the page will reset the state'
+    </p>
+    <Counter name='Counter 1' />
+    <Counter name='Counter 2, if > 2 hide counter 3'>
+      <Counter name='Counter 3, state is kept even if hidden' />
+    </Counter>
+  </div>
+}

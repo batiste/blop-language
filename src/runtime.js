@@ -11,32 +11,34 @@ Component.prototype.render = function render() {
   throw new Error('Blop Component need to implement the render method');
 };
 
-// const nodeState = new WeakMap();
+// this global is an issue you mount
+// several time
 let globalRefresh = null;
 let catchVNode = null;
 
 let currentNode = null;
 
-// todo: garbage collect the cache
+// todo: garbage collect the state cache?
+// this is the component state cache
 const cache = {};
 
 function useState(initialValue) {
-  const { hooks, currentHook } = currentNode;
-  currentNode.hooks[currentHook] = hooks[currentHook] || initialValue;
-  const setStateHookIndex = currentHook;
+  const { state, currentState } = currentNode;
+  currentNode.state[currentState] = state[currentState] || initialValue;
+  const setStateHookIndex = currentState;
   const setState = (newState) => {
-    hooks[setStateHookIndex] = newState;
+    state[setStateHookIndex] = newState;
     globalRefresh();
   };
-  currentNode.currentHook = currentHook + 1;
-  return { value: hooks[currentHook], setState };
+  currentNode.currentState = currentState + 1;
+  return { value: state[currentState], setState };
 }
 
 function createComponent(Comp, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
-  const hooks = cache[path] || [];
+  const state = cache[path] || [];
   const node = {
-    name, children: [], hooks, currentHook: 0, parent: currentNode, path,
+    name, children: [], state, currentState: 0, parent: currentNode, path,
   };
   currentNode && currentNode.children.push(node);
   currentNode = node;
@@ -46,7 +48,7 @@ function createComponent(Comp, attributes, children, name) {
   } else {
     output = Comp(attributes, children);
   }
-  cache[path] = node.hooks;
+  cache[path] = node.state;
   currentNode = node.parent;
   return output;
 }
@@ -129,7 +131,6 @@ function mount(dom, render) {
     }
     requested = true;
     window.requestAnimationFrame(() => {
-      componentRenderStack = [];
       let newVnode;
       const now = (new Date()).getTime();
       try {

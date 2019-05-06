@@ -2,6 +2,7 @@ import { MemePage } from './MemePage/MemePage.blop'
 import { DogPage } from './DogPage/DogPage.blop'
 import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
+import { CounterPage } from './ComponentState/ComponentStatePage.blop'
 import { saveState } from './services.blop'
 
 def linkList(state) {
@@ -21,6 +22,10 @@ def linkList(state) {
     state.router.go('/petstore')
     e.preventDefault()
   }
+  def statePage(e) {
+    state.router.go('/state')
+    e.preventDefault()
+  }
   <div>
     <p>
       <a href="/dog" on={ click: dogPage }>'Dog breed guessing game'</a>
@@ -33,6 +38,9 @@ def linkList(state) {
     </p>
     <p>
       <a href="/todo" on={ click: todoPage }>'A basic todo app'</a>
+    </p>
+    <p>
+      <a href="/state" on={ click: statePage }>'Component state'</a>
     </p>
   </div>
 }
@@ -56,6 +64,10 @@ def navigation(state) {
   }
   def saveStateEvent(e) {
     saveState(state)
+    e.preventDefault()
+  }
+  def statePage(e) {
+    state.router.go('/state')
     e.preventDefault()
   }
   state.page
@@ -85,6 +97,7 @@ def navigation(state) {
         = navItem('petstore', petStorePage, 'Pet store')
         = navItem('meme', memePage, 'Memes')
         = navItem('todo', todoPage, 'A basic todo app')
+        = navItem('state', statePage, 'A basic todo app')
       </ul>
     </div>
     <div style={ float: 'right', display: 'flex' }>
@@ -127,6 +140,8 @@ Index = (state) => {
         <TodoListPage todo=state></TodoListPage>
       } elseif state.page == 'petstore' {
         <PetStore state=state></PetStore>
+      } elseif state.page == 'state' {
+        <CounterPage state=state></CounterPage>
       } else {
         = linkList(state)
       }
