@@ -14,10 +14,7 @@ Component.prototype.render = function render() {
 // this global is an issue you mount
 // several time
 let globalRefresh = null;
-let catchVNode = null;
-
 let currentNode = null;
-
 // todo: garbage collect the state cache?
 // this is the component state cache
 const cache = {};
@@ -64,10 +61,6 @@ function copyToThunk(vnode, thunk) {
 }
 
 function prepatch(oldVnode, newNode) {
-  if (catchVNode) {
-    catchVNode(oldVnode);
-    catchVNode = null;
-  }
   if (newNode.data.attrs.needRender === false) {
     console.log(`patching avoided for ${newNode.sel}`);
     copyToThunk(oldVnode, newNode);
@@ -130,6 +123,7 @@ function mount(dom, render) {
       return;
     }
     requested = true;
+    currentNode = false;
     window.requestAnimationFrame(() => {
       let newVnode;
       const now = (new Date()).getTime();
