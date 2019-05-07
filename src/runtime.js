@@ -31,11 +31,25 @@ function useState(initialValue) {
   return { value: state[currentState], setState };
 }
 
+function setContext(name, value) {
+  currentNode.context[name] = value;
+}
+
+function getContext(name) {
+  let node = currentNode;
+  while (node) {
+    if (node.context[name] !== undefined) {
+      return node.context[name];
+    }
+    node = node.parent;
+  }
+}
+
 function createComponent(Comp, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   const state = cache[path] || [];
   const node = {
-    name, children: [], state, currentState: 0, parent: currentNode, path,
+    name, children: [], context: {}, state, currentState: 0, parent: currentNode, path,
   };
   currentNode && currentNode.children.push(node);
   currentNode = node;
@@ -159,4 +173,6 @@ module.exports = {
   Component,
   c: createComponent,
   useState,
+  setContext,
+  getContext,
 };

@@ -1,4 +1,4 @@
-import { useState } from 'blop'
+import { useState, setContext, getContext } from 'blop'
 
 Counter = (attributes, children) => {
   // copying the React weird hook interface
@@ -18,8 +18,15 @@ Counter = (attributes, children) => {
   </div>
 }
 
+ContextConsumer = (attributes, children) => {
+  <p>'This is an example of how a context can be passed down the tree 
+      while still being segregated hierachically. Subscription to change is not supported.
+      The value is 'getContext('value')''</p>
+}
+
 CounterPage = (attributes) => {
   <div>
+    <h3>'useState'</h3>
     <p>
       = 'An example on how you can have state stored inside a component
       Reloading the page will reset the state'
@@ -28,5 +35,8 @@ CounterPage = (attributes) => {
     <Counter name='Counter 2, if > 2 hide counter 3'>
       <Counter name='Counter 3, state is kept even if hidden' />
     </Counter>
+    <h3>'setContext, getContext'</h3>
+    setContext('value', 100)
+    <ContextConsumer />
   </div>
 }
