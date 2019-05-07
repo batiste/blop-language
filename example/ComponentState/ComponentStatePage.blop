@@ -12,9 +12,7 @@ Counter = (attributes, children) => {
       <button class="btn btn-danger" on={ click: decrease }>'decrease'</button>
       <b style={ 'font-size': '20px' }>' 'counter' '</b>
     </label>
-    if children && counter < 3 {
-      = children
-    }
+    // = children // warning: children will not be re-rendered with setState
   </div>
 }
 
@@ -34,13 +32,12 @@ CounterPage = (attributes) => {
   <div>
     <h3>'useState'</h3>
     <p>
-      = 'An example on how you can have state stored inside a component
-      Reloading the page will reset the state'
+      = 'An example on how you can have state stored inside a component.
+      Setting a state in a component will re-render this component
+      Reloading the page will reset the state.'
     </p>
     <Counter name='Counter 1' />
-    <Counter name='Counter 2, if > 2 hide counter 3'>
-      <Counter name='Counter 3, state is kept even if hidden' />
-    </Counter>
+    <Counter name='Counter 2' />
     <h3>'useContext'</h3>
     <ContextConsumer />
     <button on={ click: changeValue }>'Change value of the context'</button>

@@ -52,16 +52,20 @@ function useContext(name) {
 function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   const state = cache[path] || [];
+  const parent = currentNode;
   const node = {
     name, children: [], context: {}, state, listeners: [],
-    currentState: 0, parent: currentNode, path, vnode: null, attributes,
+    currentState: 0, parent, path, vnode: null, attributes,
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
       currentNode = node;
-      node.currentState = 0;
+      // currentNode.currentState = 0;
+      // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = componentFct(attributes, children);
+      currentNode.currentState = 0;
       patch(node.vnode, newVnode);
+      // cache[path] = node.state;
       node.vnode = newVnode;
       currentNode = oldNode;
     },
@@ -69,9 +73,10 @@ function createComponent(componentFct, attributes, children, name) {
   currentNode && currentNode.children.push(node);
   currentNode = node;
   const vnode = componentFct(attributes, children);
+  node.currentState = 0;
   currentNode.vnode = vnode;
   cache[path] = node.state;
-  currentNode = node.parent;
+  currentNode = parent;
   return vnode;
 }
 
