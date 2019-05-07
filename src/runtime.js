@@ -14,10 +14,11 @@ const cache = {};
 function useState(initialValue) {
   const { state, currentState } = currentNode;
   currentNode.state[currentState] = state[currentState] || initialValue;
-  const setStateHookIndex = currentState;
+  // this freeze the value for the closure
+  const stateIndex = currentState;
   const closureNode = currentNode;
   const setState = (newState) => {
-    state[setStateHookIndex] = newState;
+    state[stateIndex] = newState;
     closureNode.render();
   };
   currentNode.currentState = currentState + 1;
@@ -45,7 +46,7 @@ function useContext(name) {
       node = node.parent;
     }
   };
-  return { setContext, getContext };
+  return { setContext, value: getContext() };
 }
 
 function createComponent(componentFct, attributes, children, name) {

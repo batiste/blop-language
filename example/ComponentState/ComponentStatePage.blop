@@ -19,16 +19,16 @@ Counter = (attributes, children) => {
 }
 
 ContextConsumer = (attributes, children) => {
-  { getContext } = useContext('value')
+  { value } = useContext('specialNumber')
   <p>'useContext allow you to pass values down the tree 
       while still being segregated hierachically.
       Changing context in a parent will automatically
       trigger re-render in the listening children.
-      value: 'getContext('value')''</p>
+      value: 'value''</p>
 }
 
 CounterPage = (attributes) => {
-  { setContext } = useContext('value')
+  { setContext } = useContext('specialNumber')
   setContext(Math.random())
   changeValue = () => setContext(Math.random())
   <div>
