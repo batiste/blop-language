@@ -30,12 +30,13 @@ def PetStore(attributes) {
   { petStore } = attributes.state
   pets = petStore.pets
   pageIndex = petStore.pageIndex
-  page = petStore.pets.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
+  start = pageIndex * pageSize
+  page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
   nbPage = Math.ceil(pets.length / pageSize)
 
-  deletePet = (index, pet) => {
+  deletePet = (index, pet) => (e) => {
     deletePets(pet)
-    pets.splice(index, 1)
+    pets.splice(start + index, 1)
   }
   <div>
     <p>
@@ -44,7 +45,7 @@ def PetStore(attributes) {
     </p>
     if petStore.pets.length {
       = pagination(petStore)
-      for key, pet in page {
+      for key, pet in page: array {
         // the key can help with the patching speed
         <p key>
           <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
@@ -56,7 +57,7 @@ def PetStore(attributes) {
             }
           }
           = ' '
-          <button on={ click: () => deletePet(key, pet) }>'Delete'</button>
+          <button on={ click: deletePet(key, pet) }>'Delete'</button>
         </p>
       }
       = pagination(petStore)

@@ -33,6 +33,11 @@ def todoPageHandler(params, state) {
   console.log('todoIndexHandler called with', params)
 }
 
+def statePageHandler(params, state) {
+  state.page = 'state'
+  console.log('statePageHandler called with', params)
+}
+
 async def petStorePageIndexHandler(params, state) {
   state.page = 'petstore'
   console.log('petStorePageIndexHandler called with', params)
@@ -47,6 +52,7 @@ def createRouter(state, global) {
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })
   router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
   router.add({ path: '/petstore', name: 'petstore', handler: petStorePageIndexHandler })
+  router.add({ path: '/state', name: 'componentstate', handler: statePageHandler })
   router.add({ path: '/', name: 'root', handler: indexHandler })
 
   router.init()

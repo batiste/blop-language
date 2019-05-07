@@ -1,0 +1,45 @@
+import { useState, useContext } from 'blop'
+
+Counter = (attributes, children) => {
+  // copying the React weird hook interface
+  { value as counter, setState } = useState(0)
+  increase = () => setState(counter + 1)
+  decrease = () => setState(counter - 1)
+  <div>
+    <h4>attributes.name</h4>
+    <label>
+      <button class="btn btn-success" on={ click: increase }>'increase'</button>
+      <button class="btn btn-danger" on={ click: decrease }>'decrease'</button>
+      <b style={ 'font-size': '20px' }>' 'counter' '</b>
+    </label>
+    // = children // warning: children will not be re-rendered with setState
+  </div>
+}
+
+ContextConsumer = (attributes, children) => {
+  { value } = useContext('specialNumber')
+  <p>'useContext allow you to pass values down the tree 
+      while still being segregated hierachically.
+      Changing context in a parent will automatically
+      trigger re-render in the listening children.
+      value: 'value''</p>
+}
+
+CounterPage = (attributes) => {
+  { setContext } = useContext('specialNumber')
+  setContext(Math.random())
+  changeValue = () => setContext(Math.random())
+  <div>
+    <h3>'useState'</h3>
+    <p>
+      = 'An example on how you can have state stored inside a component.
+      Setting a state in a component will re-render this component
+      Reloading the page will reset the state.'
+    </p>
+    <Counter name='Counter 1' />
+    <Counter name='Counter 2' />
+    <h3>'useContext'</h3>
+    <ContextConsumer />
+    <button on={ click: changeValue }>'Change value of the context'</button>
+  </div>
+}

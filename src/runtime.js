@@ -6,16 +6,78 @@ const eventlisteners = require('snabbdom/modules/eventlisteners');
 const snabbdomh = require('snabbdom/h');
 const toVNode = require('snabbdom/tovnode').default;
 
-class Component {}
-Component.prototype.render = function render() {
-  throw new Error('Blop Component need to implement the render method');
-};
+let currentNode = null;
+// todo: garbage collect the state cache?
+// this is the component state cache
+const cache = {};
 
-function createComponent(Comp, attributes, children) {
-  if (Comp.prototype && Comp.prototype.render) {
-    return (new Comp(attributes, children)).render(attributes, children);
-  }
-  return Comp(attributes, children);
+function useState(initialValue) {
+  const { state, currentState } = currentNode;
+  currentNode.state[currentState] = state[currentState] || initialValue;
+  // this freeze the value for the closure
+  const stateIndex = currentState;
+  const closureNode = currentNode;
+  const setState = (newState) => {
+    state[stateIndex] = newState;
+    closureNode.render();
+  };
+  currentNode.currentState = currentState + 1;
+  return { value: state[currentState], setState };
+}
+
+function useContext(name) {
+  const closureNode = currentNode;
+  const setContext = (value) => {
+    closureNode.context[name] = value;
+    closureNode.listeners.forEach((node) => {
+      node.render();
+    });
+  };
+  const getContext = () => {
+    let node = closureNode;
+    const requestingNode = closureNode;
+    while (node) {
+      if (node.context[name] !== undefined) {
+        if (!node.listeners.includes(requestingNode)) {
+          node.listeners.push(requestingNode);
+        }
+        return node.context[name];
+      }
+      node = node.parent;
+    }
+  };
+  return { setContext, value: getContext() };
+}
+
+function createComponent(componentFct, attributes, children, name) {
+  const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
+  const state = cache[path] || [];
+  const parent = currentNode;
+  const node = {
+    name, children: [], context: {}, state, listeners: [],
+    currentState: 0, parent, path, vnode: null, attributes,
+    // allow a partial re-render of the component
+    render: () => {
+      const oldNode = currentNode;
+      currentNode = node;
+      // currentNode.currentState = 0;
+      // it is not really possible at this point to trigger a re-render of the children...
+      const newVnode = componentFct(attributes, children);
+      currentNode.currentState = 0;
+      patch(node.vnode, newVnode);
+      // cache[path] = node.state;
+      node.vnode = newVnode;
+      currentNode = oldNode;
+    },
+  };
+  currentNode && currentNode.children.push(node);
+  currentNode = node;
+  const vnode = componentFct(attributes, children);
+  node.currentState = 0;
+  currentNode.vnode = vnode;
+  cache[path] = node.state;
+  currentNode = parent;
+  return vnode;
 }
 
 function copyToThunk(vnode, thunk) {
@@ -91,6 +153,7 @@ function mount(dom, render) {
       return;
     }
     requested = true;
+    currentNode = false;
     window.requestAnimationFrame(() => {
       let newVnode;
       const now = (new Date()).getTime();
@@ -122,6 +185,7 @@ module.exports = {
   h,
   patch,
   mount,
-  Component,
   c: createComponent,
+  useState,
+  useContext,
 };

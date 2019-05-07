@@ -1,11 +1,12 @@
 
-TodoListItem = (state: object, children: array): VNode => {
+TodoListItem = (attributes: object, children: array): VNode => {
   { value,
     changeItem as change,
     removeItem,
     editItem,
-    editMode
-  } = state
+    editMode,
+    todo
+  } = attributes
 
   hooks = {
     insert: (vnode) => {
