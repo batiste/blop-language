@@ -1,4 +1,4 @@
-import { useState, setContext, getContext } from 'blop'
+import { useState, useContext } from 'blop'
 
 Counter = (attributes, children) => {
   // copying the React weird hook interface
@@ -19,12 +19,18 @@ Counter = (attributes, children) => {
 }
 
 ContextConsumer = (attributes, children) => {
-  <p>'This is an example of how a context can be passed down the tree 
-      while still being segregated hierachically. Subscription to change is not supported.
-      The value is 'getContext('value')''</p>
+  { getContext } = useContext('value')
+  <p>'useContext allow you to pass values down the tree 
+      while still being segregated hierachically.
+      Changing context in a parent will automatically
+      trigger re-render in the listening children.
+      value: 'getContext('value')''</p>
 }
 
 CounterPage = (attributes) => {
+  { setContext } = useContext('value')
+  setContext(Math.random())
+  changeValue = () => setContext(Math.random())
   <div>
     <h3>'useState'</h3>
     <p>
@@ -35,8 +41,8 @@ CounterPage = (attributes) => {
     <Counter name='Counter 2, if > 2 hide counter 3'>
       <Counter name='Counter 3, state is kept even if hidden' />
     </Counter>
-    <h3>'setContext, getContext'</h3>
-    setContext('value', 100)
+    <h3>'useContext'</h3>
     <ContextConsumer />
+    <button on={ click: changeValue }>'Change value of the context'</button>
   </div>
 }

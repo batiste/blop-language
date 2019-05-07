@@ -7,9 +7,9 @@ proxiedState = createState(window.INITIAL_STATE)
 router = createRouter(proxiedState, window)
 
 render = () => {
-  // if !proxiedState.hasChanged() {
-  //   return
-  // }
+  if !proxiedState.hasChanged() {
+    return
+  }
   tree = Index(proxiedState)
   proxiedState.flush()
   console.log('Client renderer executed')
