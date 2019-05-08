@@ -14,7 +14,6 @@ TodoListItem = (attributes: object, children: array): VNode => {
       vnode.elm.select()
     }
   }
-
   <li style={ marginBottom: '5px' }>
     <div class="form-row">
       <div class="col">

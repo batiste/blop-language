@@ -1,8 +1,7 @@
-import { useState, useContext } from 'blop'
 
-Counter = (attributes, children) => {
+Counter = (attributes, children, node) => {
   // copying the React weird hook interface
-  { value as counter, setState } = useState(0)
+  { value as counter, setState } = node.useState('counter', 0)
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
   <div>
@@ -16,18 +15,17 @@ Counter = (attributes, children) => {
   </div>
 }
 
-ContextConsumer = (attributes, children) => {
-  { value } = useContext('specialNumber')
+ContextConsumer = (attributes, children, node) => {
+  { value } = node.useContext('specialNumber')
   <p>'useContext allow you to pass values down the tree 
-      while still being segregated hierachically.
+      while still being segregated hierarchically.
       Changing context in a parent will automatically
       trigger re-render in the listening children.
       value: 'value''</p>
 }
 
-CounterPage = (attributes) => {
-  { setContext } = useContext('specialNumber')
-  setContext(Math.random())
+CounterPage = (attributes, children, node) => {
+  { setContext, getContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
     <h3>'useState'</h3>

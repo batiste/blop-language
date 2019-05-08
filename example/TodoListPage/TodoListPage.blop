@@ -50,9 +50,7 @@ TodoListPage = (state) => {
     todo.editItemIndex = false
     todo.todoList.splice(index, 1)
   }
-
   <div hooks>
-    // <h3>`Todo list`</h3>
     <form on={ submit: addItem }>
       <div class="form-row">
         <div class="col">

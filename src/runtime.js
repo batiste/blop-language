@@ -7,26 +7,29 @@ const snabbdomh = require('snabbdom/h');
 const toVNode = require('snabbdom/tovnode').default;
 
 let currentNode = null;
-// todo: garbage collect the state cache?
 // this is the component state cache
-const cache = {};
+let cache = {};
+// this is the next cache that replace cache after a full re-render
+let nextCache = {};
 
-function useState(initialValue) {
-  const { state, currentState } = currentNode;
-  currentNode.state[currentState] = state[currentState] || initialValue;
+function useState(name, initialValue) {
+  const { state } = currentNode;
+  currentNode.state[name] = state[name] || initialValue;
   // this freeze the value for the closure
-  const stateIndex = currentState;
+  const stateName = name;
   const closureNode = currentNode;
   const setState = (newState) => {
-    state[stateIndex] = newState;
+    state[stateName] = newState;
     closureNode.render();
   };
-  currentNode.currentState = currentState + 1;
-  return { value: state[currentState], setState };
+  return { value: state[name], setState };
 }
 
-function useContext(name) {
+function useContext(name, initialValue) {
   const closureNode = currentNode;
+  if (initialValue) {
+    closureNode.context[name] = initialValue;
+  }
   const setContext = (value) => {
     closureNode.context[name] = value;
     closureNode.listeners.forEach((node) => {
@@ -38,7 +41,7 @@ function useContext(name) {
     const requestingNode = closureNode;
     while (node) {
       if (node.context[name] !== undefined) {
-        if (!node.listeners.includes(requestingNode)) {
+        if (!node.listeners.includes(requestingNode) && requestingNode !== node) {
           node.listeners.push(requestingNode);
         }
         return node.context[name];
@@ -46,7 +49,23 @@ function useContext(name) {
       node = node.parent;
     }
   };
-  return { setContext, value: getContext() };
+  const value = initialValue || getContext();
+  return { setContext, getContext, value };
+}
+
+const api = {
+  useState,
+  useContext,
+};
+
+function renderComponent(componentFct, attributes, children) {
+  try {
+    return componentFct(attributes, children, api);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(e);
+    return h('span', {}, [e.message]);
+  }
 }
 
 function createComponent(componentFct, attributes, children, name) {
@@ -55,27 +74,24 @@ function createComponent(componentFct, attributes, children, name) {
   const parent = currentNode;
   const node = {
     name, children: [], context: {}, state, listeners: [],
-    currentState: 0, parent, path, vnode: null, attributes,
+    parent, path, vnode: null, attributes,
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
       currentNode = node;
-      // currentNode.currentState = 0;
       // it is not really possible at this point to trigger a re-render of the children...
-      const newVnode = componentFct(attributes, children);
-      currentNode.currentState = 0;
+      const newVnode = renderComponent(componentFct, attributes, children);
       patch(node.vnode, newVnode);
-      // cache[path] = node.state;
+      cache[path] = node.state;
       node.vnode = newVnode;
       currentNode = oldNode;
     },
   };
   currentNode && currentNode.children.push(node);
   currentNode = node;
-  const vnode = componentFct(attributes, children);
-  node.currentState = 0;
+  const vnode = renderComponent(componentFct, attributes, children);
   currentNode.vnode = vnode;
-  cache[path] = node.state;
+  nextCache[path] = node.state;
   currentNode = parent;
   return vnode;
 }
@@ -156,6 +172,7 @@ function mount(dom, render) {
     currentNode = false;
     window.requestAnimationFrame(() => {
       let newVnode;
+      nextCache = {};
       const now = (new Date()).getTime();
       try {
         newVnode = render();
@@ -175,6 +192,7 @@ function mount(dom, render) {
       const after = (new Date()).getTime();
       callback && callback(after - now);
       vnode = newVnode;
+      cache = nextCache;
       requested = false;
     });
   }
