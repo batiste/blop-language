@@ -17,15 +17,17 @@ Counter = (attributes, children, node) => {
 
 ContextConsumer = (attributes, children, node) => {
   { value } = node.useContext('specialNumber')
-  <p>'useContext allow you to pass values down the tree 
-      while still being segregated hierarchically.
-      Changing context in a parent will automatically
-      trigger re-render in the listening children.
-      value: 'value''</p>
+  <p>value</p>
+}
+
+Intermediary = () => <ContextConsumer />
+Interceptor = (attributes, children, node) => {
+  node.useContext('specialNumber', 'specialNumber intercepted')
+  <ContextConsumer />
 }
 
 CounterPage = (attributes, children, node) => {
-  { setContext, getContext } = node.useContext('specialNumber', Math.random())
+  { setContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
     <h3>'useState'</h3>
@@ -36,8 +38,16 @@ CounterPage = (attributes, children, node) => {
     </p>
     <Counter name='Counter 1' />
     <Counter name='Counter 2' />
+
     <h3>'useContext'</h3>
-    <ContextConsumer />
+    <p>
+      = 'useContext allow you to pass values down the tree 
+      while still being segregated hierarchically.
+      Changing context in a parent will automatically
+      trigger re-render in the listening children.'
+    </p>
+    <Intermediary />
+    <Interceptor />
     <button on={ click: changeValue }>'Change value of the context'</button>
   </div>
 }
