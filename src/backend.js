@@ -621,15 +621,20 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       if (node.named['async']) {
         output.push('async ');
       }
+
+      function namedFct() {
+        checkRedefinition(node.named.name.value, node.named.name);
+        parentns[node.named.name.value] = {
+          node,
+          hoist: false,
+          token: node.named.name,
+        };
+        output.push(...generateCode(node.named.name));
+      }
+
       if (node.named['fat-arrow']) {
         if (node.named.name) {
-          checkRedefinition(node.named.name.value, node.named.name);
-          parentns[node.named.name.value] = {
-            node,
-            hoist: false,
-            token: node.named.name,
-          };
-          output.push(...generateCode(node.named.name));
+          namedFct();
         }
         output.push('(');
         if (node.named.params) {
@@ -643,13 +648,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         }
         output.push('function ');
         if (node.named.name) {
-          checkRedefinition(node.named.name.value, node.named.name);
-          parentns[node.named.name.value] = {
-            node,
-            hoist: false,
-            token: node.named.name,
-          };
-          output.push(...generateCode(node.named.name));
+          namedFct();
         }
         output.push('(');
         if (node.named.params) {
