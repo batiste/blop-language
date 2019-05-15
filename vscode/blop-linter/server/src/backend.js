@@ -11,18 +11,22 @@ const configGlobals = config.globals || {};
 
 const keysCache = {};
 
-function getKeys(filename) {
+function getExports(filename) {
   const stats = fs.statSync(filename);
   if (keysCache[filename] && keysCache[filename].mtime.getTime() === stats.mtime.getTime()) {
-    return keysCache[filename].keys;
+    return keysCache[filename];
   }
   const source = fs.readFileSync(filename).toString('utf8');
   const stream = parser.tokenize(tokensDefinition, source);
   const tree = parser.parse(stream);
   if (tree.success) {
     const result = _backend(tree, stream, source, filename);
-    keysCache[filename] = { keys: result.exportKeys, mtime: stats.mtime };
-    return keysCache[filename].keys;
+    keysCache[filename] = {
+      keys: result.exportKeys,
+      objects: result.exportObjects,
+      mtime: stats.mtime,
+    };
+    return keysCache[filename];
   }
   return [];
 }
@@ -41,6 +45,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const namespacesFCT = [{}]; // namespace for functions
   const namespacesCDT = [{}]; // namespace for conditions
   const namespacesLOOP = [{}];
+  const exportObjects = {};
   let exportKeys = [];
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
@@ -102,11 +107,21 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   }
 
   function checkImportKeys(filename, importedKeys) {
-    const keys = getKeys(filename);
+    const exports = getExports(filename);
     for (let i = 0; i < importedKeys.length; i++) {
       const { key, node } = importedKeys[i];
-      if (!keys.includes(key)) {
+      if (!exports.objects[key]) {
         generateError(node, `Imported key ${key} is not exported in ${filename}`);
+      } else {
+        // not quite useful unless done in the inference
+        // if (key === 'testImportedInference') {
+        //   console.log(exports.objects[key]);
+        //   console.log(rename);
+        // }
+        // const ns = currentNameSpaceFCT();
+        // const object = exports.objects[key];
+        // object.hoist = false;
+        // ns[key] = object;
       }
     }
   }
@@ -262,6 +277,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       node.children.forEach(stats => module.push(...generateCode(stats)));
       const ns = currentNameSpaceFCT();
       exportKeys = Object.keys(ns).filter(key => ns[key].export !== false);
+      exportKeys.reduce((acc, key) => {
+        acc[key] = ns[key];
+        return acc;
+      }, exportObjects);
       const hoistKeys = Object.keys(ns).filter(key => ns[key].hoist !== false);
       if (hoistKeys.length > 0) {
         final.push(`let ${hoistKeys.join(', ')};\n`);
@@ -315,7 +334,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       const output = [];
       let name;
       if (exportKeys) {
-        exportKeys.push({ key: node.named.name.value, node: node.named.name });
+        exportKeys.push({
+          key: node.named.name.value, node: node.named.name,
+          rename: node.named.rename,
+        });
       }
       if (node.named.rename) {
         name = node.named.rename.value;
@@ -790,6 +812,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     success: errors.length === 0,
     perfect: errors.length === 0 && warnings.length === 0,
     exportKeys,
+    exportObjects,
     warnings,
     errors,
   };

@@ -8,3 +8,7 @@ moduleParam2 = 20
 { moduleParam3 } = bla
 
 another = 1
+
+def testImportedInference(a: number, b: string) {
+  return a
+}

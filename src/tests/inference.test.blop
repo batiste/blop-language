@@ -1,3 +1,6 @@
+import { testImportedInference } from './lib.blop'
+
+testImportedInference('a', 1)
 
 def inference(a: number, b: string): number {
   return parseInt(b) + a
