@@ -16,12 +16,12 @@ def pagination(petStore) {
   }
   <p>
     if pageIndex > 0 {
-      <a href='#' on={ click: previousPage }>'< Previous page'</a>
+      <a href='#' class="btn btn-secondary previous" on={ click: previousPage }>'< Previous page'</a>
       = ' '
     }
     = 'Page 'pageIndex + 1' on 'nbPage' '
     if pageIndex < pets.length {
-      <a href='#' on={ click: nextPage }>'Next page >'</a>
+      <a href='#' class="btn btn-secondary next" on={ click: nextPage }>'Next page >'</a>
     }
   </p>
 }
@@ -39,6 +39,14 @@ def PetStore(attributes) {
     pets.splice(start + index, 1)
   }
   <div>
+    <style>'
+      .previous {
+        margin-right: 10px;
+      }
+      .next {
+        margin-left: 10px;
+      }
+    '</style>
     <p>
       = 'Using the slow and buggy swagger pet API is a good test. Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
