@@ -97,7 +97,7 @@ def navigation(state) {
         = navItem('petstore', petStorePage, 'Pet store')
         = navItem('meme', memePage, 'Memes')
         = navItem('todo', todoPage, 'A basic todo app')
-        = navItem('state', statePage, 'A basic todo app')
+        = navItem('state', statePage, 'Demo for useState')
       </ul>
     </div>
     <div style={ float: 'right', display: 'flex' }>

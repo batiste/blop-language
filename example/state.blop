@@ -2,12 +2,13 @@ import create from './lib/state.blop'
 
 state: object = {
   todoList: [
-    'some task 1',
-    'some task 2'
+    'Buy some milk',
+    'Take out the trash',
+    'Recycle'
   ],
   dogPage: { score: 0, attempt: 0, success: 0 },
   petStore: { pets: [], pageIndex: 0 },
-  page: 'dog',
+  page: 'index',
   memes: [],
   loading: false
 }
