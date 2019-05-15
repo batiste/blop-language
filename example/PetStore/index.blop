@@ -65,7 +65,7 @@ def PetStore(attributes) {
             }
           }
           = ' '
-          <button on={ click: deletePet(key, pet) }>'Delete'</button>
+          <button class="btn btn-secondary" on={ click: deletePet(key, pet) }>'Delete'</button>
         </p>
       }
       = pagination(petStore)
