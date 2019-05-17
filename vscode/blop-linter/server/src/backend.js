@@ -487,13 +487,16 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     },
     'virtual_node_assign': (node) => {
       const output = [];
-      const _uid = currentNameSpaceVN().currentVNode;
+      const parent = currentNameSpaceVN().currentVNode;
       const cn = currentNameSpaceFCT();
       const a_uid = uid();
       cn[a_uid] = node;
       output.push(`${a_uid} = `);
       output.push(...generateCode(node.named.exp));
-      output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid}); `);
+      if (!parent) {
+        generateError(node, 'Virtual node assignment have to be in a virtual node');
+      }
+      output.push(`; Array.isArray(${a_uid}) ? ${parent}c.push(...${a_uid}) : ${parent}c.push(${a_uid}); `);
       return output;
     },
     'virtual_node_attributes': (node) => {

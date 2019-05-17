@@ -44,7 +44,7 @@ ClickCounter = (attributes, children, node) => {
       removeCallback()
     }
   })
-  <p>counter</p>
+  return renderClickCounter(counter)
 }
 
 CounterPage = (attributes, children, node) => {

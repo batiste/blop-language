@@ -57,7 +57,6 @@ function lifecycle(obj) {
   currentNode.life = obj;
 }
 
-
 const api = {
   useState,
   useContext,
