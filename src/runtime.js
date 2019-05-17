@@ -22,7 +22,7 @@ function useState(name, initialValue) {
     state[stateName] = newState;
     scheduleRender(() => closureNode.render());
   };
-  return { value: state[name], setState };
+  return { value: state[name], setState, getState: () => state[name] };
 }
 
 function useContext(name, initialValue) {

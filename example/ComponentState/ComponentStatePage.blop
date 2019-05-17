@@ -4,13 +4,6 @@ Counter = (attributes, children, node) => {
   { value as counter, setState } = node.useState('counter', 0)
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
-  node.lifecycle({
-    insert: (vnode) => console.log('insert lifecycle hook', vnode),
-    remove: (vnode, removeCallback) => {
-      console.log('remove lifecycle hook', vnode)
-      removeCallback()
-    }
-  })
   <div>
     <h4>attributes.name</h4>
     <label>
@@ -33,28 +26,48 @@ Interceptor = (attributes, children, node) => {
   <ContextConsumer />
 }
 
+def renderClickCounter(value) {
+  <p>value</p>
+}
+
+ClickCounter = (attributes, children, node) => {
+  { value as counter, setState, getState } = node.useState('counter', 0)
+  increase = () => {
+    // need to use getState here as counter value
+    // gets captured in increase and never changes
+    setState(getState() + 1)
+  }
+  node.lifecycle({
+    insert: (vnode) => document.addEventListener('click', increase),
+    remove: (vnode, removeCallback) => {
+      document.removeEventListener('click', increase)
+      removeCallback()
+    }
+  })
+  <p>counter</p>
+}
+
 CounterPage = (attributes, children, node) => {
   { setContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
     <h3>'useState'</h3>
-    <p>
-      = 'An example on how you can have state stored inside a component.
+    <p>'An example on how you can have state stored inside a component.
       Setting a state in a component will re-render this component
-      Reloading the page will reset the state.'
-    </p>
+      Reloading the page will reset the state.'</p>
     <Counter name='Counter 1' />
     <Counter name='Counter 2' />
 
     <h3>'useContext'</h3>
-    <p>
-      = 'useContext allow you to pass values down the tree 
+    <p>'useContext allow you to pass values down the tree 
       while still being segregated hierarchically.
       Changing context in a parent will automatically
-      trigger re-render in the listening children.'
-    </p>
+      trigger re-render in the listening children.'</p>
     <Intermediary />
     <Interceptor />
     <button on={ click: changeValue }>'Change value of the context'</button>
+    <h3>'lifecycle'</h3>
+    <p>'lifecycle gives you access to the snabbdom lifecycle hooks directly from a component.'</p>
+    <ClickCounter />
   </div>
 }
