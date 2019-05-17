@@ -8,8 +8,8 @@ Input = (state) => <input
   on=state.on
   style={ fontSize: '16px', padding: '0.5em' } />
 
-TodoListPage = (state) => {
-  { todo } = state
+TodoListPage = (attributes, children, node) => {
+  { todo } = attributes
 
   def unselect() {
     if todo.editItemIndex != false {
@@ -17,7 +17,7 @@ TodoListPage = (state) => {
     }
   }
 
-  hooks = {
+  node.lifecycle({
     insert: (vnode) => {
       document.addEventListener('click', unselect)
     },
@@ -25,7 +25,7 @@ TodoListPage = (state) => {
       document.removeEventListener('click', unselect)
       removeCallback()
     }
-  }
+  })
 
   addItem = (e) => {
     e.preventDefault()
@@ -50,7 +50,7 @@ TodoListPage = (state) => {
     todo.editItemIndex = false
     todo.todoList.splice(index, 1)
   }
-  <div hooks>
+  <div>
     <form on={ submit: addItem }>
       <div class="form-row">
         <div class="col">

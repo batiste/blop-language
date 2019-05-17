@@ -4,6 +4,13 @@ Counter = (attributes, children, node) => {
   { value as counter, setState } = node.useState('counter', 0)
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
+  node.lifecycle({
+    insert: (vnode) => console.log('insert lifecycle hook', vnode),
+    remove: (vnode, removeCallback) => {
+      console.log('remove lifecycle hook', vnode)
+      removeCallback()
+    }
+  })
   <div>
     <h4>attributes.name</h4>
     <label>

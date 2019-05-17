@@ -53,9 +53,15 @@ function useContext(name, initialValue) {
   return { setContext, getContext, value };
 }
 
+function lifecycle(obj) {
+  currentNode.life = obj;
+}
+
+
 const api = {
   useState,
   useContext,
+  lifecycle,
 };
 
 function renderComponent(componentFct, attributes, children) {
@@ -81,6 +87,9 @@ function createComponent(componentFct, attributes, children, name) {
       currentNode = node;
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
+      if (currentNode.life) {
+        newVnode.data.hook = currentNode.life;
+      }
       patch(node.vnode, newVnode);
       cache[path] = node.state;
       node.vnode = newVnode;
@@ -90,6 +99,9 @@ function createComponent(componentFct, attributes, children, name) {
   currentNode && currentNode.children.push(node);
   currentNode = node;
   const vnode = renderComponent(componentFct, attributes, children);
+  if (currentNode.life) {
+    vnode.data.hook = currentNode.life;
+  }
   currentNode.vnode = vnode;
   nextCache[path] = node.state;
   currentNode = parent;
