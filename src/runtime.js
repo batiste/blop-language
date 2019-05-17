@@ -20,7 +20,7 @@ function useState(name, initialValue) {
   const closureNode = currentNode;
   const setState = (newState) => {
     state[stateName] = newState;
-    closureNode.render();
+    scheduleRender(() => closureNode.render());
   };
   return { value: state[name], setState };
 }
@@ -33,7 +33,7 @@ function useContext(name, initialValue) {
   const setContext = (value) => {
     closureNode.context[name] = value;
     closureNode.listeners.forEach((node) => {
-      node.render();
+      scheduleRender(() => node.render());
     });
   };
   const getContext = () => {
@@ -156,6 +156,16 @@ const patch = snabbdom.init([
   sclass.default,
 ]);
 
+let renderPipeline = [];
+
+function scheduleRender(render) {
+  renderPipeline.push(render);
+  window.requestAnimationFrame(() => {
+    renderPipeline.forEach(fct => fct());
+    renderPipeline = [];
+  });
+}
+
 function mount(dom, render) {
   let vnode; let
     requested;
@@ -169,8 +179,9 @@ function mount(dom, render) {
       return;
     }
     requested = true;
-    currentNode = false;
-    window.requestAnimationFrame(() => {
+    renderPipeline = [];
+    currentNode = null;
+    const rerender = () => {
       let newVnode;
       nextCache = {};
       const now = (new Date()).getTime();
@@ -194,6 +205,10 @@ function mount(dom, render) {
       vnode = newVnode;
       cache = nextCache;
       requested = false;
+    };
+    window.requestAnimationFrame(() => {
+      rerender();
+      renderPipeline = [];
     });
   }
   return ({ refresh, init });
