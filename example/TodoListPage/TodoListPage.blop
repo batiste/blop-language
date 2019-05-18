@@ -55,6 +55,14 @@ TodoListPage = (attributes, children, node) => {
     todo.editItemIndex = false
     todo.todoList.splice(index, 1)
   }
+  node.lifecycle({
+    mount: () => {
+      console.log('mount TodoListPage')
+    },
+    unmount: () => {
+      console.log('unmount TodoListPage')
+    }
+  })
   <div>
     <form on={ submit: addItem }>
       <div class="form-row">

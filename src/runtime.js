@@ -57,10 +57,50 @@ function lifecycle(obj) {
   currentNode.life = obj;
 }
 
+function prepareLifecycle(node, vnode) {
+  vnode.path = node.path;
+  // vnode.data.hook.destroy = () => console.log('destroy');
+  // vnode.data.hook.destroy = () => console.log('destroy', node);
+  if (node.life.mount) {
+    vnode.data.hook.init = node.life.mount;
+    // vnode.data.hook.insert = node.life.mount;
+  }
+  if (node.life.unmount) {
+    vnode.data.hook.remove = () => {
+      console.log('remove', node);
+      node.life.unmount();
+    };
+    vnode.data.hook.destroy = () => {
+      console.log('destroy', node);
+      node.life.unmount();
+    };
+  }
+  const handleChange = (oldnode, newnode) => {
+    if (oldnode.path === newnode.path) {
+      return;
+    }
+    console.log('handleChange');
+    const oldComponent = cache[oldnode.path];
+    if (oldComponent && oldComponent.life && oldComponent.life.unmount) {
+      oldComponent.life.unmount(oldnode, () => null);
+    }
+    if (node.life.mount) {
+      node.life.mount(newnode);
+    }
+  };
+  vnode.data.hook.update = handleChange;
+  vnode.data.hook.prepatch = handleChange;
+}
+
+function get() {
+  return currentNode;
+}
+
 const api = {
   useState,
   useContext,
   lifecycle,
+  get,
 };
 
 function renderComponent(componentFct, attributes, children) {
@@ -75,22 +115,26 @@ function renderComponent(componentFct, attributes, children) {
 
 function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
-  const state = cache[path] || [];
+  const nodeCache = cache[path];
+  const state = (nodeCache && nodeCache.state) || [];
+  const life = (nodeCache && nodeCache.life) || null;
   const parent = currentNode;
   const node = {
-    name, children: [], context: {}, state, listeners: [],
+    name, children: [], context: {}, state, life, listeners: [],
     parent, path, vnode: null, attributes,
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
+      node.children = [];
       currentNode = node;
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
+      newVnode.path = path;
       if (currentNode.life) {
-        newVnode.data.hook = currentNode.life;
+        prepareLifecycle(currentNode, newVnode);
       }
       patch(node.vnode, newVnode);
-      cache[path] = node.state;
+      cache[path] = node;
       node.vnode = newVnode;
       currentNode = oldNode;
     },
@@ -98,11 +142,12 @@ function createComponent(componentFct, attributes, children, name) {
   currentNode && currentNode.children.push(node);
   currentNode = node;
   const vnode = renderComponent(componentFct, attributes, children);
+  vnode.path = path;
   if (currentNode.life) {
-    vnode.data.hook = currentNode.life;
+    prepareLifecycle(currentNode, vnode);
   }
   currentNode.vnode = vnode;
-  nextCache[path] = node.state;
+  nextCache[path] = node;
   currentNode = parent;
   return vnode;
 }
@@ -177,6 +222,21 @@ function scheduleRender(render) {
   });
 }
 
+function diff(A, B) {
+  return A.filter(a => !B.includes(a));
+}
+
+function unmount() {
+  const destroyed = diff(Object.keys(cache), Object.keys(nextCache));
+  destroyed.forEach((key) => {
+    const node = cache[key];
+    if (node.life && node.life.unmount) {
+      console.log('umount -> ', node);
+      node.life.unmount({}, () => {});
+    }
+  });
+}
+
 function mount(dom, render) {
   let vnode; let
     requested;
@@ -214,6 +274,7 @@ function mount(dom, render) {
       const after = (new Date()).getTime();
       callback && callback(after - now);
       vnode = newVnode;
+      unmount();
       cache = nextCache;
       requested = false;
     };
