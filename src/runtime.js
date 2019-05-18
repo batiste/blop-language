@@ -81,6 +81,7 @@ function prepareLifecycle(node, vnode) {
     }
     console.log('handleChange');
     const oldComponent = cache[oldnode.path];
+    console.log('oldComponent', oldComponent);
     if (oldComponent && oldComponent.life && oldComponent.life.unmount) {
       oldComponent.life.unmount(oldnode, () => null);
     }
@@ -125,7 +126,7 @@ function createComponent(componentFct, attributes, children, name) {
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
-      node.children = [];
+      // node.children = [];
       currentNode = node;
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
@@ -229,6 +230,7 @@ function diff(A, B) {
 function unmount() {
   const destroyed = diff(Object.keys(cache), Object.keys(nextCache));
   destroyed.forEach((key) => {
+    console.log(key);
     const node = cache[key];
     if (node.life && node.life.unmount) {
       console.log('umount -> ', node);

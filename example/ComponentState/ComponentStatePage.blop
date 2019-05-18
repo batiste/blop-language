@@ -48,7 +48,8 @@ ClickCounter = (attributes, children, node) => {
       removeCallback()
     }
   })
-  return renderClickCounter(counter)
+  <p>counter</p>
+  // return renderClickCounter(counter)
 }
 
 def useWindowWidth(node) {
