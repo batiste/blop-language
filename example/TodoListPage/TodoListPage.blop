@@ -1,12 +1,17 @@
 
 import { TodoListItem } from './TodoListItem.blop'
 
-Input = (state) => <input
-  type="text"
-  value=state.value
-  class="form-control"
-  on=state.on
-  style={ fontSize: '16px', padding: '0.5em' } />
+AutoFocusInput = (state) => {
+  hooks = { insert: (vnode) => vnode.elm.focus() }
+  <input
+    hooks
+    type="text"
+    value=state.value
+    class="form-control"
+    on=state.on
+    autofocus=true
+    style={ fontSize: '16px', padding: '0.5em' } />
+}
 
 TodoListPage = (attributes, children, node) => {
   { todo } = attributes
@@ -18,7 +23,7 @@ TodoListPage = (attributes, children, node) => {
   }
 
   node.lifecycle({
-    insert: (vnode) => {
+    init: (vnode) => {
       document.addEventListener('click', unselect)
     },
     remove: (vnode, removeCallback) => {
@@ -54,7 +59,7 @@ TodoListPage = (attributes, children, node) => {
     <form on={ submit: addItem }>
       <div class="form-row">
         <div class="col">
-          <Input value=todo.inputValue on={ change } />
+          <AutoFocusInput value=todo.inputValue on={ change } />
         </div>
         <div class="col">
           <button

@@ -38,7 +38,9 @@ ClickCounter = (attributes, children, node) => {
     setState(getState() + 1)
   }
   node.lifecycle({
-    insert: (vnode) => document.addEventListener('click', increase),
+    init: (vnode) => {
+      document.addEventListener('click', increase)
+    },
     remove: (vnode, removeCallback) => {
       document.removeEventListener('click', increase)
       removeCallback()
