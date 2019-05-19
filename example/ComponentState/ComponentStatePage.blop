@@ -94,6 +94,6 @@ CounterPage = (attributes, children, node) => {
     <ClickCounter />
     <h3>'Famous React hook useWindowWidth'</h3>
     <p>'useWindowWidth:'width''</p>
-    <p>'useWindowWidth+10:'width''</p>
+    <p>'useWindowWidth+10:'width2''</p>
   </div>
 }
