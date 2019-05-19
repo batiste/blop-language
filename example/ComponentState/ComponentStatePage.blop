@@ -75,7 +75,7 @@ CounterPage = (attributes, children, node) => {
   { setContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
-    <h3>'useState'width''</h3>
+    <h3>'useState'</h3>
     <p>'An example on how you can have state stored inside a component.
       Setting a state in a component will re-render this component
       Reloading the page will reset the state.'</p>

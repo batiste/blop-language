@@ -54,6 +54,9 @@ function useContext(name, initialValue) {
 }
 
 function lifecycle(obj) {
+  if (currentNode.life) {
+    // throw new Error('lifecyle is already defined on this node.');
+  }
   currentNode.life = obj;
 }
 
@@ -64,7 +67,7 @@ function unmount(node, recur = false) {
   }
   if (recur) {
     node.children.forEach((child) => {
-      unmount(child);
+      unmount(child, true);
     });
   }
 }
@@ -129,7 +132,7 @@ function createComponent(componentFct, attributes, children, name) {
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
-      // node.children = [];
+      node.children = [];
       currentNode = node;
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
