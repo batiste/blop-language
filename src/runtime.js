@@ -54,15 +54,16 @@ function useContext(name, initialValue) {
 }
 
 function lifecycle(obj) {
-  if (currentNode.life) {
-    // throw new Error('lifecyle is already defined on this node.');
+  if (!currentNode.life) {
+    currentNode.life = { mount: [], unmount: [] };
   }
-  currentNode.life = obj;
+  if (obj.mount) currentNode.life.mount.push(obj.mount);
+  if (obj.unmount) currentNode.life.unmount.push(obj.unmount);
 }
 
 function unmount(node, recur = false) {
   if (node.life && node.life.unmount && !node.unmounted) {
-    node.life.unmount();
+    node.life.unmount.forEach(fct => fct());
     node.unmounted = true;
   }
   if (recur) {
@@ -72,11 +73,15 @@ function unmount(node, recur = false) {
   }
 }
 
+function nodeMount(node) {
+  if (node.life && node.life.mount) {
+    node.life.mount.forEach(fct => fct());
+  }
+}
+
 function applyLifecycleToVnode(node, vnode) {
   vnode.path = node.path;
-  if (node.life.mount) {
-    vnode.data.hook.init = node.life.mount;
-  }
+  vnode.data.hook.init = () => nodeMount(node);
   vnode.data.hook.remove = (vnode, callback) => {
     unmount(node);
     callback && callback();
@@ -93,7 +98,7 @@ function applyLifecycleToVnode(node, vnode) {
       unmount(oldComponent, true);
     }
     if (node.life.mount) {
-      node.life.mount(newnode);
+      nodeMount(node);
     }
   };
   vnode.data.hook.update = handleChange;
@@ -124,7 +129,7 @@ function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   const nodeCache = cache[path];
   const state = (nodeCache && nodeCache.state) || [];
-  const life = (nodeCache && nodeCache.life) || null;
+  const life = null; // (nodeCache && nodeCache.life) || null;
   const parent = currentNode;
   const node = {
     name, children: [], context: {}, state, life, listeners: [],

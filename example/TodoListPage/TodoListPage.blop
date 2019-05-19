@@ -24,8 +24,8 @@ TodoListPage = (attributes, children, node) => {
 
   node.lifecycle({
     mount: (vnode) => {
-      document.addEventListener('click', unselect)
       console.log('mount TodoListPage')
+      document.addEventListener('click', unselect)
     },
     unmount: (vnode) => {
       console.log('unmount TodoListPage')
