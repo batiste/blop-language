@@ -42,10 +42,9 @@ ClickCounter = (attributes, children, node) => {
       console.log('mount ClickCounter')
       document.addEventListener('click', increase)
     },
-    unmout: (vnode, removeCallback) => {
+    unmount: (vnode) => {
       document.removeEventListener('click', increase)
       console.log('unmount ClickCounter')
-      removeCallback()
     }
   })
   <p>counter</p>
@@ -62,10 +61,9 @@ def useWindowWidth(node) {
       window.addEventListener('resize', handleResize)
       console.log('mount useWindowWidth')
     },
-    unmount: (vnode, removeCallback) => {
+    unmount: (vnode) => {
       console.log('unmount useWindowWidth')
       window.removeEventListener('resize', handleResize)
-      removeCallback()
     }
   })
   return width
