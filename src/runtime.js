@@ -54,9 +54,6 @@ function useContext(name, initialValue) {
 }
 
 function lifecycle(obj) {
-  if (!currentNode.life) {
-    currentNode.life = { mount: [], unmount: [] };
-  }
   if (obj.mount) currentNode.life.mount.push(obj.mount);
   if (obj.unmount) currentNode.life.unmount.push(obj.unmount);
 }
@@ -64,6 +61,7 @@ function lifecycle(obj) {
 function unmount(node, recur = false) {
   if (node.life && node.life.unmount && !node.unmounted) {
     node.life.unmount.forEach(fct => fct());
+    node.life.unmount = [];
     node.unmounted = true;
   }
   if (recur) {
@@ -129,7 +127,7 @@ function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   const nodeCache = cache[path];
   const state = (nodeCache && nodeCache.state) || [];
-  const life = null; // (nodeCache && nodeCache.life) || null;
+  const life = { mount: [], unmount: [] };
   const parent = currentNode;
   const node = {
     name, children: [], context: {}, state, life, listeners: [],
@@ -139,6 +137,7 @@ function createComponent(componentFct, attributes, children, name) {
       const oldNode = currentNode;
       node.children = [];
       currentNode = node;
+      currentNode.life = { mount: [], unmount: [] };
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
       newVnode.path = path;
