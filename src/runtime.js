@@ -59,10 +59,9 @@ function lifecycle(obj) {
 }
 
 function unmount(node, recur = false) {
-  if (node.life && node.life.unmount && !node.unmounted) {
+  if (node.life && node.life.unmount) {
     node.life.unmount.forEach(fct => fct());
     node.life.unmount = [];
-    node.unmounted = true;
   }
   if (recur) {
     node.children.forEach((child) => {
@@ -71,35 +70,20 @@ function unmount(node, recur = false) {
   }
 }
 
-function nodeMount(node) {
+function nodeMount(node, recur = false) {
+  // do not mount in node
+  if (process && process.title === 'node') {
+    return;
+  }
   if (node.life && node.life.mount) {
     node.life.mount.forEach(fct => fct());
+    node.life.mount = [];
   }
-}
-
-function applyLifecycleToVnode(node, vnode) {
-  vnode.path = node.path;
-  vnode.data.hook.init = () => nodeMount(node);
-  vnode.data.hook.remove = (vnode, callback) => {
-    unmount(node);
-    callback && callback();
-  };
-  vnode.data.hook.destroy = () => {
-    unmount(node);
-  };
-  const handleChange = (oldnode, newnode) => {
-    if (oldnode.path === newnode.path) {
-      return;
-    }
-    const oldComponent = cache[oldnode.path];
-    if (oldComponent) {
-      unmount(oldComponent, true);
-    }
-    if (node.life.mount) {
-      nodeMount(node);
-    }
-  };
-  vnode.data.hook.update = handleChange;
+  if (recur) {
+    node.children.forEach((child) => {
+      nodeMount(child, true);
+    });
+  }
 }
 
 function get() {
@@ -135,18 +119,17 @@ function createComponent(componentFct, attributes, children, name) {
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
+      unmount(node, true);
       node.children = [];
       currentNode = node;
       currentNode.life = { mount: [], unmount: [] };
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
       newVnode.path = path;
-      if (currentNode.life) {
-        applyLifecycleToVnode(currentNode, newVnode);
-      }
       patch(node.vnode, newVnode);
-      cache[path] = node;
-      node.vnode = newVnode;
+      cache[path] = currentNode;
+      nodeMount(currentNode);
+      currentNode.vnode = newVnode;
       currentNode = oldNode;
     },
   };
@@ -154,11 +137,9 @@ function createComponent(componentFct, attributes, children, name) {
   currentNode = node;
   const vnode = renderComponent(componentFct, attributes, children);
   vnode.path = path;
-  if (currentNode.life) {
-    applyLifecycleToVnode(currentNode, vnode);
-  }
   currentNode.vnode = vnode;
-  nextCache[path] = node;
+  nodeMount(currentNode);
+  nextCache[path] = currentNode;
   currentNode = parent;
   return vnode;
 }
@@ -233,6 +214,13 @@ function scheduleRender(render) {
   });
 }
 
+function umountDestroyedComponent() {
+  const keysCache = Object.keys(cache);
+  const keysNextCache = Object.keys(nextCache);
+  const difference = keysCache.filter(x => !keysNextCache.includes(x));
+  difference.forEach(path => unmount(cache[path]));
+}
+
 function mount(dom, render) {
   let vnode; let
     requested;
@@ -270,6 +258,7 @@ function mount(dom, render) {
       const after = (new Date()).getTime();
       callback && callback(after - now);
       vnode = newVnode;
+      umountDestroyedComponent();
       cache = nextCache;
       requested = false;
     };

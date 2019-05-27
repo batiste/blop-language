@@ -47,17 +47,26 @@ ClickCounter = (attributes, children, node) => {
       console.log('unmount ClickCounter')
     }
   })
-  <p>counter</p>
-  // return renderClickCounter(counter)
+  return renderClickCounter(counter)
 }
 
+def Window() {
+  // a window object usable in SSR
+  if typeof window == 'undefined' {
+    return { innerWidth: 960 }
+  }
+  return window
+}
+
+
 def useWindowWidth(node) {
-  { value as width, setState as setWidth } = node.useState('width', window.innerWidth)
-  handleResize = () => setWidth(window.innerWidth)
+  w = Window()
+  { value as width, setState as setWidth } = node.useState('width', w.innerWidth)
+  handleResize = () => setWidth(w.innerWidth)
   node.lifecycle({
     mount: () => {
-      window.addEventListener('resize', handleResize)
       console.log('mount useWindowWidth')
+      window.addEventListener('resize', handleResize)
     },
     unmount: (vnode) => {
       console.log('unmount useWindowWidth')
