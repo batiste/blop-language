@@ -59,6 +59,7 @@ function lifecycle(obj) {
 }
 
 function unmount(node, recur = false) {
+  console.log('unmount', node.life);
   if (node.life && node.life.unmount) {
     node.life.unmount.forEach(fct => fct());
     node.life.unmount = [];
@@ -70,19 +71,15 @@ function unmount(node, recur = false) {
   }
 }
 
-function nodeMount(node, recur = false) {
+function nodeMount(node) {
   // do not mount in node
   if (process && process.title === 'node') {
     return;
   }
+  node.mounted = true;
   if (node.life && node.life.mount) {
     node.life.mount.forEach(fct => fct());
     node.life.mount = [];
-  }
-  if (recur) {
-    node.children.forEach((child) => {
-      nodeMount(child, true);
-    });
   }
 }
 
@@ -111,34 +108,43 @@ function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   const nodeCache = cache[path];
   const state = (nodeCache && nodeCache.state) || [];
-  const life = { mount: [], unmount: [] };
+  const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
+  const mounted = !!(nodeCache && nodeCache.mounted);
   const parent = currentNode;
   const node = {
-    name, children: [], context: {}, state, life, listeners: [],
+    name, children: [], context: {}, state, life, listeners: [], mounted,
     parent, path, vnode: null, attributes,
     // allow a partial re-render of the component
     render: () => {
       const oldNode = currentNode;
-      unmount(node, true);
       node.children = [];
       currentNode = node;
       currentNode.life = { mount: [], unmount: [] };
       // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
+      currentNode.life = life; // disregard the new lifecycle
       newVnode.path = path;
       patch(node.vnode, newVnode);
       cache[path] = currentNode;
-      nodeMount(currentNode);
       currentNode.vnode = newVnode;
       currentNode = oldNode;
     },
   };
   currentNode && currentNode.children.push(node);
   currentNode = node;
+  currentNode.life = { mount: [], unmount: [] };
   const vnode = renderComponent(componentFct, attributes, children);
+  // disregard the new lifecycles
+  if (mounted) {
+    console.log('already mounted', life);
+    currentNode.life = life;
+  } else {
+    // important for unmount
+    nodeMount(currentNode);
+    cache[path] = currentNode;
+  }
   vnode.path = path;
   currentNode.vnode = vnode;
-  nodeMount(currentNode);
   nextCache[path] = currentNode;
   currentNode = parent;
   return vnode;
