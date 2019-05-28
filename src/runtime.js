@@ -59,7 +59,6 @@ function lifecycle(obj) {
 }
 
 function unmount(node, recur = false) {
-  console.log('unmount', node.life);
   if (node.life && node.life.unmount) {
     node.life.unmount.forEach(fct => fct());
     node.life.unmount = [];
@@ -118,11 +117,12 @@ function createComponent(componentFct, attributes, children, name) {
     render: () => {
       const oldNode = currentNode;
       node.children = [];
+      node.listeners = [];
       currentNode = node;
       currentNode.life = { mount: [], unmount: [] };
-      // it is not really possible at this point to trigger a re-render of the children...
       const newVnode = renderComponent(componentFct, attributes, children);
-      currentNode.life = life; // disregard the new lifecycle
+      const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
+      currentNode.life = life; // disregard the new lifecycle hooks
       newVnode.path = path;
       patch(node.vnode, newVnode);
       cache[path] = currentNode;
@@ -134,9 +134,8 @@ function createComponent(componentFct, attributes, children, name) {
   currentNode = node;
   currentNode.life = { mount: [], unmount: [] };
   const vnode = renderComponent(componentFct, attributes, children);
-  // disregard the new lifecycles
+  // disregard the new lifecycles hooks
   if (mounted) {
-    console.log('already mounted', life);
     currentNode.life = life;
   } else {
     // important for unmount
