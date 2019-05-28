@@ -23,12 +23,13 @@ TodoListPage = (attributes, children, node) => {
   }
 
   node.lifecycle({
-    init: (vnode) => {
+    mount: (vnode) => {
+      console.log('mount TodoListPage')
       document.addEventListener('click', unselect)
     },
-    remove: (vnode, removeCallback) => {
+    unmount: (vnode) => {
+      console.log('unmount TodoListPage')
       document.removeEventListener('click', unselect)
-      removeCallback()
     }
   })
 

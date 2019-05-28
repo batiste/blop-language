@@ -38,18 +38,48 @@ ClickCounter = (attributes, children, node) => {
     setState(getState() + 1)
   }
   node.lifecycle({
-    init: (vnode) => {
+    mount: (vnode) => {
+      console.log('mount ClickCounter')
       document.addEventListener('click', increase)
     },
-    remove: (vnode, removeCallback) => {
+    unmount: (vnode) => {
       document.removeEventListener('click', increase)
-      removeCallback()
+      console.log('unmount ClickCounter')
     }
   })
   return renderClickCounter(counter)
 }
 
+def Window() {
+  // a window object usable in SSR
+  if typeof window == 'undefined' {
+    return { innerWidth: 960 }
+  }
+  return window
+}
+
+
+def useWindowWidth(node) {
+  w = Window()
+  { value as width, setState as setWidth } = node.useState('width', w.innerWidth)
+  handleResize = () => setWidth(w.innerWidth)
+  node.lifecycle({
+    mount: () => {
+      console.log('mount useWindowWidth')
+      window.addEventListener('resize', handleResize)
+    },
+    unmount: (vnode) => {
+      console.log('unmount useWindowWidth')
+      window.removeEventListener('resize', handleResize)
+    }
+  })
+  return width
+}
+
+
 CounterPage = (attributes, children, node) => {
+  width = useWindowWidth(node)
+  width2 = useWindowWidth(node) + 10
   { setContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
@@ -71,5 +101,8 @@ CounterPage = (attributes, children, node) => {
     <h3>'lifecycle'</h3>
     <p>'lifecycle gives you access to the snabbdom lifecycle hooks directly from a component.'</p>
     <ClickCounter />
+    <h3>'Famous React hook useWindowWidth'</h3>
+    <p>'useWindowWidth:'width''</p>
+    <p>'useWindowWidth+10:'width2''</p>
   </div>
 }
