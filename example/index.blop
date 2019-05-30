@@ -5,7 +5,7 @@ import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { CounterPage } from './ComponentState/ComponentStatePage.blop'
 import { saveState } from './services.blop'
 
-def linkList(state) {
+def navigationLinks(state) {
   def memePage(e) {
     state.router.go('/meme')
     e.preventDefault()
@@ -26,51 +26,37 @@ def linkList(state) {
     state.router.go('/state')
     e.preventDefault()
   }
+  return { memePage, dogPage, todoPage, petStorePage, statePage }
+}
+
+def linkList(state) {
+  links = navigationLinks(state)
   <div>
     <p>
-      <a href="/dog" on={ click: dogPage }>'Dog breed guessing game'</a>
+      <a href="/dog" on={ click: links.dogPage }>'Dog breed guessing game'</a>
     </p>
     <p>
-      <a href="/petstore" on={ click: petStorePage }>'A pet store'</a>
+      <a href="/petstore" on={ click: links.petStorePage }>'A pet store'</a>
     </p>
     <p>
-      <a href="/meme" on={ click: memePage }>'Blank meme page'</a>
+      <a href="/meme" on={ click: links.memePage }>'Blank meme page'</a>
     </p>
     <p>
-      <a href="/todo" on={ click: todoPage }>'A basic todo app'</a>
+      <a href="/todo" on={ click: links.todoPage }>'A basic todo app'</a>
     </p>
     <p>
-      <a href="/state" on={ click: statePage }>'Component state'</a>
+      <a href="/state" on={ click: links.statePage }>'Component state'</a>
     </p>
   </div>
 }
 
 def navigation(state) {
-  def memePage(e) {
-    state.router.go('/meme')
-    e.preventDefault()
-  }
-  def dogPage(e) {
-    state.router.go('/dogs')
-    e.preventDefault()
-  }
-  def todoPage(e) {
-    state.router.go('/todo')
-    e.preventDefault()
-  }
-  def petStorePage(e) {
-    state.router.go('/petstore')
-    e.preventDefault()
-  }
+  links = navigationLinks(state)
+
   def saveStateEvent(e) {
     saveState(state)
     e.preventDefault()
   }
-  def statePage(e) {
-    state.router.go('/state')
-    e.preventDefault()
-  }
-  state.page
 
   def navItem(type, go, name) {
     classes = "nav-item"
@@ -93,11 +79,11 @@ def navigation(state) {
     </a>
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav">
-        = navItem('dog', dogPage, 'Breed game')
-        = navItem('petstore', petStorePage, 'Pet store')
-        = navItem('meme', memePage, 'Memes')
-        = navItem('todo', todoPage, 'A basic todo app')
-        = navItem('state', statePage, 'Demo for useState')
+        = navItem('dog', links.dogPage, 'Breed game')
+        = navItem('petstore', links.petStorePage, 'Pet store')
+        = navItem('meme', links.memePage, 'Memes')
+        = navItem('todo', links.todoPage, 'A basic todo app')
+        = navItem('state', links.statePage, 'Demo for useState')
       </ul>
     </div>
     <div style={ float: 'right', display: 'flex' }>
