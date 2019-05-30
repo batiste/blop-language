@@ -115,15 +115,15 @@ function createComponent(componentFct, attributes, children, name) {
     parent, path, vnode: null, attributes,
     // allow a partial re-render of the component
     render: () => {
+      const nodeCache = cache[path];
       const oldNode = currentNode;
       node.children = [];
       node.listeners = [];
       currentNode = node;
+      const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
       currentNode.life = { mount: [], unmount: [] };
       const newVnode = renderComponent(componentFct, attributes, children);
-      const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
       currentNode.life = life; // disregard the new lifecycle hooks
-      newVnode.path = path;
       patch(node.vnode, newVnode);
       cache[path] = currentNode;
       currentNode.vnode = newVnode;
@@ -140,9 +140,8 @@ function createComponent(componentFct, attributes, children, name) {
   } else {
     // important for unmount
     nodeMount(currentNode);
-    cache[path] = currentNode;
   }
-  vnode.path = path;
+  cache[path] = currentNode;
   currentNode.vnode = vnode;
   nextCache[path] = currentNode;
   currentNode = parent;
