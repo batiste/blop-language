@@ -79,25 +79,27 @@ def useWindowWidth(node) {
 Animation = (attributes, children, node): int => {
   w = Window()
   { value as position, setState as setPos } = node.useState('pos', { x: 0, y: 0 })
-  interval = null
-  i = 0
+  runAnimation = true
+  i = attributes.initial || 0
+  animate = () => {
+    i := i + 0.02
+    position.x = (w.innerWidth / 2) + 120 * Math.cos(i) - 60
+    position.y = (w.innerHeight / 2) + 120 * Math.sin(i) - 60
+    setPos(position)
+    runAnimation && window.requestAnimationFrame(animate)
+  }
   node.lifecycle({
     mount: () => {
-      interval := window.setInterval(
-        () => {
-          i := i + 0.05
-          position.x = (w.innerWidth / 2) + 120 * Math.cos(i) - 60
-          position.y = (w.innerHeight / 2) + 120 * Math.sin(i) - 60
-          setPos(position)
-        },
-        16)
+      console.log('mount Animation')
+      window.requestAnimationFrame(animate)
     },
     unmount: (vnode) => {
-      window.clearInterval(interval)
+      console.log('unmount Animation')
+      runAnimation := false
     }
   })
   <div style={ left: ''position.x'px', top: ''position.y'px', position: 'absolute' }>
-    = 'Animated'
+    = children
   </div>
 }
 
@@ -111,7 +113,12 @@ CounterPage = (attributes, children, node) => {
     <p>'An example on how you can have state stored inside a component.
       Setting a state in a component will re-render this component
       Reloading the page will reset the state.'</p>
-    <Animation />
+    <Animation>'Animation 1'</Animation>
+    <Animation initial=1>'Animation 1'</Animation>
+    <Animation initial=2>'Animation 2'</Animation>
+    <Animation initial=3>'Animation 3'</Animation>
+    <Animation initial=4>'Animation 4'</Animation>
+    <Animation initial=5>'Animation 5'</Animation>
     <Counter name='Counter 1' />
     <Counter name='Counter 2' />
 

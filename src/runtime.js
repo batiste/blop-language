@@ -68,6 +68,7 @@ function unmount(node, recur = false) {
       unmount(child, true);
     });
   }
+  node.mounted = false;
 }
 
 function nodeMount(node) {
