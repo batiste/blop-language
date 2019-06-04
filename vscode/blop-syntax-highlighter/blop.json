@@ -102,24 +102,24 @@
         "match":" ([a-zA-Z][a-zA-Z_0-9]*)\\=",
         "captures": {"1": {"name":"variable.parameter"}}
       },
-      {  
-        "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
-        "name":"meta.object-literal.key.blop"
-      },
       {
         "match":"def |if |else|elseif |for |delete |new |extends |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this|typeof |instanceof ",
-        "name":"keyword.other.blop"
+        "name":"keyword.statement.blop"
       },
       {
         "match":"^[ ]*break\n|continue\n",
-        "name":"keyword.other.blop"
+        "name":"keyword.statement.blop"
       },
       {
-        "match":": ([a-zA-Z][a-zA-Z_0-9]*)",
+        "match":"\\: ([a-zA-Z][a-zA-Z_0-9]*)",
         "name":"annotation.blop",
         "captures": {
-          "1": {"name":"keyword.other.blop"}
+          "1": {"name":"keyword.annotation.blop"}
         }
+      },
+      {
+        "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
+        "name":"meta.object-literal.key.blop"
       },
       {  
         "captures":{
