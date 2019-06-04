@@ -17,6 +17,14 @@
         "name":"def.blop"
       },
       {  
+        "match":"^(def |class |async def )([a-zA-Z][a-zA-Z_0-9]*)",
+        "captures": {
+          "1": {"name":"keyword.other.blop"},
+          "2": {"name":"support.type.object.module.blop"}
+        },
+        "name":"export.blop"
+      },
+      {  
         "match":"''",
         "name":"string.cokescript"
       },
@@ -103,8 +111,15 @@
         "name":"keyword.other.blop"
       },
       {
-        "match":": int|: string|: array|: object|: any|: number|: function|: boolean|: VNode|break|continue",
+        "match":"^[ ]*break\n|continue\n",
         "name":"keyword.other.blop"
+      },
+      {
+        "match":": ([a-zA-Z][a-zA-Z_0-9]*)",
+        "name":"annotation.blop",
+        "captures": {
+          "1": {"name":"keyword.other.blop"}
+        }
       },
       {  
         "captures":{
