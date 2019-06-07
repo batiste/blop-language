@@ -169,23 +169,23 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     const currentCdtNS = currentNamespacesCDT();
     const currentLoopNS = currentNamespacesLOOP();
     const parent = currentNameSpaceVN().currentVNode;
-
-    if (namespacesFCT.length <= 1 && node.type !== 'virtual_node_exp') {
-      const { opening, closing } = node.named;
+    const { opening, closing } = node.named;
+    if (node.type === 'virtual_node_exp') {
+      return;
+    }
+    if (closing) {
       opening.len = closing.start - opening.start + closing.len;
+    }
+    if (namespacesFCT.length <= 1) {
       generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
     }
 
-    if (node.type !== 'virtual_node_exp' && !parent && currentLoopNS.functionNS === currentFctNS) {
-      const { opening, closing } = node.named;
-      opening.len = closing.start - opening.start + closing.len;
+    if (!parent && currentLoopNS.functionNS === currentFctNS) {
       generateError(opening, 'Root virtual node are return satements. The loop will not iterate. Wrap the loop in a virtual node or build an array of virtual node', true);
     }
 
-    if (node.type !== 'virtual_node_exp' && !parent) {
+    if (!parent) {
       if (currentFctNS.returnVirtualNode) {
-        const { opening, closing } = node.named;
-        opening.len = closing.start - opening.start + closing.len;
         generateError(opening, 'A root virtual node is already defined in this function');
       } else if (namespacesCDT.length > 1) {
         let isRedefined = false;
@@ -195,8 +195,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
           }
         });
         if (isRedefined) {
-          const { opening, closing } = node.named;
-          opening.len = closing.start - opening.start + closing.len;
           generateError(opening, 'A root virtual node is already defined in this branch.');
         } else {
           currentCdtNS.returnVirtualNode = { node, hoist: false };
@@ -639,7 +637,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       return output;
     },
     'while_loop': (node) => {
-      addNameSpaceLOOP();
+      const ns = currentNameSpaceFCT();
+      const lns = addNameSpaceLOOP();
+      lns.functionNS = ns;
       const output = [];
       output.push('while(');
       output.push(...generateCode(node.named.exp));
