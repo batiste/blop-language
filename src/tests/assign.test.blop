@@ -2,6 +2,8 @@
 array = [1, 2]
 value = 1
 
+spreaded = [10, ...array]
+
 def testFunc() {
   b = 908
   def testFunc2() {
@@ -14,4 +16,5 @@ testFunc()
 
 test('assign test', () => {
   expect(value).toBe(1000)
+  expect(spreaded).toEqual([10, 1, 2])
 })

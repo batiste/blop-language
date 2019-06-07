@@ -804,7 +804,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       }
       return ['continue'];
     },
-    'comment': node => node.value.replace('#', '//'),
     'try': () => ['try {'],
     'catch': () => ['} catch('],
   };

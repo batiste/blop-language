@@ -97,6 +97,7 @@ const tokensDefinition = {
   'continue': { func: continueDef, verbose: 'continue' },
   'throw': { str: 'throw ', verbose: 'throw' },
   'import': { str: 'import ' },
+  'spread': { str: '...' },
   'from': { str: 'from ' },
   'operand': { reg: /^(typeof )/ },
   ',': { str: ',' },

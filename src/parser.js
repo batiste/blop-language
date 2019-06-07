@@ -6900,6 +6900,36 @@ function exp_23(stream, index) {
   return node;
 }
 
+function exp_24(stream, index) {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'exp',
+    subRule: 24, type: 'exp', named,
+  };
+
+  if (stream[i].type !== 'spread') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'exp', sub_rule_index: 24,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_1 = exp(stream, i);
+  if (!_rule_1) return;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+}
+
 function exp(stream, index) {
   return exp_0(stream, index)
     || exp_1(stream, index)
@@ -6924,7 +6954,8 @@ function exp(stream, index) {
     || exp_20(stream, index)
     || exp_21(stream, index)
     || exp_22(stream, index)
-    || exp_23(stream, index);
+    || exp_23(stream, index)
+    || exp_24(stream, index);
 }
 function _tokenize(tokenDef, input, stream) {
   let match;
@@ -7005,6 +7036,9 @@ function _tokenize(tokenDef, input, stream) {
   }
   if (input.startsWith('import ')) {
     return ['import ', 'import'];
+  }
+  if (input.startsWith('...')) {
+    return ['...', 'spread'];
   }
   if (input.startsWith('from ')) {
     return ['from ', 'from'];

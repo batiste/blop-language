@@ -234,6 +234,7 @@ const grammar = {
     ['new', 'exp'],
     ['throw', 'exp'],
     ['delete', 'exp'],
+    ['spread', 'exp'],
   ],
 };
 
