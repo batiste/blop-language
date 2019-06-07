@@ -64,14 +64,18 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   const addNameSpaceLOOP = () => namespacesLOOP.push({}) && currentNamespacesLOOP();
   const popNameSpaceLOOP = () => namespacesLOOP.pop();
 
-  function generateError(node, message) {
+  function generateError(node, message, warning = false) {
     const token = stream[node.stream_index];
     const sourceContext = utils.streamContext(input, token, token, stream);
     const error = new Error(`${message}
     ${sourceContext}
 `);
     error.token = token;
-    errors.push(error);
+    if (warning) {
+      warnings.push(error);
+    } else {
+      errors.push(error);
+    }
   }
 
   function registerName(name, node, options = {}) {
@@ -163,12 +167,19 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   function registerVirtualNode(node) {
     const currentFctNS = currentNameSpaceFCT();
     const currentCdtNS = currentNamespacesCDT();
+    const currentLoopNS = currentNamespacesLOOP();
     const parent = currentNameSpaceVN().currentVNode;
 
     if (namespacesFCT.length <= 1 && node.type !== 'virtual_node_exp') {
       const { opening, closing } = node.named;
       opening.len = closing.start - opening.start + closing.len;
-      generateError(opening, 'Virtual node statement cannot be use outside a function scope');
+      generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
+    }
+
+    if (node.type !== 'virtual_node_exp' && !parent && currentLoopNS.functionNS === currentFctNS) {
+      const { opening, closing } = node.named;
+      opening.len = closing.start - opening.start + closing.len;
+      generateError(opening, 'Root virtual node are return satements. The loop will not iterate. Wrap the loop in a virtual node or build an array of virtual node', true);
     }
 
     if (node.type !== 'virtual_node_exp' && !parent) {
@@ -186,7 +197,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
         if (isRedefined) {
           const { opening, closing } = node.named;
           opening.len = closing.start - opening.start + closing.len;
-          generateError(opening, 'A root virtual node is already defined in this branch');
+          generateError(opening, 'A root virtual node is already defined in this branch.');
         } else {
           currentCdtNS.returnVirtualNode = { node, hoist: false };
         }
@@ -514,7 +525,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     },
     'for_loop': (node) => {
       const ns = currentNameSpaceFCT();
-      addNameSpaceLOOP();
+      const lns = addNameSpaceLOOP();
+      lns.functionNS = ns;
       const output = [];
       const key = (node.named.key && node.named.key.value) || `_i${uid()}`;
       const { value } = node.named.value;
