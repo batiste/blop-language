@@ -173,13 +173,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
     if (namespacesFCT.length <= 1 && node.type !== 'virtual_node_exp') {
       const { opening, closing } = node.named;
       opening.len = closing.start - opening.start + closing.len;
-      generateError(opening, 'Virtual node statement cannot be use outside a function scope.');
+      generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
     }
 
     if (node.type !== 'virtual_node_exp' && !parent && currentLoopNS.functionNS === currentFctNS) {
       const { opening, closing } = node.named;
       opening.len = closing.start - opening.start + closing.len;
-      generateError(opening, 'Root virtual node are return satements. They will interrupt the loop at on the first iteration. Wrap the loop in a virtual node or build an array of virtual node', true);
+      generateError(opening, 'Root virtual node are return satements. The loop will not iterate. Wrap the loop in a virtual node or build an array of virtual node', true);
     }
 
     if (node.type !== 'virtual_node_exp' && !parent) {
