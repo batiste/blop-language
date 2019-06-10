@@ -3,6 +3,19 @@ def render(text) {
   <h1>text</h1>
 }
 
+def level1() {
+  i = 0
+  <div>
+    def add() {
+      i := i + 1
+      <span>i</span>
+    }
+    add()
+    add()
+    add()
+  </div>
+}
+
 // should produce no warning
 def testConditions() {
   if true {
@@ -23,6 +36,16 @@ def testConditions() {
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')
+})
+
+test('test conditional virtual node', () => {
   condition = testConditions()
   expect(condition.children[0].text).toBe(2)
+})
+
+test('function inside virtual node', () => {
+  test = level1()
+  expect(test.children[0].children[0].text).toBe(1)
+  expect(test.children[1].children[0].text).toBe(2)
+  expect(test.children[2].children[0].text).toBe(3)
 })

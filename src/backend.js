@@ -116,16 +116,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       const { key, node } = importedKeys[i];
       if (!exports.objects[key]) {
         generateError(node, `Imported key ${key} is not exported in ${filename}`);
-      } else {
-        // not quite useful unless done in the inference
-        // if (key === 'testImportedInference') {
-        //   console.log(exports.objects[key]);
-        //   console.log(rename);
-        // }
-        // const ns = currentNameSpaceFCT();
-        // const object = exports.objects[key];
-        // object.hoist = false;
-        // ns[key] = object;
       }
     }
   }
