@@ -3,7 +3,7 @@
       "blop"
     ],
     "name":"blop",
-    "patterns":[  
+    "patterns":[
       {  
         "captures":{  
           "1":{  
@@ -23,6 +23,14 @@
           "2": {"name":"support.type.object.module.blop"}
         },
         "name":"export.blop"
+      },
+      {  
+        "match":" (in) ([a-zA-Z][a-zA-Z_0-9]*)",
+        "captures": {
+          "1": {"name":"keyword.other.blop"},
+          "2": {"name":"name.blop"}
+        },
+        "name":"loop.blop"
       },
       {  
         "match":"''",
@@ -118,10 +126,6 @@
         }
       },
       {
-        "match":"[a-zA-Z][a-zA-Z_0-9]*\\:",
-        "name":"meta.object-literal.key.blop"
-      },
-      {  
         "captures":{
           "1":{  
             "name":"support.function.misc.blop"
@@ -132,6 +136,10 @@
         },
         "match":"([a-zA-Z][a-zA-Z_0-9]*)(?:\\()",
         "name":"func.call.blop"
+      },
+      {
+        "match":"[,|\\s|{][a-zA-Z][a-zA-Z_0-9]*\\:",
+        "name":"meta.object-literal.key.blop"
       },
       {  
         "match":"[a-zA-Z][a-zA-Z_0-9]*",

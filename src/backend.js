@@ -290,6 +290,21 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       final.push(' };\n');
       return final;
     },
+    'SCOPED_STATEMENT': (node) => {
+      const output = [];
+      const currentFctNS = currentNameSpaceFCT();
+      const alreadyVnode = !!currentFctNS.returnVirtualNode;
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      const parent = currentNameSpaceVN().currentVNode;
+      // small improvement but this doesn't account for normal returns
+      // or conditions
+      if (!parent && currentFctNS.returnVirtualNode && alreadyVnode) {
+        generateError(node, 'Code is unreachable code after root virtual node', true);
+      }
+      return output;
+    },
     'annotation': () => [],
     'assign': (node) => {
       const output = [];

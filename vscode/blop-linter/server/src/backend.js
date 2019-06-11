@@ -116,16 +116,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       const { key, node } = importedKeys[i];
       if (!exports.objects[key]) {
         generateError(node, `Imported key ${key} is not exported in ${filename}`);
-      } else {
-        // not quite useful unless done in the inference
-        // if (key === 'testImportedInference') {
-        //   console.log(exports.objects[key]);
-        //   console.log(rename);
-        // }
-        // const ns = currentNameSpaceFCT();
-        // const object = exports.objects[key];
-        // object.hoist = false;
-        // ns[key] = object;
       }
     }
   }
@@ -299,6 +289,21 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       final.push(exportKeys.join(', '));
       final.push(' };\n');
       return final;
+    },
+    'SCOPED_STATEMENT': (node) => {
+      const output = [];
+      const currentFctNS = currentNameSpaceFCT();
+      const alreadyVnode = !!currentFctNS.returnVirtualNode;
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      const parent = currentNameSpaceVN().currentVNode;
+      // small improvement but this doesn't account for normal returns
+      // or conditions
+      if (!parent && currentFctNS.returnVirtualNode && alreadyVnode) {
+        generateError(node, 'Code is unreachable code after root virtual node', true);
+      }
+      return output;
     },
     'annotation': () => [],
     'assign': (node) => {
