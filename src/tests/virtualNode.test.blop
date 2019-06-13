@@ -33,6 +33,31 @@ def testConditions() {
   }
 }
 
+
+def loop1(array) {
+  <div>
+    for item in array: array {
+      = item
+    }
+  </div>
+}
+
+def loop2(array) {
+  <div>
+    array.forEach((item) => {
+      = item
+    })
+  </div>
+}
+
+def Test(attributes) {
+  <span>attributes.value</span>
+}
+
+def loop3(array) {
+  <div>array.map((item) => <Test value=item />)</div>
+}
+
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')
@@ -41,6 +66,17 @@ test('virtual node', () => {
 test('test conditional virtual node', () => {
   condition = testConditions()
   expect(condition.children[0].text).toBe(2)
+})
+
+test('test loop, forEach equivalency', () => {
+  r1 = loop1([1, 2, 3])
+  r2 = loop2([1, 2, 3])
+  r3 = loop3([1, 2, 3])
+  expect(r1.children[0].text).toBe(1)
+  expect(r2.children[0].text).toBe(1)
+  expect(r1.children[2].text).toBe(3)
+  expect(r2.children[2].text).toBe(3)
+  expect(r3.children[2].children[0].text).toBe(3)
 })
 
 test('function inside virtual node', () => {
