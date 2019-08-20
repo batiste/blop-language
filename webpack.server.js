@@ -28,6 +28,10 @@ const serverConfig = {
           },
         ],
       },
+      {
+        test: /\.css$/i,
+        use: ['null-loader'],
+      },
     ],
   },
   plugins: [

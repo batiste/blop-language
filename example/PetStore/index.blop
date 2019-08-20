@@ -1,5 +1,7 @@
 import { deletePets } from './services.blop'
 
+import './style.css'
+
 pageSize = 10
 
 def pagination(petStore) {
@@ -39,14 +41,6 @@ def PetStore(attributes) {
     pets.splice(start + index, 1)
   }
   <div>
-    <style>'
-      .previous {
-        margin-right: 10px;
-      }
-      .next {
-        margin-left: 10px;
-      }
-    '</style>
     <p>
       = 'Using the slow and buggy swagger pet API is a good test. Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>

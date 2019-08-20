@@ -4,6 +4,7 @@ import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { CounterPage } from './ComponentState/ComponentStatePage.blop'
 import { saveState } from './services.blop'
+import './style.css'
 
 def navigationLinks(state) {
   def memePage(e) {
@@ -108,11 +109,6 @@ Index = (state) => {
     e.preventDefault()
   }
   <div>
-    <style>'
-      .container {
-        margin: 2em auto;
-      }
-    '</style>
     = navigation(state)
     <div class="container">
       <h1>
