@@ -76,7 +76,7 @@ def useWindowWidth(node) {
   return width
 }
 
-Animation = (attributes, children, node): int => {
+Animation = (attributes, children, node) => {
   w = Window()
   { value as position, setState as setPos } = node.useState('pos', { x: 0, y: 0 })
   runAnimation = true
