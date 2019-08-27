@@ -78,27 +78,32 @@ def navigation(state) {
         width="38" height="30" class="d-inline-block align-top" alt="" />
       = ' Blop'
     </a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav">
+    <button class="navbar-toggler" type="button"
+        data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
         = navItem('dog', links.dogPage, 'Breed game')
         = navItem('petstore', links.petStorePage, 'Pet store')
         = navItem('meme', links.memePage, 'Memes')
         = navItem('todo', links.todoPage, 'A basic todo app')
         = navItem('state', links.statePage, 'Demo for useState')
       </ul>
-    </div>
-    <div style={ float: 'right', display: 'flex' }>
-      if (state.loading) {
-        <div class="spinner-border text-primary" role="status" style={ marginRight: '1em' }>
-          <span class="sr-only">'Loading...'</span>
-        </div>
-      }
-      if (state.error) {
-        <p>'Error 'state.error''</p>
-      }
-      <button on={ click: saveStateEvent } class="btn btn-secondary">
-        = 'Save locale state on server'
-      </button>
+      <div style={ float: 'right', display: 'flex' }>
+        if (state.loading) {
+          <div class="spinner-border text-primary" role="status" style={ marginRight: '1em' }>
+            <span class="sr-only">'Loading...'</span>
+          </div>
+        }
+        if (state.error) {
+          <p>'Error 'state.error''</p>
+        }
+        <button on={ click: saveStateEvent } class="btn btn-secondary">
+          = 'Save locale state on server'
+        </button>
+      </div>
     </div>
   </nav>
 }

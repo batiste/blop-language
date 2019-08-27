@@ -177,10 +177,10 @@ const grammar = {
     ['=', 'w', 'exp:exp'],
   ],
   'virtual_node_attributes': [
-    ['newline', 'W', 'name:name', '=', 'exp:exp'],
-    ['w', 'name:name', '=', 'exp:exp'],
-    ['newline', 'W', 'name:name'],
-    ['w', 'name:name'],
+    ['single_space_or_newline', 'attribute_name:name', '=', 'exp:exp'],
+    ['single_space_or_newline', 'attribute_name:name'],
+    ['single_space_or_newline', 'name:name', '=', 'exp:exp'],
+    ['single_space_or_newline', 'name:name'],
   ],
   'operation': [
     ['math_operator:math_op', 'w', 'exp'],

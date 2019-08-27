@@ -58,6 +58,10 @@ def loop3(array) {
   <div>array.map((item) => <Test value=item />)</div>
 }
 
+def attributeWithDash(array) {
+  <div data-id='1'></div>
+}
+
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')
@@ -84,4 +88,9 @@ test('function inside virtual node', () => {
   expect(test.children[0].children[0].text).toBe(1)
   expect(test.children[1].children[0].text).toBe(2)
   expect(test.children[2].children[0].text).toBe(3)
+})
+
+test('attribut with dash', () => {
+  test = attributeWithDash()
+  expect(test.data.attrs['data-id']).toBe('1')
 })
