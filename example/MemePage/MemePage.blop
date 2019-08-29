@@ -1,7 +1,14 @@
 import { MemeCard } from './MemeCard.blop'
+import { getMemes } from './services.blop'
 
-def MemePage(attributes: object) {
+def MemePage(attributes: object, c, node) {
   { state } = attributes
+  node.lifecycle({
+    mount: () => {
+      console.log('mount MemePage')
+      getMemes(state)
+    }
+  })
   <div>
     <div class={ "card-deck": true, "mb-3": true, 'text-center': true }>
       for meme in state.memes: array {

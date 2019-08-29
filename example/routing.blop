@@ -1,7 +1,4 @@
 import { Router } from './lib/router.blop'
-import { getMemes } from './MemePage/services.blop'
-import { getPets } from './PetStore/services.blop'
-import { getNewDog } from './DogPage/services.blop'
 
 async def indexHandler(params, state) {
   state.page = 'index'
@@ -9,9 +6,6 @@ async def indexHandler(params, state) {
 }
 
 async def dogPageIndexHandler(params, state) {
-  if (!state.dogPage.choice) {
-    await getNewDog(state)
-  }
   state.page = 'dog'
   console.log('doggyIndexHandler called with', params)
 }
@@ -25,7 +19,6 @@ def dogPageHandler(params, state) {
 async def memePageHandler(params, state) {
   state.page = 'meme'
   console.log('memePageHandler called with', params)
-  await getMemes(state)
 }
 
 def todoPageHandler(params, state) {
@@ -41,7 +34,6 @@ def statePageHandler(params, state) {
 async def petStorePageIndexHandler(params, state) {
   state.page = 'petstore'
   console.log('petStorePageIndexHandler called with', params)
-  await getPets(state)
 }
 
 def createRouter(state, global) {

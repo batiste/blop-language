@@ -1,4 +1,5 @@
 import { deletePets } from './services.blop'
+import { getPets } from './services.blop'
 
 import './style.css'
 
@@ -28,13 +29,21 @@ def pagination(petStore) {
   </p>
 }
 
-def PetStore(attributes) {
-  { petStore } = attributes.state
+def PetStore(attributes, c, node) {
+  { state } = attributes
+  petStore = state.petStore
   pets = petStore.pets
   pageIndex = petStore.pageIndex
   start = pageIndex * pageSize
   page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
   nbPage = Math.ceil(pets.length / pageSize)
+
+  node.lifecycle({
+    mount: () => {
+      console.log('mount PetStore')
+      getPets(state)
+    }
+  })
 
   deletePet = (index, pet) => (e) => {
     deletePets(pet)
