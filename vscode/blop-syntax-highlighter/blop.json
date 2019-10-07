@@ -17,7 +17,7 @@
         "name":"def.blop"
       },
       {  
-        "match":"^(def |class |async def )([a-zA-Z][a-zA-Z_0-9]*)",
+        "match":"^(def |class |async def )([a-zA-Z_$][a-zA-Z_0-9_$]*)",
         "captures": {
           "1": {"name":"keyword.other.blop"},
           "2": {"name":"support.type.object.module.blop"}
@@ -25,7 +25,7 @@
         "name":"export.blop"
       },
       {  
-        "match":" (in) ([a-zA-Z][a-zA-Z_0-9]*)",
+        "match":" (in) ([a-zA-Z_$][a-zA-Z_0-9_$]*)",
         "captures": {
           "1": {"name":"keyword.other.blop"},
           "2": {"name":"name.blop"}
@@ -99,15 +99,15 @@
         "name":"keyword.other.compare.blop"
       },
       {  
-        "match":"^([a-zA-Z][a-zA-Z_0-9]*) \\= ",
+        "match":"^([a-zA-Z_$][a-zA-Z_0-9_$]*) \\= ",
         "captures": {"1": {"name":"support.type.object.module.blop"}}
       },
       {  
-        "match":"(\\.[a-zA-Z][a-zA-Z_0-9]*) \\= ",
+        "match":"(\\.[a-zA-Z_$][a-zA-Z_0-9_$]*) \\= ",
         "captures": {"1": {"name":"variable.assignment.blop"}}
       },
       {  
-        "match":" ([a-zA-Z][a-zA-Z_0-9]*)\\=",
+        "match":" ([a-zA-Z_$][a-zA-Z_0-9_$]*)\\=",
         "captures": {"1": {"name":"variable.parameter"}}
       },
       {
@@ -119,7 +119,7 @@
         "name":"keyword.statement.blop"
       },
       {
-        "match":"\\: ([a-zA-Z][a-zA-Z_0-9]*)",
+        "match":"\\: ([a-zA-Z_$][a-zA-Z_0-9_$]*)",
         "name":"annotation.blop",
         "captures": {
           "1": {"name":"keyword.annotation.blop"}
@@ -134,24 +134,20 @@
             "name":"parens"
           }
         },
-        "match":"([a-zA-Z][a-zA-Z_0-9]*)(?:\\()",
+        "match":"([a-zA-Z_$][a-zA-Z_0-9_$]*)(?:\\()",
         "name":"func.call.blop"
       },
       {
-        "match":"[,|\\s|{][a-zA-Z][a-zA-Z_0-9]*\\:",
+        "match":"[,|\\s|{][a-zA-Z_$][a-zA-Z_0-9_$]*\\:",
         "name":"meta.object-literal.key.blop"
       },
       {  
-        "match":"[a-zA-Z][a-zA-Z_0-9]*",
+        "match":"[a-zA-Z_$][a-zA-Z_0-9_$]*",
         "name":"name.blop"
       },
       {  
         "match":"\\.|\\,|\\:",
         "name":"punctuation.definition.string.blop"
-      },
-      {  
-        "match":"[a-zA-Z][a-zA-Z_0-9]*",
-        "name":"name.blop"
       },
       {  
         "match":"[0-9]+\\.?[0-9]*",

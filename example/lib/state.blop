@@ -21,17 +21,11 @@ def create(state, options={ readOnly: false }) {
   def trigger(path) {
     callbacks.forEach((fct) => fct(path))
   }
-  def connectRouter(newrouter) {
-    router := newrouter
-  }
-  raw = state
-  protectedProp = {
+  root = {
     flush,
     listen,
     trigger,
-    router,
-    connectRouter,
-    raw
+    raw: state
   }
   def handler(currentState, path='', parentState) {
     def hasChanged(extrapath='') {
@@ -45,20 +39,14 @@ def create(state, options={ readOnly: false }) {
     }
     return {
       get: def (obj, prop) {
+        if prop == '$' {
+          return root
+        }
         if prop == 'hasChanged' {
           return hasChanged
         }
-        if prop == 'router' {
-          if !router {
-            throw new Error('No router has been connected to this state')
-          }
-          return router
-        }
-        if protectedProp[prop] {
-          return protectedProp[prop]
-        }
         // be sure to not double wrap a Proxy
-        if isObject(obj[prop]) && !obj[prop].hasChanged {
+        if isObject(obj[prop]) && !obj[prop].$ {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
@@ -70,8 +58,8 @@ def create(state, options={ readOnly: false }) {
         if readOnly {
           throw new Error(``obj`.`prop` is read only`)
         }
-        if protectedProp[prop] {
-          throw new Error(`You cannot redefine the `prop` property in a proxied state`)
+        if prop == '$' {
+          throw new Error(`You cannot redefine the $ property in a proxied state`)
         }
         modificationTable.push({ path: ''path'.'prop'', action: 'set', value })
         obj[prop] = value

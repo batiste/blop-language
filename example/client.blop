@@ -11,7 +11,7 @@ render = () => {
     return
   }
   tree = Index(proxiedState)
-  proxiedState.flush()
+  proxiedState.$.flush()
   console.log('Client renderer executed')
   return tree
 }
@@ -20,7 +20,7 @@ render = () => {
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
-proxiedState.listen((path) => {
+proxiedState.$.listen((path) => {
   refresh((time) => {
     if time > 50 {
       console.log(`Slow rendering time `time`ms triggered by `path``)

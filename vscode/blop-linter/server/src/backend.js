@@ -301,7 +301,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       // small improvement but this doesn't account for normal returns
       // or conditions
       if (!parent && currentFctNS.returnVirtualNode && alreadyVnode) {
-        generateError(node, 'Code is unreachable code after root virtual node', true);
+        generateError(node, 'Code is unreachable after root virtual node', true);
       }
       return output;
     },

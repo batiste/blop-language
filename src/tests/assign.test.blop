@@ -4,6 +4,14 @@ value = 1
 
 spreaded = [10, ...array]
 
+_$hello__2__2 = 2
+
+def $__hello() {
+  _$hello__2__2 := 3
+}
+
+$__hello()
+
 def testFunc() {
   b = 908
   def testFunc2() {
@@ -17,4 +25,5 @@ testFunc()
 test('assign test', () => {
   expect(value).toBe(1000)
   expect(spreaded).toEqual([10, 1, 2])
+  expect(_$hello__2__2).toEqual(3)
 })

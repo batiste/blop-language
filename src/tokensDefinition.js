@@ -114,8 +114,8 @@ const tokensDefinition = {
   'boolean_operator': { reg: /^(\|\|?|&&|>=|<=|==|!=|instanceof)/ },
   '>': { str: '>' },
   '<': { str: '<' },
-  'attribute_name': { reg: /^[\w]+(-\w+)+/ },
-  'name': { reg: /^[\w]+/ },
+  'attribute_name': { reg: /^[\w|$|_]+(-\w+)+/ },
+  'name': { reg: /^[\w|$|_]+/ },
   'regexp': { func: regExpDef }, // problematic with a / b / c
   'math_operator': { reg: /^(\+|\/|-|\*|\^|~|%)/ },
   'unary': { str: '!' },

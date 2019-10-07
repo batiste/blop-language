@@ -8,23 +8,23 @@ import './style.css'
 
 def navigationLinks(state) {
   def memePage(e) {
-    state.router.go('/meme')
+    state.$.router.go('/meme')
     e.preventDefault()
   }
   def dogPage(e) {
-    state.router.go('/dogs')
+    state.$.router.go('/dogs')
     e.preventDefault()
   }
   def todoPage(e) {
-    state.router.go('/todo')
+    state.$.router.go('/todo')
     e.preventDefault()
   }
   def petStorePage(e) {
-    state.router.go('/petstore')
+    state.$.router.go('/petstore')
     e.preventDefault()
   }
   def statePage(e) {
-    state.router.go('/state')
+    state.$.router.go('/state')
     e.preventDefault()
   }
   return { memePage, dogPage, todoPage, petStorePage, statePage }
@@ -110,7 +110,7 @@ def navigation(state) {
 
 Index = (state) => {
   def indexPage(e) {
-    state.router.go('/')
+    state.$.router.go('/')
     e.preventDefault()
   }
   <div>

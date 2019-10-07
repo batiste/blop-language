@@ -24,7 +24,7 @@ class Router {
   def constructor(initial, state, global=mockWindow) {
     this.routes = []
     this.state = state
-    this.state.connectRouter(this)
+    this.state.$.router = this
     this.global = global
     global.addEventListener('popstate', (e) => {
       if e.state == null {

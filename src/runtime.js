@@ -210,13 +210,18 @@ const patch = snabbdom.init([
 ]);
 
 let renderPipeline = [];
+let alreadyRendering = false;
 
 function scheduleRender(render) {
   renderPipeline.push(render);
-  window.requestAnimationFrame(() => {
-    renderPipeline.forEach(fct => fct());
-    renderPipeline = [];
-  });
+  if (!alreadyRendering) {
+    window.requestAnimationFrame(() => {
+      alreadyRendering = true;
+      renderPipeline.forEach(fct => fct());
+      renderPipeline = [];
+      alreadyRendering = false;
+    });
+  }
 }
 
 function umountDestroyedComponent() {
