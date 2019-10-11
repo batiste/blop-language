@@ -46,7 +46,10 @@ class Component {
     currentNode = parentNode;
   }
 
-  render() {
+  render(componentFct, attributes, children) {
+    this.componentFct = componentFct;
+    this.attributes = attributes;
+    this.children = children;
     const parentNode = currentNode;
     currentNode = this;
     const { life } = this;
@@ -153,10 +156,10 @@ class Component {
 function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
   if (cache[path]) {
-    return cache[path].render();
+    return cache[path].render(componentFct, attributes, children, name);
   }
   const component = new Component(componentFct, attributes, children, name);
-  return component.render();
+  return component.render(componentFct, attributes, children, name);
 }
 
 function copyToThunk(vnode, thunk) {

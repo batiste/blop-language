@@ -80,6 +80,8 @@ test('test loop, forEach equivalency', () => {
   expect(r2.children[0].text).toBe(1)
   expect(r1.children[2].text).toBe(3)
   expect(r2.children[2].text).toBe(3)
+  expect(r3.children[0].children[0].text).toBe(1)
+  expect(r3.children[1].children[0].text).toBe(2)
   expect(r3.children[2].children[0].text).toBe(3)
 })
 
