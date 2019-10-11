@@ -58,6 +58,20 @@ def loop3(array) {
   <div>array.map((item) => <Test value=item />)</div>
 }
 
+lifeCycleContent = []
+def TestLifecycle(attributes, children, node) {
+  node.lifecycle({
+    mount: () => {
+      lifeCycleContent.push(attributes.value)
+    }
+  })
+  <span>attributes.value</span>
+}
+
+def loop4(array) {
+  <div>array.map((item) => <TestLifecycle value=item />)</div>
+}
+
 def attributeWithDash(array) {
   <div data-id='1'></div>
 }
@@ -95,4 +109,9 @@ test('function inside virtual node', () => {
 test('attribut with dash', () => {
   test = attributeWithDash()
   expect(test.data.attrs['data-id']).toBe('1')
+})
+
+test('test loop, with lifecycle', () => {
+  r3 = loop4([1, 2, 3])
+  expect(lifeCycleContent).toEqual([1, 2, 3])
 })

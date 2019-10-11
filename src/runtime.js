@@ -244,6 +244,8 @@ function destroyUnreferencedComponents() {
   difference.forEach(path => cache[path].destroy());
 }
 
+currentNode = new Component(() => {}, {}, [], 'root');
+
 function mount(dom, render) {
   let vnode; let
     requested;
@@ -258,7 +260,7 @@ function mount(dom, render) {
     }
     requested = true;
     renderPipeline = [];
-    currentNode = null;
+    currentNode = new Component(() => {}, {}, [], 'root');
     const rerender = () => {
       let newVnode;
       nextCache = {};
