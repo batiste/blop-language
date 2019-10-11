@@ -37,15 +37,13 @@ ClickCounter = (attributes, children, node) => {
     // gets captured in increase and never changes
     setState(getState() + 1)
   }
-  node.lifecycle({
-    mount: (vnode) => {
-      console.log('mount ClickCounter')
-      document.addEventListener('click', increase)
-    },
-    unmount: (vnode) => {
-      document.removeEventListener('click', increase)
-      console.log('unmount ClickCounter')
-    }
+  node.mount((vnode) => {
+    console.log('mount ClickCounter')
+    document.addEventListener('click', increase)
+  })
+  node.unmount((vnode) => {
+    document.removeEventListener('click', increase)
+    console.log('unmount ClickCounter')
   })
   return renderClickCounter(counter)
 }
@@ -63,15 +61,13 @@ def useWindowWidth(node) {
   w = Window()
   { value as width, setState as setWidth } = node.useState('width', w.innerWidth)
   handleResize = () => setWidth(w.innerWidth)
-  node.lifecycle({
-    mount: () => {
-      console.log('mount useWindowWidth')
-      window.addEventListener('resize', handleResize)
-    },
-    unmount: (vnode) => {
-      console.log('unmount useWindowWidth')
-      window.removeEventListener('resize', handleResize)
-    }
+  node.mount(() => {
+    console.log('mount useWindowWidth')
+    window.addEventListener('resize', handleResize)
+  })
+  node.mount((vnode) => {
+    console.log('unmount useWindowWidth')
+    window.removeEventListener('resize', handleResize)
   })
   return width
 }
@@ -88,15 +84,13 @@ Animation = (attributes, children, node) => {
     setPos(position)
     runAnimation && window.requestAnimationFrame(animate)
   }
-  node.lifecycle({
-    mount: () => {
-      console.log('mount Animation')
-      window.requestAnimationFrame(animate)
-    },
-    unmount: (vnode) => {
-      console.log('unmount Animation')
-      runAnimation := false
-    }
+  node.mount(() => {
+    console.log('mount Animation')
+    window.requestAnimationFrame(animate)
+  })
+  node.unmount((vnode) => {
+    console.log('unmount Animation')
+    runAnimation := false
   })
   <div style={ left: ''position.x'px', top: ''position.y'px', position: 'absolute' }>
     = children

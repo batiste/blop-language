@@ -57,7 +57,7 @@ class Component {
     if (this.vnode) {
       this.life = life; // disregard the new lifecycles hooks if already mounted
     } else {
-      this.mount();
+      this._mount();
     }
     parentNode && parentNode.componentsChildren.push(this);
     nextCache[this.path] = this;
@@ -76,18 +76,18 @@ class Component {
     }
   }
 
-  unmount(recur = false) {
+  _unmount(recur = false) {
     this.life.unmount.forEach(fct => fct());
     this.life.unmount = [];
     if (recur) {
       this.componentsChildren.forEach((child) => {
-        child.unmount(true);
+        child._unmount(true);
       });
     }
     this.mounted = false;
   }
 
-  mount() {
+  _mount() {
     // do not mount in node
     if (process && process.title === 'node') {
       return;
@@ -97,13 +97,21 @@ class Component {
     this.life.mount = [];
   }
 
+  mount(func) {
+    this.life.mount.push(func);
+  }
+
+  unmount(func) {
+    this.life.unmount.push(func);
+  }
+
   lifecycle(obj) {
     if (obj.mount) this.life.mount.push(obj.mount);
     if (obj.unmount) this.life.unmount.push(obj.unmount);
   }
 
   destroy() {
-    this.unmount();
+    this._unmount();
     this.parent = null;
     this.children = null;
     // some asyncronous operation might depends on this
