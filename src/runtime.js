@@ -6,147 +6,157 @@ const eventlisteners = require('snabbdom/modules/eventlisteners');
 const snabbdomh = require('snabbdom/h');
 const toVNode = require('snabbdom/tovnode').default;
 
+// the node being currently rendered
 let currentNode = null;
 // this is the component state cache
 let cache = {};
 // this is the next cache that replace cache after a full re-render
 let nextCache = {};
 
-function useState(name, initialValue) {
-  const { state } = currentNode;
-  currentNode.state[name] = state[name] || initialValue;
-  // this freeze the value for the closure
-  const stateName = name;
-  const closureNode = currentNode;
-  const setState = (newState) => {
-    state[stateName] = newState;
-    scheduleRender(() => closureNode.render());
-  };
-  return { value: state[name], setState, getState: () => state[name] };
-}
-
-function useContext(name, initialValue) {
-  const closureNode = currentNode;
-  if (initialValue) {
-    closureNode.context[name] = initialValue;
+class Component {
+  constructor(componentFct, attributes, children, name) {
+    this.componentFct = componentFct;
+    this.attributes = attributes;
+    this.children = children;
+    this.name = name;
+    this.path = currentNode ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}` : name;
+    this.componentsChildren = [];
+    this.listeners = [];
+    this.life = { mount: [], unmount: [] };
+    this.vnode = null;
+    this.parent = currentNode;
+    this.state = [];
+    this.context = {};
+    this.mounted = !!this.vnode;
+    cache[this.path] = this;
   }
-  const setContext = (value) => {
-    closureNode.context[name] = value;
-    closureNode.listeners.forEach((node) => {
-      scheduleRender(() => node.render());
-    });
-  };
-  const getContext = () => {
-    let node = closureNode;
-    const requestingNode = closureNode;
-    while (node) {
-      if (node.context[name] !== undefined) {
-        if (!node.listeners.includes(requestingNode) && requestingNode !== node) {
-          node.listeners.push(requestingNode);
-        }
-        return node.context[name];
-      }
-      node = node.parent;
+
+  // called on a partial render
+  partialRender() {
+    const parentNode = currentNode;
+    currentNode = this;
+    this.componentsChildren = [];
+    this.listeners = [];
+    const { life } = this;
+    this.life = { mount: [], unmount: [] };
+    const newVnode = this.renderComponent();
+    this.life = life; // disregard the new lifecycle hooks in a partial render
+    patch(this.vnode, newVnode);
+    this.vnode = newVnode;
+    currentNode = parentNode;
+  }
+
+  render() {
+    const parentNode = currentNode;
+    currentNode = this;
+    const { life } = this;
+    const newVnode = this.renderComponent();
+    if (this.vnode) {
+      this.life = life; // disregard the new lifecycles hooks if already mounted
+    } else {
+      this.mount();
     }
-  };
-  const value = initialValue || getContext();
-  return { setContext, getContext, value };
-}
-
-function lifecycle(obj) {
-  if (obj.mount) currentNode.life.mount.push(obj.mount);
-  if (obj.unmount) currentNode.life.unmount.push(obj.unmount);
-}
-
-function unmount(node, recur = false) {
-  if (node.life && node.life.unmount) {
-    node.life.unmount.forEach(fct => fct());
-    node.life.unmount = [];
+    parentNode && parentNode.componentsChildren.push(this);
+    nextCache[this.path] = this;
+    this.vnode = newVnode;
+    currentNode = parentNode;
+    return this.vnode;
   }
-  if (recur) {
-    node.children.forEach((child) => {
-      unmount(child, true);
-    });
+
+  renderComponent() {
+    try {
+      return this.componentFct(this.attributes, this.children, this);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      return h('span', {}, [e.message]);
+    }
   }
-  node.mounted = false;
-}
 
-function nodeMount(node) {
-  // do not mount in node
-  if (process && process.title === 'node') {
-    return;
+  unmount(recur = false) {
+    this.life.unmount.forEach(fct => fct());
+    this.life.unmount = [];
+    if (recur) {
+      this.componentsChildren.forEach((child) => {
+        child.unmount(true);
+      });
+    }
+    this.mounted = false;
   }
-  node.mounted = true;
-  if (node.life && node.life.mount) {
-    node.life.mount.forEach(fct => fct());
-    node.life.mount = [];
+
+  mount() {
+    // do not mount in node
+    if (process && process.title === 'node') {
+      return;
+    }
+    this.mounted = true;
+    this.life.mount.forEach(fct => fct());
+    this.life.mount = [];
   }
-}
 
-function get() {
-  return currentNode;
-}
+  lifecycle(obj) {
+    if (obj.mount) this.life.mount.push(obj.mount);
+    if (obj.unmount) this.life.unmount.push(obj.unmount);
+  }
 
-const api = {
-  useState,
-  useContext,
-  lifecycle,
-  get,
-};
+  destroy() {
+    this.unmount();
+    this.parent = null;
+    this.children = null;
+    // some asyncronous operation might depends on this
+    this.state = [];
+    this.context = {};
+    this.componentsChildren = [];
+  }
 
-function renderComponent(componentFct, attributes, children) {
-  try {
-    return componentFct(attributes, children, api);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error(e);
-    return h('span', {}, [e.message]);
+  useState(name, initialValue) {
+    const value = this.state[name] || initialValue;
+    // this freeze the value for the closure
+    const stateName = name;
+    const closureNode = this;
+    const setState = (newState) => {
+      closureNode.state[stateName] = newState;
+      scheduleRender(() => closureNode.partialRender());
+    };
+    return { value, setState, getState: () => closureNode.state[name] };
+  }
+
+  useContext(name, initialValue) {
+    const closureNode = this;
+    if (initialValue) {
+      closureNode.context[name] = initialValue;
+    }
+    const setContext = (value) => {
+      closureNode.context[name] = value;
+      closureNode.listeners.forEach((node) => {
+        scheduleRender(() => node.partialRender());
+      });
+    };
+    const getContext = () => {
+      let node = closureNode;
+      const requestingNode = closureNode;
+      while (node) {
+        if (node.context[name] !== undefined) {
+          if (!node.listeners.includes(requestingNode) && requestingNode !== node) {
+            node.listeners.push(requestingNode);
+          }
+          return node.context[name];
+        }
+        node = node.parent;
+      }
+    };
+    const value = initialValue || getContext();
+    return { setContext, getContext, value };
   }
 }
 
 function createComponent(componentFct, attributes, children, name) {
   const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
-  const nodeCache = cache[path];
-  const state = (nodeCache && nodeCache.state) || [];
-  const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
-  const mounted = !!(nodeCache && nodeCache.mounted);
-  const parent = currentNode;
-  const node = {
-    name, children: [], context: {}, state, life, listeners: [], mounted,
-    parent, path, vnode: null, attributes,
-    // allow a partial re-render of the component
-    render: () => {
-      const nodeCache = cache[path];
-      const oldNode = currentNode;
-      node.children = [];
-      node.listeners = [];
-      currentNode = node;
-      const life = (nodeCache && nodeCache.life) || { mount: [], unmount: [] };
-      currentNode.life = { mount: [], unmount: [] };
-      const newVnode = renderComponent(componentFct, attributes, children);
-      currentNode.life = life; // disregard the new lifecycle hooks
-      patch(node.vnode, newVnode);
-      cache[path] = currentNode;
-      currentNode.vnode = newVnode;
-      currentNode = oldNode;
-    },
-  };
-  currentNode && currentNode.children.push(node);
-  currentNode = node;
-  currentNode.life = { mount: [], unmount: [] };
-  const vnode = renderComponent(componentFct, attributes, children);
-  // disregard the new lifecycles hooks
-  if (mounted) {
-    currentNode.life = life;
-  } else {
-    // important for unmount
-    nodeMount(currentNode);
+  if (cache[path]) {
+    return cache[path].render();
   }
-  cache[path] = currentNode;
-  currentNode.vnode = vnode;
-  nextCache[path] = currentNode;
-  currentNode = parent;
-  return vnode;
+  const component = new Component(componentFct, attributes, children, name);
+  return component.render();
 }
 
 function copyToThunk(vnode, thunk) {
@@ -224,11 +234,11 @@ function scheduleRender(render) {
   }
 }
 
-function umountDestroyedComponent() {
+function destroyUnreferencedComponents() {
   const keysCache = Object.keys(cache);
   const keysNextCache = Object.keys(nextCache);
   const difference = keysCache.filter(x => !keysNextCache.includes(x));
-  difference.forEach(path => unmount(cache[path]));
+  difference.forEach(path => cache[path].destroy());
 }
 
 function mount(dom, render) {
@@ -268,7 +278,7 @@ function mount(dom, render) {
       const after = (new Date()).getTime();
       callback && callback(after - now);
       vnode = newVnode;
-      umountDestroyedComponent();
+      destroyUnreferencedComponents();
       cache = nextCache;
       requested = false;
     };
@@ -285,6 +295,5 @@ module.exports = {
   patch,
   mount,
   c: createComponent,
-  useState,
-  useContext,
+  Component,
 };
