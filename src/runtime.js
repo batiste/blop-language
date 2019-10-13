@@ -16,18 +16,20 @@ let nextCache = {};
 class Component {
   constructor(componentFct, attributes, children, name) {
     this.componentFct = componentFct;
-    this.attributes = attributes;
-    this.children = children;
+    this.attributes = attributes || {};
+    this.children = children || [];
     this.name = name;
-    this.path = currentNode ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}` : name;
+    this.path = currentNode
+      ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
+      : name;
     this.componentsChildren = [];
     this.listeners = [];
     this.life = { mount: [], unmount: [] };
     this.vnode = null;
     this.parent = currentNode;
-    this.state = [];
+    this.state = {};
     this.context = {};
-    this.mounted = !!this.vnode;
+    this.mounted = false;
     cache[this.path] = this;
   }
 
@@ -53,8 +55,9 @@ class Component {
     const parentNode = currentNode;
     currentNode = this;
     const { life } = this;
+    this.life = { mount: [], unmount: [] };
     const newVnode = this.renderComponent();
-    if (this.vnode) {
+    if (this.mounted) {
       this.life = life; // disregard the new lifecycles hooks if already mounted
     } else {
       this._mount();
@@ -81,7 +84,7 @@ class Component {
     this.life.unmount = [];
     if (recur) {
       this.componentsChildren.forEach((child) => {
-        child._unmount(true);
+        child._unmount();
       });
     }
     this.mounted = false;
@@ -89,7 +92,7 @@ class Component {
 
   _mount() {
     // do not mount in node
-    if (process && process.title === 'node') {
+    if ((process && process.title === 'node') || this.mounted) {
       return;
     }
     this.mounted = true;
@@ -99,10 +102,12 @@ class Component {
 
   mount(func) {
     this.life.mount.push(func);
+    return this;
   }
 
   unmount(func) {
     this.life.unmount.push(func);
+    return this;
   }
 
   lifecycle(obj) {
@@ -113,39 +118,37 @@ class Component {
   destroy() {
     this._unmount();
     this.parent = null;
-    this.children = null;
+    this.children = [];
     // some asyncronous operation might depends on this
-    this.state = [];
+    this.state = {};
+    delete cache[this.name];
     this.context = {};
     this.componentsChildren = [];
   }
 
   useState(name, initialValue) {
-    const value = this.state[name] || initialValue;
-    // this freeze the value for the closure
-    const stateName = name;
-    const closureNode = this;
+    this.state[name] = this.state[name] || initialValue;
+    const value = this.state[name];
     const setState = (newState) => {
-      closureNode.state[stateName] = newState;
-      scheduleRender(() => closureNode.partialRender());
+      this.state[name] = newState;
+      scheduleRender(this);
     };
-    return { value, setState, getState: () => closureNode.state[name] };
+    return { value, setState, getState: () => this.state[name] };
   }
 
   useContext(name, initialValue) {
-    const closureNode = this;
     if (initialValue) {
-      closureNode.context[name] = initialValue;
+      this.context[name] = initialValue;
     }
     const setContext = (value) => {
-      closureNode.context[name] = value;
-      closureNode.listeners.forEach((node) => {
-        scheduleRender(() => node.partialRender());
+      this.context[name] = value;
+      this.listeners.forEach((node) => {
+        scheduleRender(node);
       });
     };
     const getContext = () => {
-      let node = closureNode;
-      const requestingNode = closureNode;
+      let node = this;
+      const requestingNode = currentNode;
       while (node) {
         if (node.context[name] !== undefined) {
           if (!node.listeners.includes(requestingNode) && requestingNode !== node) {
@@ -162,7 +165,9 @@ class Component {
 }
 
 function createComponent(componentFct, attributes, children, name) {
-  const path = currentNode ? `${currentNode.path}.${currentNode.children.length}.${name}` : name;
+  const path = currentNode
+    ? `${currentNode.path}.${currentNode.children.length}.${name}`
+    : name;
   if (cache[path]) {
     return cache[path].render(componentFct, attributes, children, name);
   }
@@ -231,18 +236,14 @@ const patch = snabbdom.init([
 ]);
 
 let renderPipeline = [];
-let alreadyRendering = false;
 
-function scheduleRender(render) {
-  renderPipeline.push(render);
-  if (!alreadyRendering) {
-    window.requestAnimationFrame(() => {
-      alreadyRendering = true;
-      renderPipeline.forEach(fct => fct());
-      renderPipeline = [];
-      alreadyRendering = false;
-    });
-  }
+function scheduleRender(node) {
+  renderPipeline.push(node);
+  const rendering = [...renderPipeline];
+  renderPipeline = [];
+  window.requestAnimationFrame(() => {
+    rendering.forEach(node => node.partialRender());
+  });
 }
 
 function destroyUnreferencedComponents() {
@@ -252,7 +253,8 @@ function destroyUnreferencedComponents() {
   difference.forEach(path => cache[path].destroy());
 }
 
-currentNode = new Component(() => {}, {}, [], 'root');
+const rootNode = new Component(() => {}, {}, [], 'root');
+currentNode = rootNode;
 
 function mount(dom, render) {
   let vnode; let
@@ -268,12 +270,12 @@ function mount(dom, render) {
     }
     requested = true;
     renderPipeline = [];
-    currentNode = new Component(() => {}, {}, [], 'root');
     const rerender = () => {
       let newVnode;
       nextCache = {};
       const now = (new Date()).getTime();
       try {
+        rootNode.componentsChildren = [];
         newVnode = render();
         // nothing to update
         if (!newVnode) {

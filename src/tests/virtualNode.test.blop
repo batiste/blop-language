@@ -60,10 +60,8 @@ def loop3(array) {
 
 lifeCycleContent = []
 def TestLifecycle(attributes, children, node) {
-  node.lifecycle({
-    mount: () => {
-      lifeCycleContent.push(attributes.value)
-    }
+  node.mount(() => {
+    lifeCycleContent.push(attributes.value)
   })
   <span>attributes.value</span>
 }

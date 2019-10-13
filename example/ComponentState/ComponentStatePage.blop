@@ -65,7 +65,7 @@ def useWindowWidth(node) {
     console.log('mount useWindowWidth')
     window.addEventListener('resize', handleResize)
   })
-  node.mount((vnode) => {
+  node.unmount((vnode) => {
     console.log('unmount useWindowWidth')
     window.removeEventListener('resize', handleResize)
   })

@@ -38,11 +38,9 @@ def PetStore(attributes, c, node) {
   page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
   nbPage = Math.ceil(pets.length / pageSize)
 
-  node.lifecycle({
-    mount: () => {
-      console.log('mount PetStore')
-      getPets(state)
-    }
+  node.mount(() => {
+    console.log('mount PetStore')
+    getPets(state)
   })
 
   deletePet = (index, pet) => (e) => {

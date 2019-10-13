@@ -3,11 +3,9 @@ import { getMemes } from './services.blop'
 
 def MemePage(attributes: object, c, node) {
   { state } = attributes
-  node.lifecycle({
-    mount: () => {
-      console.log('mount MemePage')
-      getMemes(state)
-    }
+  node.mount(async () => {
+    console.log('mount MemePage')
+    await getMemes(state)
   })
   <div>
     <div class={ "card-deck": true, "mb-3": true, 'text-center': true }>

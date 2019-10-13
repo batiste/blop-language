@@ -22,15 +22,12 @@ TodoListPage = (attributes, children, node) => {
     }
   }
 
-  node.lifecycle({
-    mount: (vnode) => {
-      console.log('mount TodoListPage')
-      document.addEventListener('click', unselect)
-    },
-    unmount: (vnode) => {
-      console.log('unmount TodoListPage')
-      document.removeEventListener('click', unselect)
-    }
+  node.mount((vnode) => {
+    console.log('mount TodoListPage')
+    document.addEventListener('click', unselect)
+  }).unmount((vnode) => {
+    console.log('unmount TodoListPage')
+    document.removeEventListener('click', unselect)
   })
 
   addItem = (e) => {
