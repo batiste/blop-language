@@ -1,3 +1,4 @@
+import { mount } from 'blop'
 
 def render(text) {
   <h1>text</h1>
@@ -112,4 +113,32 @@ test('attribut with dash', () => {
 test('test loop, with lifecycle', () => {
   r3 = loop4([1, 2, 3])
   expect(lifeCycleContent).toEqual([1, 2, 3])
+})
+
+lifeCycleCalled = 0
+def TestLifecycle2(attributes, children, node) {
+  node.mount(() => {
+    lifeCycleCalled := lifeCycleCalled + 1
+  })
+  node.mount(() => {
+    lifeCycleCalled := lifeCycleCalled + 2
+  })
+  <span>1</span>
+}
+
+def instanciateComponent() {
+  <div>
+    <TestLifecycle2></TestLifecycle2>
+    <TestLifecycle2></TestLifecycle2>
+  </div>
+}
+
+test('test Component lifecycle', async () => {
+  window.requestAnimationFrame = (cb) => cb()
+  { refresh, init } = mount(document.body, instanciateComponent)
+  vnode = init()
+  expect(lifeCycleCalled).toBe(6)
+  refresh((time) => {
+    expect(lifeCycleCalled).toBe(6)
+  })
 })

@@ -13,15 +13,18 @@ let cache = {};
 // this is the next cache that replace cache after a full re-render
 let nextCache = {};
 
+const componentPath = name => (currentNode
+  ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
+  : name);
+
+
 class Component {
   constructor(componentFct, attributes, children, name) {
     this.componentFct = componentFct;
     this.attributes = attributes || {};
     this.children = children || [];
     this.name = name;
-    this.path = currentNode
-      ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
-      : name;
+    this.path = componentPath(name);
     this.componentsChildren = [];
     this.listeners = [];
     this.life = { mount: [], unmount: [] };
@@ -39,10 +42,7 @@ class Component {
     currentNode = this;
     this.componentsChildren = [];
     this.listeners = [];
-    const { life } = this;
-    this.life = { mount: [], unmount: [] };
     const newVnode = this.renderComponent();
-    this.life = life; // disregard the new lifecycle hooks in a partial render
     patch(this.vnode, newVnode);
     this.vnode = newVnode;
     currentNode = parentNode;
@@ -54,12 +54,8 @@ class Component {
     this.children = children;
     const parentNode = currentNode;
     currentNode = this;
-    const { life } = this;
-    this.life = { mount: [], unmount: [] };
     const newVnode = this.renderComponent();
-    if (this.mounted) {
-      this.life = life; // disregard the new lifecycles hooks if already mounted
-    } else {
+    if (!this.mounted) {
       this._mount();
     }
     parentNode && parentNode.componentsChildren.push(this);
@@ -79,15 +75,10 @@ class Component {
     }
   }
 
-  _unmount(recur = false) {
+  _unmount() {
     this.life.unmount.forEach(fct => fct());
-    this.life.unmount = [];
-    if (recur) {
-      this.componentsChildren.forEach((child) => {
-        child._unmount();
-      });
-    }
     this.mounted = false;
+    this.life.unmount = [];
   }
 
   _mount() {
@@ -95,31 +86,27 @@ class Component {
     if ((process && process.title === 'node') || this.mounted) {
       return;
     }
-    this.mounted = true;
     this.life.mount.forEach(fct => fct());
+    this.mounted = true;
     this.life.mount = [];
   }
 
   mount(func) {
+    if (this.mounted) return this;
     this.life.mount.push(func);
     return this;
   }
 
   unmount(func) {
+    if (this.mounted) return this;
     this.life.unmount.push(func);
     return this;
-  }
-
-  lifecycle(obj) {
-    if (obj.mount) this.life.mount.push(obj.mount);
-    if (obj.unmount) this.life.unmount.push(obj.unmount);
   }
 
   destroy() {
     this._unmount();
     this.parent = null;
     this.children = [];
-    // some asyncronous operation might depends on this
     this.state = {};
     delete cache[this.name];
     this.context = {};
@@ -165,9 +152,7 @@ class Component {
 }
 
 function createComponent(componentFct, attributes, children, name) {
-  const path = currentNode
-    ? `${currentNode.path}.${currentNode.children.length}.${name}`
-    : name;
+  const path = componentPath(name);
   if (cache[path]) {
     return cache[path].render(componentFct, attributes, children, name);
   }
@@ -187,7 +172,6 @@ function copyToThunk(vnode, thunk) {
 
 function prepatch(oldVnode, newNode) {
   if (newNode.data.attrs.needRender === false) {
-    console.log(`patching avoided for ${newNode.sel}`);
     copyToThunk(oldVnode, newNode);
   }
 }
@@ -253,16 +237,24 @@ function destroyUnreferencedComponents() {
   difference.forEach(path => cache[path].destroy());
 }
 
-const rootNode = new Component(() => {}, {}, [], 'root');
+let rootNode = new Component(() => {}, {}, [], 'root');
 currentNode = rootNode;
 
+let mountCalled = false;
+
 function mount(dom, render) {
-  let vnode; let
-    requested;
+  let vnode; let requested;
+  if (mountCalled) {
+    console.warn('Blop only supports one mount by app ATM');
+  }
+  mountCalled = true;
   function init() {
+    rootNode = new Component(() => {}, {}, [], 'root');
+    currentNode = rootNode;
     vnode = render();
-    patch(toVNode(dom), vnode);
+    vnode = patch(toVNode(dom), vnode);
     requested = false;
+    return vnode;
   }
   function refresh(callback) {
     if (requested) {

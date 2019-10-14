@@ -2,7 +2,7 @@ import { default as fetch } from 'node-fetch'
 
 async def saveState(state) {
   state.loading = false // be sure to not save a loading state
-  body = JSON.stringify(state.raw)
+  body = JSON.stringify(state.$.raw)
   state.loading = true
   try {
     response = await fetch(`/api/saveState`, {

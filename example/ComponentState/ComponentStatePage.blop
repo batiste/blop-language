@@ -107,7 +107,7 @@ CounterPage = (attributes, children, node) => {
     <p>'An example on how you can have state stored inside a component.
       Setting a state in a component will re-render this component
       Reloading the page will reset the state.'</p>
-    <Animation>'Animation 1'</Animation>
+    <Animation>'Animation 0'</Animation>
     <Animation initial=1>'Animation 1'</Animation>
     <Animation initial=2>'Animation 2'</Animation>
     <Animation initial=3>'Animation 3'</Animation>
