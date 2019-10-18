@@ -102,7 +102,24 @@ Animation = (attributes, children, node) => {
 class ComponentWithClass extends Component {
   def render() {
     { text } = this.attributes
-    <p>'hello 'text''</p>
+    <div>
+      <p>'hello 'text''</p>
+      <p>JSON.stringify(this.pos)</p>
+    </div>
+  }
+
+  def mouseMove(e) {
+    this.pos = { x: e.x, y: e.y }
+    this.refresh()
+  }
+
+  def onMount() {
+    this.mouseMoveHandler = (e) => this.mouseMove(e)
+    document.addEventListener('mousemove', this.mouseMoveHandler)
+  }
+
+  def onUnmount() {
+    document.removeEventListener('mousemove', this.mouseMoveHandler)
   }
 }
 

@@ -22,7 +22,7 @@ class Component {
   constructor(ComponentFct, attributes, children, name) {
     if (ComponentFct === null) {
       if (!this.render) {
-        throw new Error('Component should implement render(attributes, children) method');
+        throw new Error('Component should implement the render() method');
       }
       this.componentFct = this.render;
     } else {
@@ -55,6 +55,10 @@ class Component {
     currentNode = parentNode;
   }
 
+  refresh() {
+    scheduleRender(this);
+  }
+
   _render(attributes, children) {
     this.attributes = attributes;
     this.children = children;
@@ -81,7 +85,12 @@ class Component {
     }
   }
 
+  onMount() { return this; }
+
+  onUnmount() { return this; }
+
   _unmount() {
+    this.onUnmount();
     this.life.unmount.forEach(fct => fct());
     this.mounted = false;
     this.life.unmount = [];
@@ -92,6 +101,7 @@ class Component {
     if ((process && process.title === 'node') || this.mounted) {
       return;
     }
+    this.onMount();
     this.life.mount.forEach(fct => fct());
     this.mounted = true;
     this.life.mount = [];

@@ -99,7 +99,7 @@ const tokensDefinition = {
   'import': { str: 'import ' },
   'spread': { str: '...' },
   'from': { str: 'from ' },
-  'operand': { reg: /^(typeof )/ },
+  'operand': { reg: /^typeof / },
   ',': { str: ',' },
   '.': { str: '.' },
   '(': { str: '(' },

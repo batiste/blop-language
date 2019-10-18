@@ -129,7 +129,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
       if (name.startsWith('.')) {
         filename = require.resolve(name, { paths: [path.dirname(checkFilename)] });
       } else {
-        filename = require.resolve(name);
+        filename = require.resolve(name, { paths: [path.dirname(checkFilename)] });
       }
       if (filename.endsWith('.blop')) {
         checkImportKeys(filename, importedKeys);
