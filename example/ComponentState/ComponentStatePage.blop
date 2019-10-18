@@ -1,3 +1,5 @@
+import { Component } from 'blop'
+
 
 Counter = (attributes, children, node) => {
   // copying the React weird hook interface
@@ -97,12 +99,22 @@ Animation = (attributes, children, node) => {
   </div>
 }
 
+class ComponentWithClass extends Component {
+  def render() {
+    { text } = this.attributes
+    <p>'hello 'text''</p>
+  }
+}
+
 CounterPage = (attributes, children, node) => {
   width = useWindowWidth(node)
   width2 = useWindowWidth(node) + 10
   { setContext } = node.useContext('specialNumber', Math.random())
   changeValue = () => setContext(Math.random())
   <div>
+    <h3>'ClassComponent'</h3>
+    <p>'Here is an example of a Class based Component'</p>
+    <ComponentWithClass text='world' />
     <h3>'useState'</h3>
     <p>'An example on how you can have state stored inside a component.
       Setting a state in a component will re-render this component

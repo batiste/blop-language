@@ -19,8 +19,15 @@ const componentPath = name => (currentNode
 
 
 class Component {
-  constructor(componentFct, attributes, children, name) {
-    this.componentFct = componentFct;
+  constructor(ComponentFct, attributes, children, name) {
+    if (ComponentFct === null) {
+      if (!this.render) {
+        throw new Error('Component should implement render(attributes, children) method');
+      }
+      this.componentFct = this.render;
+    } else {
+      this.componentFct = ComponentFct;
+    }
     this.attributes = attributes || {};
     this.children = children || [];
     this.name = name;
@@ -48,8 +55,7 @@ class Component {
     currentNode = parentNode;
   }
 
-  render(componentFct, attributes, children) {
-    this.componentFct = componentFct;
+  _render(attributes, children) {
     this.attributes = attributes;
     this.children = children;
     const parentNode = currentNode;
@@ -151,13 +157,23 @@ class Component {
   }
 }
 
-function createComponent(componentFct, attributes, children, name) {
+function isClass(v) {
+  return typeof v === 'function' && /^\s*class\s+/.test(v.toString());
+}
+
+function createComponent(ComponentFct, attributes, children, name) {
   const path = componentPath(name);
   if (cache[path]) {
-    return cache[path].render(componentFct, attributes, children, name);
+    return cache[path]._render(attributes, children);
   }
-  const component = new Component(componentFct, attributes, children, name);
-  return component.render(componentFct, attributes, children, name);
+  let component;
+  if (isClass(ComponentFct)) {
+    component = new ComponentFct(null, attributes, children, name);
+  } else {
+    component = new Component(ComponentFct, attributes, children, name);
+  }
+
+  return component._render(attributes, children);
 }
 
 function copyToThunk(vnode, thunk) {

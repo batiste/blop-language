@@ -16,5 +16,6 @@ test('expression', () => {
   expect(a).toBe(1)
   expect(b).toBe(1)
   expect(h).toBe(3)
+  expect(typeof 3).toBe('number')
   expect(yop(1)(10)).toBe(12)
 })
