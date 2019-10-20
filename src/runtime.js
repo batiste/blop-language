@@ -13,10 +13,12 @@ let cache = {};
 // this is the next cache that replace cache after a full re-render
 let nextCache = {};
 
-const componentPath = name => (currentNode
-  ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
-  : name);
-
+// eslint-disable-next-line arrow-body-style
+const componentPath = (name) => {
+  return currentNode
+    ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
+    : name;
+};
 
 class Component {
   constructor(ComponentFct, attributes, children, name) {
@@ -31,7 +33,11 @@ class Component {
     this.attributes = attributes || {};
     this.children = children || [];
     this.name = name;
-    this.path = componentPath(name);
+    if (name === 'root') {
+      this.path = 'root';
+    } else {
+      this.path = componentPath(name);
+    }
     this.componentsChildren = [];
     this.listeners = [];
     this.life = { mount: [], unmount: [] };
@@ -124,7 +130,7 @@ class Component {
     this.parent = null;
     this.children = [];
     this.state = {};
-    delete cache[this.name];
+    // delete cache[this.name];
     this.context = {};
     this.componentsChildren = [];
   }
@@ -266,6 +272,11 @@ function destroyUnreferencedComponents() {
 let rootNode = new Component(() => {}, {}, [], 'root');
 currentNode = rootNode;
 
+const newRoot = () => {
+  rootNode = new Component(() => {}, {}, [], 'root');
+  currentNode = rootNode;
+};
+
 let mountCalled = false;
 
 function mount(dom, render) {
@@ -275,8 +286,7 @@ function mount(dom, render) {
   }
   mountCalled = true;
   function init() {
-    rootNode = new Component(() => {}, {}, [], 'root');
-    currentNode = rootNode;
+    newRoot();
     vnode = render();
     vnode = patch(toVNode(dom), vnode);
     requested = false;
@@ -293,7 +303,6 @@ function mount(dom, render) {
       nextCache = {};
       const now = (new Date()).getTime();
       try {
-        rootNode.componentsChildren = [];
         newVnode = render();
         // nothing to update
         if (!newVnode) {
@@ -302,6 +311,7 @@ function mount(dom, render) {
           callback && callback(after - now);
           return;
         }
+        newRoot();
         // error can happen during patching
         patch(vnode, newVnode);
       } catch (error) {
