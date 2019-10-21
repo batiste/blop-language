@@ -53,8 +53,7 @@ class Component {
   partialRender() {
     const parentNode = currentNode;
     currentNode = this;
-    this.componentsChildren = [];
-    this.listeners = [];
+    this._resetForRender();
     const newVnode = this.renderComponent();
     patch(this.vnode, newVnode);
     this.vnode = newVnode;
@@ -65,11 +64,17 @@ class Component {
     scheduleRender(this);
   }
 
+  _resetForRender() {
+    this.componentsChildren = [];
+    this.listeners = [];
+  }
+
   _render(attributes, children) {
+    const parentNode = currentNode;
     this.attributes = attributes;
     this.children = children;
-    const parentNode = currentNode;
     currentNode = this;
+    this._resetForRender();
     const newVnode = this.renderComponent();
     if (!this.mounted) {
       this._mount();
