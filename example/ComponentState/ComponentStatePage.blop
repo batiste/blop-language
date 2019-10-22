@@ -126,8 +126,8 @@ class ComponentWithClass extends Component {
 CounterPage = (attributes, children, node) => {
   width = useWindowWidth(node)
   width2 = useWindowWidth(node) + 10
-  // { setContext } = node.useContext('specialNumber', Math.random())
-  // changeValue = () => setContext(Math.random())
+  { setContext } = node.useContext('specialNumber', Math.random())
+  changeValue = () => setContext(Math.random())
   <div>
     <h3>'ClassComponent'</h3>
     <p>'Here is an example of a Class based Component'</p>
@@ -150,9 +150,9 @@ CounterPage = (attributes, children, node) => {
       while still being segregated hierarchically.
       Changing context in a parent will automatically
       trigger re-render in the listening children.'</p>
-    // <Intermediary />
-    // <Interceptor />
-    // <button on={ click: changeValue }>'Change value of the context'</button>
+    <Intermediary />
+    <Interceptor />
+    <button on={ click: changeValue }>'Change value of the context'</button>
     <h3>'lifecycle'</h3>
     <p>'lifecycle gives you access to the snabbdom lifecycle hooks directly from a component.'</p>
     <ClickCounter />

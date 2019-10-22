@@ -151,12 +151,13 @@ class Component {
   }
 
   useContext(name, initialValue) {
-    if (initialValue) {
+    this.listeners[name] = [];
+    if (initialValue && this.context[name] === undefined) {
       this.context[name] = initialValue;
     }
     const setContext = (value) => {
       this.context[name] = value;
-      this.listeners.forEach((node) => {
+      this.listeners[name].forEach((node) => {
         scheduleRender(node);
       });
     };
@@ -165,8 +166,8 @@ class Component {
       const requestingNode = currentNode;
       while (node) {
         if (node.context[name] !== undefined) {
-          if (!node.listeners.includes(requestingNode) && requestingNode !== node) {
-            node.listeners.push(requestingNode);
+          if (!node.listeners[name].includes(requestingNode) && requestingNode !== node) {
+            node.listeners[name].push(requestingNode);
           }
           return node.context[name];
         }
