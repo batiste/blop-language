@@ -1,7 +1,7 @@
 import { deletePets } from './services.blop'
 import { getPets } from './services.blop'
 
-import './style.scss'
+import './style.scss' as classes
 
 pageSize = 10
 
@@ -19,12 +19,12 @@ def pagination(petStore) {
   }
   <p class="pagination">
     if pageIndex > 0 {
-      <a href='#' class="btn btn-outline-secondary previous btn-sm" on={ click: previousPage }>'< Previous page'</a>
+      <a href='#' class="btn btn-outline-secondary btn-sm "classes.previous"" on={ click: previousPage }>'< Previous page'</a>
       = ' '
     }
     = 'Page 'pageIndex + 1' on 'nbPage' '
     if pageIndex < pets.length {
-      <a href='#' class="btn btn-outline-secondary next btn-sm" on={ click: nextPage }>'Next page >'</a>
+      <a href='#' class="btn btn-outline-secondary btn-sm "classes.next"" on={ click: nextPage }>'Next page >'</a>
     }
   </p>
 }
@@ -47,7 +47,7 @@ def PetStore(attributes, c, node) {
     deletePets(pet)
     pets.splice(start + index, 1)
   }
-  <div class="petstore">
+  <div class=classes.petstore>
     <p>
       = 'Using the slow and buggy swagger pet API is a good test. Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
