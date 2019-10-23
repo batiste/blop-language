@@ -17,14 +17,14 @@ def pagination(petStore) {
     e.preventDefault()
     petStore.pageIndex = pageIndex - 1
   }
-  <p>
+  <p class="pagination">
     if pageIndex > 0 {
-      <a href='#' class="btn btn-secondary previous" on={ click: previousPage }>'< Previous page'</a>
+      <a href='#' class="btn btn-outline-secondary previous btn-sm" on={ click: previousPage }>'< Previous page'</a>
       = ' '
     }
     = 'Page 'pageIndex + 1' on 'nbPage' '
     if pageIndex < pets.length {
-      <a href='#' class="btn btn-secondary next" on={ click: nextPage }>'Next page >'</a>
+      <a href='#' class="btn btn-outline-secondary next btn-sm" on={ click: nextPage }>'Next page >'</a>
     }
   </p>
 }
@@ -54,21 +54,28 @@ def PetStore(attributes, c, node) {
     </p>
     if petStore.pets.length {
       = pagination(petStore)
-      for key, pet in page: array {
-        // the key can help with the patching speed
-        <p key>
-          <span style={ 'min-width': '300px', 'display': 'inline-block' }>pet.name</span>
-          if pet.photoUrls {
-            for src in pet.photoUrls {
-              if src.startsWith('http') {
-                <img src style={ width: '200px' } />
+      <table class="table">
+        for key, pet in page: array {
+          // the key can help with the patching speed
+          <tr key>
+            <td>
+              = pet.name
+            </td>
+            <td>
+              if pet.photoUrls {
+                for src in pet.photoUrls {
+                  if src.startsWith('http') {
+                    <img src style={ width: '200px' } />
+                  }
+                }
               }
-            }
-          }
-          = ' '
-          <button class="btn btn-secondary" on={ click: deletePet(key, pet) }>'Delete'</button>
-        </p>
-      }
+            </td>
+            <td>
+              <button class="btn btn-outline-danger btn-sm" on={ click: deletePet(key, pet) }>'Delete'</button>
+            </td>
+          </tr>
+        }
+      </table>
       = pagination(petStore)
     } else {
       <div class="spinner-border text-primary" role="status">
