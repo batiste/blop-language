@@ -29,7 +29,7 @@ const serverConfig = {
         ],
       },
       {
-        test: /\.css$/i,
+        test: /\.s?css$/i,
         use: ['null-loader'],
       },
     ],

@@ -56,6 +56,8 @@
   "dependencies": {
     "commander": "^2.20.0",
     "loader-utils": "^1.2.3",
+    "node-sass": "^4.12.0",
+    "sass-loader": "^8.0.0",
     "schema-utils": "^1.0.0",
     "snabbdom": "^0.7.3",
     "source-map": "^0.7.3",

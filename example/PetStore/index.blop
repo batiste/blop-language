@@ -1,7 +1,7 @@
 import { deletePets } from './services.blop'
 import { getPets } from './services.blop'
 
-import './style.css'
+import './style.scss'
 
 pageSize = 10
 
@@ -47,7 +47,7 @@ def PetStore(attributes, c, node) {
     deletePets(pet)
     pets.splice(start + index, 1)
   }
-  <div>
+  <div class="petstore">
     <p>
       = 'Using the slow and buggy swagger pet API is a good test. Rendering 'pets.length' pets from '
       <a href='https://petstore.swagger.io/'>'petstore.swagger.io'</a>
@@ -65,7 +65,7 @@ def PetStore(attributes, c, node) {
               if pet.photoUrls {
                 for src in pet.photoUrls {
                   if src.startsWith('http') {
-                    <img src style={ width: '200px' } />
+                    <img src style={ width: '100px', height: '100px' } />
                   }
                 }
               }
