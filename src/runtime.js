@@ -64,33 +64,10 @@ class Component {
     scheduleRender(this);
   }
 
-  _resetForRender() {
-    this.componentsChildren = [];
-    this.listeners = [];
-  }
-
-  _render(attributes, children) {
-    const parentNode = currentNode;
-    this.attributes = attributes;
-    this.children = children;
-    currentNode = this;
-    this._resetForRender();
-    const newVnode = this.renderComponent();
-    if (!this.mounted) {
-      this._mount();
-    }
-    parentNode && parentNode.componentsChildren.push(this);
-    nextCache[this.path] = this;
-    this.vnode = newVnode;
-    currentNode = parentNode;
-    return this.vnode;
-  }
-
   renderComponent() {
     try {
       return this.componentFct(this.attributes, this.children, this);
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error(e);
       return h('span', {}, [e.message]);
     }
@@ -99,24 +76,6 @@ class Component {
   onMount() { return this; }
 
   onUnmount() { return this; }
-
-  _unmount() {
-    this.onUnmount();
-    this.life.unmount.forEach(fct => fct());
-    this.mounted = false;
-    this.life.unmount = [];
-  }
-
-  _mount() {
-    // do not mount in node
-    if ((process && process.title === 'node') || this.mounted) {
-      return;
-    }
-    this.onMount();
-    this.life.mount.forEach(fct => fct());
-    this.mounted = true;
-    this.life.mount = [];
-  }
 
   mount(func) {
     if (this.mounted) return this;
@@ -128,16 +87,6 @@ class Component {
     if (this.mounted) return this;
     this.life.unmount.push(func);
     return this;
-  }
-
-  destroy() {
-    this._unmount();
-    this.parent = null;
-    this.children = [];
-    this.state = {};
-    // delete cache[this.name];
-    this.context = {};
-    this.componentsChildren = [];
   }
 
   useState(name, initialValue) {
@@ -176,6 +125,56 @@ class Component {
     };
     const value = initialValue || getContext();
     return { setContext, getContext, value };
+  }
+
+  _resetForRender() {
+    this.componentsChildren = [];
+    this.listeners = [];
+  }
+
+  _render(attributes, children) {
+    const parentNode = currentNode;
+    this.attributes = attributes;
+    this.children = children;
+    currentNode = this;
+    this._resetForRender();
+    const newVnode = this.renderComponent();
+    if (!this.mounted) {
+      this._mount();
+    }
+    parentNode && parentNode.componentsChildren.push(this);
+    nextCache[this.path] = this;
+    this.vnode = newVnode;
+    currentNode = parentNode;
+    return this.vnode;
+  }
+
+  _unmount() {
+    this.onUnmount();
+    this.life.unmount.forEach(fct => fct());
+    this.mounted = false;
+    this.life.unmount = [];
+  }
+
+  _mount() {
+    // do not mount in node
+    if ((process && process.title === 'node') || this.mounted) {
+      return;
+    }
+    this.onMount();
+    this.life.mount.forEach(fct => fct());
+    this.mounted = true;
+    this.life.mount = [];
+  }
+
+  _destroy() {
+    this._unmount();
+    this.parent = null;
+    this.children = [];
+    this.state = {};
+    // delete cache[this.name];
+    this.context = {};
+    this.componentsChildren = [];
   }
 }
 
@@ -272,7 +271,7 @@ function destroyUnreferencedComponents() {
   const keysCache = Object.keys(cache);
   const keysNextCache = Object.keys(nextCache);
   const difference = keysCache.filter(x => !keysNextCache.includes(x));
-  difference.forEach(path => cache[path].destroy());
+  difference.forEach(path => cache[path]._destroy());
 }
 
 let rootNode = new Component(() => {}, {}, [], 'root');
@@ -288,7 +287,7 @@ let mountCalled = false;
 function mount(dom, render) {
   let vnode; let requested;
   if (mountCalled) {
-    console.warn('Blop only supports one mount by app ATM');
+    console.warn('Blop only supports one mount by App ATM');
   }
   mountCalled = true;
   function init() {
