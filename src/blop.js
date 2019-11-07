@@ -21,8 +21,14 @@ if (!process.argv.slice(2).length || !program.input) {
 
 if (program.input) {
   const source = fs.readFileSync(program.input);
-  const filename = program.resolve ? program.input : false;
-  const result = compileSource(source.toString(), 'node', filename, program.sourceMap);
+  const result = compileSource(source.toString(), 'node', program.input, program.sourceMap, program.resolve);
+
+  if (program.sourceMap) {
+    const map = Buffer.from(JSON.stringify(result.sourceMap)).toString('base64');
+    const prefix = '//# sourceMappingURL=data:application/json;charset=utf8;base64,';
+    const inlineSourceMap = prefix + map;
+    result.code += inlineSourceMap;
+  }
   if (program.output) {
     fs.writeFile(program.output, result.code, (err) => {
       if (err) throw err;

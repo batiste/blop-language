@@ -10,7 +10,7 @@ const { inference } = require('./inference');
 
 const config = utils.getConfig();
 
-function compileSource(source, env = 'webpack', filename = false, useSourceMap = false) {
+function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
   const name = require.resolve(path.join(__dirname, './runtime.js'));
   let file;
   if (env === 'webpack') {
@@ -28,14 +28,17 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
 
   let result;
   let _sourceMap;
+  if (useSourceMap && !filename) {
+    throw new Error('Cannot generate a source map with a filename');
+  }
   if (useSourceMap) {
     const rootSource = new sourceMap.SourceNode(null, null, filename);
     rootSource.add(new sourceMap.SourceNode(1, 1, filename, header));
-    result = backend.generateCode(tree, stream, source, filename, rootSource);
+    result = backend.generateCode(tree, stream, source, filename, rootSource, resolve);
     const sourceMapGen = rootSource.toStringWithSourceMap({ file: filename }).map;
     _sourceMap = JSON.parse(sourceMapGen.toString());
   } else {
-    result = backend.generateCode(tree, stream, source, filename);
+    result = backend.generateCode(tree, stream, source, filename, null, resolve);
   }
 
 
