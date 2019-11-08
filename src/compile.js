@@ -23,7 +23,7 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   const stream = parser.tokenize(tokensDefinition, source);
   const tree = parser.parse(stream);
   if (!tree.success) {
-    utils.displayError(source, stream, tokensDefinition, grammar, tree);
+    utils.displayError(stream, tokensDefinition, grammar, tree);
   }
 
   let result;

@@ -20,38 +20,47 @@ function tokenPosition(token) {
   return { lineNumber, charNumber, end };
 }
 
-function streamContext(input, token, firstToken, stream) {
-  const { index } = token;
-  const firstTokenIndex = firstToken.index;
+function streamContext(token, firstToken, stream) {
+  const index = token.stream_index;
+  const firstTokenIndex = firstToken.stream_index;
   const { lineNumber } = tokenPosition(token);
 
   let lineNb = 1;
   let streamIndex = 0;
   let str = NC;
+
+  function char(v) {
+    if (streamIndex === index) {
+      return RED + replaceInvisibleChars(v) + NC;
+    }
+    if (streamIndex >= firstTokenIndex && streamIndex < index) {
+      return YELLOW + replaceInvisibleChars(v) + NC;
+    }
+    return v;
+  }
+
   while (lineNb < (lineNumber + 4) && stream[streamIndex]) {
-    let v = stream[streamIndex].value;
+    const v = stream[streamIndex].value;
     if (v.match(/\n/)) {
       lineNb++;
       if (lineNb > (lineNumber + 3)) {
         return str;
       }
-      if (lineNb >= (lineNumber - 3)) {
-        str += `${v + String(`     ${lineNb}`).slice(-5)}:`;
+      if (lineNb >= (lineNumber - 1)) {
+        str += `${char(v)}${String(`     ${lineNb}`).slice(-5)}: `;
       }
-    } else if (lineNb >= (lineNumber - 3)) {
-      if (streamIndex === index) {
-        v = RED + replaceInvisibleChars(v) + NC;
-      } else if (streamIndex >= firstTokenIndex && streamIndex < index) {
-        v = YELLOW + replaceInvisibleChars(v) + NC;
+    } else if (lineNb >= (lineNumber - 1)) {
+      if (streamIndex === 0) {
+        str += `\n${String(`     ${lineNb}`).slice(-5)}: `;
       }
-      str += v;
+      str += char(v);
     }
     streamIndex++;
   }
   return str;
 }
 
-function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
+function displayError(stream, tokensDefinition, grammar, bestFailure) {
   const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
   let rule = '';
   const { token } = bestFailure;
@@ -76,7 +85,7 @@ function displayError(input, stream, tokensDefinition, grammar, bestFailure) {
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
   token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
   Context:
-${streamContext(input, token, firstToken, stream)}
+${streamContext(token, firstToken, stream)}
 `);
 }
 
