@@ -1,6 +1,7 @@
 const path = require('path');
 const { stringifyRequest } = require('loader-utils');
 const sourceMap = require('source-map');
+const { performance } = require('perf_hooks');
 const { grammar } = require('./grammar');
 const { tokensDefinition } = require('./tokensDefinition');
 const backend = require('./backend');
@@ -20,8 +21,14 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   }
   const header = `const blop = require(${file});\n`;
 
+  const t1 = performance.now();
   const stream = parser.tokenize(tokensDefinition, source);
+  const t2 = performance.now();
   const tree = parser.parse(stream);
+  const t3 = performance.now();
+  if (process.env.BLOP_DEBUG) {
+    console.log(`${filename} -> Tokenizing: ${t2 - t1}, parsing: ${t3 - t2}`);
+  }
   if (!tree.success) {
     utils.displayError(stream, tokensDefinition, grammar, tree);
   }

@@ -19,16 +19,19 @@ function record_failure(failure, i) {
   best_failure_index = i;
 }
 
-const cache = {};
+let cache = {};
 
 function memoize(name, func) {
-  return function (stream, index) {
-    const value = cache[\`\${name}-\${index}\`];
-    if(value) {
+  return function memoize_inner(stream, index) {
+    const key = \`\${name}-\${index}\`;
+    let value = cache[key];
+    if (value !== undefined) {
       return value;
     }
-    return func(stream, index);
-  }
+    value = func(stream, index);
+    cache[key] = value;
+    return value;
+  };
 }
 `;
 
@@ -136,7 +139,7 @@ function generateTokenizer(tokenDef) {
 
 function generateSubRule(name, index, subRule, tokensDef, debug) {
   const output = [];
-  output.push(`function ${name}_${index}(stream, index) {`);
+  output.push(`let ${name}_${index} = (stream, index) => {`);
   let i = 0;
   output.push('  let i = index;');
   output.push('  const children = [];');
@@ -173,7 +176,7 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
       };
       record_failure(failure, i);
     }
-    return;
+    return false;
   }
 `);
         rule.alias ? output.push(`  named['${rule.alias}'] = stream[i];`) : null;
@@ -183,7 +186,7 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
     // calling another rule in the grammar
     } else {
       if (rule.function) {
-        output.push(`  if (!(${rule.value})(node)) { return; }`);
+        output.push(`  if (!(${rule.value})(node)) { return false; }`);
       } else if (rule.repeatable) {
         output.push(`  let _rule_${i} = ${rule.value}(stream, i);`); // doing the call
         output.push(`  while (_rule_${i}) {`);
@@ -197,7 +200,7 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
         output.push('  }');
       } else if (!rule.optional) {
         output.push(`  const _rule_${i} = ${rule.value}(stream, i);`); // doing the call
-        output.push(`  if (!_rule_${i}) return;`);
+        output.push(`  if (!_rule_${i}) return false;`);
         rule.alias ? output.push(`  named['${rule.alias}'] = _rule_${i};`) : null;
         output.push(`  children.push(_rule_${i});`);
         output.push(`  i = _rule_${i}.last_index;`);
@@ -214,7 +217,7 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
   });
   output.push('  node.success = i === stream.length; node.last_index = i;');
   output.push('  return node;');
-  output.push('}');
+  output.push('};');
   output.push(`${name}_${index} = memoize('${name}_${index}', ${name}_${index});`);
   output.push('\n');
   return output;
@@ -247,6 +250,7 @@ function generate(grammar, tokensDef, debug) {
     best_failure = null;
     best_failure_index = 0;
     best_failure_array = [];
+    cache = {};
     const result = START(stream, 0);
     if (!result) {
       return best_failure;

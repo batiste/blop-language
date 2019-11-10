@@ -206,7 +206,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
     let errorMsg
     try {
-      displayError(text, stream, tokensDefinition, grammar, tree)
+      displayError(stream, tokensDefinition, grammar, tree)
     } catch(error) {
       errorMsg = error.message
     }
@@ -228,7 +228,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   }
   
   if(tree.success && settings.maxNumberOfProblems > 0) {
-    const result = backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1])
+	// _backend(node, _stream, _input, _filename = false, rootSource, resolve = false)
+    const result = backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1], undefined, true)
 
     if(!result.perfect) {
       result.errors.forEach((error: any) => {

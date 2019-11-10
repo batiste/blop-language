@@ -31,7 +31,7 @@ function getExports(filename) {
   return [];
 }
 
-function _backend(node, _stream, _input, _filename = false, rootSource) {
+function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false) {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -121,7 +121,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource) {
   }
 
   function resolveImport(name, node, importedKeys) {
-    if (!checkFilename) {
+    if (!checkFilename || resolve !== true) {
       return;
     }
     let filename;
