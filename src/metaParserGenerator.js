@@ -1,3 +1,6 @@
+
+const fs = require('fs');
+const path = require('path');
 const { preprocessGrammar, checkGrammarAndTokens } = require('./utils');
 
 const recordFailure = `
@@ -14,6 +17,18 @@ function record_failure(failure, i) {
   }
   best_failure_array.push(failure);
   best_failure_index = i;
+}
+
+const cache = {};
+
+function memoize(name, func) {
+  return function (stream, index) {
+    const value = cache[\`\${name}-\${index}\`];
+    if(value) {
+      return value;
+    }
+    return func(stream, index);
+  }
 }
 `;
 
@@ -200,7 +215,8 @@ function generateSubRule(name, index, subRule, tokensDef, debug) {
   output.push('  node.success = i === stream.length; node.last_index = i;');
   output.push('  return node;');
   output.push('}');
-  output.push('');
+  output.push(`${name}_${index} = memoize('${name}_${index}', ${name}_${index});`);
+  output.push('\n');
   return output;
 }
 
@@ -243,8 +259,18 @@ function generate(grammar, tokensDef, debug) {
   return output;
 }
 
+function generateParser(grammar, tokensDefinition, filename) {
+  fs.writeFileSync(path.resolve(__dirname, filename),
+    generate(grammar, tokensDefinition, false).join('\n'), (err) => {
+      if (err) {
+        // eslint-disable-next-line no-console
+        console.log(err);
+      }
+    });
+}
 
 module.exports = {
+  generateParser,
   generate,
   generateTokenizer,
 };

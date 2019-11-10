@@ -16,6 +16,18 @@ function record_failure(failure, i) {
   best_failure_index = i;
 }
 
+const cache = {};
+
+function memoize(name, func) {
+  return function (stream, index) {
+    const value = cache[`${name}-${index}`];
+    if(value) {
+      return value;
+    }
+    return func(stream, index);
+  }
+}
+
 function START_0(stream, index) {
   let i = index;
   const children = [];
@@ -51,6 +63,8 @@ function START_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+START_0 = memoize('START_0', START_0);
+
 
 function START_1(stream, index) {
   let i = index;
@@ -83,6 +97,8 @@ function START_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+START_1 = memoize('START_1', START_1);
+
 
 function START(stream, index) {
   return START_0(stream, index)
@@ -122,6 +138,8 @@ function GLOBAL_STATEMENTS_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENTS_0 = memoize('GLOBAL_STATEMENTS_0', GLOBAL_STATEMENTS_0);
+
 
 function GLOBAL_STATEMENTS_1(stream, index) {
   let i = index;
@@ -153,6 +171,8 @@ function GLOBAL_STATEMENTS_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENTS_1 = memoize('GLOBAL_STATEMENTS_1', GLOBAL_STATEMENTS_1);
+
 
 function GLOBAL_STATEMENTS(stream, index) {
   return GLOBAL_STATEMENTS_0(stream, index)
@@ -198,6 +218,8 @@ function SCOPED_STATEMENTS_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENTS_0 = memoize('SCOPED_STATEMENTS_0', SCOPED_STATEMENTS_0);
+
 
 function SCOPED_STATEMENTS_1(stream, index) {
   let i = index;
@@ -235,6 +257,8 @@ function SCOPED_STATEMENTS_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENTS_1 = memoize('SCOPED_STATEMENTS_1', SCOPED_STATEMENTS_1);
+
 
 function SCOPED_STATEMENTS(stream, index) {
   return SCOPED_STATEMENTS_0(stream, index)
@@ -279,6 +303,8 @@ function wcomment_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+wcomment_0 = memoize('wcomment_0', wcomment_0);
+
 
 function wcomment_1(stream, index) {
   let i = index;
@@ -319,6 +345,8 @@ function wcomment_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+wcomment_1 = memoize('wcomment_1', wcomment_1);
+
 
 function wcomment(stream, index) {
   return wcomment_0(stream, index)
@@ -349,6 +377,8 @@ function scomment_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+scomment_0 = memoize('scomment_0', scomment_0);
+
 
 function scomment_1(stream, index) {
   let i = index;
@@ -375,6 +405,8 @@ function scomment_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+scomment_1 = memoize('scomment_1', scomment_1);
+
 
 function scomment(stream, index) {
   return scomment_0(stream, index)
@@ -395,6 +427,8 @@ function GLOBAL_STATEMENT_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_0 = memoize('GLOBAL_STATEMENT_0', GLOBAL_STATEMENT_0);
+
 
 function GLOBAL_STATEMENT_1(stream, index) {
   let i = index;
@@ -411,6 +445,8 @@ function GLOBAL_STATEMENT_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_1 = memoize('GLOBAL_STATEMENT_1', GLOBAL_STATEMENT_1);
+
 
 function GLOBAL_STATEMENT_2(stream, index) {
   let i = index;
@@ -427,6 +463,8 @@ function GLOBAL_STATEMENT_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_2 = memoize('GLOBAL_STATEMENT_2', GLOBAL_STATEMENT_2);
+
 
 function GLOBAL_STATEMENT_3(stream, index) {
   let i = index;
@@ -443,6 +481,8 @@ function GLOBAL_STATEMENT_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_3 = memoize('GLOBAL_STATEMENT_3', GLOBAL_STATEMENT_3);
+
 
 function GLOBAL_STATEMENT_4(stream, index) {
   let i = index;
@@ -459,6 +499,8 @@ function GLOBAL_STATEMENT_4(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_4 = memoize('GLOBAL_STATEMENT_4', GLOBAL_STATEMENT_4);
+
 
 function GLOBAL_STATEMENT_5(stream, index) {
   let i = index;
@@ -475,6 +517,8 @@ function GLOBAL_STATEMENT_5(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_5 = memoize('GLOBAL_STATEMENT_5', GLOBAL_STATEMENT_5);
+
 
 function GLOBAL_STATEMENT_6(stream, index) {
   let i = index;
@@ -491,6 +535,8 @@ function GLOBAL_STATEMENT_6(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_6 = memoize('GLOBAL_STATEMENT_6', GLOBAL_STATEMENT_6);
+
 
 function GLOBAL_STATEMENT_7(stream, index) {
   let i = index;
@@ -507,6 +553,8 @@ function GLOBAL_STATEMENT_7(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_7 = memoize('GLOBAL_STATEMENT_7', GLOBAL_STATEMENT_7);
+
 
 function GLOBAL_STATEMENT_8(stream, index) {
   let i = index;
@@ -523,6 +571,8 @@ function GLOBAL_STATEMENT_8(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+GLOBAL_STATEMENT_8 = memoize('GLOBAL_STATEMENT_8', GLOBAL_STATEMENT_8);
+
 
 function GLOBAL_STATEMENT(stream, index) {
   return GLOBAL_STATEMENT_0(stream, index)
@@ -550,6 +600,8 @@ function exp_statement_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_statement_0 = memoize('exp_statement_0', exp_statement_0);
+
 
 function exp_statement(stream, index) {
   return exp_statement_0(stream, index);
@@ -569,6 +621,8 @@ function SCOPED_STATEMENT_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_0 = memoize('SCOPED_STATEMENT_0', SCOPED_STATEMENT_0);
+
 
 function SCOPED_STATEMENT_1(stream, index) {
   let i = index;
@@ -585,6 +639,8 @@ function SCOPED_STATEMENT_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_1 = memoize('SCOPED_STATEMENT_1', SCOPED_STATEMENT_1);
+
 
 function SCOPED_STATEMENT_2(stream, index) {
   let i = index;
@@ -601,6 +657,8 @@ function SCOPED_STATEMENT_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_2 = memoize('SCOPED_STATEMENT_2', SCOPED_STATEMENT_2);
+
 
 function SCOPED_STATEMENT_3(stream, index) {
   let i = index;
@@ -617,6 +675,8 @@ function SCOPED_STATEMENT_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_3 = memoize('SCOPED_STATEMENT_3', SCOPED_STATEMENT_3);
+
 
 function SCOPED_STATEMENT_4(stream, index) {
   let i = index;
@@ -633,6 +693,8 @@ function SCOPED_STATEMENT_4(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_4 = memoize('SCOPED_STATEMENT_4', SCOPED_STATEMENT_4);
+
 
 function SCOPED_STATEMENT_5(stream, index) {
   let i = index;
@@ -649,6 +711,8 @@ function SCOPED_STATEMENT_5(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_5 = memoize('SCOPED_STATEMENT_5', SCOPED_STATEMENT_5);
+
 
 function SCOPED_STATEMENT_6(stream, index) {
   let i = index;
@@ -680,6 +744,8 @@ function SCOPED_STATEMENT_6(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_6 = memoize('SCOPED_STATEMENT_6', SCOPED_STATEMENT_6);
+
 
 function SCOPED_STATEMENT_7(stream, index) {
   let i = index;
@@ -696,6 +762,8 @@ function SCOPED_STATEMENT_7(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_7 = memoize('SCOPED_STATEMENT_7', SCOPED_STATEMENT_7);
+
 
 function SCOPED_STATEMENT_8(stream, index) {
   let i = index;
@@ -722,6 +790,8 @@ function SCOPED_STATEMENT_8(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_8 = memoize('SCOPED_STATEMENT_8', SCOPED_STATEMENT_8);
+
 
 function SCOPED_STATEMENT_9(stream, index) {
   let i = index;
@@ -748,6 +818,8 @@ function SCOPED_STATEMENT_9(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+SCOPED_STATEMENT_9 = memoize('SCOPED_STATEMENT_9', SCOPED_STATEMENT_9);
+
 
 function SCOPED_STATEMENT(stream, index) {
   return SCOPED_STATEMENT_0(stream, index)
@@ -805,6 +877,8 @@ function object_access_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_access_0 = memoize('object_access_0', object_access_0);
+
 
 function object_access_1(stream, index) {
   let i = index;
@@ -826,6 +900,8 @@ function object_access_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_access_1 = memoize('object_access_1', object_access_1);
+
 
 function object_access_2(stream, index) {
   let i = index;
@@ -875,6 +951,8 @@ function object_access_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_access_2 = memoize('object_access_2', object_access_2);
+
 
 function object_access(stream, index) {
   return object_access_0(stream, index)
@@ -961,6 +1039,8 @@ function assign_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+assign_0 = memoize('assign_0', assign_0);
+
 
 function assign_1(stream, index) {
   let i = index;
@@ -1041,6 +1121,8 @@ function assign_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+assign_1 = memoize('assign_1', assign_1);
+
 
 function assign_2(stream, index) {
   let i = index;
@@ -1105,6 +1187,8 @@ function assign_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+assign_2 = memoize('assign_2', assign_2);
+
 
 function assign_3(stream, index) {
   let i = index;
@@ -1184,6 +1268,8 @@ function assign_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+assign_3 = memoize('assign_3', assign_3);
+
 
 function assign(stream, index) {
   return assign_0(stream, index)
@@ -1320,6 +1406,8 @@ function for_loop_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+for_loop_0 = memoize('for_loop_0', for_loop_0);
+
 
 function for_loop_1(stream, index) {
   let i = index;
@@ -1499,6 +1587,8 @@ function for_loop_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+for_loop_1 = memoize('for_loop_1', for_loop_1);
+
 
 function for_loop(stream, index) {
   return for_loop_0(stream, index)
@@ -1590,6 +1680,8 @@ function func_def_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_0 = memoize('func_def_0', func_def_0);
+
 
 function func_def_1(stream, index) {
   let i = index;
@@ -1682,6 +1774,8 @@ function func_def_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_1 = memoize('func_def_1', func_def_1);
+
 
 function func_def_2(stream, index) {
   let i = index;
@@ -1785,6 +1879,8 @@ function func_def_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_2 = memoize('func_def_2', func_def_2);
+
 
 function func_def_3(stream, index) {
   let i = index;
@@ -1883,6 +1979,8 @@ function func_def_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_3 = memoize('func_def_3', func_def_3);
+
 
 function func_def(stream, index) {
   return func_def_0(stream, index)
@@ -1944,6 +2042,8 @@ function annotation_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+annotation_0 = memoize('annotation_0', annotation_0);
+
 
 function annotation(stream, index) {
   return annotation_0(stream, index);
@@ -2030,6 +2130,8 @@ function func_def_params_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_params_0 = memoize('func_def_params_0', func_def_params_0);
+
 
 function func_def_params_1(stream, index) {
   let i = index;
@@ -2081,6 +2183,8 @@ function func_def_params_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_params_1 = memoize('func_def_params_1', func_def_params_1);
+
 
 function func_def_params_2(stream, index) {
   let i = index;
@@ -2146,6 +2250,8 @@ function func_def_params_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_params_2 = memoize('func_def_params_2', func_def_params_2);
+
 
 function func_def_params_3(stream, index) {
   let i = index;
@@ -2179,6 +2285,8 @@ function func_def_params_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_def_params_3 = memoize('func_def_params_3', func_def_params_3);
+
 
 function func_def_params(stream, index) {
   return func_def_params_0(stream, index)
@@ -2234,6 +2342,8 @@ function func_call_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_call_0 = memoize('func_call_0', func_call_0);
+
 
 function func_call_1(stream, index) {
   let i = index;
@@ -2274,6 +2384,8 @@ function func_call_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_call_1 = memoize('func_call_1', func_call_1);
+
 
 function func_call(stream, index) {
   return func_call_0(stream, index)
@@ -2309,6 +2421,8 @@ function named_func_call_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+named_func_call_0 = memoize('named_func_call_0', named_func_call_0);
+
 
 function named_func_call(stream, index) {
   return named_func_call_0(stream, index);
@@ -2356,6 +2470,8 @@ function func_call_params_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_call_params_0 = memoize('func_call_params_0', func_call_params_0);
+
 
 function func_call_params_1(stream, index) {
   let i = index;
@@ -2394,6 +2510,8 @@ function func_call_params_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_call_params_1 = memoize('func_call_params_1', func_call_params_1);
+
 
 function func_call_params_2(stream, index) {
   let i = index;
@@ -2410,6 +2528,8 @@ function func_call_params_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_call_params_2 = memoize('func_call_params_2', func_call_params_2);
+
 
 function func_call_params(stream, index) {
   return func_call_params_0(stream, index)
@@ -2463,6 +2583,8 @@ function func_body_fat_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_body_fat_0 = memoize('func_body_fat_0', func_body_fat_0);
+
 
 function func_body_fat_1(stream, index) {
   let i = index;
@@ -2480,6 +2602,8 @@ function func_body_fat_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_body_fat_1 = memoize('func_body_fat_1', func_body_fat_1);
+
 
 function func_body_fat(stream, index) {
   return func_body_fat_0(stream, index)
@@ -2532,6 +2656,8 @@ function func_body_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+func_body_0 = memoize('func_body_0', func_body_0);
+
 
 function func_body(stream, index) {
   return func_body_0(stream, index);
@@ -2669,6 +2795,8 @@ function class_def_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+class_def_0 = memoize('class_def_0', class_def_0);
+
 
 function class_def_1(stream, index) {
   let i = index;
@@ -2760,6 +2888,8 @@ function class_def_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+class_def_1 = memoize('class_def_1', class_def_1);
+
 
 function class_def(stream, index) {
   return class_def_0(stream, index)
@@ -2850,6 +2980,8 @@ function class_func_def_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+class_func_def_0 = memoize('class_func_def_0', class_func_def_0);
+
 
 function class_func_def_1(stream, index) {
   let i = index;
@@ -2941,6 +3073,8 @@ function class_func_def_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+class_func_def_1 = memoize('class_func_def_1', class_func_def_1);
+
 
 function class_func_def(stream, index) {
   return class_func_def_0(stream, index)
@@ -2986,6 +3120,8 @@ function CLASS_STATEMENT_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+CLASS_STATEMENT_0 = memoize('CLASS_STATEMENT_0', CLASS_STATEMENT_0);
+
 
 function CLASS_STATEMENT_1(stream, index) {
   let i = index;
@@ -3023,6 +3159,8 @@ function CLASS_STATEMENT_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+CLASS_STATEMENT_1 = memoize('CLASS_STATEMENT_1', CLASS_STATEMENT_1);
+
 
 function CLASS_STATEMENT(stream, index) {
   return CLASS_STATEMENT_0(stream, index)
@@ -3083,6 +3221,8 @@ function array_literal_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+array_literal_0 = memoize('array_literal_0', array_literal_0);
+
 
 function array_literal_1(stream, index) {
   let i = index;
@@ -3123,6 +3263,8 @@ function array_literal_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+array_literal_1 = memoize('array_literal_1', array_literal_1);
+
 
 function array_literal(stream, index) {
   return array_literal_0(stream, index)
@@ -3165,6 +3307,8 @@ function array_literal_body_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+array_literal_body_0 = memoize('array_literal_body_0', array_literal_body_0);
+
 
 function array_literal_body_1(stream, index) {
   let i = index;
@@ -3181,6 +3325,8 @@ function array_literal_body_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+array_literal_body_1 = memoize('array_literal_body_1', array_literal_body_1);
+
 
 function array_literal_body(stream, index) {
   return array_literal_body_0(stream, index)
@@ -3272,6 +3418,8 @@ function condition_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+condition_0 = memoize('condition_0', condition_0);
+
 
 function condition(stream, index) {
   return condition_0(stream, index);
@@ -3376,6 +3524,8 @@ function conditionelseif_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+conditionelseif_0 = memoize('conditionelseif_0', conditionelseif_0);
+
 
 function conditionelseif_1(stream, index) {
   let i = index;
@@ -3472,6 +3622,8 @@ function conditionelseif_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+conditionelseif_1 = memoize('conditionelseif_1', conditionelseif_1);
+
 
 function conditionelseif_2(stream, index) {
   let i = index;
@@ -3549,6 +3701,8 @@ function conditionelseif_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+conditionelseif_2 = memoize('conditionelseif_2', conditionelseif_2);
+
 
 function conditionelseif_3(stream, index) {
   let i = index;
@@ -3564,6 +3718,8 @@ function conditionelseif_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+conditionelseif_3 = memoize('conditionelseif_3', conditionelseif_3);
+
 
 function conditionelseif(stream, index) {
   return conditionelseif_0(stream, index)
@@ -3651,6 +3807,8 @@ function while_loop_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+while_loop_0 = memoize('while_loop_0', while_loop_0);
+
 
 function while_loop(stream, index) {
   return while_loop_0(stream, index);
@@ -3706,6 +3864,8 @@ function object_literal_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_0 = memoize('object_literal_0', object_literal_0);
+
 
 function object_literal_1(stream, index) {
   let i = index;
@@ -3746,6 +3906,8 @@ function object_literal_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_1 = memoize('object_literal_1', object_literal_1);
+
 
 function object_literal(stream, index) {
   return object_literal_0(stream, index)
@@ -3776,6 +3938,8 @@ function single_space_or_newline_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+single_space_or_newline_0 = memoize('single_space_or_newline_0', single_space_or_newline_0);
+
 
 function single_space_or_newline_1(stream, index) {
   let i = index;
@@ -3808,6 +3972,8 @@ function single_space_or_newline_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+single_space_or_newline_1 = memoize('single_space_or_newline_1', single_space_or_newline_1);
+
 
 function single_space_or_newline(stream, index) {
   return single_space_or_newline_0(stream, index)
@@ -3844,6 +4010,8 @@ function newline_and_space_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+newline_and_space_0 = memoize('newline_and_space_0', newline_and_space_0);
+
 
 function newline_and_space(stream, index) {
   return newline_and_space_0(stream, index);
@@ -3917,6 +4085,8 @@ function object_literal_body_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_body_0 = memoize('object_literal_body_0', object_literal_body_0);
+
 
 function object_literal_body_1(stream, index) {
   let i = index;
@@ -3956,6 +4126,8 @@ function object_literal_body_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_body_1 = memoize('object_literal_body_1', object_literal_body_1);
+
 
 function object_literal_body_2(stream, index) {
   let i = index;
@@ -4004,6 +4176,8 @@ function object_literal_body_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_body_2 = memoize('object_literal_body_2', object_literal_body_2);
+
 
 function object_literal_body_3(stream, index) {
   let i = index;
@@ -4021,6 +4195,8 @@ function object_literal_body_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_body_3 = memoize('object_literal_body_3', object_literal_body_3);
+
 
 function object_literal_body(stream, index) {
   return object_literal_body_0(stream, index)
@@ -4090,6 +4266,8 @@ function object_destructuring_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_destructuring_0 = memoize('object_destructuring_0', object_destructuring_0);
+
 
 function object_destructuring(stream, index) {
   return object_destructuring_0(stream, index);
@@ -4143,6 +4321,8 @@ function destructuring_values_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+destructuring_values_0 = memoize('destructuring_values_0', destructuring_values_0);
+
 
 function destructuring_values_1(stream, index) {
   let i = index;
@@ -4236,6 +4416,8 @@ function destructuring_values_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+destructuring_values_1 = memoize('destructuring_values_1', destructuring_values_1);
+
 
 function destructuring_values_2(stream, index) {
   let i = index;
@@ -4306,6 +4488,8 @@ function destructuring_values_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+destructuring_values_2 = memoize('destructuring_values_2', destructuring_values_2);
+
 
 function destructuring_values_3(stream, index) {
   let i = index;
@@ -4333,6 +4517,8 @@ function destructuring_values_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+destructuring_values_3 = memoize('destructuring_values_3', destructuring_values_3);
+
 
 function destructuring_values(stream, index) {
   return destructuring_values_0(stream, index)
@@ -4423,6 +4609,8 @@ function import_statement_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+import_statement_0 = memoize('import_statement_0', import_statement_0);
+
 
 function import_statement_1(stream, index) {
   let i = index;
@@ -4553,6 +4741,8 @@ function import_statement_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+import_statement_1 = memoize('import_statement_1', import_statement_1);
+
 
 function import_statement_2(stream, index) {
   let i = index;
@@ -4637,6 +4827,8 @@ function import_statement_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+import_statement_2 = memoize('import_statement_2', import_statement_2);
+
 
 function import_statement_3(stream, index) {
   let i = index;
@@ -4678,6 +4870,8 @@ function import_statement_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+import_statement_3 = memoize('import_statement_3', import_statement_3);
+
 
 function import_statement(stream, index) {
   return import_statement_0(stream, index)
@@ -4710,6 +4904,8 @@ function object_literal_key_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_key_0 = memoize('object_literal_key_0', object_literal_key_0);
+
 
 function object_literal_key_1(stream, index) {
   let i = index;
@@ -4736,6 +4932,8 @@ function object_literal_key_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+object_literal_key_1 = memoize('object_literal_key_1', object_literal_key_1);
+
 
 function object_literal_key(stream, index) {
   return object_literal_key_0(stream, index)
@@ -4806,6 +5004,8 @@ function virtual_node_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_0 = memoize('virtual_node_0', virtual_node_0);
+
 
 function virtual_node_1(stream, index) {
   let i = index;
@@ -4921,6 +5121,8 @@ function virtual_node_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_1 = memoize('virtual_node_1', virtual_node_1);
+
 
 function virtual_node_2(stream, index) {
   let i = index;
@@ -5033,6 +5235,8 @@ function virtual_node_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_2 = memoize('virtual_node_2', virtual_node_2);
+
 
 function virtual_node(stream, index) {
   return virtual_node_0(stream, index)
@@ -5104,6 +5308,8 @@ function virtual_node_exp_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_exp_0 = memoize('virtual_node_exp_0', virtual_node_exp_0);
+
 
 function virtual_node_exp_1(stream, index) {
   let i = index;
@@ -5219,6 +5425,8 @@ function virtual_node_exp_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_exp_1 = memoize('virtual_node_exp_1', virtual_node_exp_1);
+
 
 function virtual_node_exp_2(stream, index) {
   let i = index;
@@ -5331,6 +5539,8 @@ function virtual_node_exp_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_exp_2 = memoize('virtual_node_exp_2', virtual_node_exp_2);
+
 
 function virtual_node_exp(stream, index) {
   return virtual_node_exp_0(stream, index)
@@ -5381,6 +5591,8 @@ function virtual_node_assign_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_assign_0 = memoize('virtual_node_assign_0', virtual_node_assign_0);
+
 
 function virtual_node_assign(stream, index) {
   return virtual_node_assign_0(stream, index);
@@ -5434,6 +5646,8 @@ function virtual_node_attributes_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_attributes_0 = memoize('virtual_node_attributes_0', virtual_node_attributes_0);
+
 
 function virtual_node_attributes_1(stream, index) {
   let i = index;
@@ -5465,6 +5679,8 @@ function virtual_node_attributes_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_attributes_1 = memoize('virtual_node_attributes_1', virtual_node_attributes_1);
+
 
 function virtual_node_attributes_2(stream, index) {
   let i = index;
@@ -5515,6 +5731,8 @@ function virtual_node_attributes_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_attributes_2 = memoize('virtual_node_attributes_2', virtual_node_attributes_2);
+
 
 function virtual_node_attributes_3(stream, index) {
   let i = index;
@@ -5546,6 +5764,8 @@ function virtual_node_attributes_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+virtual_node_attributes_3 = memoize('virtual_node_attributes_3', virtual_node_attributes_3);
+
 
 function virtual_node_attributes(stream, index) {
   return virtual_node_attributes_0(stream, index)
@@ -5597,6 +5817,8 @@ function operation_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+operation_0 = memoize('operation_0', operation_0);
+
 
 function operation_1(stream, index) {
   let i = index;
@@ -5642,6 +5864,8 @@ function operation_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+operation_1 = memoize('operation_1', operation_1);
+
 
 function operation_2(stream, index) {
   let i = index;
@@ -5687,6 +5911,8 @@ function operation_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+operation_2 = memoize('operation_2', operation_2);
+
 
 function operation_3(stream, index) {
   let i = index;
@@ -5732,6 +5958,8 @@ function operation_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+operation_3 = memoize('operation_3', operation_3);
+
 
 function operation(stream, index) {
   return operation_0(stream, index)
@@ -5770,6 +5998,8 @@ function str_expression_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+str_expression_0 = memoize('str_expression_0', str_expression_0);
+
 
 function str_expression(stream, index) {
   return str_expression_0(stream, index);
@@ -5810,6 +6040,8 @@ function inner_str_expression_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+inner_str_expression_0 = memoize('inner_str_expression_0', inner_str_expression_0);
+
 
 function inner_str_expression_1(stream, index) {
   let i = index;
@@ -5842,6 +6074,8 @@ function inner_str_expression_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+inner_str_expression_1 = memoize('inner_str_expression_1', inner_str_expression_1);
+
 
 function inner_str_expression(stream, index) {
   return inner_str_expression_0(stream, index)
@@ -6003,6 +6237,8 @@ function try_catch_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+try_catch_0 = memoize('try_catch_0', try_catch_0);
+
 
 function try_catch(stream, index) {
   return try_catch_0(stream, index);
@@ -6042,6 +6278,8 @@ function access_or_operation_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+access_or_operation_0 = memoize('access_or_operation_0', access_or_operation_0);
+
 
 function access_or_operation_1(stream, index) {
   let i = index;
@@ -6059,6 +6297,8 @@ function access_or_operation_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+access_or_operation_1 = memoize('access_or_operation_1', access_or_operation_1);
+
 
 function access_or_operation_2(stream, index) {
   let i = index;
@@ -6090,6 +6330,8 @@ function access_or_operation_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+access_or_operation_2 = memoize('access_or_operation_2', access_or_operation_2);
+
 
 function access_or_operation(stream, index) {
   return access_or_operation_0(stream, index)
@@ -6141,6 +6383,8 @@ function name_exp_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+name_exp_0 = memoize('name_exp_0', name_exp_0);
+
 
 function name_exp_1(stream, index) {
   let i = index;
@@ -6173,6 +6417,8 @@ function name_exp_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+name_exp_1 = memoize('name_exp_1', name_exp_1);
+
 
 function name_exp_2(stream, index) {
   let i = index;
@@ -6200,6 +6446,8 @@ function name_exp_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+name_exp_2 = memoize('name_exp_2', name_exp_2);
+
 
 function name_exp(stream, index) {
   return name_exp_0(stream, index)
@@ -6221,6 +6469,8 @@ function exp_0(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_0 = memoize('exp_0', exp_0);
+
 
 function exp_1(stream, index) {
   let i = index;
@@ -6241,6 +6491,8 @@ function exp_1(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_1 = memoize('exp_1', exp_1);
+
 
 function exp_2(stream, index) {
   let i = index;
@@ -6257,6 +6509,8 @@ function exp_2(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_2 = memoize('exp_2', exp_2);
+
 
 function exp_3(stream, index) {
   let i = index;
@@ -6273,6 +6527,8 @@ function exp_3(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_3 = memoize('exp_3', exp_3);
+
 
 function exp_4(stream, index) {
   let i = index;
@@ -6303,6 +6559,8 @@ function exp_4(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_4 = memoize('exp_4', exp_4);
+
 
 function exp_5(stream, index) {
   let i = index;
@@ -6329,6 +6587,8 @@ function exp_5(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_5 = memoize('exp_5', exp_5);
+
 
 function exp_6(stream, index) {
   let i = index;
@@ -6363,6 +6623,8 @@ function exp_6(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_6 = memoize('exp_6', exp_6);
+
 
 function exp_7(stream, index) {
   let i = index;
@@ -6379,6 +6641,8 @@ function exp_7(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_7 = memoize('exp_7', exp_7);
+
 
 function exp_8(stream, index) {
   let i = index;
@@ -6423,6 +6687,8 @@ function exp_8(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_8 = memoize('exp_8', exp_8);
+
 
 function exp_9(stream, index) {
   let i = index;
@@ -6449,6 +6715,8 @@ function exp_9(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_9 = memoize('exp_9', exp_9);
+
 
 function exp_10(stream, index) {
   let i = index;
@@ -6475,6 +6743,8 @@ function exp_10(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_10 = memoize('exp_10', exp_10);
+
 
 function exp_11(stream, index) {
   let i = index;
@@ -6523,6 +6793,8 @@ function exp_11(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_11 = memoize('exp_11', exp_11);
+
 
 function exp_12(stream, index) {
   let i = index;
@@ -6567,6 +6839,8 @@ function exp_12(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_12 = memoize('exp_12', exp_12);
+
 
 function exp_13(stream, index) {
   let i = index;
@@ -6597,6 +6871,8 @@ function exp_13(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_13 = memoize('exp_13', exp_13);
+
 
 function exp_14(stream, index) {
   let i = index;
@@ -6627,6 +6903,8 @@ function exp_14(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_14 = memoize('exp_14', exp_14);
+
 
 function exp_15(stream, index) {
   let i = index;
@@ -6643,6 +6921,8 @@ function exp_15(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_15 = memoize('exp_15', exp_15);
+
 
 function exp_16(stream, index) {
   let i = index;
@@ -6663,6 +6943,8 @@ function exp_16(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_16 = memoize('exp_16', exp_16);
+
 
 function exp_17(stream, index) {
   let i = index;
@@ -6679,6 +6961,8 @@ function exp_17(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_17 = memoize('exp_17', exp_17);
+
 
 function exp_18(stream, index) {
   let i = index;
@@ -6709,6 +6993,8 @@ function exp_18(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_18 = memoize('exp_18', exp_18);
+
 
 function exp_19(stream, index) {
   let i = index;
@@ -6725,6 +7011,8 @@ function exp_19(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_19 = memoize('exp_19', exp_19);
+
 
 function exp_20(stream, index) {
   let i = index;
@@ -6741,6 +7029,8 @@ function exp_20(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_20 = memoize('exp_20', exp_20);
+
 
 function exp_21(stream, index) {
   let i = index;
@@ -6771,6 +7061,8 @@ function exp_21(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_21 = memoize('exp_21', exp_21);
+
 
 function exp_22(stream, index) {
   let i = index;
@@ -6801,6 +7093,8 @@ function exp_22(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_22 = memoize('exp_22', exp_22);
+
 
 function exp_23(stream, index) {
   let i = index;
@@ -6831,6 +7125,8 @@ function exp_23(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_23 = memoize('exp_23', exp_23);
+
 
 function exp_24(stream, index) {
   let i = index;
@@ -6861,6 +7157,8 @@ function exp_24(stream, index) {
   node.success = i === stream.length; node.last_index = i;
   return node;
 }
+exp_24 = memoize('exp_24', exp_24);
+
 
 function exp(stream, index) {
   return exp_0(stream, index)
