@@ -15,7 +15,8 @@ module.exports = {
     "consistent-return": "off",
     "object-property-newline": "off",
     "dot-notation": "off",
-    "no-use-before-define": "off"
+    "no-use-before-define": "off",
+    "no-console": ["error", { allow: ["log", "error", "warn"] }]
   },
   "plugins": [
     "ie11"
