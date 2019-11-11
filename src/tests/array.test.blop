@@ -5,8 +5,10 @@ array = [1,
 
 squares = [1, 2].map((i) => i * i)
 
+hello = 0
+
 a = { test: 1, func: () => {
-  hello = 1
+    hello := 1
   }
 }
 

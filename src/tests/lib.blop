@@ -9,6 +9,6 @@ moduleParam2 = 20
 
 another = 1
 
-def testImportedInference(a: number, b: string) {
+def testImportedInference(a: number, _b: string) {
   return a
 }

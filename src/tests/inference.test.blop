@@ -17,6 +17,7 @@ def inference2(c: number, d: number): number {
 def scoped() {
   return 1 + inference2()
   hello: number = 1
+  return hello
 }
 
 backLink = <p>1</p>
@@ -31,18 +32,9 @@ if (page.attempt) {
 }
 
 def yop() {
-  d = ''
+  // d = ''
   return def () {
     // d + 1
-  }
-}
-
-def match(path) {
-  m = null
-  params = 1
-  route = {}
-  for index, value in route: array {
-    params := 1 + index
   }
 }
 

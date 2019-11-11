@@ -33,7 +33,7 @@ render = async (path: string) => {
 
 app.use(instance)
 
-app.get('/favicon.ico', (req, res) => {
+app.get('/favicon.ico', (_req, res) => {
   res.sendFile(nodepath.resolve('./img/blop.png'))
 })
 

@@ -54,7 +54,19 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
 
   const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
   const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
-  const popNameSpaceFCT = () => namespacesFCT.pop();
+  const popNameSpaceFCT = () => {
+    const ns = namespacesFCT.pop();
+    if (ns) {
+      Object.keys(ns).forEach((name) => {
+        if (all[name] || configGlobals[name] || name.startsWith('_')) {
+          return;
+        }
+        if (ns[name].node && ns[name].used !== true) {
+          generateError(ns[name].node, `Unused variable ${name}, remove or add underscore`, true);
+        }
+      });
+    }
+  };
 
   const currentNamespacesCDT = () => namespacesCDT[namespacesCDT.length - 1];
   const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
@@ -146,6 +158,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     let defined = false;
     namespacesFCT.slice().reverse().forEach((ns) => {
       if (ns[name]) {
+        ns[name].used = true;
         defined = true;
       }
     });
@@ -175,22 +188,22 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     }
 
     if (!parent) {
-      if (currentFctNS.returnVirtualNode) {
+      if (currentFctNS._returnVirtualNode) {
         generateError(opening, 'A root virtual node is already defined in this function');
       } else if (namespacesCDT.length > 1) {
         let isRedefined = false;
         namespacesCDT.slice().reverse().forEach((ns) => {
-          if (ns.returnVirtualNode) {
+          if (ns._returnVirtualNode) {
             isRedefined = true;
           }
         });
         if (isRedefined) {
           generateError(opening, 'A root virtual node is already defined in this branch.');
         } else {
-          currentCdtNS.returnVirtualNode = { node, hoist: false };
+          currentCdtNS._returnVirtualNode = { node, hoist: false, used: true };
         }
       } else {
-        currentFctNS.returnVirtualNode = { node, hoist: false };
+        currentFctNS._returnVirtualNode = { node, hoist: false, used: true };
       }
     }
   }
@@ -293,14 +306,14 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'SCOPED_STATEMENT': (node) => {
       const output = [];
       const currentFctNS = currentNameSpaceFCT();
-      const alreadyVnode = !!currentFctNS.returnVirtualNode;
+      const alreadyVnode = !!currentFctNS._returnVirtualNode;
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }
       const parent = currentNameSpaceVN().currentVNode;
       // small improvement but this doesn't account for normal returns
       // or conditions
-      if (!parent && currentFctNS.returnVirtualNode && alreadyVnode) {
+      if (!parent && currentFctNS._returnVirtualNode && alreadyVnode) {
         generateError(node, 'Code is unreachable after root virtual node', true);
       }
       return output;
@@ -317,7 +330,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {
         const name = node.named.path.value;
-        shouldBeDefined(name.value, node.named.path);
+        shouldBeDefined(name, node.named.path);
         output.push(...generateCode(node.named.path));
         output.push(...generateCode(node.named.access));
       } else {
@@ -670,6 +683,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
           node,
           hoist: false,
           token: node.named.name,
+          used: true,
         };
         output.push(...generateCode(node.named.name));
       }
@@ -724,7 +738,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'class_func_def': (node) => {
       const output = [];
       const ns = addNameSpaceFCT();
-      ns[node.named.name.value] = { node, hoist: false, token: node.named.name };
+      ns[node.named.name.value] = { 
+        node, hoist: false, token: node.named.name, used: true,
+      };
       if (node.named['async']) {
         output.push('async ');
       }

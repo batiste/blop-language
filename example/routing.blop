@@ -1,6 +1,6 @@
 import { Router } from './lib/router.blop'
 
-async def indexHandler(params, state) {
+async def indexHandler(_params, state) {
   state.page = 'index'
   console.log('indexHandler called')
 }

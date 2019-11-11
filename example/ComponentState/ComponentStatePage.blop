@@ -1,7 +1,7 @@
 import { Component } from 'blop'
 
 
-Counter = (attributes, children, node) => {
+Counter = (attributes, _children, node) => {
   // copying the React weird hook interface
   { value as counter, setState } = node.useState('counter', 0)
   increase = () => setState(counter + 1)
@@ -17,13 +17,13 @@ Counter = (attributes, children, node) => {
   </div>
 }
 
-ContextConsumer = (attributes, children, node) => {
+ContextConsumer = (_attributes, _children, node) => {
   { value } = node.useContext('specialNumber')
   <p>value</p>
 }
 
 Intermediary = () => <ContextConsumer />
-Interceptor = (attributes, children, node) => {
+Interceptor = (_attributes, _children, node) => {
   node.useContext('specialNumber', 'specialNumber intercepted')
   <ContextConsumer />
 }
@@ -32,18 +32,18 @@ def renderClickCounter(value) {
   <p>value</p>
 }
 
-ClickCounter = (attributes, children, node) => {
+ClickCounter = (_attributes, _children, node) => {
   { value as counter, setState, getState } = node.useState('counter', 0)
   increase = () => {
     // need to use getState here as counter value
     // gets captured in increase and never changes
     setState(getState() + 1)
   }
-  node.mount((vnode) => {
+  node.mount((_vnode) => {
     console.log('mount ClickCounter')
     document.addEventListener('click', increase)
   })
-  node.unmount((vnode) => {
+  node.unmount((_vnode) => {
     document.removeEventListener('click', increase)
     console.log('unmount ClickCounter')
   })
@@ -67,7 +67,7 @@ def useWindowWidth(node) {
     console.log('mount useWindowWidth')
     window.addEventListener('resize', handleResize)
   })
-  node.unmount((vnode) => {
+  node.unmount((_vnode) => {
     console.log('unmount useWindowWidth')
     window.removeEventListener('resize', handleResize)
   })
@@ -90,7 +90,7 @@ Animation = (attributes, children, node) => {
     console.log('mount Animation')
     window.requestAnimationFrame(animate)
   })
-  node.unmount((vnode) => {
+  node.unmount((_vnode) => {
     console.log('unmount Animation')
     runAnimation := false
   })
@@ -123,7 +123,7 @@ class ComponentWithClass extends Component {
   }
 }
 
-CounterPage = (attributes, children, node) => {
+CounterPage = (_attributes, _children, node) => {
   width = useWindowWidth(node)
   width2 = useWindowWidth(node) + 10
   { setContext } = node.useContext('specialNumber', Math.random())

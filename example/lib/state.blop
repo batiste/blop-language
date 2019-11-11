@@ -8,7 +8,6 @@ def isObject(value) {
 def create(state, options={ readOnly: false }) {
   modificationTable = []
   callbacks = []
-  router = null
   { readOnly } = options
   hasBeenFlushed = false
   def flush() {
@@ -27,7 +26,7 @@ def create(state, options={ readOnly: false }) {
     trigger,
     raw: state
   }
-  def handler(currentState, path='', parentState) {
+  def handler(currentState, path='') {
     def hasChanged(extrapath='') {
       // just to return true on the first time
       if !hasBeenFlushed {

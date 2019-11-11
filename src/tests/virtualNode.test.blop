@@ -60,7 +60,7 @@ def loop3(array) {
 }
 
 lifeCycleContent = []
-def TestLifecycle(attributes, children, node) {
+def TestLifecycle(attributes, _children, node) {
   node.mount(() => {
     lifeCycleContent.push(attributes.value)
   })
@@ -71,7 +71,7 @@ def loop4(array) {
   <div>array.map((item) => <TestLifecycle value=item />)</div>
 }
 
-def attributeWithDash(array) {
+def attributeWithDash(_array) {
   <div data-id='1'></div>
 }
 
@@ -111,12 +111,12 @@ test('attribut with dash', () => {
 })
 
 test('test loop, with lifecycle', () => {
-  r3 = loop4([1, 2, 3])
+  loop4([1, 2, 3])
   expect(lifeCycleContent).toEqual([1, 2, 3])
 })
 
 lifeCycleCalled = 0
-def TestLifecycle2(attributes, children, node) {
+def TestLifecycle2(_attributes, _children, node) {
   node.mount(() => {
     lifeCycleCalled := lifeCycleCalled + 1
   })
@@ -136,9 +136,9 @@ def instanciateComponent() {
 test('test Component lifecycle', async () => {
   window.requestAnimationFrame = (cb) => cb()
   { refresh, init } = mount(document.body, instanciateComponent)
-  vnode = init()
+  _vnode = init()
   expect(lifeCycleCalled).toBe(6)
-  refresh((time) => {
+  refresh((_time) => {
     // weird...?
     expect(lifeCycleCalled).toBe(12)
   })

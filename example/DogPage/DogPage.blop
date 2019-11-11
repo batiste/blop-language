@@ -1,7 +1,7 @@
 import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
 
-def DogPage(attributes, children, node) {
+def DogPage(attributes, _children, node) {
   { state } = attributes
   node.mount(async () => {
     console.log('mount DogPage')

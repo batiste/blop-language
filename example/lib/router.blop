@@ -5,9 +5,8 @@ def escapeRegExp(str) {
 
 def createRegExp(str) {
   escapedStr = escapeRegExp(str)
-  reg = /\:(\w+)/
   names = []
-  escapedStr := escapedStr.replace(/\:(\w+)/g, (a, b) => {
+  escapedStr := escapedStr.replace(/\:(\w+)/g, (_a, b) => {
     names.push(b)
     return '([\\w\\.\\-\\_]+)'
   })

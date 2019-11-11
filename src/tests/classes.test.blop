@@ -3,6 +3,7 @@ class Test {
     this.a = a
   }
   def blop(a) {
+    a := a + 1
     return this.a
   }
   def blip() {

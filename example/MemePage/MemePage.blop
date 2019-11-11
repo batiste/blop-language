@@ -1,7 +1,7 @@
 import { MemeCard } from './MemeCard.blop'
 import { getMemes } from './services.blop'
 
-def MemePage(attributes: object, c, node) {
+def MemePage(attributes: object, _children, node) {
   { state } = attributes
   node.mount(async () => {
     console.log('mount MemePage')

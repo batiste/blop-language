@@ -29,21 +29,20 @@ def pagination(petStore) {
   </p>
 }
 
-def PetStore(attributes, c, node) {
+def PetStore(attributes, _chilren, node) {
   { state } = attributes
   petStore = state.petStore
   pets = petStore.pets
   pageIndex = petStore.pageIndex
   start = pageIndex * pageSize
   page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
-  nbPage = Math.ceil(pets.length / pageSize)
 
   node.mount(() => {
     console.log('mount PetStore')
     getPets(state)
   })
 
-  deletePet = (index, pet) => (e) => {
+  deletePet = (index, pet) => () => {
     deletePets(pet)
     pets.splice(start + index, 1)
   }

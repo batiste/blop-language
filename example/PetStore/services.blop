@@ -17,7 +17,7 @@ async def getPets(state) {
 
 async def deletePets(pet) {
   try {
-    response = await fetch(`https://petstore.swagger.io/v2/pet/`pet.id``, {
+    await fetch(`https://petstore.swagger.io/v2/pet/`pet.id``, {
       method: 'DELETE'
     })
   } catch e {
