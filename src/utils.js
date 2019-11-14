@@ -89,6 +89,18 @@ ${streamContext(token, firstToken, stream)}
 `);
 }
 
+function displayBackendError(stream, error) {
+  const { token } = error;
+  const positions = tokenPosition(token);
+  throw new Error(`
+  ${RED}Backend error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end} ${NC}
+  ${error.message} ${YELLOW}${replaceInvisibleChars(token.value)}${NC}
+  token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}"
+  Context:
+${streamContext(error.token, token, stream)}
+`);
+}
+
 function printTree(node, sp) {
   if (node.rule_name) {
     console.log(`${sp}r ${node.rule_name}(${node.sub_rule_index})`);
@@ -171,6 +183,7 @@ module.exports = {
   preprocessGrammar,
   checkGrammarAndTokens,
   displayError,
+  displayBackendError,
   printTree,
   NC,
 };
