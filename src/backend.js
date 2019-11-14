@@ -672,10 +672,11 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'func_def': (node) => {
       const output = [];
       const parentns = currentNameSpaceFCT();
-      addNameSpaceFCT();
+      const ns = addNameSpaceFCT();
       if (node.named['async']) {
         output.push('async ');
       }
+      ns._currentFunction = node;
 
       function namedFct() {
         checkRedefinition(node.named.name.value, node.named.name);
@@ -738,9 +739,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'class_func_def': (node) => {
       const output = [];
       const ns = addNameSpaceFCT();
-      ns[node.named.name.value] = { 
+      ns[node.named.name.value] = {
         node, hoist: false, token: node.named.name, used: true,
       };
+      ns._currentFunction = node;
       if (node.named['async']) {
         output.push('async ');
       }
@@ -830,6 +832,15 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         generateError(node, 'break statement outside of a loop scope');
       }
       return ['break'];
+    },
+    'await': (node) => {
+      const ns = currentNameSpaceFCT();
+      if (!ns._currentFunction) {
+        generateError(node, 'await only accepted inside a function');
+      } else if (ns._currentFunction.named['async'] === undefined) {
+        generateError(node, 'await only accepted inside an async function');
+      }
+      return ['await '];
     },
     'continue': (node) => {
       if (namespacesLOOP.length <= 1) {

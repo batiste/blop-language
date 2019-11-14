@@ -11,6 +11,12 @@ def yop(n: number): function {
 
 { h, j } = { h: 3, j: 10 }
 
+async def test2() {
+  ab = 1
+  await 1
+  return ab
+}
+
 test('expression', () => {
   expect(c).toBe(15)
   expect(a).toBe(1)
