@@ -75,6 +75,12 @@ def attributeWithDash(_array) {
   <div data-id='1'></div>
 }
 
+virtualNodeExprText = <div>'hello'</div>.children[0].text
+
+test('virtual expression can be accessed', () => {
+  expect(virtualNodeExprText).toBe('hello')
+})
+
 test('virtual node', () => {
   test = render('hello')
   expect(test.children[0].text).toBe('hello')
