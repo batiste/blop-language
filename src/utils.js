@@ -115,45 +115,6 @@ function printTree(node, sp) {
   }
 }
 
-function checkGrammarAndTokens(grammar, tokensDefinition) {
-  const gkeys = Object.keys(grammar);
-  const tkeys = Object.keys(tokensDefinition);
-  const intersection = gkeys.filter(n => tkeys.indexOf(n) > -1);
-  if (intersection.length > 0) {
-    throw new Error(`Grammar and token have keys in common: ${intersection}`);
-  }
-}
-
-function preprocessGrammar(rules) {
-  return Object.keys(rules).reduce((accu, key) => {
-    accu[key] = rules[key].map(
-      subRule => subRule.map((subRuleItem) => {
-        if (subRuleItem instanceof Function) {
-          return { function: true, value: subRuleItem };
-        }
-        const values = subRuleItem.split(':');
-        let optional = false;
-        let repeatable = false;
-        if (values[0].endsWith('?')) {
-          values[0] = values[0].substring(0, values[0].length - 1);
-          optional = true;
-        }
-        if (values[0].endsWith('*')) {
-          values[0] = values[0].substring(0, values[0].length - 1);
-          repeatable = true;
-        }
-        return {
-          value: values[0],
-          alias: values[1],
-          optional,
-          repeatable,
-        };
-      }),
-    );
-    return accu;
-  }, {});
-}
-
 function lookUp(dir, name) {
   const up = [];
   let currentDir = dir;
@@ -180,8 +141,6 @@ module.exports = {
   getConfig,
   lookUp,
   streamContext,
-  preprocessGrammar,
-  checkGrammarAndTokens,
   displayError,
   displayBackendError,
   printTree,

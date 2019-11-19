@@ -31,6 +31,33 @@ function memoize(name, func) {
   };
 }
 
+let cacheR = {};
+
+// based on https://medium.com/@gvanrossum_83706/left-recursive-peg-grammars-65dab3c580e1
+function memoize_left_recur(name, func) {
+  return function memoize_inner(stream, index) {
+    const key = `${name}-${index}`;
+    let value = cacheR[key];
+    if (value !== undefined) {
+      return value;
+    }
+    // prime this rule with a failure
+    cacheR[key] = false;
+    let lastpos;
+    let lastvalue = value;
+    while (true) {
+      value = func(stream, index);
+      if (!value) break;
+      if (value.last_index <= lastpos) break;
+      lastpos = value.last_index;
+      lastvalue = value;
+      cacheR[key] = value;
+    }
+    return lastvalue;
+  };
+}
+
+
 let START_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -7433,6 +7460,7 @@ module.exports = {
     best_failure_index = 0;
     best_failure_array = [];
     cache = {};
+    cacheR = {};
     const result = START(stream, 0);
     if (!result) {
       return best_failure;
