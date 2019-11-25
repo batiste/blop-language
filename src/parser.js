@@ -3441,10 +3441,11 @@ let condition_0 = (stream, index) => {
 
   children.push(stream[i]); i++;
   const _rule_6 = conditionelseif(stream, i);
-  if (!_rule_6) return false;
-  named['elseif'] = _rule_6;
-  children.push(_rule_6);
-  i = _rule_6.last_index;
+  if (_rule_6) {
+    children.push(_rule_6);
+    named['elseif'] = _rule_6;
+    i = _rule_6.last_index;
+  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };

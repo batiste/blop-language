@@ -117,7 +117,7 @@ const grammar = {
     ['exp'],
   ],
   'condition': [
-    ['if:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
+    ['if:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif?:elseif'],
   ],
   'conditionelseif': [
     ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
@@ -213,7 +213,6 @@ const grammar = {
     ['condition'],
   ],
   'exp': [
-    ['if_expression'],
     ['name_exp'],
     ['exp', 'access_or_operation'],
     ['func_def'],
@@ -234,6 +233,7 @@ const grammar = {
     ['throw', 'exp'],
     ['delete', 'exp'],
     ['spread', 'exp'],
+    ['if_expression'],
   ],
 };
 

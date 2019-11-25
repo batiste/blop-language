@@ -16,6 +16,10 @@ x = if a == 2 {
   return 3
 }
 
+e = if 1 {
+  return { a: 10 }
+}.a
+
 { h, j } = { h: 3, j: 10 }
 
 async def test2() {
@@ -29,6 +33,7 @@ test('expression', () => {
   expect(c).toBe(15)
   expect(a).toBe(1)
   expect(b).toBe(1)
+  expect(e).toBe(10)
   expect(h).toBe(3)
   expect(typeof 3).toBe('number')
   expect(yop(1)(10)).toBe(12)
