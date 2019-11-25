@@ -6435,6 +6435,27 @@ function name_exp(stream, index) {
   return name_exp_0(stream, index)
     || name_exp_1(stream, index);
 }
+let if_expression_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'if_expression',
+    subRule: 0, type: 'if_expression', named,
+  };
+  const _rule_0 = condition(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+if_expression_0 = memoize('if_expression_0', if_expression_0);
+
+
+function if_expression(stream, index) {
+  return if_expression_0(stream, index);
+}
 let exp_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -6955,6 +6976,24 @@ let exp_19 = (stream, index) => {
 exp_19 = memoize('exp_19', exp_19);
 
 
+let exp_20 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'exp',
+    subRule: 20, type: 'exp', named,
+  };
+  const _rule_0 = if_expression(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+exp_20 = memoize('exp_20', exp_20);
+
+
 function exp(stream, index) {
   return exp_0(stream, index)
     || exp_1(stream, index)
@@ -6975,7 +7014,8 @@ function exp(stream, index) {
     || exp_16(stream, index)
     || exp_17(stream, index)
     || exp_18(stream, index)
-    || exp_19(stream, index);
+    || exp_19(stream, index)
+    || exp_20(stream, index);
 }
 function _tokenize(tokenDef, input, stream) {
   let match;

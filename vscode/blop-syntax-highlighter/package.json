@@ -1,5 +1,5 @@
 {
-	"name": "blop",
+	"name": "blop-syntax-highlighter",
 	"displayName": "Blop language syntax highlighter",
 	"description": "A Javascript-like language that offers a JSX syntax",
 	"version": "1.0.9",

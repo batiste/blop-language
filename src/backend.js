@@ -821,6 +821,17 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       return [node.value];
     },
+    'if_expression': (node) => {
+      addNameSpaceFCT();
+      const output = [];
+      output.push('(() => { ');
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      output.push('})()');
+      popNameSpaceFCT();
+      return output;
+    },
     'return': (node) => {
       if (namespacesFCT.length <= 1) {
         generateError(node, 'return statement outside of a function scope');

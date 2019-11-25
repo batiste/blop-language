@@ -209,7 +209,11 @@ const grammar = {
     ['name:name', 'access_or_operation:access'],
     ['name:name'],
   ],
+  'if_expression': [
+    ['condition'],
+  ],
   'exp': [
+    ['if_expression'],
     ['name_exp'],
     ['exp', 'access_or_operation'],
     ['func_def'],

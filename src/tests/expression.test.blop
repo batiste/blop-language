@@ -9,6 +9,13 @@ def yop(n: number): function {
   }
 }
 
+// if expression
+x = if a == 2 {
+  return 4
+} else {
+  return 3
+}
+
 { h, j } = { h: 3, j: 10 }
 
 async def test2() {
@@ -18,6 +25,7 @@ async def test2() {
 }
 
 test('expression', () => {
+  expect(x).toBe(3)
   expect(c).toBe(15)
   expect(a).toBe(1)
   expect(b).toBe(1)

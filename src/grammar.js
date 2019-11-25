@@ -209,6 +209,9 @@ const grammar = {
     ['name:name', 'access_or_operation:access'],
     ['name:name'],
   ],
+  'if_expression': [
+    ['condition'],
+  ],
   'exp': [
     ['name_exp'],
     ['exp', 'access_or_operation'],
@@ -230,6 +233,7 @@ const grammar = {
     ['throw', 'exp'],
     ['delete', 'exp'],
     ['spread', 'exp'],
+    ['if_expression'],
   ],
 };
 
