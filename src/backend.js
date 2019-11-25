@@ -627,7 +627,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       return output;
     },
-    'conditionelseif': (node) => {
+    'else_if': (node) => {
       const output = [];
       if (!node.named.type) {
         return output;
@@ -742,7 +742,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       ns[node.named.name.value] = {
         node, hoist: false, token: node.named.name, used: true,
       };
-      ns._currentFunction = { node, hoist: false };;
+      ns._currentFunction = { node, hoist: false };
       if (node.named['async']) {
         output.push('async ');
       }

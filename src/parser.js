@@ -766,7 +766,7 @@ let SCOPED_STATEMENT_6 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_1 = exp_statement(stream, i);
+  const _rule_1 = exp(stream, i);
   if (_rule_1) {
     children.push(_rule_1);
     i = _rule_1.last_index;
@@ -3440,7 +3440,7 @@ let condition_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_6 = conditionelseif(stream, i);
+  const _rule_6 = else_if(stream, i);
   if (_rule_6) {
     children.push(_rule_6);
     named['elseif'] = _rule_6;
@@ -3455,19 +3455,19 @@ condition_0 = memoize('condition_0', condition_0);
 function condition(stream, index) {
   return condition_0(stream, index);
 }
-let conditionelseif_0 = (stream, index) => {
+let else_if_0 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
-    children, stream_index: index, name: 'conditionelseif',
-    subRule: 0, type: 'conditionelseif', named,
+    children, stream_index: index, name: 'else_if',
+    subRule: 0, type: 'else_if', named,
   };
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 0,
+        rule_name: 'else_if', sub_rule_index: 0,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3481,7 +3481,7 @@ let conditionelseif_0 = (stream, index) => {
   if (stream[i].type !== 'elseif') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 0,
+        rule_name: 'else_if', sub_rule_index: 0,
         sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3501,7 +3501,7 @@ let conditionelseif_0 = (stream, index) => {
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 0,
+        rule_name: 'else_if', sub_rule_index: 0,
         sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3515,7 +3515,7 @@ let conditionelseif_0 = (stream, index) => {
   if (stream[i].type !== '{') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 0,
+        rule_name: 'else_if', sub_rule_index: 0,
         sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3537,7 +3537,7 @@ let conditionelseif_0 = (stream, index) => {
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 0,
+        rule_name: 'else_if', sub_rule_index: 0,
         sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3547,7 +3547,7 @@ let conditionelseif_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_7 = conditionelseif(stream, i);
+  const _rule_7 = else_if(stream, i);
   if (!_rule_7) return false;
   named['elseif'] = _rule_7;
   children.push(_rule_7);
@@ -3555,22 +3555,22 @@ let conditionelseif_0 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-conditionelseif_0 = memoize('conditionelseif_0', conditionelseif_0);
+else_if_0 = memoize('else_if_0', else_if_0);
 
 
-let conditionelseif_1 = (stream, index) => {
+let else_if_1 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
-    children, stream_index: index, name: 'conditionelseif',
-    subRule: 1, type: 'conditionelseif', named,
+    children, stream_index: index, name: 'else_if',
+    subRule: 1, type: 'else_if', named,
   };
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 1,
+        rule_name: 'else_if', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3584,7 +3584,7 @@ let conditionelseif_1 = (stream, index) => {
   if (stream[i].type !== 'elseif') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 1,
+        rule_name: 'else_if', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3604,7 +3604,7 @@ let conditionelseif_1 = (stream, index) => {
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 1,
+        rule_name: 'else_if', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3618,7 +3618,7 @@ let conditionelseif_1 = (stream, index) => {
   if (stream[i].type !== '{') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 1,
+        rule_name: 'else_if', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3640,7 +3640,7 @@ let conditionelseif_1 = (stream, index) => {
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 1,
+        rule_name: 'else_if', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3653,22 +3653,22 @@ let conditionelseif_1 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-conditionelseif_1 = memoize('conditionelseif_1', conditionelseif_1);
+else_if_1 = memoize('else_if_1', else_if_1);
 
 
-let conditionelseif_2 = (stream, index) => {
+let else_if_2 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
-    children, stream_index: index, name: 'conditionelseif',
-    subRule: 2, type: 'conditionelseif', named,
+    children, stream_index: index, name: 'else_if',
+    subRule: 2, type: 'else_if', named,
   };
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 2,
+        rule_name: 'else_if', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3682,7 +3682,7 @@ let conditionelseif_2 = (stream, index) => {
   if (stream[i].type !== 'else') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 2,
+        rule_name: 'else_if', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3697,7 +3697,7 @@ let conditionelseif_2 = (stream, index) => {
   if (stream[i].type !== '{') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 2,
+        rule_name: 'else_if', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3719,7 +3719,7 @@ let conditionelseif_2 = (stream, index) => {
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
-        rule_name: 'conditionelseif', sub_rule_index: 2,
+        rule_name: 'else_if', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3732,16 +3732,16 @@ let conditionelseif_2 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-conditionelseif_2 = memoize('conditionelseif_2', conditionelseif_2);
+else_if_2 = memoize('else_if_2', else_if_2);
 
 
-let conditionelseif_3 = (stream, index) => {
+let else_if_3 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
-    children, stream_index: index, name: 'conditionelseif',
-    subRule: 3, type: 'conditionelseif', named,
+    children, stream_index: index, name: 'else_if',
+    subRule: 3, type: 'else_if', named,
   };
   if (stream[i].type === 'w') {
     children.push(stream[i]); i++;
@@ -3749,14 +3749,14 @@ let conditionelseif_3 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-conditionelseif_3 = memoize('conditionelseif_3', conditionelseif_3);
+else_if_3 = memoize('else_if_3', else_if_3);
 
 
-function conditionelseif(stream, index) {
-  return conditionelseif_0(stream, index)
-    || conditionelseif_1(stream, index)
-    || conditionelseif_2(stream, index)
-    || conditionelseif_3(stream, index);
+function else_if(stream, index) {
+  return else_if_0(stream, index)
+    || else_if_1(stream, index)
+    || else_if_2(stream, index)
+    || else_if_3(stream, index);
 }
 let while_loop_0 = (stream, index) => {
   let i = index;
