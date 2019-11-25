@@ -676,7 +676,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       if (node.named['async']) {
         output.push('async ');
       }
-      ns._currentFunction = node;
+      ns._currentFunction = { node, hoist: false };
 
       function namedFct() {
         checkRedefinition(node.named.name.value, node.named.name);
@@ -742,7 +742,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       ns[node.named.name.value] = {
         node, hoist: false, token: node.named.name, used: true,
       };
-      ns._currentFunction = node;
+      ns._currentFunction = { node, hoist: false };;
       if (node.named['async']) {
         output.push('async ');
       }
@@ -848,7 +848,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       const ns = currentNameSpaceFCT();
       if (!ns._currentFunction) {
         generateError(node, 'await only accepted inside a function');
-      } else if (ns._currentFunction.named['async'] === undefined) {
+      } else if (ns._currentFunction.node.named['async'] === undefined) {
         generateError(node, 'await only accepted inside an async function');
       }
       return ['await '];
