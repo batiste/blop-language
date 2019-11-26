@@ -9,7 +9,7 @@ def yop(n: number): function {
   }
 }
 
-// if expression
+// if expression is in fact a function... is that useful?
 x = if a == 2 {
   return 4
 } else {
@@ -28,6 +28,9 @@ async def test2() {
   return ab
 }
 
+ternary = if 2 => 1 else 2
+ternary2 = if false => 10 + 10 else 20 + 20
+
 test('expression', () => {
   expect(x).toBe(3)
   expect(c).toBe(15)
@@ -35,6 +38,8 @@ test('expression', () => {
   expect(b).toBe(1)
   expect(e).toBe(10)
   expect(h).toBe(3)
+  expect(ternary).toBe(1)
+  expect(ternary2).toBe(40)
   expect(typeof 3).toBe('number')
   expect(yop(1)(10)).toBe(12)
 })

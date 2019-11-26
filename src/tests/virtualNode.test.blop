@@ -85,6 +85,16 @@ def ifExpressionInVirtualNode(c) {
   </div>
 }
 
+def ternaryExpressionInVirtualNode(c) {
+  <div>if c > 10 => <p>1</p> else <p>2</p></div>
+}
+
+def ternaryExpressionInVirtualNode2(c) {
+  <div>
+    = if c > 10 => <p>1</p> else <p>2</p>
+  </div>
+}
+
 test('if expression in virtual nodes', () => {
   vn = ifExpressionInVirtualNode(5)
   expect(vn.children[0].children[0].text).toBe(2)
@@ -92,6 +102,16 @@ test('if expression in virtual nodes', () => {
   expect(vn.children[0].children[0].text).toBe(1)
 })
 
+test('ternary expression in virtual nodes', () => {
+  vn = ternaryExpressionInVirtualNode(5)
+  expect(vn.children[0].children[0].text).toBe(2)
+  vn := ternaryExpressionInVirtualNode(15)
+  expect(vn.children[0].children[0].text).toBe(1)
+  vn := ternaryExpressionInVirtualNode2(5)
+  expect(vn.children[0].children[0].text).toBe(2)
+  vn := ternaryExpressionInVirtualNode2(15)
+  expect(vn.children[0].children[0].text).toBe(1)
+})
 
 virtualNodeExprText = <div>'hello'</div>.children[0].text
 

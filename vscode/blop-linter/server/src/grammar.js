@@ -42,7 +42,7 @@ const grammar = {
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
-    ['return', 'exp_statement?'],
+    ['return', 'exp?'],
     ['exp_statement'],
     ['break'],
     ['continue'],
@@ -117,10 +117,10 @@ const grammar = {
     ['exp'],
   ],
   'condition': [
-    ['if:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif?:elseif'],
+    ['if:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'else_if?:elseif'],
   ],
-  'conditionelseif': [
-    ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'conditionelseif:elseif'],
+  'else_if': [
+    ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}', 'else_if:elseif'],
     ['w', 'elseif:type', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['w', 'else:type', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['w?'],
@@ -212,6 +212,10 @@ const grammar = {
   'if_expression': [
     ['condition'],
   ],
+  'short_if_expression': [
+    ['if:type', 'exp:exp1', 'w', '{', 'w', 'exp:exp2', 'w', '}', 'w', 'else:else', '{', 'w', 'exp:exp3', 'w', '}'],
+    ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
+  ],
   'exp': [
     ['name_exp'],
     ['exp', 'access_or_operation'],
@@ -234,6 +238,7 @@ const grammar = {
     ['delete', 'exp'],
     ['spread', 'exp'],
     ['if_expression'],
+    ['short_if_expression'],
   ],
 };
 

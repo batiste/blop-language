@@ -627,7 +627,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       return output;
     },
-    'conditionelseif': (node) => {
+    'else_if': (node) => {
       const output = [];
       if (!node.named.type) {
         return output;
@@ -742,7 +742,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       ns[node.named.name.value] = {
         node, hoist: false, token: node.named.name, used: true,
       };
-      ns._currentFunction = { node, hoist: false };;
+      ns._currentFunction = { node, hoist: false };
       if (node.named['async']) {
         output.push('async ');
       }
@@ -822,7 +822,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return [node.value];
     },
     'if_expression': (node) => {
-      addNameSpaceFCT();
+      const ns = addNameSpaceFCT();
+      // indicate that we are now in an expression function
+      ns._expressionFunction = { hoist: false };
       const output = [];
       output.push('(() => { ');
       for (let i = 0; i < node.children.length; i++) {
@@ -830,6 +832,15 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       output.push('})()');
       popNameSpaceFCT();
+      return output;
+    },
+    'short_if_expression': (node) => {
+      const output = [];
+      output.push(...generateCode(node.named.exp1));
+      output.push(' ? ');
+      output.push(...generateCode(node.named.exp2));
+      output.push(' : ');
+      output.push(...generateCode(node.named.exp3));
       return output;
     },
     'return': (node) => {
@@ -848,7 +859,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       const ns = currentNameSpaceFCT();
       if (!ns._currentFunction) {
         generateError(node, 'await only accepted inside a function');
-      } else if (ns._currentFunction.node.named['async'] === undefined) {
+      } else if (ns._currentFunction.node.named.async === undefined) {
         generateError(node, 'await only accepted inside an async function');
       }
       return ['await '];
