@@ -31,6 +31,7 @@ const grammar = {
     ['while_loop'],
     ['import_statement'],
     ['exp_statement'],
+    ['throw', 'exp'],
   ],
   'exp_statement': [
     ['exp'],
@@ -43,6 +44,7 @@ const grammar = {
     ['for_loop'],
     ['while_loop'],
     ['return', 'exp?'],
+    ['throw', 'exp'],
     ['exp_statement'],
     ['break'],
     ['continue'],
@@ -236,7 +238,6 @@ const grammar = {
     ['virtual_node_assign'],
     ['virtual_node_exp'],
     ['new', 'exp'],
-    ['throw', 'exp'],
     ['delete', 'exp'],
     ['spread', 'exp'],
     ['if_expression'],
