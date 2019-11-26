@@ -58,7 +58,7 @@ def create(state, options={ readOnly: false }) {
           throw new Error(``obj`.`prop` is read only`)
         }
         if prop == '$' {
-          new Error(`You cannot redefine the $ property in a proxied state`)
+          throw new Error(`You cannot redefine the $ property in a proxied state`)
         }
 
         modificationTable.push({ path: ''path'.'prop'', action: 'set', value })
