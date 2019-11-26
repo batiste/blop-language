@@ -216,6 +216,7 @@ const grammar = {
     // ['if:type', 'exp:exp1', 'w', '{', 'w', 'exp:exp2', 'w', '}'
     //   , 'w', 'else:else', '{', 'w', 'exp:exp3', 'w', '}'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
+    ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
   ],
   'exp': [
     ['name_exp'],

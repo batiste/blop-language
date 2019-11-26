@@ -6500,7 +6500,7 @@ let short_if_expression_0 = (stream, index) => {
 
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== '{') {
+  if (stream[i].type !== '=>') {
     if (i >= best_failure_index) {
       const failure = {
         rule_name: 'short_if_expression', sub_rule_index: 0,
@@ -6547,7 +6547,7 @@ let short_if_expression_0 = (stream, index) => {
 
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== '}') {
+  if (stream[i].type !== 'else') {
     if (i >= best_failure_index) {
       const failure = {
         rule_name: 'short_if_expression', sub_rule_index: 0,
@@ -6559,97 +6559,13 @@ let short_if_expression_0 = (stream, index) => {
     return false;
   }
 
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 8,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'else') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 9,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
   named['else'] = stream[i];
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== '{') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 10,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 11,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_12 = exp(stream, i);
-  if (!_rule_12) return false;
-  named['exp3'] = _rule_12;
-  children.push(_rule_12);
-  i = _rule_12.last_index;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 13,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== '}') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 14,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
+  const _rule_8 = exp(stream, i);
+  if (!_rule_8) return false;
+  named['exp3'] = _rule_8;
+  children.push(_rule_8);
+  i = _rule_8.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -6731,40 +6647,6 @@ let short_if_expression_1 = (stream, index) => {
   named['exp2'] = _rule_5;
   children.push(_rule_5);
   i = _rule_5.last_index;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'else') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'short_if_expression', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['else'] = stream[i];
-  children.push(stream[i]); i++;
-  const _rule_8 = exp(stream, i);
-  if (!_rule_8) return false;
-  named['exp3'] = _rule_8;
-  children.push(_rule_8);
-  i = _rule_8.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };

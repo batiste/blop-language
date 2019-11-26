@@ -840,7 +840,11 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push(' ? ');
       output.push(...generateCode(node.named.exp2));
       output.push(' : ');
-      output.push(...generateCode(node.named.exp3));
+      if (node.named.exp3) {
+        output.push(...generateCode(node.named.exp3));
+      } else {
+        output.push('undefined');
+      }
       return output;
     },
     'return': (node) => {

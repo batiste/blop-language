@@ -31,6 +31,8 @@ async def test2() {
 ternary = if 2 => 1 else 2
 ternary2 = if false => 10 + 10 else 20 + 20
 
+guard = if true => 1000
+
 test('expression', () => {
   expect(x).toBe(3)
   expect(c).toBe(15)
@@ -40,6 +42,7 @@ test('expression', () => {
   expect(h).toBe(3)
   expect(ternary).toBe(1)
   expect(ternary2).toBe(40)
+  expect(guard).toBe(1000)
   expect(typeof 3).toBe('number')
   expect(yop(1)(10)).toBe(12)
 })

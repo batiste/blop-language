@@ -63,9 +63,7 @@ def PetStore(attributes, _chilren, node) {
             <td>
               if pet.photoUrls {
                 for src in pet.photoUrls {
-                  if src.startsWith('http') {
-                    <img src style={ width: '100px', height: '100px' } />
-                  }
+                  = if src.startsWith('http') => <img src style={ width: '100px', height: '100px' } />
                 }
               }
             </td>

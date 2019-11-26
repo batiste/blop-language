@@ -6572,8 +6572,90 @@ let short_if_expression_0 = (stream, index) => {
 short_if_expression_0 = memoize('short_if_expression_0', short_if_expression_0);
 
 
+let short_if_expression_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'short_if_expression',
+    subRule: 1, type: 'short_if_expression', named,
+  };
+
+  if (stream[i].type !== 'if') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'short_if_expression', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['type'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_1 = exp(stream, i);
+  if (!_rule_1) return false;
+  named['exp1'] = _rule_1;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'short_if_expression', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '=>') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'short_if_expression', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'short_if_expression', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_5 = exp(stream, i);
+  if (!_rule_5) return false;
+  named['exp2'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+short_if_expression_1 = memoize('short_if_expression_1', short_if_expression_1);
+
+
 function short_if_expression(stream, index) {
-  return short_if_expression_0(stream, index);
+  return short_if_expression_0(stream, index)
+    || short_if_expression_1(stream, index);
 }
 let exp_0 = (stream, index) => {
   let i = index;
