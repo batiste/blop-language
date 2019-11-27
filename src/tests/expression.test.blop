@@ -33,6 +33,42 @@ ternary2 = if false => 10 + 10 else 20 + 20
 
 guard = if true => 1000
 
+selectTest = select 9 + 10 {
+  18 {
+    1
+    2 + 1
+  }
+  19 {
+    2 + 1
+    5
+
+  }
+}
+
+selectTest2 = select 9 + 20 {
+  18 {
+    1
+    2 + 1
+  }
+  19 {
+    2 + 1
+    5
+  }
+}
+
+def selectAndVirtualNode() {
+  <p>
+    select 1 {
+      1 {
+        <span>1</span>
+      }
+      2 {
+        2
+      }
+    }
+  </p>
+}
+
 test('expression', () => {
   expect(x).toBe(3)
   expect(c).toBe(15)
@@ -40,6 +76,8 @@ test('expression', () => {
   expect(b).toBe(1)
   expect(e).toBe(10)
   expect(h).toBe(3)
+  expect(selectTest).toBe(5)
+  expect(selectTest2).toBe(undefined)
   expect(ternary).toBe(1)
   expect(ternary2).toBe(40)
   expect(guard).toBe(1000)

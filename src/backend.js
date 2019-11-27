@@ -834,6 +834,63 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       popNameSpaceFCT();
       return output;
     },
+    'select_expression': (node) => {
+      const output = [];
+      output.push('(() => { ');
+      const s_uid = uid();
+      output.push(`const ${s_uid} = `);
+      output.push(...generateCode(node.named.exp));
+      node.named.bodies.forEach((body) => {
+        body.s_uid = s_uid;
+        output.push(...generateCode(body))
+      })
+      output.push('})()');
+      return output;
+    },
+    'select_body': (node) => {
+      const output = [];
+      output.push('\n');
+      node.named.w1 ? output.push(...generateCode(node.named.w1)) : null;
+      node.named.w2 ? output.push(...generateCode(node.named.w2)): null;
+      output.push('if (')
+      output.push(...generateCode(node.named.predicate));
+      output.push(` == ${node.s_uid}) {`)
+      output.push(...generateCode(node.named.inner));
+      output.push('}')
+      return output;
+    },
+    // generate auto return statement for a statment list...
+    'select_inner': (node) => {
+      const output = [];
+      const lines = node.named.stats.map(stat => generateCode(stat));
+      let lastSignificant = -1;
+      lines.forEach((line, index) => {
+        const lineStr = line.join('');
+        if (/\S/.test(lineStr)) {
+          lastSignificant = index;
+        }
+      })
+      if (lastSignificant > -1) {
+        const lineStr = lines[lastSignificant].join('')
+        if (!/^\s*return /.test(lineStr)) {
+          let line = lines[lastSignificant], i = 0;
+          while(line[i]) {
+            if(/\S/.test(line[i])) {
+              if(/const /.test(line[i])) {
+                break;
+              }
+              line[i] = 'return ' + line[i];
+              break;
+            }
+            i++;
+          }
+        } 
+      }
+      lines.forEach((line) => {
+        output.push(...line);
+      })
+      return output;
+    },
     'short_if_expression': (node) => {
       const output = [];
       output.push(...generateCode(node.named.exp1));

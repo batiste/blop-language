@@ -119,18 +119,25 @@ Index = (state) => {
       <h1>
         <b>state.page</b>
       </h1>
-      if state.page == 'dog' {
-        <DogPage state=state></DogPage>
-      } elseif state.page == 'meme' {
-        <MemePage state=state></MemePage>
-      } elseif state.page == 'todo' {
-        <TodoListPage todo=state></TodoListPage>
-      } elseif state.page == 'petstore' {
-        <PetStore state=state></PetStore>
-      } elseif state.page == 'state' {
-        <CounterPage state=state></CounterPage>
-      } else {
-        = linkList(state)
+      select state.page {
+        'dog' {
+          <DogPage state=state></DogPage>
+        }
+        'meme' {
+          <MemePage state=state></MemePage>
+        }
+        'todo' {
+          <TodoListPage todo=state></TodoListPage>
+        }
+        'petstore' {
+          <PetStore state=state></PetStore>
+        }
+        'state' {
+          <CounterPage state=state></CounterPage>
+        }
+        'else' {
+          linkList(state)
+        }
       }
     </div>
   </div>

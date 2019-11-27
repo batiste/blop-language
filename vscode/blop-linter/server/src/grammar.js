@@ -214,6 +214,20 @@ const grammar = {
   'if_expression': [
     ['condition'],
   ],
+  'select_expression': [
+    ['select', 'exp:exp', 'w', '{', 'select_body*:bodies', 'newline', 'w?', 'W?', '}'],
+  ],
+  'select_body': [
+    ['newline', 'w?:w2', 'W?:w2', 'exp:predicate', 'w', '{',
+      'select_inner:inner', '}'],
+  ],
+  'select_inner': [
+    ['SCOPED_STATEMENTS*:stats'],
+  ],
+  // 'select_body_statment': [
+  //   ['newline', 'w?', 'W?', 'SCOPED_STATEMENT', 'wcomment?'],
+  //   ['newline', 'w?', 'W?', 'scomment?'],
+  // ],
   'short_if_expression': [
     // ['if:type', 'exp:exp1', 'w', '{', 'w', 'exp:exp2', 'w', '}'
     //   , 'w', 'else:else', '{', 'w', 'exp:exp3', 'w', '}'],
@@ -221,6 +235,7 @@ const grammar = {
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
   ],
   'exp': [
+    ['select_expression'],
     ['name_exp'],
     ['exp', 'access_or_operation'],
     ['func_def'],
