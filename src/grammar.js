@@ -211,9 +211,6 @@ const grammar = {
     ['name:name', 'access_or_operation:access'],
     ['name:name'],
   ],
-  'if_expression': [
-    ['condition'],
-  ],
   'short_if_expression': [
     // ['if:type', 'exp:exp1', 'w', '{', 'w', 'exp:exp2', 'w', '}'
     //   , 'w', 'else:else', '{', 'w', 'exp:exp3', 'w', '}'],
@@ -240,7 +237,6 @@ const grammar = {
     ['new', 'exp'],
     ['delete', 'exp'],
     ['spread', 'exp'],
-    ['if_expression'],
     ['short_if_expression'],
   ],
 };

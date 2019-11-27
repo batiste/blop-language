@@ -75,16 +75,6 @@ def attributeWithDash(_array) {
   <div data-id='1'></div>
 }
 
-def ifExpressionInVirtualNode(c) {
-  <div>
-    = if c > 10 {
-      <p>1</p>
-    } else {
-      <p>2</p>
-    }
-  </div>
-}
-
 def ternaryExpressionInVirtualNode(c) {
   <div>if c > 10 => <p>1</p> else <p>2</p></div>
 }
@@ -94,13 +84,6 @@ def ternaryExpressionInVirtualNode2(c) {
     = if c > 10 => <p>1</p> else <p>2</p>
   </div>
 }
-
-test('if expression in virtual nodes', () => {
-  vn = ifExpressionInVirtualNode(5)
-  expect(vn.children[0].children[0].text).toBe(2)
-  vn := ifExpressionInVirtualNode(15)
-  expect(vn.children[0].children[0].text).toBe(1)
-})
 
 test('ternary expression in virtual nodes', () => {
   vn = ternaryExpressionInVirtualNode(5)
