@@ -28,7 +28,7 @@ def DogGame(attributes, children) {
     <h3>children</h3>
 
     percent = 0
-    if (page.attempt) {
+    if page.attempt {
       percent := Math.floor(100 * (page.success / page.attempt))
     }
     <p>'Correct answers: 'page.success' / 'page.attempt' ('percent'%)'</p>
@@ -54,13 +54,9 @@ def DogGame(attributes, children) {
     </form>
 
     <div style={ minHeight: '400px' }>
-      if dog {
-        <img
+      = if dog => <img
           src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
-          style={ maxWidth: '400px' } />
-      } else {
-        <h3>'Loading...'</h3>
-      }
+          style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
     </div>
 
   </div>
