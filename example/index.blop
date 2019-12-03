@@ -97,9 +97,7 @@ def navigation(state) {
             <span class="sr-only">'Loading...'</span>
           </div>
         }
-        if (state.error) {
-          <p>'Error 'state.error''</p>
-        }
+        = if state.error => <p>'Error 'state.error''</p>
         <button on={ click: saveStateEvent } class="btn btn-secondary">
           = 'Save locale state on server'
         </button>

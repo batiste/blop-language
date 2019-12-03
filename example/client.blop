@@ -22,8 +22,6 @@ init()
 
 proxiedState.$.listen((path) => {
   refresh((time) => {
-    if time > 50 {
-      console.log(`Slow rendering time `time`ms triggered by `path``)
-    }
+    if time > 50 => console.log(`Slow rendering time `time`ms triggered by `path``)
   })
 })
