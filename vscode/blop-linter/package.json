@@ -8,7 +8,7 @@
 	"icon": "blop.png",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/batiste/blop-language/vscode/blop-server"
+		"url": "https://github.com/batiste/blop-language/vscode/blop-linter"
 	},
 	"publisher": "batistebieler",
 	"categories": [],

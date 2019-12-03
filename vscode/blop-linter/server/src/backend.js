@@ -821,19 +821,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       return [node.value];
     },
-    'if_expression': (node) => {
-      const ns = addNameSpaceFCT();
-      // indicate that we are now in an expression function
-      ns._expressionFunction = { hoist: false };
-      const output = [];
-      output.push('(() => { ');
-      for (let i = 0; i < node.children.length; i++) {
-        output.push(...generateCode(node.children[i]));
-      }
-      output.push('})()');
-      popNameSpaceFCT();
-      return output;
-    },
     'short_if_expression': (node) => {
       const output = [];
       output.push(...generateCode(node.named.exp1));
