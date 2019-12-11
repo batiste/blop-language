@@ -731,7 +731,7 @@ let SCOPED_STATEMENT_3 = (stream, index) => {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
     subRule: 3, type: 'SCOPED_STATEMENT', named,
   };
-  const _rule_0 = try_catch(stream, i);
+  const _rule_0 = class_def(stream, i);
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -749,7 +749,7 @@ let SCOPED_STATEMENT_4 = (stream, index) => {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
     subRule: 4, type: 'SCOPED_STATEMENT', named,
   };
-  const _rule_0 = for_loop(stream, i);
+  const _rule_0 = try_catch(stream, i);
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -767,7 +767,7 @@ let SCOPED_STATEMENT_5 = (stream, index) => {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
     subRule: 5, type: 'SCOPED_STATEMENT', named,
   };
-  const _rule_0 = while_loop(stream, i);
+  const _rule_0 = for_loop(stream, i);
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -784,6 +784,24 @@ let SCOPED_STATEMENT_6 = (stream, index) => {
   const node = {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
     subRule: 6, type: 'SCOPED_STATEMENT', named,
+  };
+  const _rule_0 = while_loop(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+SCOPED_STATEMENT_6 = memoize('SCOPED_STATEMENT_6', SCOPED_STATEMENT_6);
+
+
+let SCOPED_STATEMENT_7 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'SCOPED_STATEMENT',
+    subRule: 7, type: 'SCOPED_STATEMENT', named,
   };
 
   if (stream[i].type !== 'return') {
@@ -807,16 +825,16 @@ let SCOPED_STATEMENT_6 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-SCOPED_STATEMENT_6 = memoize('SCOPED_STATEMENT_6', SCOPED_STATEMENT_6);
+SCOPED_STATEMENT_7 = memoize('SCOPED_STATEMENT_7', SCOPED_STATEMENT_7);
 
 
-let SCOPED_STATEMENT_7 = (stream, index) => {
+let SCOPED_STATEMENT_8 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
-    subRule: 7, type: 'SCOPED_STATEMENT', named,
+    subRule: 8, type: 'SCOPED_STATEMENT', named,
   };
 
   if (stream[i].type !== 'throw') {
@@ -839,24 +857,6 @@ let SCOPED_STATEMENT_7 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-SCOPED_STATEMENT_7 = memoize('SCOPED_STATEMENT_7', SCOPED_STATEMENT_7);
-
-
-let SCOPED_STATEMENT_8 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'SCOPED_STATEMENT',
-    subRule: 8, type: 'SCOPED_STATEMENT', named,
-  };
-  const _rule_0 = exp_statement(stream, i);
-  if (!_rule_0) return false;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
 SCOPED_STATEMENT_8 = memoize('SCOPED_STATEMENT_8', SCOPED_STATEMENT_8);
 
 
@@ -867,6 +867,24 @@ let SCOPED_STATEMENT_9 = (stream, index) => {
   const node = {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
     subRule: 9, type: 'SCOPED_STATEMENT', named,
+  };
+  const _rule_0 = exp_statement(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+SCOPED_STATEMENT_9 = memoize('SCOPED_STATEMENT_9', SCOPED_STATEMENT_9);
+
+
+let SCOPED_STATEMENT_10 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'SCOPED_STATEMENT',
+    subRule: 10, type: 'SCOPED_STATEMENT', named,
   };
 
   if (stream[i].type !== 'break') {
@@ -885,16 +903,16 @@ let SCOPED_STATEMENT_9 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-SCOPED_STATEMENT_9 = memoize('SCOPED_STATEMENT_9', SCOPED_STATEMENT_9);
+SCOPED_STATEMENT_10 = memoize('SCOPED_STATEMENT_10', SCOPED_STATEMENT_10);
 
 
-let SCOPED_STATEMENT_10 = (stream, index) => {
+let SCOPED_STATEMENT_11 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
     children, stream_index: index, name: 'SCOPED_STATEMENT',
-    subRule: 10, type: 'SCOPED_STATEMENT', named,
+    subRule: 11, type: 'SCOPED_STATEMENT', named,
   };
 
   if (stream[i].type !== 'continue') {
@@ -913,7 +931,7 @@ let SCOPED_STATEMENT_10 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-SCOPED_STATEMENT_10 = memoize('SCOPED_STATEMENT_10', SCOPED_STATEMENT_10);
+SCOPED_STATEMENT_11 = memoize('SCOPED_STATEMENT_11', SCOPED_STATEMENT_11);
 
 
 function SCOPED_STATEMENT(stream, index) {
@@ -927,7 +945,8 @@ function SCOPED_STATEMENT(stream, index) {
     || SCOPED_STATEMENT_7(stream, index)
     || SCOPED_STATEMENT_8(stream, index)
     || SCOPED_STATEMENT_9(stream, index)
-    || SCOPED_STATEMENT_10(stream, index);
+    || SCOPED_STATEMENT_10(stream, index)
+    || SCOPED_STATEMENT_11(stream, index);
 }
 let object_access_0 = (stream, index) => {
   let i = index;

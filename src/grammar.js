@@ -40,6 +40,7 @@ const grammar = {
     ['condition'],
     ['assign'],
     ['virtual_node'],
+    ['class_def'],
     ['try_catch'],
     ['for_loop'],
     ['while_loop'],
