@@ -723,6 +723,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'class_def': (node) => {
       const output = [];
       const ns = currentNameSpaceFCT();
+      checkRedefinition(node.named.name.value, node.named.name);
       ns[node.named.name.value] = { node, hoist: false, token: node.named.name };
       output.push('class ');
       output.push(node.named.name.value);
