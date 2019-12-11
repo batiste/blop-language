@@ -1,0 +1,55 @@
+import 'vm'
+import { compileSource } from '../compile.js'
+import 'process'
+
+n = 0
+
+def code() {
+  n := n + 1
+  return "
+class ComponentWithClass"n" extends Component {
+  def render() {
+    { text } = this.attributes
+    <div>
+      <p>'hello 'text''</p>
+      <p>JSON.stringify(this.pos)</p>
+    </div>
+  }
+
+  def mouseMove(e) {
+    this.pos = { x: e.x, y: e.y }
+    this.refresh()
+  }
+
+  def onMount() {
+    this.mouseMoveHandler = (e) => this.mouseMove(e)
+    document.addEventListener('mousemove', this.mouseMoveHandler)
+  }
+
+  def onUnmount() {
+    document.removeEventListener('mousemove', this.mouseMoveHandler)
+  }
+}
+"
+}
+
+str = ''
+for index in Array(250).fill(null) {
+  str := str + code()
+}
+
+start = parseInt(process.hrtime.bigint())
+
+compileSource(str, 'node')
+
+end = parseInt(process.hrtime.bigint())
+
+microseconds = (end - start) / 1000000
+
+// console.log('Benchmark took 'microseconds' microseconds')
+
+test('long enough', () => {
+  expect(str.split('\n').length > 5000).toBe(true)
+  expect(microseconds < 1000).toBe(true)
+})
+
