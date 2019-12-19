@@ -282,18 +282,15 @@ const newRoot = () => {
   currentNode = rootNode;
 };
 
-let mountCalled = false;
-
 function mount(dom, render) {
   let vnode; let requested;
-  if (mountCalled) {
-    console.warn('Blop only supports one mount by App ATM');
-  }
-  mountCalled = true;
+  const target = window.document.createElement('div');
+  dom.innerHTML = '';
+  dom.appendChild(target);
   function init() {
     newRoot();
     vnode = render();
-    vnode = patch(toVNode(dom), vnode);
+    vnode = patch(toVNode(target), vnode);
     requested = false;
     return vnode;
   }
@@ -335,7 +332,7 @@ function mount(dom, render) {
       renderPipeline = [];
     });
   }
-  return ({ refresh, init });
+  return { refresh, init };
 }
 
 module.exports = {

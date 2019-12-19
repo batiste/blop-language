@@ -15,9 +15,10 @@ const clientConfig = {
   devtool: 'eval-source-map',
   stats: 'normal',
   target: 'web',
-  entry: './example/client.blop',
+  entry: ['./example/client.blop', 'webpack-hot-middleware/client'],
   output: {
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/bundle',
     filename: 'client.js',
   },
   module: {
@@ -50,6 +51,8 @@ const clientConfig = {
     new webpack.DefinePlugin({
       SERVER: false,
     }),
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
   ],
 };
 

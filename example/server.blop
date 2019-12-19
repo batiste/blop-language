@@ -4,6 +4,7 @@ import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
 import 'webpack'
 import 'webpack-dev-middleware' as middleware
+import 'webpack-hot-middleware' as hotMiddleware
 import 'snabbdom-to-html' as toHTML
 import 'path' as nodepath
 import '../webpack.client.js' as webpackClientConf
@@ -14,7 +15,10 @@ app.use(bodyParser.json())
 
 // we only rebuild the client config
 compiler = webpack(webpackClientConf)
+app.use(hotMiddleware(compiler))
+
 instance = middleware(compiler, {
+  noInfo: true,
   publicPath: '/bundle'
 })
 
