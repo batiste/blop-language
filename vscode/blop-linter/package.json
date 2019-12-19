@@ -58,8 +58,8 @@
 		"test": "sh ./scripts/e2e.sh"
 	},
 	"devDependencies": {
-		"@types/mocha": "^5.2.0",
-		"@types/node": "^8.0.0",
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^8.10.59",
 		"typescript": "2.8.3"
 	},
 	"__metadata": {
