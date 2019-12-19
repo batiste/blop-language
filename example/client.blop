@@ -25,3 +25,9 @@ proxiedState.$.listen((path) => {
     if time > 50 => console.log(`Slow rendering time `time`ms triggered by `path``)
   })
 })
+
+if (module && module.hot) {
+  module.hot.accept((e) => {
+    console.warn(e)
+  })
+}

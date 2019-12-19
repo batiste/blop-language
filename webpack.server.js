@@ -39,6 +39,7 @@ const serverConfig = {
     new webpack.DefinePlugin({
       SERVER: true,
     }),
+    new webpack.HotModuleReplacementPlugin(),
   ],
 };
 

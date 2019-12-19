@@ -47,6 +47,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const namespacesLOOP = [{}];
   const exportObjects = {};
   let exportKeys = [];
+  const dependencies = [];
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
   const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -421,6 +422,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         if (fileNode.value.slice(1, -1) === 'blop') {
           module = 'blop';
         } else {
+          dependencies.push(fileNode.value);
           module = `require(${fileNode.value})`;
           importedFilename = fileNode.value.slice(1, -1);
         }
@@ -871,6 +873,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     code: output.join(''),
     success: errors.length === 0,
     perfect: errors.length === 0 && warnings.length === 0,
+    dependencies,
     exportKeys,
     exportObjects,
     warnings,

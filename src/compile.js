@@ -63,7 +63,7 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   }
 
   const code = header + result.code;
-  return { code, sourceMap: _sourceMap };
+  return { code, sourceMap: _sourceMap, dependencies: result.dependencies };
 }
 
 module.exports = {

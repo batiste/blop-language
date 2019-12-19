@@ -13,6 +13,7 @@ module.exports = function loader(source) {
   if (options.debug) {
     console.log(code);
   }
+
   if (options.sourceMap) {
     const current = loaderUtils.getRemainingRequest(this);
     const sourceFilename = loaderUtils.getRemainingRequest(this);
