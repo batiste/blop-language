@@ -24,6 +24,7 @@ The Blop language compiles to ES6 compliant JavaScript. The language is mostly s
   * Good integration with Visual Studio Code: linter and syntactic coloration.
   * Source maps.
   * Server Side Rendering in the example.
+  * Hot module reloading in the example (HMR)
   * Type annotation with very basic type inference warnings.
   * Similar syntax and features than ES6.
 
