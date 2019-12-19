@@ -27,6 +27,7 @@ The Blop language compiles to ES6 compliant JavaScript. The language is mostly s
   * Hot module reloading in the example (HMR)
   * Type annotation with very basic type inference warnings.
   * Similar syntax and features than ES6.
+  * 100% Webpack and Jest compatible
 
 ## Language features missing
 
