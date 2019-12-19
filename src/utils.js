@@ -1,9 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-
-const RED = '\x1B[0;31m';
-const YELLOW = '\x1B[1;33m';
-const NC = '\x1B[0m';
+const chalk = require('chalk');
 
 function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r');
@@ -12,6 +9,14 @@ function replaceInvisibleChars(v) {
   v = v.replace('\xa0', 'nbsp');
   return v.replace(/ /g, '␣');
 }
+
+function noNewline(v) {
+  v = replaceInvisibleChars(v);
+  v = v.replace(/\r/g, '');
+  v = v.replace(/\n/g, '');
+  return v;
+}
+
 
 function tokenPosition(token) {
   const lineNumber = token.lineStart;
@@ -27,14 +32,14 @@ function streamContext(token, firstToken, stream) {
 
   let lineNb = 1;
   let streamIndex = 0;
-  let str = NC;
+  let str = '';
 
   function char(v) {
     if (streamIndex === index) {
-      return RED + replaceInvisibleChars(v) + NC;
+      return chalk.red(replaceInvisibleChars(v));
     }
     if (streamIndex >= firstTokenIndex && streamIndex < index) {
-      return YELLOW + replaceInvisibleChars(v) + NC;
+      return chalk.yellow(replaceInvisibleChars(v));
     }
     return v;
   }
@@ -73,17 +78,20 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
       sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
     }
     if (i === bestFailure.sub_rule_token_index) {
-      rule += `${RED}${sr}${NC} `;
+      rule += chalk.red(`${sr} `);
       failingToken = `${sr}`;
     } else {
-      rule += `${YELLOW}${sr}${NC} `;
+      rule += chalk.yellow(`${sr} `);
     }
   }
+  const firstLine = chalk.red(`Parser error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end}`);
+  const unexpected = chalk.yellow(noNewline(token.value));
+
   throw new Error(`
-  ${RED}Parser error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end} ${NC}
-  Unexpected ${YELLOW}${replaceInvisibleChars(token.value)}${NC}
+  ${firstLine}
+  Unexpected ${unexpected}
   Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-  token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}" (type:${token.type}) doesn't match rule item ${YELLOW}${failingToken}${NC}
+  token "${unexpected}" (type:${token.type}) doesn't match rule item ${chalk.yellow(failingToken)}
   Context:
 ${streamContext(token, firstToken, stream)}
 `);
@@ -92,10 +100,12 @@ ${streamContext(token, firstToken, stream)}
 function displayBackendError(stream, error) {
   const { token } = error;
   const positions = tokenPosition(token);
+  const unexpected = chalk.yellow(noNewline(token.value));
+  const firstLine = chalk.red(`Backend error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end}`);
   throw new Error(`
-  ${RED}Backend error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end} ${NC}
-  ${error.message} ${YELLOW}${replaceInvisibleChars(token.value)}${NC}
-  token "${YELLOW}${replaceInvisibleChars(token.value)}${NC}"
+  ${firstLine}
+  ${error.message} ${unexpected}
+  token "${unexpected}"
   Context:
 ${streamContext(error.token, token, stream)}
 `);
@@ -144,5 +154,4 @@ module.exports = {
   displayError,
   displayBackendError,
   printTree,
-  NC,
 };
