@@ -13,5 +13,6 @@ async def getNewDog(state) {
   bits = message.split('/')
   state.loading = false
 
+
   state.dogPage.choice = { url: message, breed: bits[4], image: bits[5] }
 }

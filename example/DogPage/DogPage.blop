@@ -4,11 +4,11 @@ import { getNewDog } from './services.blop'
 def DogPage(attributes, _children, node) {
   { state } = attributes
   node.mount(async () => {
-    console.log('mount DogPage')
     if (!state.dogPage.choice) {
       await getNewDog(state)
     }
   })
+
   <DogGame page=state.dogPage state=state loading=state.loading>
     = 'Dog breed game'
   </DogGame>

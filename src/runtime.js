@@ -284,6 +284,8 @@ const newRoot = () => {
 
 function mount(dom, render) {
   let vnode; let requested;
+  cache = {};
+  nextCache = {};
   const target = window.document.createElement('div');
   dom.innerHTML = '';
   dom.appendChild(target);
