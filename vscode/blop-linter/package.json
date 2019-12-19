@@ -68,6 +68,7 @@
 		"publisherId": "c8efe3df-da8c-47b9-9227-097d18e9b6f5"
 	},
 	"dependencies": {
+		"chalk": "^3.0.0",
 		"source-map": "^0.7.3"
 	}
 }

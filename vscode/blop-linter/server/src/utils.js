@@ -1,9 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-
-const RED = '';
-const YELLOW = '';
-const NC = '';
+const chalk = require('chalk');
 
 function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r');
@@ -11,6 +8,13 @@ function replaceInvisibleChars(v) {
   v = v.replace(/\t/g, '⇥');
   v = v.replace('\xa0', 'nbsp');
   return v.replace(/ /g, '␣');
+}
+
+function noNewline(v) {
+  v = replaceInvisibleChars(v);
+  v = v.replace(/\r/g, '');
+  v = v.replace(/\n/g, '');
+  return v;
 }
 
 function tokenPosition(token) {
@@ -27,14 +31,14 @@ function streamContext(token, firstToken, stream) {
 
   let lineNb = 1;
   let streamIndex = 0;
-  let str = NC;
+  let str = '';
 
   function char(v) {
     if (streamIndex === index) {
-      return RED + replaceInvisibleChars(v) + NC;
+      return chalk.red(replaceInvisibleChars(v));
     }
     if (streamIndex >= firstTokenIndex && streamIndex < index) {
-      return YELLOW + replaceInvisibleChars(v) + NC;
+      return chalk.yellow(replaceInvisibleChars(v));
     }
     return v;
   }
@@ -71,15 +75,16 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
       sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
     }
     if (i === bestFailure.sub_rule_token_index) {
-      rule += `${RED}${sr}${NC} `;
+      rule += chalk.red(`${sr} `);
       failingToken = `${sr}`;
     } else {
-      rule += `${YELLOW}${sr}${NC} `;
+      rule += chalk.yellow(`${sr} `);
     }
   }
-  throw new Error(`Unexpected ${replaceInvisibleChars(token.value)}
+  const firstLine = chalk.red(`Unexpected ${noNewline(token.value)}`);
+  throw new Error(`${firstLine}
 Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-token "${replaceInvisibleChars(token.value)}" (type:${token.type}) doesn't match rule item ${failingToken}`);
+token "${noNewline(token.value)}" (type:${token.type}) doesn't match rule item ${failingToken}`);
 }
 
 function printTree(node, sp) {
@@ -165,5 +170,4 @@ module.exports = {
   checkGrammarAndTokens,
   displayError,
   printTree,
-  NC,
 };
