@@ -44,7 +44,11 @@ def DogGame(attributes, children) {
       </p>
     }
 
-    <form>
+    <form on={ submit: (e) => {
+        e.preventDefault()
+        check()
+      }
+    }>
       <div class="form-group">
         <label for="exampleInputPassword1">'Your guess on the breed'</label>
         = input
