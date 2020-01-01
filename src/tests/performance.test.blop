@@ -34,7 +34,7 @@ class ComponentWithClass"n" extends Component {
 }
 
 str = ''
-for index in Array(250).fill(null) {
+for index in Array(200).fill(null) {
   str := str + code()
 }
 
@@ -49,7 +49,7 @@ microseconds = (end - start) / 1000000
 // console.log('Benchmark took 'microseconds' microseconds')
 
 test('long enough', () => {
-  expect(str.split('\n').length > 5000).toBe(true)
-  expect(microseconds < 1000).toBe(true)
+  expect(str.split('\n').length > 4000).toBe(true)
+  expect(microseconds < 1500).toBe(true)
 })
 

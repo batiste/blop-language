@@ -16,7 +16,7 @@
 		"multi-root ready"
 	],
 	"engines": {
-		"vscode": "^1.23.0"
+		"vscode": "^1.33.0"
 	},
 	"activationEvents": [
 		"onLanguage:blop"
@@ -59,8 +59,9 @@
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.7",
-		"@types/node": "^8.10.59",
-		"typescript": "^3.7.3"
+		"@types/node": "^12.11.7",
+		"tslint": "^5.16.0",
+		"typescript": "^3.6.4"
 	},
 	"__metadata": {
 		"id": "07add166-e641-478f-9747-eca9ab6e361a",
