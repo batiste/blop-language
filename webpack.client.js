@@ -1,6 +1,7 @@
 const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 /* eslint-enable import/no-extraneous-dependencies */
 
 const CSSModuleLoader = {
@@ -18,7 +19,7 @@ const clientConfig = {
   entry: ['./example/client.blop', 'webpack-hot-middleware/client'],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/bundle',
+    publicPath: './',
     filename: 'client.js',
   },
   module: {
@@ -53,6 +54,9 @@ const clientConfig = {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
+    new HtmlWebpackPlugin({
+      template: 'example/index.html',
+    }),
   ],
 };
 
