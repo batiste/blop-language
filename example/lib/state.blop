@@ -6,12 +6,12 @@ def isObject(value) {
 }
 
 def create(state, options={ readOnly: false }) {
-  modificationTable = []
+  modifications = []
   callbacks = []
   { readOnly } = options
   hasBeenFlushed = false
   def flush() {
-    modificationTable := []
+    modifications.splice(0, modifications.length) // retain the ref. on the array
     hasBeenFlushed := true
   }
   def listen(callback) {
@@ -24,6 +24,7 @@ def create(state, options={ readOnly: false }) {
     flush,
     listen,
     trigger,
+    modifications,
     raw: state
   }
   def handler(currentState, path='') {
@@ -33,7 +34,7 @@ def create(state, options={ readOnly: false }) {
         return true
       }
       completePath = ''path''extrapath''
-      return !!modificationTable.find(
+      return !!modifications.find(
         (modification) => modification.path.startsWith(completePath))
     }
     return {
@@ -61,7 +62,7 @@ def create(state, options={ readOnly: false }) {
           throw new Error(`You cannot redefine the $ property in a proxied state`)
         }
 
-        modificationTable.push({ path: ''path'.'prop'', action: 'set', value })
+        modifications.push({ path: ''path'.'prop'', action: 'set', value })
         obj[prop] = value
         trigger(''path'.'prop'')
         return true
@@ -72,7 +73,7 @@ def create(state, options={ readOnly: false }) {
         }
 
         if target.hasOwnProperty(prop) {
-          modificationTable.push({ path: ''path'.'prop'', action: 'delete' })
+          modifications.push({ path: ''path'.'prop'', action: 'delete' })
           delete target[prop]
         } else {
           return false

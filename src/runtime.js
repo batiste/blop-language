@@ -323,11 +323,11 @@ function mount(dom, render) {
         throw error;
       }
       const after = (new Date()).getTime();
-      callback && callback(after - now);
       vnode = newVnode;
       destroyUnreferencedComponents();
       cache = nextCache;
       requested = false;
+      callback && callback(after - now);
     };
     window.requestAnimationFrame(() => {
       rerender();
