@@ -27,8 +27,8 @@ def refreshCallback(time, path) {
     refreshCount := refreshCount + 1
     if (refreshCount >= maxRefreshCount) {
       modifications = proxiedState.$.modifications[0]
-      console.warn('It looks like the path "'modifications.path'" is being modified inside the renderer of on of your components. 
-Blop refresh runtime has stopped in order to avoid an infinite loop. Refresh has been executed 'maxRefreshCount' times.')
+      console.warn('It looks like the path "'modifications.path'" is being modified inside the renderer of one of your components. 
+Refresh runtime has stopped in order to avoid an infinite loop. Refresh has been executed 'maxRefreshCount' times.')
       refreshCount := 0
       return
     }
