@@ -80,7 +80,7 @@ Animation = (attributes, children, node) => {
   runAnimation = true
   i = attributes.initial || 0
   animate = () => {
-    i := i + 0.02
+    i += 0.02
     position.x = (w.innerWidth / 2) + 120 * Math.cos(i) - 60
     position.y = (w.innerHeight / 2) + 120 * Math.sin(i) - 60
     setPos(position)

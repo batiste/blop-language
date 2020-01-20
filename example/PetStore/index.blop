@@ -11,11 +11,11 @@ def pagination(petStore) {
   nbPage = Math.ceil(pets.length / pageSize)
   nextPage = (e) => {
     e.preventDefault()
-    petStore.pageIndex = pageIndex + 1
+    petStore.pageIndex += 1
   }
   previousPage = (e) => {
     e.preventDefault()
-    petStore.pageIndex = pageIndex - 1
+    petStore.pageIndex -= 1
   }
   <p class="pagination">
     if pageIndex > 0 {

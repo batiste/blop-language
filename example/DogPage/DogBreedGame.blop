@@ -10,10 +10,10 @@ def DogGame(attributes, children) {
   def check() {
     guess = input.elm.value.toLowerCase().replace(' ', '-')
     input.elm.value = ''
-    page.attempt = page.attempt + 1
+    page.attempt += 1
     if (guess == dog.breed) {
       delete page.lastMistake
-      page.success = page.success + 1
+      page.success += 1
     } else {
       page.lastMistake = { breed: dog.breed, guess }
     }

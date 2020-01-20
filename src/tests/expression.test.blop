@@ -22,11 +22,20 @@ ternary2 = if false => 10 + 10 else 20 + 20
 
 guard = if true => 1000
 
+d = 10
+d += 20
+
+e = { test: 1 }
+
+e.test += 2
+
 test('expression', () => {
   expect(c).toBe(15)
   expect(a).toBe(1)
   expect(b).toBe(1)
   expect(h).toBe(3)
+  expect(d).toBe(30)
+  expect(e.test).toBe(3)
   expect(ternary).toBe(1)
   expect(ternary2).toBe(40)
   expect(guard).toBe(1000)

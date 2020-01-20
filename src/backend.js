@@ -110,7 +110,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         const redefinedBy = stream[node.stream_index];
         const sourceContext = utils.streamContext(input, token, token, stream);
         const redefineContext = utils.streamContext(input, redefinedBy, redefinedBy, stream);
-        const error = new Error(`Redefinition of ${name} from upper scope. Use explicit := or rename ${name}
+        const error = new Error(`Redefinition of ${name} within this scope. Use explicit := or rename ${name}
         ${sourceContext}
 
         Redefined by
@@ -340,6 +340,14 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push(' = ');
       output.push(...generateCode(node.named.exp));
       output.push(';');
+      return output;
+    },
+    'assign_op': (node) => {
+      const output = [];
+      shouldBeDefined(node.named.name.value, node.named.name);
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
       return output;
     },
     'exp_statement': (node) => {

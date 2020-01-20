@@ -24,6 +24,7 @@ const grammar = {
   'GLOBAL_STATEMENT': [
     ['condition'],
     ['assign'],
+    ['assign_op'],
     ['virtual_node'],
     ['class_def'],
     ['try_catch'],
@@ -39,6 +40,7 @@ const grammar = {
   'SCOPED_STATEMENT': [
     ['condition'],
     ['assign'],
+    ['assign_op'],
     ['virtual_node'],
     ['class_def'],
     ['try_catch'],
@@ -60,6 +62,10 @@ const grammar = {
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
     ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
+  ],
+  'assign_op': [
+    ['name:name', 'annotation?:annotation', 'w', 'assign_operator', 'w', 'exp:exp'],
+    ['name:name', 'object_access:access', 'w', 'assign_operator', 'w', 'exp:exp'],
   ],
   'for_loop': [
     ['for', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
