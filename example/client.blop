@@ -6,6 +6,7 @@ import { Index } from './index.blop'
 proxiedState = createState(window.INITIAL_STATE)
 router = createRouter(proxiedState, window)
 
+// The render function for this application
 render = () => {
   proxiedState.$.flush()
   tree = Index(proxiedState)
@@ -13,7 +14,7 @@ render = () => {
   return tree
 }
 
-// boot up the app on the client
+// Boot up the app on the client
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
@@ -23,6 +24,9 @@ maxRefreshCount = 10
 // called after Blop has finished rendering
 def refreshCallback(time, path) {
   if time > 50 => console.log(`Slow rendering time `time`ms triggered by `path``)
+
+  // security to avoid crashing when the state is accidentally modified
+  // whithing a render function of a Component
   if (proxiedState.hasChanged()) {
     refreshCount := refreshCount + 1
     if (refreshCount >= maxRefreshCount) {
@@ -40,12 +44,14 @@ Refresh runtime has stopped in order to avoid an infinite loop. Refresh has been
   }
 }
 
+// listen to any state change, and refresh when that happens
 proxiedState.$.listen((path) => {
   refresh((time) => {
     refreshCallback(time, path)
   })
 })
 
+// Hot module reloading hook
 if (module && module.hot) {
   module.hot.accept((e) => {
     console.warn(e)
