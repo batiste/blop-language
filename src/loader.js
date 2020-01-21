@@ -9,7 +9,7 @@ const schema = {
 module.exports = function loader(source) {
   const options = loaderUtils.getOptions(this) || { debug: false };
   validateOptions(schema, options, 'Blop Loader');
-  const { code, sourceMap } = compileSource(source, 'webpack', this.resourcePath, this.sourceMap);
+  const { code, sourceMap } = compileSource(source, 'webpack', this.resourcePath, options.sourceMap);
   if (options.debug) {
     console.log(code);
   }

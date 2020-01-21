@@ -2,6 +2,7 @@ const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 /* eslint-enable import/no-extraneous-dependencies */
 
 const CSSModuleLoader = {
@@ -11,9 +12,28 @@ const CSSModuleLoader = {
   },
 };
 
+const plugins = [
+  new webpack.DefinePlugin({
+    SERVER: false,
+  }),
+  new webpack.HotModuleReplacementPlugin(),
+  new webpack.NoEmitOnErrorsPlugin(),
+  new HtmlWebpackPlugin({
+    template: 'example/index.html',
+  }),
+];
+
+if (process.env.BUNDLE_ANALYZER) {
+  plugins.push(new BundleAnalyzerPlugin());
+}
+
+if (process.env.SOURCEMAP) {
+  plugins.push(new webpack.SourceMapDevToolPlugin({}));
+}
+
 const clientConfig = {
   mode: 'development',
-  devtool: 'eval-source-map',
+  devtool: process.env.SOURCEMAP ? 'eval-source-map' : 'nosources-source-map',
   stats: 'normal',
   target: 'web',
   entry: ['./example/client.blop', 'webpack-hot-middleware/client'],
@@ -31,7 +51,7 @@ const clientConfig = {
             loader: path.resolve('./src/loader.js'),
             options: {
               debug: !!process.env.BLOP_DEBUG,
-              sourceMap: true,
+              sourceMap: !!process.env.SOURCEMAP,
               strictness: 'perfect',
             },
           },
@@ -47,17 +67,7 @@ const clientConfig = {
       },
     ],
   },
-  plugins: [
-    new webpack.SourceMapDevToolPlugin({}),
-    new webpack.DefinePlugin({
-      SERVER: false,
-    }),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
-    new HtmlWebpackPlugin({
-      template: 'example/index.html',
-    }),
-  ],
+  plugins,
 };
 
 module.exports = clientConfig;
