@@ -986,132 +986,6 @@ function SCOPED_STATEMENT(stream, index) {
     || SCOPED_STATEMENT_11(stream, index)
     || SCOPED_STATEMENT_12(stream, index);
 }
-let object_access_0 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'object_access',
-    subRule: 0, type: 'object_access', named,
-  };
-
-  if (stream[i].type !== '.') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'object_access', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'name') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'object_access', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = object_access(stream, i);
-  if (_rule_2) {
-    children.push(_rule_2);
-    i = _rule_2.last_index;
-  }
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-object_access_0 = memoize('object_access_0', object_access_0);
-
-
-let object_access_1 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'object_access',
-    subRule: 1, type: 'object_access', named,
-  };
-  const _rule_0 = func_call(stream, i);
-  if (!_rule_0) return false;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  const _rule_1 = object_access(stream, i);
-  if (_rule_1) {
-    children.push(_rule_1);
-    i = _rule_1.last_index;
-  }
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-object_access_1 = memoize('object_access_1', object_access_1);
-
-
-let object_access_2 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'object_access',
-    subRule: 2, type: 'object_access', named,
-  };
-
-  if (stream[i].type !== '[') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'object_access', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_1 = exp(stream, i);
-  if (!_rule_1) return false;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
-
-  if (stream[i].type !== ']') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'object_access', sub_rule_index: 2,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_3 = object_access(stream, i);
-  if (_rule_3) {
-    children.push(_rule_3);
-    i = _rule_3.last_index;
-  }
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-object_access_2 = memoize('object_access_2', object_access_2);
-
-
-function object_access(stream, index) {
-  return object_access_0(stream, index)
-    || object_access_1(stream, index)
-    || object_access_2(stream, index);
-}
 let assign_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -6094,200 +5968,6 @@ function virtual_node_attributes(stream, index) {
     || virtual_node_attributes_2(stream, index)
     || virtual_node_attributes_3(stream, index);
 }
-let operation_0 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'operation',
-    subRule: 0, type: 'operation', named,
-  };
-
-  if (stream[i].type !== 'math_operator') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['math_op'] = stream[i];
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-operation_0 = memoize('operation_0', operation_0);
-
-
-let operation_1 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'operation',
-    subRule: 1, type: 'operation', named,
-  };
-
-  if (stream[i].type !== 'boolean_operator') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['boolean_op'] = stream[i];
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-operation_1 = memoize('operation_1', operation_1);
-
-
-let operation_2 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'operation',
-    subRule: 2, type: 'operation', named,
-  };
-
-  if (stream[i].type !== '<') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['boolean_op'] = stream[i];
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-operation_2 = memoize('operation_2', operation_2);
-
-
-let operation_3 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'operation',
-    subRule: 3, type: 'operation', named,
-  };
-
-  if (stream[i].type !== '>') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['boolean_op'] = stream[i];
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        rule_name: 'operation', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-operation_3 = memoize('operation_3', operation_3);
-
-
-function operation(stream, index) {
-  return operation_0(stream, index)
-    || operation_1(stream, index)
-    || operation_2(stream, index)
-    || operation_3(stream, index);
-}
 let str_expression_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -6563,6 +6243,326 @@ try_catch_0 = memoize('try_catch_0', try_catch_0);
 
 function try_catch(stream, index) {
   return try_catch_0(stream, index);
+}
+let object_access_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_access',
+    subRule: 0, type: 'object_access', named,
+  };
+
+  if (stream[i].type !== '.') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'object_access', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'object_access', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = object_access(stream, i);
+  if (_rule_2) {
+    children.push(_rule_2);
+    i = _rule_2.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_access_0 = memoize('object_access_0', object_access_0);
+
+
+let object_access_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_access',
+    subRule: 1, type: 'object_access', named,
+  };
+  const _rule_0 = func_call(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  const _rule_1 = object_access(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_access_1 = memoize('object_access_1', object_access_1);
+
+
+let object_access_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_access',
+    subRule: 2, type: 'object_access', named,
+  };
+
+  if (stream[i].type !== '[') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'object_access', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_1 = exp(stream, i);
+  if (!_rule_1) return false;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+
+  if (stream[i].type !== ']') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'object_access', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_3 = object_access(stream, i);
+  if (_rule_3) {
+    children.push(_rule_3);
+    i = _rule_3.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_access_2 = memoize('object_access_2', object_access_2);
+
+
+function object_access(stream, index) {
+  return object_access_0(stream, index)
+    || object_access_1(stream, index)
+    || object_access_2(stream, index);
+}
+let operation_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'operation',
+    subRule: 0, type: 'operation', named,
+  };
+
+  if (stream[i].type !== 'math_operator') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['math_op'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return false;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+operation_0 = memoize('operation_0', operation_0);
+
+
+let operation_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'operation',
+    subRule: 1, type: 'operation', named,
+  };
+
+  if (stream[i].type !== 'boolean_operator') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['boolean_op'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return false;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+operation_1 = memoize('operation_1', operation_1);
+
+
+let operation_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'operation',
+    subRule: 2, type: 'operation', named,
+  };
+
+  if (stream[i].type !== '<') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['boolean_op'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return false;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+operation_2 = memoize('operation_2', operation_2);
+
+
+let operation_3 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'operation',
+    subRule: 3, type: 'operation', named,
+  };
+
+  if (stream[i].type !== '>') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['boolean_op'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        rule_name: 'operation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_2 = exp(stream, i);
+  if (!_rule_2) return false;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+operation_3 = memoize('operation_3', operation_3);
+
+
+function operation(stream, index) {
+  return operation_0(stream, index)
+    || operation_1(stream, index)
+    || operation_2(stream, index)
+    || operation_3(stream, index);
 }
 let access_or_operation_0 = (stream, index) => {
   let i = index;
@@ -7580,6 +7580,9 @@ function _tokenize(tokenDef, input, stream) {
   match = input.match(tokenDef.boolean_operator.reg);
   if (match !== null) {
     return [match[0], 'boolean_operator'];
+  }
+  if (input.startsWith('?')) {
+    return ['?', 'question'];
   }
   if (input.startsWith('>')) {
     return ['>', '>'];

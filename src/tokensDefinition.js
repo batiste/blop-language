@@ -112,6 +112,7 @@ const tokensDefinition = {
   ']': { str: ']' },
   '=>': { str: '=>' },
   'boolean_operator': { reg: /^(\|\|?|&&|>=|<=|==|!=|instanceof)/ },
+  'question': { str: '?' },
   '>': { str: '>' },
   '<': { str: '<' },
   'attribute_name': { reg: /^[\w|$|_]+(-\w+)+/ },

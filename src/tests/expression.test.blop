@@ -25,6 +25,8 @@ guard = if true => 1000
 d = 10
 d += 20
 
+// test?.stas
+
 e = { test: 1 }
 
 e.test += 2

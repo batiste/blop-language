@@ -52,11 +52,6 @@ const grammar = {
     ['break'],
     ['continue'],
   ],
-  'object_access': [
-    ['.', 'name', 'object_access?'],
-    ['func_call', 'object_access?'],
-    ['[', 'exp', ']', 'object_access?'],
-  ],
   'assign': [
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
@@ -191,12 +186,6 @@ const grammar = {
     ['single_space_or_newline', 'name:name', '=', 'exp:exp'],
     ['single_space_or_newline', 'name:name'],
   ],
-  'operation': [
-    ['math_operator:math_op', 'w', 'exp'],
-    ['boolean_operator:boolean_op', 'w', 'exp'],
-    ['<:boolean_op', 'w', 'exp'],
-    ['>:boolean_op', 'w', 'exp'],
-  ],
   'str_expression': [
     ['str:str', 'inner_str_expression:str_exp'],
   ],
@@ -208,6 +197,17 @@ const grammar = {
     ['try:try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
+  'object_access': [
+    ['.', 'name', 'object_access?'],
+    ['func_call', 'object_access?'],
+    ['[', 'exp', ']', 'object_access?'],
+  ],
+  'operation': [
+    ['math_operator:math_op', 'w', 'exp'],
+    ['boolean_operator:boolean_op', 'w', 'exp'],
+    ['<:boolean_op', 'w', 'exp'],
+    ['>:boolean_op', 'w', 'exp'],
+  ],
   'access_or_operation': [
     ['object_access:access', 'w', 'operation:op'],
     ['object_access:access'],
@@ -218,13 +218,16 @@ const grammar = {
     ['name:name', 'access_or_operation:access'],
     ['name:name'],
   ],
+  // 'optional_chaining': [
+  //   ['name:name', '.', 'optional_chaining'],
+  //   ['name:name', 'question', 'object_access'],
+  // ],
   'short_if_expression': [
-    // ['if:type', 'exp:exp1', 'w', '{', 'w', 'exp:exp2', 'w', '}'
-    //   , 'w', 'else:else', '{', 'w', 'exp:exp3', 'w', '}'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
   ],
   'exp': [
+    // ['optional_chaining'],
     ['name_exp'],
     ['exp', 'access_or_operation'],
     ['func_def'],
