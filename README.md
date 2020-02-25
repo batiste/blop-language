@@ -28,6 +28,7 @@ The Blop language compiles to ES6 compliant JavaScript. The language is mostly s
   * Type annotation with very basic type inference warnings.
   * Similar syntax and features than ES6.
   * 100% Webpack and Jest compatible
+  * Very small payload size for Snabbdom and Blop runtime: Parsed size: ~20KB, Gzipped: ~7KB
 
 ## Language features missing
 

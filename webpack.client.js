@@ -23,7 +23,7 @@ const plugins = [
   }),
 ];
 
-if (process.env.BUNDLE_ANALYZER) {
+if (process.env.DISTRIBUTE) {
   plugins.push(new BundleAnalyzerPlugin());
 }
 
@@ -31,12 +31,18 @@ if (process.env.SOURCEMAP) {
   plugins.push(new webpack.SourceMapDevToolPlugin({}));
 }
 
+const entries = ['./example/client.blop']
+
+if (!process.env.DISTRIBUTE) {
+  entries.push('webpack-hot-middleware/client');
+}
+
 const clientConfig = {
   mode: 'development',
   devtool: process.env.SOURCEMAP ? 'eval-source-map' : 'nosources-source-map',
   stats: 'normal',
   target: 'web',
-  entry: ['./example/client.blop', 'webpack-hot-middleware/client'],
+  entry: entries,
   output: {
     path: path.resolve(__dirname, 'dist'),
     publicPath: './',
