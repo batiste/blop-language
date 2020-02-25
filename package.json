@@ -11,7 +11,7 @@
   "scripts": {
     "test": "jest --no-cache",
     "parser": "node src/generateParser",
-    "start": "SOURCEMAP=true npm run server",
+    "start": "SOURCEMAP=inline-source-map npm run server",
     "server": "node_modules/webpack/bin/webpack.js --config webpack.server.js && node dist/server.js",
     "distribute": "DISTRIBUTE=true node_modules/webpack/bin/webpack.js -p --optimize-minimize --config webpack.client.js",
     "webpack": "node_modules/webpack/bin/webpack.js",
