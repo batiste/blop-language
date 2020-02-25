@@ -2,12 +2,19 @@
 
 <img src="/img/blop.png" width="120">
 
-Blop is a turing complete language that natively and elegantly generates Virtual DOM using a familiar HTML like syntax. Unlike JSX you are not limited to expressions and can use the full power of the language to generate Virtual DOM.
+Blop is a language for the Web that can natively generates Virtual DOM using a familiar HTML like syntax. The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
+
+Unlike JSX Blop is not limited to expressions and can use the full power of the language to generate Virtual DOM nodes.
 You can mix any statement, expressions, and HTML like syntax within the same function.
 
-The HTML tags written with blop are converted into Virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
+The blop runtime also comes with a Component and Lifecycle system.
 
-The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
+State management and routing is up the client but 2 convenient libraries are provided:
+
+  * A state managment system based on Proxies: https://github.com/batiste/blop-language/blob/master/example/lib/state.blop
+  * A routing library: https://github.com/batiste/blop-language/blob/master/example/lib/router.blop
+
+The HTML tags written with blop are converted into Virtual DOM nodes using the [snabbdom](https://github.com/snabbdom/snabbdom/) library.
 
  * [Install the example application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
  * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
