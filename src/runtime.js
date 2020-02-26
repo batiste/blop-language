@@ -257,14 +257,18 @@ const patch = snabbdom.init([
 ]);
 
 let renderPipeline = [];
+let animationRequest = false;
 
 function scheduleRender(node) {
   renderPipeline.push(node);
-  const rendering = [...renderPipeline];
-  renderPipeline = [];
-  window.requestAnimationFrame(() => {
-    rendering.forEach(node => node.partialRender());
-  });
+  if (!animationRequest) {
+    animationRequest = true;
+    window.requestAnimationFrame(() => {
+      renderPipeline.forEach(node => node.partialRender());
+      animationRequest = false;
+      renderPipeline = [];
+    });
+  }
 }
 
 function destroyUnreferencedComponents() {
