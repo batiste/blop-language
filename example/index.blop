@@ -3,6 +3,7 @@ import { DogPage } from './DogPage/DogPage.blop'
 import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { CounterPage } from './ComponentState/ComponentStatePage.blop'
+import { FetchPage } from './FetchPage/FetchPage.blop'
 import { saveState } from './services.blop'
 import './style.css' as style
 
@@ -27,7 +28,11 @@ def navigationLinks(state) {
     state.$.router.go('/state')
     e.preventDefault()
   }
-  return { memePage, dogPage, todoPage, petStorePage, statePage }
+  def fetchPage(e) {
+    state.$.router.go('/fetch')
+    e.preventDefault()
+  }
+  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
 }
 
 def linkList(state) {
@@ -47,6 +52,9 @@ def linkList(state) {
     </p>
     <p>
       <a href="/state" on={ click: links.statePage }>'Component state'</a>
+    </p>
+    <p>
+      <a href="/fetch" on={ click: links.fetchPage }>'Fetch state'</a>
     </p>
   </div>
 }
@@ -89,7 +97,8 @@ def navigation(state) {
         = navItem('petstore', links.petStorePage, 'Pet store')
         = navItem('meme', links.memePage, 'Memes')
         = navItem('todo', links.todoPage, 'A basic todo app')
-        = navItem('state', links.statePage, 'Demo for useState')
+        = navItem('state', links.statePage, 'Components and state')
+        = navItem('fetch', links.fetchPage, 'Fetch component')
       </ul>
       <div style={ float: 'right', display: 'flex' }>
         if (state.loading) {
@@ -127,6 +136,8 @@ Index = (state) => {
         <PetStore state=state></PetStore>
       } elseif state.page == 'state' {
         <CounterPage state=state></CounterPage>
+      } elseif state.page == 'fetch' {
+        <FetchPage state=state></FetchPage>
       } else {
         = linkList(state)
       }

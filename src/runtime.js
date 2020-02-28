@@ -46,6 +46,7 @@ class Component {
     this.state = {};
     this.context = {};
     this.mounted = false;
+    this.destroyed = false;
     cache[this.path] = this;
   }
 
@@ -55,12 +56,13 @@ class Component {
     currentNode = this;
     this._resetForRender();
     const newVnode = this.renderComponent();
-    patch(this.vnode, newVnode);
-    this.vnode = newVnode;
+    const thunk = patch(this.vnode, newVnode);
+    copyToThunk(thunk, this.vnode);
     currentNode = parentNode;
   }
 
   refresh() {
+    if (this.destroyed) return;
     scheduleRender(this);
   }
 
@@ -168,6 +170,7 @@ class Component {
   }
 
   _destroy() {
+    this.destroyed = true;
     this._unmount();
     this.parent = null;
     this.children = [];
@@ -257,18 +260,14 @@ const patch = snabbdom.init([
 ]);
 
 let renderPipeline = [];
-let animationRequest = false;
 
 function scheduleRender(node) {
   renderPipeline.push(node);
-  if (!animationRequest) {
-    animationRequest = true;
-    window.requestAnimationFrame(() => {
-      renderPipeline.forEach(node => node.partialRender());
-      animationRequest = false;
-      renderPipeline = [];
-    });
-  }
+  const rendering = [...renderPipeline];
+  renderPipeline = [];
+  window.requestAnimationFrame(() => {
+    rendering.forEach(node => node.partialRender());
+  });
 }
 
 function destroyUnreferencedComponents() {

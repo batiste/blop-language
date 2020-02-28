@@ -1,0 +1,24 @@
+
+import { Component } from 'blop'
+
+class FetchPage extends Component {
+
+  def render() {
+    <div>
+      <p>'Using onMount to fetch data'</p>
+      if this.list {
+        <ul>
+          for item in this.list {
+            <li>item.name</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  async def onMount() {
+    response = await fetch('https://swapi.co/api/people/')
+    this.list = (await response.json()).results
+    this.refresh()
+  }
+}

@@ -45,6 +45,10 @@ def createRouter(state, global) {
   router.add({ path: '/dogs', name: 'dog', handler: dogPageIndexHandler })
   router.add({ path: '/petstore', name: 'petstore', handler: petStorePageIndexHandler })
   router.add({ path: '/state', name: 'componentstate', handler: statePageHandler })
+  router.add({ path: '/fetch', name: 'fetch', handler: () => {
+    state.page = 'fetch'
+    console.log('fetch called')
+  } })
   router.add({ path: '/', name: 'root', handler: indexHandler })
 
   router.init()
