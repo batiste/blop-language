@@ -63,6 +63,7 @@ const builtin = {
   Proxy: { type: 'Object' },
   arguments: { type: 'Object' },
   this: { type: 'Reference' },
+  super: { type: 'Function' },
   ArrayBuffer: { type: 'Object' },
   SharedArrayBuffer: { type: 'Object' },
   Atomics: { type: 'Object' },

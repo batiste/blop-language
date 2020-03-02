@@ -139,7 +139,7 @@ function lookUp(dir, name) {
 }
 
 function getConfig() {
-  const filename = lookUp(__dirname, 'blop.config.js');
+  const filename = lookUp(process.cwd(), 'blop.config.js');
   if (!filename) {
     return {};
   }

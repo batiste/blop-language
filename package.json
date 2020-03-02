@@ -1,6 +1,6 @@
 {
   "name": "blop-language",
-  "version": "0.9.17",
+  "version": "0.9.19",
   "description": "Blop language is JavaScript-like language for the web",
   "main": "src/index.js",
   "loader": "src/loader.js",
