@@ -1,5 +1,7 @@
-# Blop
+# Blop linter
 
-Blop language linter server for vscode
+Blop linter is a Blop language linter server for vscode.
 
-<img src=https://raw.githubusercontent.com/batiste/blop-language/master/vscode/blop-linter/blop-linter.png width=280 height=100>
+It has the same capabilities than the blop compiler but gives you live error and warning on your code.
+
+<img src=https://raw.githubusercontent.com/batiste/blop-language/master/vscode/blop-linter/blop-linter.png width=600>
