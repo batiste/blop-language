@@ -4,7 +4,7 @@
 	"description": "A linter server for the language blop",
 	"author": "Batiste Bieler",
 	"license": "MIT",
-	"version": "1.0.21",
+	"version": "1.0.22",
 	"icon": "blop.png",
 	"repository": {
 		"type": "git",
