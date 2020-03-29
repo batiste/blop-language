@@ -23,6 +23,7 @@ State management and routing is up the client but 2 convenient libraries are pro
  
  * [Install the example application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
  * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
+ * [How do Blop Components work?](https://github.com/batiste/blop-language/wiki/Components)
 
 ## Language features
 
