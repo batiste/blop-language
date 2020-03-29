@@ -108,7 +108,7 @@ def navigation(state) {
         }
         = if state.error => <p>'Error 'state.error''</p>
         <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "style.btn"">
-          = 'Blop on github'
+          = 'Fork on github'
         </a>
         <button on={ click: saveStateEvent } class="btn btn-secondary "style.btn"">
           = 'Save locale state on server'
