@@ -110,6 +110,9 @@ def navigation(state) {
         <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "style.btn"">
           = 'Fork on github'
         </a>
+        <a href="https://github.com/batiste/blop-language/wiki" class="btn btn-secondary "style.btn"">
+          = 'Docs'
+        </a>
         <button on={ click: saveStateEvent } class="btn btn-secondary "style.btn"">
           = 'Save locale state on server'
         </button>
