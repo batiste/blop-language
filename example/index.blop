@@ -100,14 +100,17 @@ def navigation(state) {
         = navItem('state', links.statePage, 'Components and state')
         = navItem('fetch', links.fetchPage, 'Fetch component')
       </ul>
-      <div style={ float: 'right', display: 'flex' }>
+      <div class=style['right-buttons']>
         if (state.loading) {
           <div class="spinner-border text-primary" role="status" style={ marginRight: '1em' }>
             <span class="sr-only">'Loading...'</span>
           </div>
         }
         = if state.error => <p>'Error 'state.error''</p>
-        <button on={ click: saveStateEvent } class="btn btn-secondary">
+        <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "style.btn"">
+          = 'Blop on github'
+        </a>
+        <button on={ click: saveStateEvent } class="btn btn-secondary "style.btn"">
           = 'Save locale state on server'
         </button>
       </div>

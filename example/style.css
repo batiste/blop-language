@@ -2,3 +2,12 @@
 .container {
   margin: 2em auto;
 }
+
+.right-buttons {
+  display: flex;
+}
+
+.btn {
+  display: inline-block;
+  margin-right: 8px;
+}
