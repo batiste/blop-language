@@ -7,7 +7,6 @@
 import {
 	createConnection,
 	TextDocuments,
-	TextDocument,
 	Diagnostic,
 	DiagnosticSeverity,
 	ProposedFeatures,
@@ -16,9 +15,15 @@ import {
 	CompletionItem,
 	// CompletionItemKind,
 	TextDocumentPositionParams,
+	TextDocumentSyncKind,
+	InitializeResult,
 	DiagnosticRelatedInformation,
 	Location
 } from 'vscode-languageserver';
+
+import {
+	TextDocument
+} from 'vscode-languageserver-textdocument';
 
 const tokensDefinition = require('./tokensDefinition').tokensDefinition
 const parser = require('./parser');
@@ -35,7 +40,7 @@ let connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-let documents: TextDocuments = new TextDocuments();
+let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -55,16 +60,24 @@ connection.onInitialize((params: InitializeParams) => {
 		capabilities.textDocument.publishDiagnostics &&
 		capabilities.textDocument.publishDiagnostics.relatedInformation;
 
-	return {
+	const result: InitializeResult = {
 		capabilities: {
-			textDocumentSync: documents.syncKind,
+			textDocumentSync: TextDocumentSyncKind.Full,
 			// Tell the client that the server supports code completion
 			completionProvider: {
-        resolveProvider: true,
-        triggerCharacters: [ '.' ]
+				resolveProvider: true,
+				triggerCharacters: [ '.' ]
 			}
 		}
 	};
+	if (hasWorkspaceFolderCapability) {
+		result.capabilities.workspace = {
+			workspaceFolders: {
+				supported: true
+			}
+		};
+	}
+	return result;
 });
 
 connection.onInitialized(() => {

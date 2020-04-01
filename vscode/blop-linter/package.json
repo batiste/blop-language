@@ -4,7 +4,7 @@
 	"description": "A linter server for the language blop",
 	"author": "Batiste Bieler",
 	"license": "MIT",
-	"version": "1.0.25",
+	"version": "1.0.26",
 	"icon": "blop.png",
 	"repository": {
 		"type": "git",
@@ -16,7 +16,7 @@
 		"multi-root ready"
 	],
 	"engines": {
-		"vscode": "^1.33.0"
+		"vscode": "^1.43.0"
 	},
 	"activationEvents": [
 		"onLanguage:blop"
@@ -48,20 +48,18 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
-		"compile:client": "tsc -p ./client/tsconfig.json",
-		"compile:server": "tsc -p ./server/tsconfig.json",
-		"watch:client": "tsc -w -p ./client/tsconfig.json",
-		"watch:server": "tsc -w -p ./server/tsconfig.json",
-		"compile": "npm run compile:client && npm run compile:server",
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"test": "sh ./scripts/e2e.sh"
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.11.7",
-		"tslint": "^5.16.0",
-		"typescript": "^3.6.4"
+		"eslint": "^6.4.0",
+		"@typescript-eslint/parser": "^2.3.0",
+		"typescript": "^3.8.3"
 	},
 	"__metadata": {
 		"id": "07add166-e641-478f-9747-eca9ab6e361a",
