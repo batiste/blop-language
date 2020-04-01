@@ -1,6 +1,6 @@
 {
-	"name": "blop-server",
-	"description": "Example implementation of blop server in node.",
+	"name": "lsp-sample-server",
+	"description": "Example implementation of a language server in node.",
 	"version": "1.0.0",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
@@ -12,8 +12,6 @@
 		"url": "https://github.com/Microsoft/vscode-extension-samples"
 	},
 	"dependencies": {
-		"chalk": "^3.0.0",
-		"source-map": "^0.7.3",
 		"vscode-languageserver": "^6.1.1",
 		"vscode-languageserver-textdocument": "^1.0.1"
 	},

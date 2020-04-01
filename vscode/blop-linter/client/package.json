@@ -1,7 +1,7 @@
 {
 	"name": "lsp-sample-client",
-	"description": "VSCode part of blop language server",
-	"author": "Microsoft Corporation & Batiste Bieler",
+	"description": "VSCode part of a language server",
+	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"version": "0.0.1",
 	"publisher": "vscode",

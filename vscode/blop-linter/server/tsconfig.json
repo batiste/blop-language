@@ -1,20 +1,14 @@
 {
-	"extends": "../tsconfig.base.json",
 	"compilerOptions": {
-		"skipLibCheck": true,
 		"target": "es6",
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"sourceMap": true,
+		"strict": true,
 		"outDir": "out",
 		"rootDir": "src",
-		"lib": [ "es6" ],
 		"allowJs": true,
 	},
-	"include": [
-		"src"
-	],
-	"exclude": [
-		"node_modules"
-	]
+	"include": ["src"],
+	"exclude": ["node_modules", ".vscode-test"]
 }
