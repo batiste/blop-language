@@ -50,6 +50,6 @@ microseconds = (end - start) / 1000000
 
 test('long enough', () => {
   expect(str.split('\n').length > 4000).toBe(true)
-  expect(microseconds < 1500).toBe(true)
+  expect(microseconds < 3000).toBe(true)
 })
 
