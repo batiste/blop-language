@@ -1,0 +1,74 @@
+{
+	"name": "blop-linter",
+	"displayName": "Blop language linter",
+	"description": "A linter server for the language blop",
+	"author": "Batiste Bieler",
+	"license": "MIT",
+	"version": "1.0.27",
+	"icon": "blop.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/batiste/blop-language/vscode/blop-linter"
+	},
+	"publisher": "batistebieler",
+	"categories": [],
+	"keywords": [
+		"multi-root ready"
+	],
+	"engines": {
+		"vscode": "^1.43.0"
+	},
+	"activationEvents": [
+		"onLanguage:blop"
+	],
+	"main": "./client/out/extension",
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "Example configuration",
+			"properties": {
+				"blopServer.maxNumberOfProblems": {
+					"scope": "resource",
+					"type": "number",
+					"default": 100,
+					"description": "Controls the maximum number of problems produced by the server."
+				},
+				"blopServer.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+		"test": "sh ./scripts/e2e.sh"
+	},
+	"__metadata": {
+		"id": "07add166-e641-478f-9747-eca9ab6e361a",
+		"publisherDisplayName": "Batiste Bieler",
+		"publisherId": "c8efe3df-da8c-47b9-9227-097d18e9b6f5"
+	},
+	"devDependencies": {
+		"@types/mocha": "^5.2.7",
+		"mocha": "^6.2.2",
+		"@types/node": "^12.11.7",
+		"eslint": "^6.4.0",
+		"@typescript-eslint/parser": "^2.3.0",
+		"typescript": "^3.8.3"
+	},
+	"dependencies": {
+		"chalk": "^3.0.0",
+		"source-map": "^0.7.3"
+	}
+}

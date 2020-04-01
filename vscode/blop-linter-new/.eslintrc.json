@@ -1,0 +1,23 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module"
+	},
+	"env": {
+		"node": true
+	},
+	"rules": {
+		"no-tabs": "off",
+		"no-unused-vars": "off",
+		"max-len": "off",
+		"comma-dangle": "off",
+		"prefer-destructuring": "off",
+		"semi": "error",
+		"no-extra-semi": "warn",
+		"curly": "warn",
+		"quotes": ["error", "single", { "allowTemplateLiterals": true } ],
+		"eqeqeq": "error",
+		"indent": ["warn", "tab", { "SwitchCase": 1 } ]
+	}
+}
