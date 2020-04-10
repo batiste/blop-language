@@ -137,9 +137,12 @@ test('attribut with dash', () => {
   expect(test.data.attrs['data-id']).toBe('1')
 })
 
-test('test loop, with lifecycle', () => {
+test('test loop, with lifecycle', (done) => {
   loop4([1, 2, 3])
-  expect(lifeCycleContent).toEqual([1, 2, 3])
+  setTimeout(() => {
+    expect(lifeCycleContent).toEqual([1, 2, 3])
+    done()
+  }, 100)
 })
 
 lifeCycleCalled = 0
@@ -160,13 +163,16 @@ def instanciateComponent() {
   </div>
 }
 
-test('test Component lifecycle', async () => {
+test('test Component lifecycle', async (done) => {
   window.requestAnimationFrame = (cb) => cb()
   { refresh, init } = mount(document.body, instanciateComponent)
   _vnode = init()
-  expect(lifeCycleCalled).toBe(6)
-  refresh((_time) => {
-    // weird...?
-    expect(lifeCycleCalled).toBe(12)
-  })
+  setTimeout(() => {
+    expect(lifeCycleCalled).toBe(6)
+    refresh((_time) => {
+      // weird...?
+      expect(lifeCycleCalled).toBe(12)
+    })
+    done()
+  }, 100)
 })

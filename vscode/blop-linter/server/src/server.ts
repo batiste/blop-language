@@ -189,7 +189,6 @@ function generateDiagnosis(error: BlopError, textDocument: TextDocument,
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	console.log('validateTextDocument');
 	// In this simple example we get the settings for every validate run.
 	const settings = await getDocumentSettings(textDocument.uri);
 	const text = textDocument.getText();
