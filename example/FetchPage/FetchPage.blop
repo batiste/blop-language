@@ -17,7 +17,7 @@ class FetchPage extends Component {
   }
 
   async def onMount() {
-    response = await fetch('https://swapi.co/api/people/')
+    response = await fetch('https://swapi.py4e.com/api/people/')
     this.list = (await response.json()).results
     this.refresh()
   }

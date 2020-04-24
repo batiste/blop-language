@@ -134,7 +134,7 @@ CounterPage = (_attributes, _children, node) => {
     <ComponentWithClass text='world' />
     <h3>'useState'</h3>
     <p>'An example on how you can have state stored inside a component.
-      Setting a state in a component will re-render this component
+      Setting a state in a component will re-render this component.
       Reloading the page will reset the state.'</p>
     <Animation>'Animation 0'</Animation>
     <Animation initial=1>'Animation 1'</Animation>
