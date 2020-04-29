@@ -45,6 +45,7 @@ class Component {
     this.parent = currentNode;
     this.state = {};
     this.context = {};
+    this.onChangeRegistry = {};
     this.mounted = false;
     this.destroyed = false;
     cache[this.path] = this;
@@ -68,7 +69,9 @@ class Component {
 
   renderComponent() {
     try {
-      return this.componentFct(this.attributes, this.children, this);
+      const node = this.componentFct(this.attributes, this.children, this);
+      this.checkOnChange();
+      return node;
     } catch (e) {
       console.error(e);
       return h('span', {}, [e.message]);
@@ -78,6 +81,21 @@ class Component {
   onMount() { return this; }
 
   onUnmount() { return this; }
+
+  onChange(attribute, callback) {
+    const value = this.attributes[attribute];
+    this.onChangeRegistry[attribute] = { callback, value };
+  }
+
+  checkOnChange() {
+    Object.keys(this.onChangeRegistry).forEach((attribute) => {
+      const record = this.onChangeRegistry[attribute];
+      if (record.value !== this.attributes[attribute]) {
+        record.value = this.attributes[attribute];
+        record.callback();
+      }
+    });
+  }
 
   mount(func) {
     if (this.mounted) return this;
