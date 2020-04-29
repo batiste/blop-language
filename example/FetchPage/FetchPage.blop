@@ -17,7 +17,10 @@ class FetchComponent extends Component {
   }
 
   async def fetchData() {
-    response = await fetch(this.attributes.url)
+    if this.controller => this.controller.abort()
+    this.controller = new AbortController()
+    signal = this.controller.signal
+    response = await fetch(this.attributes.url, { signal })
     this.list = (await response.json()).results
     this.refresh()
   }
@@ -25,6 +28,10 @@ class FetchComponent extends Component {
   def onMount() {
     this.fetchData()
     this.onChange('url', () => this.fetchData())
+  }
+
+  def onUnmount() {
+    if this.controller => this.controller.abort()
   }
 }
 

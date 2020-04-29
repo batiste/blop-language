@@ -1,9 +1,10 @@
 import { default as fetch } from 'node-fetch'
 
-async def getPets(state) {
+async def findAvailablePets(state, controller) {
   state.loading = true
+  signal = controller.signal
   try {
-    response = await fetch(`https://petstore.swagger.io/v2/pet/findByStatus?status=available`)
+    response = await fetch(`https://petstore.swagger.io/v2/pet/findByStatus?status=available`, { signal })
   } catch e {
     console.log(e)
     state.loading = e.message
@@ -13,6 +14,13 @@ async def getPets(state) {
   
   state.loading = false
   state.petStore.pets = petList
+  return controller
+}
+
+def getPets(state) {
+  controller = new AbortController()
+  findAvailablePets(state, controller)
+  return controller
 }
 
 async def deletePets(pet) {

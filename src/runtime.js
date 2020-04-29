@@ -70,7 +70,7 @@ class Component {
   renderComponent() {
     try {
       const node = this.componentFct(this.attributes, this.children, this);
-      this.checkOnChange();
+      this._checkOnChange();
       return node;
     } catch (e) {
       console.error(e);
@@ -87,7 +87,7 @@ class Component {
     this.onChangeRegistry[attribute] = { callback, value };
   }
 
-  checkOnChange() {
+  _checkOnChange() {
     Object.keys(this.onChangeRegistry).forEach((attribute) => {
       const record = this.onChangeRegistry[attribute];
       if (record.value !== this.attributes[attribute]) {

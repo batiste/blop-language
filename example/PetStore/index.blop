@@ -36,10 +36,16 @@ def PetStore(attributes, _chilren, node) {
   pageIndex = petStore.pageIndex
   start = pageIndex * pageSize
   page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
+  controller = null
 
   node.mount(() => {
     console.log('mount PetStore')
-    getPets(state)
+    controller := getPets(state)
+  })
+
+  node.unmount(() => {
+    console.log('unmount PetStore')
+    if controller => controller.abort()
   })
 
   deletePet = (index, pet) => () => {

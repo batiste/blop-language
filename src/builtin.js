@@ -69,6 +69,7 @@ const builtin = {
   Atomics: { type: 'Object' },
   DataView: { type: 'Object' },
   JSON: { type: 'Object' },
+  AbortController: { type: 'Object' },
   __dirname: { type: 'String' },
 };
 
