@@ -1,6 +1,6 @@
 # The blop language
 
-<img src="/img/blop.png" width="140">
+<img src="/img/blop.png" width="120">
 
 Blop is a language for the Web that can natively generates Virtual DOM using a familiar HTML like syntax. The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
 Blop is using [snabbdom](https://github.com/snabbdom/snabbdom/) library to handle the virtual nodes.
