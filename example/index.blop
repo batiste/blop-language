@@ -83,7 +83,7 @@ def navigation(state) {
     <a class="navbar-brand" href="/">
       <img
         src="/blop/favicon.ico"
-        width="38" height="30" class="d-inline-block align-top" alt="" />
+        width="37" height="33" class="d-inline-block align-top" alt="" />
       = ' Blop'
     </a>
     <button class="navbar-toggler" type="button"
