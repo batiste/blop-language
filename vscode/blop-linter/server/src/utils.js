@@ -153,13 +153,17 @@ function lookUp(dir, name) {
   }
 }
 
-function getConfig() {
-  const filename = lookUp(__dirname, 'blop.config.js');
+function getConfig(filename) {
   if (!filename) {
     return {};
   }
+  const dirname = path.dirname(filename) || process.cwd();
+  const config = lookUp(dirname, 'blop.config.js');
+  if (!config) {
+    return {};
+  }
   // eslint-disable-next-line import/no-dynamic-require global-require
-  return require(filename);
+  return require(config);
 }
 
 module.exports = {
