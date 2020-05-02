@@ -2,6 +2,7 @@
 module.exports = {
   'globals': {
     'window': true,
+    'global': true,
     'module': true,
     'AbortController': true,
     'jest': true,

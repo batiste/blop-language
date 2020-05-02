@@ -1,9 +1,5 @@
 import { mount } from 'blop'
 
-beforeEach(() => {
-  window.requestAnimationFrame = (cb) => setTimeout(cb, 10)
-})
-
 def render(text) {
   <h1>text</h1>
 }
@@ -161,7 +157,6 @@ def instanciateComponent() {
 }
 
 test('test Component lifecycle', async (done) => {
-  window.requestAnimationFrame = (cb) => cb()
   { refresh, init } = mount(document.body, instanciateComponent)
   _vnode = init()
   setTimeout(() => {
