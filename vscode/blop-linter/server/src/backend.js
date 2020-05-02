@@ -6,30 +6,6 @@ const { all } = require('./builtin');
 const parser = require('./parser');
 const { tokensDefinition } = require('./tokensDefinition');
 
-const config = utils.getConfig();
-const configGlobals = config.globals || {};
-
-const keysCache = {};
-
-function getExports(filename) {
-  const stats = fs.statSync(filename);
-  if (keysCache[filename] && keysCache[filename].mtime.getTime() === stats.mtime.getTime()) {
-    return keysCache[filename];
-  }
-  const source = fs.readFileSync(filename).toString('utf8');
-  const stream = parser.tokenize(tokensDefinition, source);
-  const tree = parser.parse(stream);
-  if (tree.success) {
-    const result = _backend(tree, stream, source, filename);
-    keysCache[filename] = {
-      keys: result.exportKeys,
-      objects: result.exportObjects,
-      mtime: stats.mtime,
-    };
-    return keysCache[filename];
-  }
-  return [];
-}
 
 function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false) {
   let uid_i = 0;
@@ -48,6 +24,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const exportObjects = {};
   let exportKeys = [];
   const dependencies = [];
+
+  const config = utils.getConfig(_filename);
+  const configGlobals = config.globals || {};
+  const keysCache = {};
 
   const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
   const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
@@ -68,6 +48,26 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       });
     }
   };
+
+  function getExports(filename) {
+    const stats = fs.statSync(filename);
+    if (keysCache[filename] && keysCache[filename].mtime.getTime() === stats.mtime.getTime()) {
+      return keysCache[filename];
+    }
+    const source = fs.readFileSync(filename).toString('utf8');
+    const stream = parser.tokenize(tokensDefinition, source);
+    const tree = parser.parse(stream);
+    if (tree.success) {
+      const result = _backend(tree, stream, source, filename);
+      keysCache[filename] = {
+        keys: result.exportKeys,
+        objects: result.exportObjects,
+        mtime: stats.mtime,
+      };
+      return keysCache[filename];
+    }
+    return [];
+  }
 
   const currentNamespacesCDT = () => namespacesCDT[namespacesCDT.length - 1];
   const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();

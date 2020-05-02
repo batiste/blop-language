@@ -9,10 +9,10 @@ const utils = require('./utils');
 const parser = require('./parser');
 const { inference } = require('./inference');
 
-const config = utils.getConfig();
 
 function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
   const name = require.resolve(path.join(__dirname, './runtime.js'));
+  const config = utils.getConfig(filename);
   let file;
   if (env === 'webpack') {
     file = stringifyRequest(this, `!${name}`);
