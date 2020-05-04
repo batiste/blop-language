@@ -157,15 +157,15 @@ def instanciateComponent() {
 }
 
 test('test Component lifecycle', async (done) => {
+  jest.useFakeTimers()
   { refresh, init } = mount(document.body, instanciateComponent)
   _vnode = init()
-  setTimeout(() => {
-    expect(lifeCycleCalled).toBe(6)
-    expect(lifeCycleContent).toEqual([1, 2, 3])
-    refresh((_time) => {
-      // weird...?
-      expect(lifeCycleCalled).toBe(12)
-    })
-    done()
-  }, 100)
+  jest.runAllTimers()
+  expect(lifeCycleCalled).toBe(6)
+  expect(lifeCycleContent).toEqual([1, 2, 3])
+  refresh((_time) => {
+    // weird...?
+    expect(lifeCycleCalled).toBe(12)
+  })
+  done()
 })
