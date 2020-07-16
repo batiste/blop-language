@@ -8,7 +8,7 @@ router = createRouter(proxiedState, window)
 
 // The render function for this application
 render = () => {
-  proxiedState.$.flush()
+  proxiedState.$.flush() // full re-render: we can flush all recorded state changes
   tree = Index(proxiedState)
   console.log('Client renderer executed')
   return tree
@@ -21,12 +21,12 @@ init()
 refreshCount = 0
 maxRefreshCount = 10
 
-// called after Blop has finished rendering
+// Called after Blop has finished rendering
 def refreshCallback(time, path) {
   if time > 50 => console.log(`Slow rendering time `time`ms triggered by `path``)
 
   // security to avoid crashing when the state is accidentally modified
-  // whithing a render function of a Component
+  // whithin the render function of a Component
   if (proxiedState.hasChanged()) {
     refreshCount := refreshCount + 1
     if (refreshCount >= maxRefreshCount) {
@@ -44,7 +44,7 @@ Refresh runtime has stopped in order to avoid an infinite loop. Refresh has been
   }
 }
 
-// listen to any state change, and refresh when that happens
+// Listen to any state change, and refresh when that happens
 proxiedState.$.listen((path) => {
   refresh((time) => {
     refreshCallback(time, path)
