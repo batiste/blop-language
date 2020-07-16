@@ -14,7 +14,7 @@ The blop runtime also comes with a Component and Lifecycle system.
 
 State management and routing can be up to you, but 2 small libraries provide the basics to get started
 
- * [A state managment system based on Proxies](https://github.com/batiste/blop-language/blob/master/example/lib/state.blop)
+ * [A state managment system based on Proxies](https://github.com/batiste/blop-language/wiki/State-managment)
  * [A routing library](https://github.com/batiste/blop-language/blob/master/example/lib/router.blop)
  
  <img src="/img/carbon.png" width="700">
