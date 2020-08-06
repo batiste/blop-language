@@ -152,7 +152,7 @@ CounterPage = (_attributes, _children, node) => {
       trigger re-render in the listening children.'</p>
     <Intermediary />
     <Interceptor />
-    <button on={ click: changeValue }>'Change value of the context'</button>
+    <button on={ click: changeValue } class="btn btn-secondary">'Change value of the context'</button>
     <h3>'lifecycle'</h3>
     <p>'lifecycle gives you access to the snabbdom lifecycle hooks directly from a component.'</p>
     <ClickCounter />

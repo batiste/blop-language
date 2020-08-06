@@ -50,10 +50,11 @@ class FetchPage extends Component {
   def render() {
     <div>
       <p>'Using onMount to fetch data, and onChange to react to attribute changes'</p>
-      <button on={ click: () => this.change('https://swapi.py4e.com/api/people/') }>
+      <button class="btn btn-secondary" on={ click: () => this.change('https://swapi.py4e.com/api/people/') }>
         = 'People'
       </button>
-      <button on={ click: () => this.change('https://swapi.py4e.com/api/vehicles/') }>
+      <span>' '</span>
+      <button class="btn btn-secondary" on={ click: () => this.change('https://swapi.py4e.com/api/vehicles/') }>
         = 'Vehicle'
       </button>
       <hr/>
