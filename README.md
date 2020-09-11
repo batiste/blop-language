@@ -10,7 +10,7 @@ You can mix any statement, expressions, and HTML like syntax within the same fun
 
 The blop runtime also comes with a Component and Lifecycle system.
 
-[Example project from this repository](https://batiste.info/blop/example/)
+[Example project from this repository](https://batiste.github.io/blop/example/)
 
 State management and routing can be up to you, but 2 small libraries provide the basics to get started
 
