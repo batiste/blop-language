@@ -311,10 +311,10 @@ function mount(dom, render) {
   let vnode; let requested;
   cache = {};
   nextCache = {};
-  const target = window.document.createElement('div');
-  dom.innerHTML = '';
-  dom.appendChild(target);
   function init() {
+    const target = window.document.createElement('div');
+    dom.innerHTML = '';
+    dom.appendChild(target);
     newRoot();
     vnode = render();
     vnode = patch(toVNode(target), vnode);
