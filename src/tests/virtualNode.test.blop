@@ -156,6 +156,27 @@ def instanciateComponent() {
   </div>
 }
 
+def emptyResponse(empty) {
+  if empty {
+    return
+  } else {
+    <div>'not empty'</div>
+  }
+}
+
+def testEmpty(empty) {
+  <div>
+    = emptyResponse(empty)
+  </div>
+}
+
+test('function can return empty virtual node', () => {
+  test = testEmpty(true)
+  expect(test.children[0]).toBe(undefined)
+  test := testEmpty(false)
+  expect(test.children[0].children[0].text).toBe('not empty')
+})
+
 // this test doesn't run porperly on jenkins...
 // test('test Component lifecycle', async (done) => {
 //   jest.useFakeTimers()
