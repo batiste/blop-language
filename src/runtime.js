@@ -295,6 +295,7 @@ function scheduleRender(node) {
 function destroyUnreferencedComponents() {
   const keysCache = Object.keys(cache);
   const keysNextCache = Object.keys(nextCache);
+  // O(n2), not great
   const difference = keysCache.filter(x => !keysNextCache.includes(x));
   difference.forEach(path => cache[path]._destroy());
 }
