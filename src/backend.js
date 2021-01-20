@@ -6,6 +6,55 @@ const { all } = require('./builtin');
 const parser = require('./parser');
 const { tokensDefinition } = require('./tokensDefinition');
 
+class Namespace {
+  constructor(type) {
+    this.names = {};
+    this.type = type;
+  }
+}
+
+class NamespacesStack {
+  constructor() {
+    this.namespaces = [];
+  }
+
+  add(type) {
+    const ns = new Namespace(type);
+    this.namespaces.push(ns);
+    return ns;
+  }
+
+  pop(type) {
+    const scope = this.namespaces.pop();
+    if (scope.type !== type) {
+      throw Error(`Expected scope ${type}, got ${scope.type}`);
+    }
+    return scope;
+  }
+
+  current() {
+    return this.namespaces[this.namespaces.length - 1];
+  }
+
+  type(type) {
+    for (let i = this.namespaces.length - 1; i >= 0; i--) {
+      const n = this.namespaces[i];
+      if (n.type === type) {
+        return n;
+      }
+    }
+  }
+
+  filter(type) {
+    const l = this.namespaces.filter(n => n.type === type);
+    return l;
+  }
+
+  blocks() {
+    return this.namespaces.filter(n => ['fct', 'loop', 'cdt'].includes(n.type));
+  }
+}
+
 
 function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false) {
   let uid_i = 0;
@@ -17,10 +66,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const errors = [];
   const warnings = [];
   const checkFilename = _filename;
-  const namespacesVN = [{}]; // namespace for virtual nodes
-  const namespacesFCT = [{}]; // namespace for functions
-  const namespacesCDT = [{}]; // namespace for conditions
-  const namespacesLOOP = [{}];
+
+  const namespaces = new NamespacesStack();
+  namespaces.add('fct');
+  namespaces.add('vn');
+  namespaces.add('cdt');
+  namespaces.add('loop');
+
   const exportObjects = {};
   let exportKeys = [];
   const dependencies = [];
@@ -29,14 +81,15 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const configGlobals = config.globals || {};
   const keysCache = {};
 
-  const currentNameSpaceVN = () => namespacesVN[namespacesVN.length - 1];
-  const addNameSpaceVN = () => namespacesVN.push({}) && currentNameSpaceVN();
-  const popNameSpaceVN = () => namespacesVN.pop();
+  const currentNameSpaceVN = () => namespaces.type('vn').names;
+  const addNameSpaceVN = () => namespaces.add('vn').names;
+  const popNameSpaceVN = () => namespaces.pop('vn').names;
 
-  const currentNameSpaceFCT = () => namespacesFCT[namespacesFCT.length - 1];
-  const addNameSpaceFCT = () => namespacesFCT.push({}) && currentNameSpaceFCT();
+  const currentNameSpaceFCT = () => namespaces.type('fct').names;
+  const addNameSpaceFCT = () => namespaces.add('fct').names;
+
   const popNameSpaceFCT = () => {
-    const ns = namespacesFCT.pop();
+    const ns = namespaces.pop('fct').names;
     if (ns) {
       Object.keys(ns).forEach((name) => {
         if (all[name] || configGlobals[name] || name.startsWith('_')) {
@@ -69,13 +122,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     return [];
   }
 
-  const currentNamespacesCDT = () => namespacesCDT[namespacesCDT.length - 1];
-  const addNameSpaceCDT = () => namespacesCDT.push({}) && currentNamespacesCDT();
-  const popNameSpaceCDT = () => namespacesCDT.pop();
+  const currentNamespacesCDT = () => namespaces.type('cdt').names;
+  const addNameSpaceCDT = () => namespaces.add('cdt').names;
+  const popNameSpaceCDT = () => namespaces.pop('cdt').names;
 
-  const currentNamespacesLOOP = () => namespacesLOOP[namespacesLOOP.length - 1];
-  const addNameSpaceLOOP = () => namespacesLOOP.push({}) && currentNamespacesLOOP();
-  const popNameSpaceLOOP = () => namespacesLOOP.pop();
+  const currentNamespacesLOOP = () => namespaces.type('loop').names;
+  const addNameSpaceLOOP = () => namespaces.add('loop').names;
+  const popNameSpaceLOOP = () => namespaces.pop('loop').names;
 
   function generateError(node, message, warning = false) {
     const token = stream[node.stream_index];
@@ -103,7 +156,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
 
   function checkRedefinition(name, node, explicit_assign = false) {
     if (explicit_assign) return;
-    namespacesFCT.slice().reverse().forEach((ns) => {
+    namespaces.blocks().reverse().forEach((ns) => {
       const upperScopeNode = ns[name];
       if (upperScopeNode) {
         const { token } = upperScopeNode;
@@ -157,9 +210,15 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return;
     }
     let defined = false;
-    namespacesFCT.slice().reverse().forEach((ns) => {
-      if (ns[name]) {
-        ns[name].used = true;
+    // namespacesLOOP.slice().reverse().forEach((ns) => {
+    //   if (ns[name]) {
+    //     ns[name].used = true;
+    //     defined = true;
+    //   }
+    // });
+    namespaces.filter('fct').reverse().forEach((ns) => {
+      if (ns.names[name]) {
+        ns.names[name].used = true;
         defined = true;
       }
     });
@@ -180,7 +239,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     if (closing) {
       opening.len = closing.start - opening.start + closing.len;
     }
-    if (namespacesFCT.length <= 1) {
+    if (namespaces.filter('fct').length <= 1) {
       generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
     }
 
@@ -191,9 +250,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     if (!parent) {
       if (currentFctNS._returnVirtualNode) {
         generateError(opening, 'A root virtual node is already defined in this function');
-      } else if (namespacesCDT.length > 1) {
+      } else if (namespaces.filter('cdt').length > 1) {
         let isRedefined = false;
-        namespacesCDT.slice().reverse().forEach((ns) => {
+        namespaces.filter('cdt').reverse().forEach((ns) => {
           if (ns._returnVirtualNode) {
             isRedefined = true;
           }
@@ -846,13 +905,13 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'return': (node) => {
-      if (namespacesFCT.length <= 1) {
+      if (namespaces.filter('fct').length <= 1) {
         generateError(node, 'return statement outside of a function scope');
       }
       return ['return '];
     },
     'break': (node) => {
-      if (namespacesLOOP.length <= 1) {
+      if (namespaces.filter('loop').length <= 1) {
         generateError(node, 'break statement outside of a loop scope');
       }
       return ['break'];
@@ -867,7 +926,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return ['await '];
     },
     'continue': (node) => {
-      if (namespacesLOOP.length <= 1) {
+      if (namespaces.filter('loop').length <= 1) {
         generateError(node, 'continue statement outside of a loop scope');
       }
       return ['continue'];

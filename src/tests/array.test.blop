@@ -16,3 +16,16 @@ test('array access', () => {
   expect(array[1]).toBe(4)
   expect(squares[1]).toBe(4)
 })
+
+def arrayScope() {
+  numbers = [1, 2, 3]
+  for n in numbers: array {
+    n := n + 1
+  }
+  // n := 1 + n
+  return numbers
+}
+
+test('array scope', () => {
+  expect(arrayScope()[0]).toBe(1)
+})
