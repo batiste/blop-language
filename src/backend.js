@@ -33,7 +33,8 @@ class ScopesStack {
   }
 
   current() {
-    return this.scopes[this.scopes.length - 1];
+    const scopes = this.blocks();
+    return scopes[scopes.length - 1];
   }
 
   type(type) {
@@ -46,12 +47,29 @@ class ScopesStack {
   }
 
   filter(type) {
-    const l = this.scopes.filter(n => n.type === type);
-    return l;
+    return this.scopes.filter(n => n.type === type);
   }
 
   blocks() {
     return this.scopes.filter(n => ['fct', 'loop', 'cdt'].includes(n.type));
+  }
+
+  parentFrom(type, scope) {
+    let found = false;
+    for (let i = this.scopes.length - 1; i >= 0; i--) {
+      const n = this.scopes[i];
+      if (n.names === scope) {
+        found = true;
+      }
+      if (found && n.type === type) {
+        return n;
+      }
+    }
+  }
+
+  names(type) {
+    const scopes = this.filter(type);
+    return scopes[scopes.length - 1].names;
   }
 }
 
@@ -150,6 +168,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     if (!options.token) {
       token = node;
     }
+    // const ns = scopes.current().names;
     const ns = currentNameSpaceFCT();
     ns[name] = { node, token, hoist: !!options.hoist };
   }
@@ -210,13 +229,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return;
     }
     let defined = false;
-    // namespacesLOOP.slice().reverse().forEach((ns) => {
-    //   if (ns[name]) {
-    //     ns[name].used = true;
-    //     defined = true;
-    //   }
-    // });
-    scopes.filter('fct').reverse().forEach((ns) => {
+    scopes.blocks().reverse().forEach((ns) => {
       if (ns.names[name]) {
         ns.names[name].used = true;
         defined = true;
@@ -231,7 +244,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     const currentFctNS = currentNameSpaceFCT();
     const currentCdtNS = currentNamespacesCDT();
     const currentLoopNS = currentNamespacesLOOP();
-    const parent = currentNameSpaceVN().currentVNode;
+    const parent = currentNameSpaceVN().__currentVNode;
     const { opening, closing } = node.named;
     if (node.type === 'virtual_node_exp') {
       return;
@@ -243,27 +256,28 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
     }
 
-    if (!parent && currentLoopNS.functionNS === currentFctNS) {
+    const loopFctParent = scopes.parentFrom('fct', currentLoopNS);
+    if (!parent && loopFctParent && loopFctParent.names === currentFctNS) {
       generateError(opening, 'Root virtual node are return satements. The loop will not iterate. Wrap the loop in a virtual node or build an array of virtual node', true);
     }
 
     if (!parent) {
-      if (currentFctNS._returnVirtualNode) {
+      if (currentFctNS.__returnVirtualNode) {
         generateError(opening, 'A root virtual node is already defined in this function');
       } else if (scopes.filter('cdt').length > 1) {
         let isRedefined = false;
         scopes.filter('cdt').reverse().forEach((ns) => {
-          if (ns._returnVirtualNode) {
+          if (ns.__returnVirtualNode) {
             isRedefined = true;
           }
         });
         if (isRedefined) {
           generateError(opening, 'A root virtual node is already defined in this branch.');
         } else {
-          currentCdtNS._returnVirtualNode = { node, hoist: false, used: true };
+          currentCdtNS.__returnVirtualNode = { node, hoist: false, used: true };
         }
       } else {
-        currentFctNS._returnVirtualNode = { node, hoist: false, used: true };
+        currentFctNS.__returnVirtualNode = { node, hoist: false, used: true };
       }
     }
   }
@@ -366,14 +380,14 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'SCOPED_STATEMENT': (node) => {
       const output = [];
       const currentFctNS = currentNameSpaceFCT();
-      const alreadyVnode = !!currentFctNS._returnVirtualNode;
+      const alreadyVnode = !!currentFctNS.__returnVirtualNode;
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }
-      const parent = currentNameSpaceVN().currentVNode;
+      const parent = currentNameSpaceVN().__currentVNode;
       // small improvement but this doesn't account for normal returns
       // or conditions
-      if (!parent && currentFctNS._returnVirtualNode && alreadyVnode) {
+      if (!parent && currentFctNS.__returnVirtualNode && alreadyVnode) {
         generateError(node, 'Code is unreachable after root virtual node', true);
       }
       return output;
@@ -528,10 +542,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
 
       registerVirtualNode(node);
 
-      const parent = currentNameSpaceVN().currentVNode;
+      const parent = currentNameSpaceVN().__currentVNode;
       const _uid = uid();
       output.push(`const ${_uid}c = []; const ${_uid}a = {};`);
-      addNameSpaceVN().currentVNode = _uid;
+      addNameSpaceVN().__currentVNode = _uid;
       node.named.attrs ? node.named.attrs.forEach(
         attr => output.push(...generateCode(attr)),
       ) : null;
@@ -583,7 +597,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     },
     'virtual_node_assign': (node) => {
       const output = [];
-      const parent = currentNameSpaceVN().currentVNode;
+      const parent = currentNameSpaceVN().__currentVNode;
       const cn = currentNameSpaceFCT();
       const a_uid = uid();
       cn[a_uid] = node;
@@ -597,7 +611,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     },
     'virtual_node_attributes': (node) => {
       const output = [];
-      const _uid = currentNameSpaceVN().currentVNode;
+      const _uid = currentNameSpaceVN().__currentVNode;
       output.push(` ${_uid}a['${node.named.name.value}'] = `);
       if (node.named.exp) {
         output.push(...generateCode(node.named.exp));
@@ -609,18 +623,16 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'for_loop': (node) => {
-      const ns = currentNameSpaceFCT();
       const lns = addNameSpaceLOOP();
-      lns.functionNS = ns;
       const output = [];
       const key = (node.named.key && node.named.key.value) || `_i${uid()}`;
       const { value } = node.named.value;
       checkRedefinition(key, node.named.key);
       checkRedefinition(node.named.value.value, node.named.value);
-      ns[key] = {
+      lns[key] = {
         node: node.named.key, hoist: false, export: false, token: node.named.key,
       };
-      ns[value] = {
+      lns[value] = {
         node: node.named.value,
         export: false, hoist: false, token: node.named.value,
       };
@@ -724,9 +736,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'while_loop': (node) => {
-      const ns = currentNameSpaceFCT();
-      const lns = addNameSpaceLOOP();
-      lns.functionNS = ns;
+      addNameSpaceLOOP();
       const output = [];
       output.push('while(');
       output.push(...generateCode(node.named.exp));

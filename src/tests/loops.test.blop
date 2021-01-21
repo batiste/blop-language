@@ -17,8 +17,10 @@ while d == 4 {
 
 c = 0
 myobject = {}
+outkey = undefined
 for key, value in [1, 10, 100, 1000, 10000]: array {
   hello = 12
+  outkey := key
   if value > 9999 {
     break
   }
@@ -47,5 +49,5 @@ test('loops', () => {
   expect(newArray).toEqual([{ key: 0, value: 'hello' }, { key: 1, value: 'world' }])
   expect(newArray2).toEqual([{ key: 'a', value: 1 }, { key: 'b', value: 2 }])
   expect(hello).toBe(12)
-  expect(key).toBe(4)
+  expect(outkey).toBe(4)
 })

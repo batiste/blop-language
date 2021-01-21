@@ -21,8 +21,13 @@ def arrayScope() {
   numbers = [1, 2, 3]
   for n in numbers: array {
     n := n + 1
+    // <p></p>
   }
-  // n := 1 + n
+  // numbers.push(1 + n)
+  if true {
+    b = 1
+  }
+  numbers.push(b)
   return numbers
 }
 
