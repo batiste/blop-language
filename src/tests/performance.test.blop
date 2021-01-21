@@ -34,7 +34,7 @@ class ComponentWithClass"n" extends Component {
 }
 
 str = ''
-for index in Array(200).fill(null) {
+for _index in Array(200).fill(null) {
   str := str + code()
 }
 

@@ -23,8 +23,10 @@ def arrayScope() {
     n := n + 1
     // <p></p>
   }
+  // this should fail
   // numbers.push(1 + n)
   if true {
+    // this should fail as well
     b = 1
   }
   numbers.push(b)
