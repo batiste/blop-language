@@ -18,8 +18,9 @@ while d == 4 {
 c = 0
 myobject = {}
 outkey = undefined
+hello = undefined
 for key, value in [1, 10, 100, 1000, 10000]: array {
-  hello = 12
+  hello := 12
   outkey := key
   if value > 9999 {
     break

@@ -382,7 +382,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     },
     'SCOPED_STATEMENT': (node) => {
       const output = [];
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       const alreadyVnode = !!scope.__returnVirtualNode;
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
@@ -398,7 +398,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'annotation': () => [],
     'assign': (node) => {
       const output = [];
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       if (node.named.name) {
         if (!node.named.explicit_assign) {
           checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
@@ -601,7 +601,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     'virtual_node_assign': (node) => {
       const output = [];
       const parent = currentScopeVN().__currentVNode;
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       const a_uid = uid();
       scope.names[a_uid] = node;
       output.push(`${a_uid} = `);
@@ -804,7 +804,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     },
     'class_def': (node) => {
       const output = [];
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       checkRedefinition(node.named.name.value, node.named.name);
       scope.names[node.named.name.value] = { node, hoist: false, token: node.named.name };
       output.push('class ');
@@ -841,7 +841,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'func_def_params': (node) => {
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       registerName(node.named.name.value, node.named.name);
       scope.names[node.named.name.value] = {
         node,
@@ -861,7 +861,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'func_body_fat': (node) => {
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       let output = [];
       if (node.named.exp) {
         output = generateCode(node.named.exp);
@@ -887,7 +887,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push(...generateCode(node.named.try));
       node.named.statstry.forEach(stat => output.push(...generateCode(stat)));
       output.push(...generateCode(node.named.catch));
-      const scope = currentScopeFCT();
+      const scope = scopes.currentBlock();
       scope.names[node.named.name.value] = {
         node: node.named.name,
         hoist: false,

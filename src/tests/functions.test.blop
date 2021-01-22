@@ -1,0 +1,16 @@
+
+
+something = 1
+
+async def testAsync() {
+  if true {
+    return await something
+  } else {
+    return 2
+  }
+}
+
+test('Async in condition', async () => {
+  response = await testAsync()
+  expect(response).toBe(1)
+})

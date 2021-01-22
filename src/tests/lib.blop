@@ -1,7 +1,8 @@
 bla = { moduleParam3: 30 }
 
+moduleParam1 = undefined
 if (false) {
-  moduleParam1 = 10
+  moduleParam1 := 10
 }
 
 moduleParam2 = 20
