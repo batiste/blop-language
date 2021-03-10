@@ -17,7 +17,6 @@ const plugins = [
     SERVER: false,
   }),
   new webpack.HotModuleReplacementPlugin(),
-  new webpack.NoEmitOnErrorsPlugin(),
   new HtmlWebpackPlugin({
     template: 'example/index.html',
   }),
@@ -35,7 +34,7 @@ if (process.env.SOURCEMAP) {
 const entries = ['./example/client.blop'];
 
 if (!process.env.DISTRIBUTE) {
-  entries.push('webpack-hot-middleware/client');
+  entries.push('webpack-hot-middleware/client?noInfo=true');
 }
 
 const clientConfig = {

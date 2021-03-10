@@ -15,11 +15,12 @@ app.use(bodyParser.json())
 
 // we only rebuild the client config
 compiler = webpack(webpackClientConf)
-app.use(hotMiddleware(compiler))
 
 instance = middleware(compiler, {
   publicPath: '/'
 })
+
+app.use(hotMiddleware(compiler))
 
 /* a singleton in memory, should be in a DB
    and different for each user */
