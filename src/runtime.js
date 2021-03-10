@@ -178,7 +178,7 @@ class Component {
 
   _mount() {
     // do not mount in node
-    if ((process && process.title === 'node') || this.mounted) {
+    if ((typeof process !== 'undefined' && process.title === 'node') || this.mounted) {
       return;
     }
     this.onMount();

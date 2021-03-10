@@ -18,7 +18,6 @@ compiler = webpack(webpackClientConf)
 app.use(hotMiddleware(compiler))
 
 instance = middleware(compiler, {
-  noInfo: true,
   publicPath: '/'
 })
 
