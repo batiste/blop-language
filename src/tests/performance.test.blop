@@ -33,7 +33,9 @@ class ComponentWithClass"n" extends Component {
 "
 }
 
-str = ''
+str = `import { Component } from 'blop'
+
+`
 for _index in Array(200).fill(null) {
   str := str + code()
 }

@@ -810,7 +810,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push('class ');
       output.push(node.named.name.value);
       if (node.named.extends) {
-        output.push(` extends ${node.named.extends.value}`);
+        const name = node.named.extends.value;
+        shouldBeDefined(name, node);
+        output.push(` extends ${name}`);
       }
       output.push(' {');
       if (node.named.stats) {
