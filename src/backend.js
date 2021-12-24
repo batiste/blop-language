@@ -811,7 +811,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push(node.named.name.value);
       if (node.named.extends) {
         const name = node.named.extends.value;
-        shouldBeDefined(name, node);
+        shouldBeDefined(name, node.named.extends);
         output.push(` extends ${name}`);
       }
       output.push(' {');
