@@ -60,7 +60,7 @@ const clientConfig = {
               sourceMap: !!process.env.SOURCEMAP,
               strictness: 'perfect',
             },
-          },
+          }
         ],
       },
       {
