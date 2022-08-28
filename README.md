@@ -14,7 +14,7 @@ The blop runtime also comes with a Component and Lifecycle system.
 
 State management and routing can be up to you, but 2 small libraries provide the basics to get started
 
- * [A state managment system based on Proxies](https://github.com/batiste/blop-language/wiki/State-management)
+ * [A state management system based on Proxies](https://github.com/batiste/blop-language/wiki/State-management)
  * [A routing system](https://github.com/batiste/blop-language/wiki/Routing)
  
  <img src="/img/carbon.png" width="700">
@@ -103,7 +103,7 @@ module.exports = {
 
 ### Install them though visualstudio marketplace.
 
-vscode will prompt you to install the extenstion when you open a `.blop` file
+vscode will prompt you to install the extension when you open a `.blop` file
 
 Here is a link to the extensions on the visualstudio marketplace
 
@@ -111,7 +111,7 @@ Here is a link to the extensions on the visualstudio marketplace
 
 <img src="/img/extensions.png" width="600">
 
-### Install them throught github
+### Install them through github
 
 If you cloned the repository, it is has simple has creating a symbolic link
 to your `~/.vscode/extensions` directory. This function will do it
