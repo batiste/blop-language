@@ -1,6 +1,7 @@
 out.js
 node_modules
 .DS_Store
+*.vsix
 public/dist
 dist
 vscode/blop-syntax-highlighter/blop-syntax-highlighter
