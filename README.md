@@ -6,7 +6,7 @@ Blop is a language for the Web that can natively generates Virtual DOM trees usi
 
 Unlike JSX Blop is not limited to expressions and you can use the full power of the language to generate Virtual DOM trees.
 You can mix any statement, expressions, and HTML like syntax within the same function.
-Blop is using [snabbdom](https://github.com/snabbdom/snabbdom/) library to generate the Virtual DOM trees.
+Blop is using [snabbdom](https://github.com/snabbdom/snabbdom/) library to generate the Virtual DOM trees. The language is written using the [Meta Parser Generator](https://github.com/batiste/meta-parser-generator).
 
 The blop runtime also comes with a Component and lifecycle system.
 
