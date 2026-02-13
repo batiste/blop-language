@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const chalk = require('chalk');
 const { PATHS, PATTERNS } = require('./constants');
+const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
 
 function replaceInvisibleChars(v) {
   v = v.replace(PATTERNS.INVISIBLE_CHARS.CARRIAGE_RETURN, '⏎\r');
@@ -67,35 +68,44 @@ function streamContext(token, firstToken, stream) {
 }
 
 function displayError(stream, tokensDefinition, grammar, bestFailure) {
-  const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
-  let rule = '';
   const { token } = bestFailure;
   const firstToken = bestFailure.first_token;
   const positions = tokenPosition(token);
-  let failingToken = '';
-  for (let i = 0; i < sub_rules.length; i++) {
-    let sr = sub_rules[i];
-    if (tokensDefinition[sr] && tokensDefinition[sr].verbose) {
-      sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
+  
+  // Generate enhanced error message
+  const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
+  const enhancedMessage = formatEnhancedError(errorParts, positions);
+  
+  // Show code context
+  const context = streamContext(token, firstToken, stream);
+  
+  // Build the full error message
+  let fullMessage = enhancedMessage;
+  fullMessage += '\n' + chalk.dim('  Code context:') + '\n';
+  fullMessage += context;
+  
+  // Add technical details for debugging (can be disabled in production)
+  if (process.env.BLOP_DEBUG) {
+    const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+    let rule = '';
+    for (let i = 0; i < sub_rules.length; i++) {
+      let sr = sub_rules[i];
+      if (tokensDefinition[sr] && tokensDefinition[sr].verbose) {
+        sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
+      }
+      if (i === bestFailure.sub_rule_token_index) {
+        rule += chalk.red(`${sr} `);
+      } else {
+        rule += chalk.yellow(`${sr} `);
+      }
     }
-    if (i === bestFailure.sub_rule_token_index) {
-      rule += chalk.red(`${sr} `);
-      failingToken = `${sr}`;
-    } else {
-      rule += chalk.yellow(`${sr} `);
-    }
+    fullMessage += '\n' + chalk.dim('  Technical details:');
+    fullMessage += chalk.dim(`\n  Rule: ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
+    fullMessage += chalk.dim(`\n  Expected: ${rule}`);
+    fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
   }
-  const firstLine = chalk.red(`Parser error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end}`);
-  const unexpected = chalk.yellow(noNewline(token.value));
-
-  throw new Error(`
-  ${firstLine}
-  Unexpected ${unexpected}
-  Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-  token "${unexpected}" (type:${token.type}) doesn't match rule item ${chalk.yellow(failingToken)}
-  Context:
-${streamContext(token, firstToken, stream)}
-`);
+  
+  throw new Error(fullMessage);
 }
 
 function displayBackendError(stream, error) {

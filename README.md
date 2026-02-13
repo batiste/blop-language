@@ -30,6 +30,7 @@ State management and routing can be up to you, but 2 small libraries provide the
 
   * Virtual DOM generation is natively supported by the language.
   * Fast compilation (+30'000 lines by second).
+  * **Enhanced error messages** with helpful suggestions and quick fixes.
   * A linter is integrated into the language: no linter debate.
   * Good integration with Visual Studio Code: linter and syntactic coloration.
   * Source maps.

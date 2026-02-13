@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const chalk = require('chalk');
+const { enhanceErrorMessage } = require('./errorMessages');
 
 function replaceInvisibleChars(v) {
   v = v.replace(/\r/g, '⏎\r');
@@ -65,26 +66,27 @@ function streamContext(token, firstToken, stream) {
 }
 
 function displayError(stream, tokensDefinition, grammar, bestFailure) {
-  const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
-  let rule = '';
   const { token } = bestFailure;
-  let failingToken = '';
-  for (let i = 0; i < sub_rules.length; i++) {
-    let sr = sub_rules[i];
-    if (tokensDefinition[sr] && tokensDefinition[sr].verbose) {
-      sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
-    }
-    if (i === bestFailure.sub_rule_token_index) {
-      rule += chalk.red(`${sr} `);
-      failingToken = `${sr}`;
-    } else {
-      rule += chalk.yellow(`${sr} `);
-    }
+  
+  // Generate enhanced error message
+  const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
+  
+  // For VSCode linter, return a simplified message
+  let message = errorParts.title;
+  
+  if (errorParts.description) {
+    message += '. ' + errorParts.description;
   }
-  const firstLine = chalk.red(`Unexpected ${noNewline(token.value)}`);
-  throw new Error(`${firstLine}
-Best match was at rule ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}] ${rule}
-token "${noNewline(token.value)}" (type:${token.type}) doesn't match rule item ${failingToken}`);
+  
+  if (errorParts.suggestion) {
+    message += '\n\n' + errorParts.suggestion;
+  }
+  
+  if (errorParts.quickFix) {
+    message += '\n\nQuick fix: ' + errorParts.quickFix.fix;
+  }
+  
+  throw new Error(message);
 }
 
 function printTree(node, sp) {
