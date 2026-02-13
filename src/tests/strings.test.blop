@@ -1,0 +1,56 @@
+
+whitespace = " "
+exclamation = "!"
+world = "world"
+
+// Basic concatenation
+greeting = 'hello'whitespace`world`
+greeting2 = "Hello"' '`World`exclamation''
+
+// Concatenation with expressions
+number = 42
+message = "The answer is "number''
+message2 = 'Value: '(10 + 32)''
+
+// Multiple concatenations
+complex = "Start"" - ""Middle"" - ""End"
+
+// Concatenation in function
+def createMessage(name) {
+  return 'Hello, 'name'!'
+}
+
+// Concatenation with backticks
+template = `This is `number``
+
+// Empty string concatenation
+empty = ""''``
+
+test('string concatenation', () => {
+  expect(greeting).toBe('hello world')
+  expect(greeting2).toBe('Hello World!')
+  expect(message).toBe('The answer is 42')
+  expect(message2).toBe('Value: 42')
+  expect(complex).toBe('Start - Middle - End')
+  expect(createMessage('Alice')).toBe('Hello, Alice!')
+  expect(template).toBe('This is 42')
+  expect(empty).toBe('')
+})
+
+// Test different string delimiters
+single = 'single quotes'
+double = "double quotes"
+backtick = `backtick quotes`
+
+escaped = "He said \"hello\""
+multiline = `Line 1
+Line 2
+Line 3`
+
+test('string delimiters', () => {
+  expect(single).toBe('single quotes')
+  expect(double).toBe('double quotes')
+  expect(backtick).toBe('backtick quotes')
+  expect(escaped).toBe('He said "hello"')
+  expect(multiline).toBe('Line 1\nLine 2\nLine 3')
+})

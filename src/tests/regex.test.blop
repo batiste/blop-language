@@ -1,0 +1,124 @@
+
+pattern1 = /test/
+pattern2 = /[0-9]+/g
+pattern3 = /hello\s+world/i
+
+// Regex with flags
+globalPattern = /abc/g
+caseInsensitive = /ABC/i
+multiline = /^start/m
+allFlags = /pattern/gim
+
+// Using regex in code
+text1 = 'hello world test'
+text2 = '123 456 789'
+text3 = 'ABC abc Abc'
+
+match1 = text1.match(/test/)
+match2 = text2.match(/\d+/g)
+match3 = text3.match(/abc/gi)
+
+// Replace with regex
+replaced1 = text1.replace(/test/, 'demo')
+replaced2 = text2.replace(/\d+/g, 'X')
+replaced3 = 'hello-world'.replace(/-/, ' ')
+
+// Test in function
+def validateEmail(email) {
+  pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return pattern.test(email)
+}
+
+email1 = validateEmail('test@example.com')
+email2 = validateEmail('invalid.email')
+
+// Regex with special chars
+specialPattern = /\w+@\w+\.\w+/
+urlPattern = /https?:\/\/[^\s]+/
+phonePattern = /\(\d{3}\)\s*\d{3}-\d{4}/
+
+// Using regex methods
+testString = 'The year 2026 has 365 days'
+hasNumbers = /\d+/.test(testString)
+numbers = testString.match(/\d+/g)
+
+// Regex in replace with callback (if supported)
+uppercased = 'hello world'.replace(/\w+/g, (match) => match.toUpperCase())
+
+// Complex patterns
+htmlTag = /<[^>]+>/g
+whitespace = /\s+/g
+wordBoundary = /\btest\b/
+
+// Extract matches
+sentence = 'The quick brown fox jumps'
+words = sentence.match(/\w+/g)
+firstWord = sentence.match(/^\w+/)
+
+// Regex with object destructuring
+def parseUrl(url) {
+  pattern = /^(https?):\/\/([^\/]+)(\/.*)?$/
+  matches = url.match(pattern)
+  if matches {
+    return {
+      protocol: matches[1],
+      domain: matches[2],
+      path: matches[3]
+    }
+  }
+  return undefined
+}
+
+urlParts = parseUrl('https://example.com/path/to/page')
+
+// Split with regex
+parts1 = 'one,two,three'.split(/,/)
+parts2 = 'a1b2c3'.split(/\d/)
+
+test('basic regex patterns', () => {
+  expect(pattern1.test('test')).toBe(true)
+  expect(pattern1.test('other')).toBe(false)
+  expect(typeof pattern2).toBe('object')
+})
+
+test('regex matching', () => {
+  expect(match1[0]).toBe('test')
+  expect(match2.length).toBe(3)
+  expect(match3.length).toBe(3)
+})
+
+test('regex replace', () => {
+  expect(replaced1).toBe('hello world demo')
+  expect(replaced2).toBe('X X X')
+  expect(replaced3).toBe('hello world')
+})
+
+test('email validation', () => {
+  expect(email1).toBe(true)
+  expect(email2).toBe(false)
+})
+
+test('regex test method', () => {
+  expect(hasNumbers).toBe(true)
+  expect(numbers).toEqual(['2026', '365'])
+})
+
+test('regex with callback', () => {
+  expect(uppercased).toBe('HELLO WORLD')
+})
+
+test('word extraction', () => {
+  expect(words).toEqual(['The', 'quick', 'brown', 'fox', 'jumps'])
+  expect(firstWord[0]).toBe('The')
+})
+
+test('url parsing', () => {
+  expect(urlParts.protocol).toBe('https')
+  expect(urlParts.domain).toBe('example.com')
+  expect(urlParts.path).toBe('/path/to/page')
+})
+
+test('split with regex', () => {
+  expect(parts1).toEqual(['one', 'two', 'three'])
+  expect(parts2).toEqual(['a', 'b', 'c', ''])
+})
