@@ -1,5 +1,5 @@
 const loaderUtils = require('loader-utils');
-const validateOptions = require('schema-utils');
+const { validate } = require('schema-utils');
 const { compileSource } = require('./compile');
 
 const schema = {
@@ -8,7 +8,7 @@ const schema = {
 
 module.exports = function loader(source) {
   const options = loaderUtils.getOptions(this) || { debug: false };
-  validateOptions(schema, options, 'Blop Loader');
+  validate(schema, options, { name: 'Blop Loader' });
   const { code, sourceMap } = compileSource(source, 'webpack', this.resourcePath, options.sourceMap);
   if (options.debug) {
     console.log(code);
