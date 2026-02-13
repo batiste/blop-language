@@ -360,32 +360,58 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
 
 /**
  * Format enhanced error message for display
+ * @param {Object} errorParts - The error parts (title, description, suggestion, quickFix)
+ * @param {Object} positions - The position info (lineNumber, charNumber, end)
+ * @param {Boolean} forEditor - If true, format for editor (no location, no colors, no context)
  */
-function formatEnhancedError(errorParts, positions) {
-  let message = '\n';
+function formatEnhancedError(errorParts, positions, forEditor = false) {
+  let message = '';
   
-  // Title (main error)
-  message += '  ' + chalk.red.bold('✖ ') + chalk.red.bold(errorParts.title) + '\n';
-  
-  // Location
-  message += '  ' + chalk.dim(`at line ${positions.lineNumber + 1}, column ${positions.charNumber}`) + '\n';
-  
-  // Description
-  if (errorParts.description) {
-    message += '\n  ' + errorParts.description + '\n';
-  }
-  
-  // Suggestion
-  if (errorParts.suggestion) {
-    message += '\n' + chalk.cyan('  💡 Suggestion:\n');
-    errorParts.suggestion.split('\n').forEach(line => {
-      message += chalk.cyan('  ' + line) + '\n';
-    });
-  }
-  
-  // Quick fix
-  if (errorParts.quickFix) {
-    message += '\n' + chalk.yellow('  ⚡ Quick fix: ') + errorParts.quickFix.fix + '\n';
+  if (forEditor) {
+    // Editor format: clean text without redundant location info
+    message += errorParts.title;
+    
+    if (errorParts.description) {
+      message += '\n\n' + errorParts.description;
+    }
+    
+    if (errorParts.suggestion) {
+      message += '\n\n💡 Suggestion:\n';
+      errorParts.suggestion.split('\n').forEach(line => {
+        message += line + '\n';
+      });
+    }
+    
+    if (errorParts.quickFix) {
+      message += '\n⚡ Quick fix: ' + errorParts.quickFix.fix;
+    }
+  } else {
+    // Console format: with colors and location
+    message = '\n';
+    
+    // Title (main error)
+    message += '  ' + chalk.red.bold('✖ ') + chalk.red.bold(errorParts.title) + '\n';
+    
+    // Location
+    message += '  ' + chalk.dim(`at line ${positions.lineNumber + 1}, column ${positions.charNumber}`) + '\n';
+    
+    // Description
+    if (errorParts.description) {
+      message += '\n  ' + errorParts.description + '\n';
+    }
+    
+    // Suggestion
+    if (errorParts.suggestion) {
+      message += '\n' + chalk.cyan('  💡 Suggestion:\n');
+      errorParts.suggestion.split('\n').forEach(line => {
+        message += chalk.cyan('  ' + line) + '\n';
+      });
+    }
+    
+    // Quick fix
+    if (errorParts.quickFix) {
+      message += '\n' + chalk.yellow('  ⚡ Quick fix: ') + errorParts.quickFix.fix + '\n';
+    }
   }
   
   return message;

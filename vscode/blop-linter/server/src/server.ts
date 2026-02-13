@@ -32,6 +32,8 @@ const builtin = require('./builtin').all;
 const backend = require('./backend');
 const { inference } = require('./inference');
 const properties = require('./properties.js');
+const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
+const { tokenPosition } = require('./utils');
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -216,12 +218,10 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const tree = parser.parse(stream, 0);
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
-		let errorMsg;
-		try {
-			displayError(stream, tokensDefinition, grammar, tree);
-		} catch (error: any) {
-			errorMsg = error.message;
-		}
+		// Generate enhanced error message for editor (without redundant location/context info)
+		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, tree);
+		const positions = tokenPosition(tree.token);
+		const errorMsg = formatEnhancedError(errorParts, positions, true);
 
 		const token = tree.token;
 		const diagnosic: Diagnostic = {

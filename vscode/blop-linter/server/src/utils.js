@@ -169,4 +169,5 @@ module.exports = {
   displayError,
   displayBackendError,
   printTree,
+  tokenPosition,
 };
