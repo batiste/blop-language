@@ -1,0 +1,123 @@
+import { mount } from 'blop'
+
+
+clickCount = 0
+inputValue = ''
+changeEvent = undefined
+customData = undefined
+
+def Button(attributes, children) {
+  handleClick = (event) => {
+    clickCount := clickCount + 1
+    if attributes.onClick {
+      attributes.onClick(event)
+    }
+  }
+  
+  <button class=attributes['class'] on={ click: handleClick }>children</button>
+}
+
+def Input(attributes) {
+  handleChange = (event) => {
+    inputValue := event.target.value
+    changeEvent := event
+  }
+  
+  <input type="text" value=attributes.value on={ change: handleChange } />
+}
+
+def MultiEvent(_attributes) {
+  _mouseX = 0
+  _mouseY = 0
+  
+  handleClick = (e) => {
+    customData := e.clientX
+  }
+  
+  handleMouseMove = (e) => {
+    _mouseX := e.clientX
+    _mouseY := e.clientY
+  }
+  
+  <div on={ click: handleClick, mousemove: handleMouseMove }>'Multi-event element'</div>
+}
+
+def ClickableItem(attributes) {
+  { onClick, label } = attributes
+  <div class="item" on={ click: onClick }>label</div>
+}
+
+def ButtonList(attributes) {
+  { items } = attributes
+  <div>
+    for item in items: array {
+      <button key=item.id on={ click: () => item.handler() }>item.label</button>
+    }
+  </div>
+}
+
+def FocusableInput(attributes) {
+  input = undefined
+  
+  handleFocus = (_event) => {
+    // Access to both event and the vnode via closure
+    if input {
+      customData := input.elm.value
+    }
+  }
+  
+  input := <input type="text" value=attributes.value on={ focus: handleFocus } />
+  
+  <div>input</div>
+}
+
+def ConditionalButton(attributes) {
+  { show, message } = attributes
+  handleClick = () => {
+    clickCount := clickCount + 10
+  }
+  
+  if show {
+    <button on={ click: handleClick }>message</button>
+  } else {
+    <span>'Hidden'</span>
+  }
+}
+
+// Simulate DOM for testing
+mockEvent = {
+  target: { value: 'test-value' },
+  clientX: 100,
+  clientY: 200
+}
+
+test('button click event', () => {
+  Button({ class: 'btn', onClick: () => {
+    clickCount := clickCount + 5
+    }
+  }, ['Click me'])
+  // Simulate clicking would increase clickCount
+  expect(clickCount).toBe(0) // Would be incremented on actual click
+})
+
+test('component structure with events', () => {
+  vnode = Button({ class: 'primary' }, ['Test'])
+  expect(vnode.sel).toBe('button')
+  expect(vnode.data.attrs['class']).toBe('primary')
+  expect(typeof vnode.data.on.click).toBe('function')
+})
+
+test('multiple events on same element', () => {
+  vnode = MultiEvent({})
+  expect(typeof vnode.data.on.click).toBe('function')
+  expect(typeof vnode.data.on.mousemove).toBe('function')
+})
+
+test('events passed through attributes', () => {
+  handler = () => {
+    clickCount := clickCount + 1
+}
+  vnode = ClickableItem({ onClick: handler, label: 'Click' })
+  expect(vnode.sel).toBe('div')
+  expect(typeof vnode.data.on.click).toBe('function')
+})

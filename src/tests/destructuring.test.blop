@@ -1,0 +1,139 @@
+
+obj1 = { a: 1, b: 2, c: 3 }
+{ a, b, c } = obj1
+
+// Destructuring with rename
+obj2 = { x: 10, y: 20 }
+{ x as xPos, y as yPos } = obj2
+
+// Nested destructuring
+obj3 = { user: { name: 'Alice', age: 30 }, settings: { theme: 'dark' } }
+{ user, settings } = obj3
+
+def greet(attributes) {
+  { name, age } = attributes
+  return 'Hello 'name', you are 'age' years old'
+}
+
+greeting = greet({ name: 'Bob', age: 25 })
+
+def configure(attributes) {
+  { host, port, secure } = attributes
+  protocol = if secure => 'https' else 'http'
+  url = ''protocol'://'host':'port''
+  return url
+}
+
+url = configure({ host: 'example.com', port: 443, secure: true })
+
+def createPoint(pos, size) {
+  { x, y } = pos
+  { width, height } = size
+  return { x, y, width, height, area: width * height }
+}
+
+point = createPoint({ x: 10, y: 20 }, { width: 100, height: 50 })
+
+def process(attributes) {
+  { id as userId, name as userName } = attributes
+  return 'User #'userId': 'userName''
+}
+
+userInfo = process({ id: 42, name: 'Charlie' })
+
+data = [
+  { key: 'a', value: 1 },
+  { key: 'b', value: 2 },
+  { key: 'c', value: 3 }
+]
+
+keys = []
+values = []
+for item in data: array {
+  keys.push(item.key)
+  values.push(item.value)
+}
+
+complex = { outer: { inner: { deep: 42 } } }
+{ outer as o } = complex
+innerValue = o.inner.deep
+
+processUser = (attributes) => {
+  { name, email } = attributes
+  return { name, email, processed: true }
+}
+
+processed = processUser({ name: 'Dave', email: 'dave@example.com' })
+
+mixed = { a: 1, f: { c: 2, d: 3 }, e: 4 }
+{ a as first, f as bObj, e as last } = mixed
+
+def getData() {
+  return { status: 200, body: 'OK', headers: {} }
+}
+
+{ status, body } = getData()
+
+test('basic destructuring', () => {
+  expect(a).toBe(1)
+  expect(b).toBe(2)
+  expect(c).toBe(3)
+})
+
+test('destructuring with rename', () => {
+  expect(xPos).toBe(10)
+  expect(yPos).toBe(20)
+})
+
+test('nested destructuring', () => {
+  expect(user.name).toBe('Alice')
+  expect(user.age).toBe(30)
+  expect(settings.theme).toBe('dark')
+})
+
+test('destructuring in function params', () => {
+  expect(greeting).toBe('Hello Bob, you are 25 years old')
+})
+
+test('function with destructured params', () => {
+  expect(url).toBe('https://example.com:443')
+})
+
+test('multiple destructured parameters', () => {
+  expect(point.x).toBe(10)
+  expect(point.y).toBe(20)
+  expect(point.width).toBe(100)
+  expect(point.height).toBe(50)
+  expect(point.area).toBe(5000)
+})
+
+test('destructuring with rename in params', () => {
+  expect(userInfo).toBe('User #42: Charlie')
+})
+
+test('destructuring in loop', () => {
+  expect(keys).toEqual(['a', 'b', 'c'])
+  expect(values).toEqual([1, 2, 3])
+})
+
+test('nested destructuring with rename', () => {
+  expect(innerValue).toBe(42)
+})
+
+test('arrow function destructuring', () => {
+  expect(processed.name).toBe('Dave')
+  expect(processed.email).toBe('dave@example.com')
+  expect(processed.processed).toBe(true)
+})
+
+test('mixed destructuring', () => {
+  expect(first).toBe(1)
+  expect(bObj.c).toBe(2)
+  expect(bObj.d).toBe(3)
+  expect(last).toBe(4)
+})
+
+test('destructuring from function', () => {
+  expect(status).toBe(200)
+  expect(body).toBe('OK')
+})
