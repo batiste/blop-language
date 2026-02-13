@@ -36,13 +36,33 @@ function checkStatment(node) {
       if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
         const t1 = types[i - 1];
         const t2 = types[i - 2];
-        if (t1 !== 'number' && t1 !== 'any') {
-          pushWarning(t, `Math operator not allowed on ${t1}`);
+        const operator = t.value;
+        
+        // Special handling for '+' operator
+        if (operator === '+') {
+          if (t1 === 'string' && t2 === 'string') {
+            // Disallow string + string: use template strings instead
+            pushWarning(t, `Use template strings instead of '+' for string concatenation`);
+            types[i - 2] = 'string';
+          } else if ((t1 === 'string' && t2 === 'number') || (t1 === 'number' && t2 === 'string')) {
+            // Allow number + string coercion for convenience
+            types[i - 2] = 'string';
+          } else if ((t1 === 'number' || t1 === 'any') && (t2 === 'number' || t2 === 'any')) {
+            types[i - 2] = 'number';
+          } else {
+            pushWarning(t, `Cannot apply '+' operator to ${t2} and ${t1}`);
+            types[i - 2] = 'any';
+          }
+        } else {
+          // Other math operators require numbers
+          if (t1 !== 'number' && t1 !== 'any') {
+            pushWarning(t, `Math operator '${operator}' not allowed on ${t1}`);
+          }
+          if (t2 !== 'number' && t2 !== 'any') {
+            pushWarning(t, `Math operator '${operator}' not allowed on ${t2}`);
+          }
+          types[i - 2] = 'number';
         }
-        if (t2 !== 'number' && t2 !== 'any') {
-          pushWarning(t, `Math operator not allowed on ${t2}`);
-        }
-        types[i - 2] = 'number';
         types.splice(i - 1, 2);
         i -= 2;
       }
@@ -220,19 +240,60 @@ const backend = {
   //   visitChildren(node);
   //   pushToParent(node, parent);
   // },
-  'func_def': (node) => {
+  'func_def': (node, parent) => {
     const parentns = currentNameSpaceFCT();
     const ns = addNameSpaceFCT();
     ns.__currentFctParams = [];
+    ns.__returnTypes = [];
+    
     visitChildren(node);
+    
+    // Anonymous functions as expressions should infer as 'function'
+    if (parent && !node.named.name) {
+      pushInference(parent, 'function');
+    }
+    
     if (node.named.name) {
       const { annotation } = node.named;
       const type = annotation ? annotation.named.name.value : 'any';
+      
+      // Validate return types if annotation exists
+      if (annotation && ns.__returnTypes && ns.__returnTypes.length > 0) {
+        // Check if all explicit returns match the annotation
+        const explicitReturns = ns.__returnTypes.filter(t => t !== 'undefined' && t);
+        if (explicitReturns.length > 0 && type !== 'any') {
+          for (const returnType of explicitReturns) {
+            if (returnType !== type && returnType !== 'any') {
+              pushWarning(node.named.name, `Function '${node.named.name.value}' returns ${returnType} but declared as ${type}`);
+              break; // Only report first mismatch
+            }
+          }
+        }
+      }
+      
       parentns[node.named.name.value] = {
         source: 'func_def', type, node, params: ns.__currentFctParams,
       };
     }
     popNameSpaceFCT();
+  },
+  'return': (node) => {
+    const ns = currentNameSpaceFCT();
+    if (!ns || !ns.__returnTypes) {
+      // Not in a function scope, skip
+      visitChildren(node);
+      return;
+    }
+    
+    visitChildren(node);
+    
+    // Check if this return has an expression
+    if (node.inference && node.inference.length > 0) {
+      ns.__returnTypes.push(node.inference[0]);
+    } else {
+      // Bare return statement
+      ns.__returnTypes.push('undefined');
+    }
   },
   'GLOBAL_STATEMENT': checkStatment,
   'SCOPED_STATEMENTS': checkStatment,
