@@ -16,6 +16,10 @@ def dogPageHandler(params, state) {
   state.dogPage.choice = { breed: params.breed, image: params.image }
 }
 
+def test() {
+  console.log('test function called asd')
+}
+
 async def memePageHandler(params, state) {
   state.page = 'meme'
   console.log('memePageHandler called with', params)

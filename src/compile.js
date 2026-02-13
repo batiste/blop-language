@@ -8,10 +8,11 @@ const backend = require('./backend');
 const utils = require('./utils');
 const parser = require('./parser');
 const { inference } = require('./inference');
+const { PATHS, ERROR_MESSAGES } = require('./constants');
 
 
 function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
-  const name = require.resolve(path.join(__dirname, './runtime.js'));
+  const name = require.resolve(path.join(__dirname, PATHS.RUNTIME_MODULE));
   const config = utils.getConfig(filename);
   let file;
   if (env === 'webpack') {
@@ -36,7 +37,7 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   let result;
   let _sourceMap;
   if (useSourceMap && !filename) {
-    throw new Error('Cannot generate a source map with a filename');
+    throw new Error(ERROR_MESSAGES.SOURCEMAP_WITHOUT_FILENAME());
   }
   if (useSourceMap) {
     const rootSource = new sourceMap.SourceNode(null, null, filename);

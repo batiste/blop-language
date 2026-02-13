@@ -5,6 +5,7 @@ const sclass = require('snabbdom/modules/class');
 const eventlisteners = require('snabbdom/modules/eventlisteners');
 const snabbdomh = require('snabbdom/h');
 const toVNode = require('snabbdom/tovnode').default;
+const { PATTERNS } = require('./constants');
 
 // the node being currently rendered
 let currentNode = null;
@@ -200,7 +201,7 @@ class Component {
 }
 
 function isClass(v) {
-  return typeof v === 'function' && /^\s*class\s+/.test(v.toString());
+  return typeof v === 'function' && PATTERNS.CLASS_DEFINITION.test(v.toString());
 }
 
 function createComponent(ComponentFct, attributes, children, name) {

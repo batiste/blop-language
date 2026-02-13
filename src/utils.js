@@ -1,13 +1,14 @@
 const path = require('path');
 const fs = require('fs');
 const chalk = require('chalk');
+const { PATHS, PATTERNS } = require('./constants');
 
 function replaceInvisibleChars(v) {
-  v = v.replace(/\r/g, '⏎\r');
-  v = v.replace(/\n/g, '⏎\n');
-  v = v.replace(/\t/g, '⇥');
-  v = v.replace('\xa0', 'nbsp');
-  return v.replace(/ /g, '␣');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.CARRIAGE_RETURN, '⏎\r');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.NEWLINE, '⏎\n');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.TAB, '⇥');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.NBSP, 'nbsp');
+  return v.replace(PATTERNS.INVISIBLE_CHARS.SPACE, '␣');
 }
 
 function noNewline(v) {
@@ -143,7 +144,7 @@ function getConfig(filename) {
     return {};
   }
   const dirname = path.dirname(filename) || process.cwd();
-  const config = lookUp(dirname, 'blop.config.js');
+  const config = lookUp(dirname, PATHS.CONFIG_FILE);
   if (!config) {
     return {};
   }

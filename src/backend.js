@@ -5,6 +5,7 @@ const utils = require('./utils');
 const { all } = require('./builtin');
 const parser = require('./parser');
 const { tokensDefinition } = require('./tokensDefinition');
+const { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, PATTERNS, OPERATORS } = require('./constants');
 
 class Scope {
   constructor(type) {
@@ -52,7 +53,11 @@ class ScopesStack {
   }
 
   blocks() {
-    return this.scopes.filter(n => ['fct', 'loop', 'cdt'].includes(n.type));
+    return this.scopes.filter(n => [
+      SCOPE_TYPES.FUNCTION,
+      SCOPE_TYPES.LOOP,
+      SCOPE_TYPES.CONDITIONAL
+    ].includes(n.type));
   }
 
   parentFrom(type, scope) {
@@ -87,10 +92,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const checkFilename = _filename;
 
   const scopes = new ScopesStack();
-  scopes.add('vn');
-  scopes.add('cdt');
-  scopes.add('loop');
-  scopes.add('fct');
+  scopes.add(SCOPE_TYPES.VIRTUAL_NODE);
+  scopes.add(SCOPE_TYPES.CONDITIONAL);
+  scopes.add(SCOPE_TYPES.LOOP);
+  scopes.add(SCOPE_TYPES.FUNCTION);
 
   const exportObjects = {};
   let exportKeys = [];
@@ -109,28 +114,28 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
           return;
         }
         if (names[name].node && names[name].used !== true) {
-          generateError(names[name].node, `Unused variable ${name}, remove or add underscore`, true);
+          generateError(names[name].node, ERROR_MESSAGES.UNUSED_VARIABLE(name), true);
         }
       });
     }
   };
 
-  const currentScopeVN = () => scopes.type('vn');
-  const addScopeVN = () => scopes.add('vn');
-  const popScopeVN = () => scopes.pop('vn');
+  const currentScopeVN = () => scopes.type(SCOPE_TYPES.VIRTUAL_NODE);
+  const addScopeVN = () => scopes.add(SCOPE_TYPES.VIRTUAL_NODE);
+  const popScopeVN = () => scopes.pop(SCOPE_TYPES.VIRTUAL_NODE);
 
-  const currentScopeFCT = () => scopes.type('fct');
-  const addScopeFCT = () => scopes.add('fct');
+  const currentScopeFCT = () => scopes.type(SCOPE_TYPES.FUNCTION);
+  const addScopeFCT = () => scopes.add(SCOPE_TYPES.FUNCTION);
 
-  const popScopeFCT = () => popScopeBlock('fct');
+  const popScopeFCT = () => popScopeBlock(SCOPE_TYPES.FUNCTION);
 
-  const currentScopeCDT = () => scopes.type('cdt');
-  const addScopeCDT = () => scopes.add('cdt');
-  const popScopeCDT = () => popScopeBlock('cdt');
+  const currentScopeCDT = () => scopes.type(SCOPE_TYPES.CONDITIONAL);
+  const addScopeCDT = () => scopes.add(SCOPE_TYPES.CONDITIONAL);
+  const popScopeCDT = () => popScopeBlock(SCOPE_TYPES.CONDITIONAL);
 
-  const currentScopeLOOP = () => scopes.type('loop');
-  const addScopeLOOP = () => scopes.add('loop');
-  const popScopeLOOP = () => popScopeBlock('loop');
+  const currentScopeLOOP = () => scopes.type(SCOPE_TYPES.LOOP);
+  const addScopeLOOP = () => scopes.add(SCOPE_TYPES.LOOP);
+  const popScopeLOOP = () => popScopeBlock(SCOPE_TYPES.LOOP);
 
   function getExports(filename) {
     const stats = fs.statSync(filename);
@@ -203,7 +208,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     for (let i = 0; i < importedKeys.length; i++) {
       const { key, node } = importedKeys[i];
       if (!exports.objects[key]) {
-        generateError(node, `Imported key ${key} is not exported in ${filename}`);
+        generateError(node, ERROR_MESSAGES.IMPORT_KEY_NOT_EXPORTED(key, filename));
       }
     }
   }
@@ -239,7 +244,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
     });
     if (!defined) {
-      generateError(node, `Token ${name} is undefined in the current scope`);
+      generateError(node, ERROR_MESSAGES.UNDEFINED_TOKEN(name));
     }
   }
 
@@ -255,27 +260,27 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     if (closing) {
       opening.len = closing.start - opening.start + closing.len;
     }
-    if (scopes.filter('fct').length <= 1) {
-      generateError(opening, 'Virtual node statement cannot be used outside a function scope.');
+    if (scopes.filter(SCOPE_TYPES.FUNCTION).length <= SCOPE_DEPTH.MIN_FUNCTION_DEPTH) {
+      generateError(opening, ERROR_MESSAGES.VIRTUAL_NODE_OUTSIDE_FUNCTION());
     }
 
-    const loopFctParent = scopes.parentFrom('fct', currentLoopNS);
+    const loopFctParent = scopes.parentFrom(SCOPE_TYPES.FUNCTION, currentLoopNS);
     if (!parent && loopFctParent && loopFctParent === currentFctNS) {
-      generateError(opening, 'Root virtual node are return satements. The loop will not iterate. Wrap the loop in a virtual node or build an array of virtual node', true);
+      generateError(opening, ERROR_MESSAGES.ROOT_VIRTUAL_NODE_IN_LOOP(), true);
     }
 
     if (!parent) {
       if (currentFctNS.__returnVirtualNode) {
-        generateError(opening, 'A root virtual node is already defined in this function');
-      } else if (scopes.filter('cdt').length > 1) {
+        generateError(opening, ERROR_MESSAGES.ROOT_VIRTUAL_NODE_ALREADY_DEFINED());
+      } else if (scopes.filter(SCOPE_TYPES.CONDITIONAL).length > SCOPE_DEPTH.MIN_CONDITIONAL_DEPTH) {
         let isRedefined = false;
-        scopes.filter('cdt').reverse().forEach((scope) => {
+        scopes.filter(SCOPE_TYPES.CONDITIONAL).reverse().forEach((scope) => {
           if (scope.__returnVirtualNode) {
             isRedefined = true;
           }
         });
         if (isRedefined) {
-          generateError(opening, 'A root virtual node is already defined in this branch.');
+          generateError(opening, ERROR_MESSAGES.ROOT_VIRTUAL_NODE_IN_BRANCH());
         } else {
           currentCdtNS.__returnVirtualNode = { node, hoist: false, used: true };
         }
@@ -391,7 +396,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       // small improvement but this doesn't account for normal returns
       // or conditions
       if (!parent && scope.__returnVirtualNode && alreadyVnode) {
-        generateError(node, 'Code is unreachable after root virtual node', true);
+        generateError(node, ERROR_MESSAGES.UNREACHABLE_CODE_AFTER_VIRTUAL_NODE(), true);
       }
       return output;
     },
@@ -578,7 +583,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       popScopeVN();
       const start = node.named.opening.value;
-      if (/^[A-Z]/.test(start)) {
+      if (PATTERNS.UPPERCASE_START.test(start)) {
         shouldBeDefined(start, node.named.opening);
         output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}');`);
       } else {
@@ -607,7 +612,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       output.push(`${a_uid} = `);
       output.push(...generateCode(node.named.exp));
       if (!parent) {
-        generateError(node, 'Virtual node assignment have to be in a virtual node');
+        generateError(node, ERROR_MESSAGES.VIRTUAL_NODE_ASSIGNMENT_OUTSIDE());
       }
       output.push(`; Array.isArray(${a_uid}) ? ${parent}c.push(...${a_uid}) : ${parent}c.push(${a_uid}); `);
       return output;
@@ -902,11 +907,11 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'boolean_operator': (node) => {
-      if (node.value === '==') {
-        return ['==='];
+      if (node.value === OPERATORS.LOOSE_EQUALITY) {
+        return [OPERATORS.STRICT_EQUALITY];
       }
-      if (node.value === '!=') {
-        return ['!=='];
+      if (node.value === OPERATORS.LOOSE_INEQUALITY) {
+        return [OPERATORS.STRICT_INEQUALITY];
       }
       return [node.value];
     },
@@ -924,29 +929,29 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       return output;
     },
     'return': (node) => {
-      if (scopes.filter('fct').length <= 1) {
-        generateError(node, 'return statement outside of a function scope');
+      if (scopes.filter(SCOPE_TYPES.FUNCTION).length <= SCOPE_DEPTH.MIN_FUNCTION_DEPTH) {
+        generateError(node, ERROR_MESSAGES.RETURN_OUTSIDE_FUNCTION());
       }
       return ['return '];
     },
     'break': (node) => {
-      if (scopes.filter('loop').length <= 1) {
-        generateError(node, 'break statement outside of a loop scope');
+      if (scopes.filter(SCOPE_TYPES.LOOP).length <= SCOPE_DEPTH.MIN_LOOP_DEPTH) {
+        generateError(node, ERROR_MESSAGES.BREAK_OUTSIDE_LOOP());
       }
       return ['break'];
     },
     'await': (node) => {
       const scope = currentScopeFCT();
       if (!scope._currentFunction) {
-        generateError(node, 'await only accepted inside a function');
+        generateError(node, ERROR_MESSAGES.AWAIT_OUTSIDE_FUNCTION());
       } else if (scope._currentFunction.node.named.async === undefined) {
-        generateError(node, 'await only accepted inside an async function');
+        generateError(node, ERROR_MESSAGES.AWAIT_OUTSIDE_ASYNC());
       }
       return ['await '];
     },
     'continue': (node) => {
-      if (scopes.filter('loop').length <= 1) {
-        generateError(node, 'continue statement outside of a loop scope');
+      if (scopes.filter(SCOPE_TYPES.LOOP).length <= SCOPE_DEPTH.MIN_LOOP_DEPTH) {
+        generateError(node, ERROR_MESSAGES.CONTINUE_OUTSIDE_LOOP());
       }
       return ['continue'];
     },
