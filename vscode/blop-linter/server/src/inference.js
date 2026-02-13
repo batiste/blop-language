@@ -239,11 +239,33 @@ function visitChildren(node) {
 // ============================================================================
 
 const literalHandlers = {
-  'math': (node, parent) => {
-    visitChildren(node);
+  number: (node, parent) => {
     pushInference(parent, 'number');
   },
-  'number': (node, parent) => {
+  str: (node, parent) => {
+    pushInference(parent, 'string');
+  },
+  array_literal: (node, parent) => {
+    visitChildren(node);
+    pushInference(parent, 'array');
+  },
+  object_literal: (node, parent) => {
+    resolveTypes(node);
+    pushInference(parent, 'object');
+  },
+  virtual_node: (node, parent) => {
+    resolveTypes(node);
+    pushInference(parent, 'VNode');
+  },
+  virtual_node_exp: (node, parent) => {
+    visitChildren(node);
+    pushInference(parent, 'VNode');
+  },
+};
+
+const expressionHandlers = {
+  math: (node, parent) => {
+    visitChildren(node);
     pushInference(parent, 'number');
   },
   name_exp: (node, parent) => {
@@ -290,10 +312,6 @@ const literalHandlers = {
   new: (node, parent) => {
     resolveTypes(node);
     pushInference(parent, 'object');
-  },
-  await: (node, parent) => {
-    visitChildren(node);
-    pushInference(parent, 'any');
   },
 };
 

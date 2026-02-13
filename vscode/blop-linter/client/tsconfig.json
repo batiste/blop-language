@@ -4,7 +4,9 @@
 		"target": "es6",
 		"outDir": "out",
 		"rootDir": "src",
-		"sourceMap": true
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"typeRoots": ["./node_modules/@types", "../node_modules/@types"]
 	},
 	"include": ["src"],
 	"exclude": ["node_modules", ".vscode-test"]
