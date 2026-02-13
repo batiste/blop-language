@@ -197,7 +197,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	let stream = [];
 	try {
 		stream = parser.tokenize(tokensDefinition, text);
-	} catch (e) {
+	} catch (e: any) {
 		const token = e.token || { start: 0, end: text.length };
 		const diagnosic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
@@ -219,7 +219,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		let errorMsg;
 		try {
 			displayError(stream, tokensDefinition, grammar, tree);
-		} catch (error) {
+		} catch (error: any) {
 			errorMsg = error.message;
 		}
 

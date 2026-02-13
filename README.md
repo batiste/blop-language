@@ -124,3 +124,36 @@ for you:
 Relaunch vscode and open a `.blop` file to see if the linter and coloration work
 
 <img src="/img/example.png" width="600">
+
+## Development
+
+### Building and testing changes
+
+Run tests:
+
+    npm test
+
+Build the parser and run tests:
+
+    npm run parser
+    npm test
+
+### Developing VSCode extensions
+
+After modifying the linter or syntax highlighter:
+
+1. Build the linter extension:
+   ```
+   npm run linter
+   ```
+
+2. Reload VSCode to load the updated extension:
+   - Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+   - Select "Developer: Reload Window"
+
+**Note:** If you have the marketplace versions installed, uninstall them first or remove their directories from `~/.vscode/extensions/` to avoid conflicts with the development versions.
+
+The `npm run linter` script:
+- Copies necessary source files to the extension directory
+- Installs dependencies
+- Compiles TypeScript code

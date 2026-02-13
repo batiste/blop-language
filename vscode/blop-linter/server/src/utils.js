@@ -1,14 +1,15 @@
 const path = require('path');
 const fs = require('fs');
 const chalk = require('chalk');
-const { enhanceErrorMessage } = require('./errorMessages');
+const { PATHS, PATTERNS } = require('./constants');
+const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
 
 function replaceInvisibleChars(v) {
-  v = v.replace(/\r/g, '⏎\r');
-  v = v.replace(/\n/g, '⏎\n');
-  v = v.replace(/\t/g, '⇥');
-  v = v.replace('\xa0', 'nbsp');
-  return v.replace(/ /g, '␣');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.CARRIAGE_RETURN, '⏎\r');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.NEWLINE, '⏎\n');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.TAB, '⇥');
+  v = v.replace(PATTERNS.INVISIBLE_CHARS.NBSP, 'nbsp');
+  return v.replace(PATTERNS.INVISIBLE_CHARS.SPACE, '␣');
 }
 
 function noNewline(v) {
@@ -18,10 +19,11 @@ function noNewline(v) {
   return v;
 }
 
+
 function tokenPosition(token) {
-  const lineNumber = token.lineStart;
-  const charNumber = token.columnStart;
-  const end = charNumber + token.len;
+  const lineNumber = token.lineStart !== undefined ? token.lineStart : 0;
+  const charNumber = token.columnStart !== undefined ? token.columnStart : 0;
+  const end = charNumber + (token.len || 0);
   return { lineNumber, charNumber, end };
 }
 
@@ -67,26 +69,57 @@ function streamContext(token, firstToken, stream) {
 
 function displayError(stream, tokensDefinition, grammar, bestFailure) {
   const { token } = bestFailure;
+  const firstToken = bestFailure.first_token;
+  const positions = tokenPosition(token);
   
   // Generate enhanced error message
   const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
+  const enhancedMessage = formatEnhancedError(errorParts, positions);
   
-  // For VSCode linter, return a simplified message
-  let message = errorParts.title;
+  // Show code context
+  const context = streamContext(token, firstToken, stream);
   
-  if (errorParts.description) {
-    message += '. ' + errorParts.description;
+  // Build the full error message
+  let fullMessage = enhancedMessage;
+  fullMessage += '\n' + chalk.dim('  Code context:') + '\n';
+  fullMessage += context;
+  
+  // Add technical details for debugging (can be disabled in production)
+  if (process.env.BLOP_DEBUG) {
+    const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+    let rule = '';
+    for (let i = 0; i < sub_rules.length; i++) {
+      let sr = sub_rules[i];
+      if (tokensDefinition[sr] && tokensDefinition[sr].verbose) {
+        sr = tokensDefinition[sr].verbose.replace(/\s/g, '-');
+      }
+      if (i === bestFailure.sub_rule_token_index) {
+        rule += chalk.red(`${sr} `);
+      } else {
+        rule += chalk.yellow(`${sr} `);
+      }
+    }
+    fullMessage += '\n' + chalk.dim('  Technical details:');
+    fullMessage += chalk.dim(`\n  Rule: ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
+    fullMessage += chalk.dim(`\n  Expected: ${rule}`);
+    fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
   }
   
-  if (errorParts.suggestion) {
-    message += '\n\n' + errorParts.suggestion;
-  }
-  
-  if (errorParts.quickFix) {
-    message += '\n\nQuick fix: ' + errorParts.quickFix.fix;
-  }
-  
-  throw new Error(message);
+  throw new Error(fullMessage);
+}
+
+function displayBackendError(stream, error) {
+  const { token } = error;
+  const positions = tokenPosition(token);
+  const unexpected = chalk.yellow(noNewline(token.value));
+  const firstLine = chalk.red(`Backend error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end}`);
+  throw new Error(`
+  ${firstLine}
+  ${error.message} ${unexpected}
+  token "${unexpected}"
+  Context:
+${streamContext(error.token, token, stream)}
+`);
 }
 
 function printTree(node, sp) {
@@ -101,45 +134,6 @@ function printTree(node, sp) {
       printTree(node.children[i], `${sp}  `);
     }
   }
-}
-
-function checkGrammarAndTokens(grammar, tokensDefinition) {
-  const gkeys = Object.keys(grammar);
-  const tkeys = Object.keys(tokensDefinition);
-  const intersection = gkeys.filter(n => tkeys.indexOf(n) > -1);
-  if (intersection.length > 0) {
-    throw new Error(`Grammar and token have keys in common: ${intersection}`);
-  }
-}
-
-function preprocessGrammar(rules) {
-  return Object.keys(rules).reduce((accu, key) => {
-    accu[key] = rules[key].map(
-      subRule => subRule.map((subRuleItem) => {
-        if (subRuleItem instanceof Function) {
-          return { function: true, value: subRuleItem };
-        }
-        const values = subRuleItem.split(':');
-        let optional = false;
-        let repeatable = false;
-        if (values[0].endsWith('?')) {
-          values[0] = values[0].substring(0, values[0].length - 1);
-          optional = true;
-        }
-        if (values[0].endsWith('*')) {
-          values[0] = values[0].substring(0, values[0].length - 1);
-          repeatable = true;
-        }
-        return {
-          value: values[0],
-          alias: values[1],
-          optional,
-          repeatable,
-        };
-      }),
-    );
-    return accu;
-  }, {});
 }
 
 function lookUp(dir, name) {
@@ -160,7 +154,7 @@ function getConfig(filename) {
     return {};
   }
   const dirname = path.dirname(filename) || process.cwd();
-  const config = lookUp(dirname, 'blop.config.js');
+  const config = lookUp(dirname, PATHS.CONFIG_FILE);
   if (!config) {
     return {};
   }
@@ -172,8 +166,7 @@ module.exports = {
   getConfig,
   lookUp,
   streamContext,
-  preprocessGrammar,
-  checkGrammarAndTokens,
   displayError,
+  displayBackendError,
   printTree,
 };
