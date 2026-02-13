@@ -29,6 +29,10 @@ function loadStatistics() {
  * For each failure, we look at what tokens/rules commonly appear at that grammar position.
  * We prefer failures at positions where there's a clear expectation (high probability).
  * 
+ * When there are ties (multiple positions with same high probability), we prefer:
+ * 1. Failures later in the rule (higher sub_rule_token_index) - more specific context
+ * 2. Smaller, more specific rules over generic ones
+ * 
  * Example: In "def fct(a", at position func_call_params, we'd see ")" appears 88% 
  * and "," appears 12%, so we show the ")" error rather than something less likely.
  * 
@@ -54,6 +58,7 @@ function selectBestFailure(failureArray, defaultFailure) {
   
   let bestFailure = null;
   let bestScore = -1;
+  let bestTokenIndex = -1;
   
   for (const failure of failureArray) {
     // Build the position key: rule_name:sub_rule_index:token_index
@@ -73,8 +78,13 @@ function selectBestFailure(failureArray, defaultFailure) {
     entries.sort((a, b) => b[1] - a[1]);
     const score = entries[0][1]; // Probability of the most common token
     
-    if (score > bestScore) {
+    // Tie-breaker: when scores are equal, prefer failures later in the rule
+    // (higher token_index means more specific context)
+    const tokenIndex = failure.sub_rule_token_index;
+    
+    if (score > bestScore || (score === bestScore && tokenIndex > bestTokenIndex)) {
       bestScore = score;
+      bestTokenIndex = tokenIndex;
       bestFailure = failure;
     }
   }
