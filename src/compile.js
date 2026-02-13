@@ -9,6 +9,7 @@ const utils = require('./utils');
 const parser = require('./parser');
 const { inference } = require('./inference');
 const { PATHS, ERROR_MESSAGES } = require('./constants');
+const { selectBestFailure } = require('./selectBestFailure');
 
 
 function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
@@ -31,7 +32,11 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
     console.log(`${filename} -> Tokenizing: ${t2 - t1}, parsing: ${t3 - t2}`);
   }
   if (!tree.success) {
-    utils.displayError(stream, tokensDefinition, grammar, tree);
+    // Use statistics to select the best failure from the array
+    const bestFailure = tree.best_failure_array 
+      ? selectBestFailure(tree.best_failure_array, tree.best_failure || tree)
+      : (tree.best_failure || tree);
+    utils.displayError(stream, tokensDefinition, grammar, bestFailure);
   }
 
   let result;

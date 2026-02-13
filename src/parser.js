@@ -7707,7 +7707,10 @@ module.exports = {
     cacheR = {};
     const result = START(stream, 0);
     if (!result) {
-      return best_failure;
+      return {
+        ...best_failure,
+        best_failure_array,  // Add this line!
+      };
     }
     return result;
   },

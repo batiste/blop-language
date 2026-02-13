@@ -9,6 +9,7 @@ def pagination(petStore) {
   pets = petStore.pets
   pageIndex = petStore.pageIndex
   nbPage = Math.ceil(pets.length / pageSize)
+
   nextPage = (e) => {
     e.preventDefault()
     petStore.pageIndex += 1

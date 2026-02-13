@@ -34,6 +34,7 @@ const { inference } = require('./inference');
 const properties = require('./properties.js');
 const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
 const { tokenPosition } = require('./utils');
+const { selectBestFailure } = require('./selectBestFailure');
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -218,9 +219,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const tree = parser.parse(stream, 0);
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
-		// Generate enhanced error message for editor (without redundant location/context info)
-		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, tree);
-		const positions = tokenPosition(tree.token);
+		// Use statistics to select the best failure from the array
+		const bestFailure = tree.best_failure_array 
+			? selectBestFailure(tree.best_failure_array, tree.best_failure || tree)
+			: (tree.best_failure || tree);
+		
+		// Generate enbestFailurced error message for editor (without redundant location/context info)
+		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
+		const positions = tokenPosition(bestFailure.token);
 		const errorMsg = formatEnhancedError(errorParts, positions, true);
 
 		const token = tree.token;

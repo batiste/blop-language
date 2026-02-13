@@ -1,6 +1,8 @@
 // Meta programming: generate an efficient parser from
 // a grammar and a token definition
 const { performance, PerformanceObserver } = require('perf_hooks');
+const fs = require('fs');
+const path = require('path');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { generateParser } = require('meta-parser-generator');
 const { grammar } = require('./grammar');
@@ -20,7 +22,16 @@ obs.observe({ entryTypes: ['measure'] });
 
 performance.mark('A');
 
-generateParser(grammar, tokensDefinition, './src/parser.js');
+// Load token statistics if available
+let options = {};
+const statsPath = path.join(__dirname, 'tokenStatistics.json');
+if (fs.existsSync(statsPath)) {
+  const statistics = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+  options.tokenStatistics = statistics.positionProbabilities;
+  console.log(`${GREEN}[blop]${NC} Loaded token statistics for enhanced error messages`);
+}
+
+generateParser(grammar, tokensDefinition, './src/parser.js', options);
 
 performance.mark('B');
 performance.measure('Writting parser code', 'A', 'B');
