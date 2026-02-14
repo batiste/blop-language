@@ -1,10 +1,11 @@
 import { default as fetch } from 'node-fetch'
 
 async def saveState(state) {
-  state.loading = false // be sure to not save a loading state
-  body = JSON.stringify(state.$.raw)
+  state.loading = false
+  body = JSON.stringify(state?.$.raw)
   state.loading = true
   try {
+    // Simple option object
     response = await fetch(`/api/saveState`, {
       method: "POST",
       headers: {
@@ -14,7 +15,7 @@ async def saveState(state) {
     })
     console.log(await response.text())
   } catch e {
-    state.error = e.message
+    state.error = e?.message ?? 'Unknown error'
     state.loading = false
     throw e
   }

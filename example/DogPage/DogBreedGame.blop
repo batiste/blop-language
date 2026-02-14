@@ -2,7 +2,7 @@ import { getNewDog } from './services.blop'
 
 def DogGame(attributes, children) {
   { page, state } = attributes
-  dog = page.choice
+  dog = page?.choice
 
   input = <input type="text"
     class="form-control" placeholder="Breed" />
@@ -10,12 +10,13 @@ def DogGame(attributes, children) {
   def check() {
     guess = input.elm.value.toLowerCase().replace(' ', '-')
     input.elm.value = ''
-    page.attempt += 1
-    if (guess == dog.breed) {
+    page.attempt = (page.attempt ?? 0) + 1
+    if guess == dog?.breed {
       delete page.lastMistake
-      page.success += 1
+      page.success = (page.success ?? 0) + 1
     } else {
-      page.lastMistake = { breed: dog.breed, guess }
+      // Storing additional metadata with the mistake
+      page.lastMistake = { breed: dog?.breed, guess }
     }
     getNewDog(state)
   }
@@ -27,13 +28,16 @@ def DogGame(attributes, children) {
   <div>
     <h3>children</h3>
 
+    // Using nullish coalescing for default values
+    attempt = page.attempt ?? 0
+    success = page.success ?? 0
     percent = 0
-    if page.attempt {
-      percent := Math.floor(100 * (page.success / page.attempt))
+    if attempt > 0 {
+      percent := Math.floor(100 * (success / attempt))
     }
-    <p>'Correct answers: 'page.success' / 'page.attempt' ('percent'%)'</p>
+    <p>'Correct answers: 'success' / 'attempt' ('percent'%)'</p>
 
-    if (page.lastMistake) {
+    if page.lastMistake {
       <p>
         <span style={ color: 'red' }>'Wrong'</span>
         = ' the breed was '

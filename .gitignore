@@ -5,3 +5,4 @@ node_modules
 public/dist
 dist
 vscode/blop-syntax-highlighter/blop-syntax-highlighter
+coverage

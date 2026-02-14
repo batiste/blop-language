@@ -17,7 +17,8 @@ TodoListPage = (attributes, _children, node) => {
   { todo } = attributes
 
   def unselect() {
-    if todo.editItemIndex != false {
+    // Using nullish coalescing to check for undefined/null
+    if (todo.editItemIndex ?? false) != false {
       todo.editItemIndex = false
     }
   }
@@ -32,8 +33,10 @@ TodoListPage = (attributes, _children, node) => {
 
   addItem = (e) => {
     e.preventDefault()
-    if todo.inputValue {
-      todo.todoList.push(todo.inputValue)
+    // Using optional chaining with nullish coalescing
+    inputValue = todo.inputValue?.trim() ?? ''
+    if (inputValue) {
+      todo.todoList.push(inputValue)
       todo.inputValue = ''
     }
   }

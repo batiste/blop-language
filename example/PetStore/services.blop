@@ -2,15 +2,15 @@ import { default as fetch } from 'node-fetch'
 
 async def findAvailablePets(state, controller) {
   state.loading = true
-  signal = controller.signal
+  signal = controller?.signal
   try {
     response = await fetch(`https://petstore.swagger.io/v2/pet/findByStatus?status=available`, { signal })
   } catch e {
     console.log(e)
-    state.loading = e.message
+    state.loading = e?.message ?? 'Request failed'
     return
   }
-  petList = (await response.json())
+  petList = (await response.json()) ?? []
   
   state.loading = false
   state.petStore.pets = petList

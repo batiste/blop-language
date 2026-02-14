@@ -17,11 +17,13 @@ class FetchComponent extends Component {
   }
 
   async def fetchData() {
-    if this.controller => this.controller.abort()
+    // Using optional chaining for safe method call
+    this.controller?.abort()
     this.controller = new AbortController()
-    signal = this.controller.signal
+    signal = this.controller?.signal
     response = await fetch(this.attributes.url, { signal })
-    this.list = (await response.json()).results
+    data = await response.json()
+    this.list = data?.results ?? []
     this.refresh()
   }
 
@@ -31,7 +33,8 @@ class FetchComponent extends Component {
   }
 
   def onUnmount() {
-    if this.controller => this.controller.abort()
+    // Using optional chaining for cleanup
+    this.controller?.abort()
   }
 }
 
