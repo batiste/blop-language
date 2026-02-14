@@ -428,6 +428,46 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 				}
 			};
 			codeActions.push(action);
+		} else if (patternName === 'missing_required_whitespace') {
+			// Add space - the diagnostic range points to where the space is missing
+			// Simply insert a space at the start of the diagnostic range
+			const range = diagnostic.range;
+			const text = textDocument.getText();
+			const offset = textDocument.offsetAt(range.start);
+			
+			// Determine if we need space before or after by checking the previous character
+			let prevPos = offset - 1;
+			let insertPos = offset;
+			let title = 'Add required space';
+			
+			if (prevPos >= 0) {
+				const prevChar = text[prevPos];
+				// If previous char is a token that needs space after it
+				if (/[=:,]/.test(prevChar)) {
+					title = `Add space after '${prevChar}'`;
+				} else if (prevChar === '}' || prevChar === ')') {
+					// Space before current token (like }from or )=>)
+					title = `Add space before '${textDocument.getText(range).split(/\s/)[0]}'`;
+				}
+			}
+			
+			const action: CodeAction = {
+				title,
+				kind: CodeActionKind.QuickFix,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [{
+							range: {
+								start: textDocument.positionAt(insertPos),
+								end: textDocument.positionAt(insertPos)
+							},
+							newText: ' '
+						}]
+					}
+				}
+			};
+			codeActions.push(action);
 		}
 	}
 
