@@ -21,8 +21,8 @@ function noNewline(v) {
 
 
 function tokenPosition(token) {
-  const lineNumber = token.lineStart !== undefined ? token.lineStart : 0;
-  const charNumber = token.columnStart !== undefined ? token.columnStart : 0;
+  const lineNumber = token.line_start !== undefined ? token.line_start : 0;
+  const charNumber = token.column_start !== undefined ? token.column_start : 0;
   const end = charNumber + (token.len || 0);
   return { lineNumber, charNumber, end };
 }

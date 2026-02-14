@@ -77,10 +77,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   function sourceMapDecorator(func) {
     return function dec(node) {
       const output = func(node);
-      if (node.lineStart !== undefined) {
+      if (node.line_start !== undefined) {
         rootSource.add(new sourceMap.SourceNode(
-          node.lineStart || 1,
-          node.columnStart + 1,
+          node.line_start || 1,
+          node.column_start + 1,
           _filename,
           output.join(''),
         ));

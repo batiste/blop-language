@@ -226,6 +226,17 @@ const ERROR_PATTERNS = [
     },
   },
   {
+    name: 'multiple_spaces_instead_of_single',
+    detect: (context) => {
+      // Expected single space but got multiple spaces
+      return context.expectedToken === 'w' && context.token.type === 'W';
+    },
+    message: () => 'Multiple spaces where single space expected',
+    suggestion: () => 'Use only a single space:\n' +
+      '  a = 1     // correct\n' +
+      '  a =  1    // too many spaces (error)',
+  },
+  {
     name: 'missing_required_whitespace',
     detect: (context) => {
       // Generic pattern: grammar explicitly expects a 'w' token (single space) but found something else
@@ -235,7 +246,8 @@ const ERROR_PATTERNS = [
       }
       
       // We expected a whitespace token, but got a different token type
-      return context.token.type !== 'w';
+      // Exclude 'W' (multiple spaces) as that has its own pattern above
+      return context.token.type !== 'w' && context.token.type !== 'W';
     },
     message: () => 'Missing required whitespace',
     suggestion: (context) => {
@@ -327,7 +339,7 @@ const QUICK_FIXES = {
   }),
   unexpected_semicolon: (token, context) => ({
     title: 'Remove semicolon',
-    description: `Remove the semicolon on line ${token.lineStart + 1}`,
+    description: `Remove the semicolon on line ${token.line_start + 1}`,
     edit: {
       type: 'delete',
       range: 'token', // Delete the entire token range
@@ -359,7 +371,7 @@ const QUICK_FIXES = {
     const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
     return {
       title: 'Add space after colon',
-      description: `Add a space after the colon on line ${token.lineStart + 1}`,
+      description: `Add a space after the colon on line ${token.line_start + 1}`,
       edit: {
         type: 'insert',
         position: 'after-previous-token', // Insert after the : token
@@ -382,7 +394,7 @@ const QUICK_FIXES = {
     
     return {
       title,
-      description: `Add a space before '${token.value}' on line ${token.lineStart + 1}`,
+      description: `Add a space before '${token.value}' on line ${token.line_start + 1}`,
       edit: {
         type: 'insert',
         position: 'before-token', // Insert space before current token
@@ -392,10 +404,19 @@ const QUICK_FIXES = {
   },
   unwanted_whitespace_after_equals: (token, context) => ({
     title: 'Remove space after equals sign',
-    description: `Remove the space after '=' on line ${token.lineStart + 1}`,
+    description: `Remove the space after '=' on line ${token.line_start + 1}`,
     edit: {
       type: 'delete',
       range: 'token', // Delete the whitespace token
+    }
+  }),
+  multiple_spaces_instead_of_single: (token, context) => ({
+    title: 'Replace with single space',
+    description: `Replace multiple spaces with a single space on line ${token.line_start + 1}`,
+    edit: {
+      type: 'replace',
+      range: 'token',
+      newText: ' '
     }
   }),
 };
