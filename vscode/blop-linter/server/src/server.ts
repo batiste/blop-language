@@ -17,7 +17,10 @@ import {
 	TextDocumentSyncKind,
 	InitializeResult,
 	DiagnosticRelatedInformation,
-	Location
+	Location,
+	CodeAction,
+	CodeActionKind,
+	CodeActionParams
 } from 'vscode-languageserver';
 
 import {
@@ -34,6 +37,7 @@ const { inference } = require('./inference');
 const properties = require('./properties.js');
 const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
 const { tokenPosition } = require('./utils');
+const { selectBestFailure } = require('./selectBestFailure');
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -46,6 +50,15 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
+
+// Store diagnostic metadata for code actions
+interface DiagnosticMetadata {
+	patternName: string;
+	tokenStart: number;
+	tokenLen: number;
+	tokenValue: string;
+}
+const diagnosticMetadata = new Map<string, DiagnosticMetadata>();
 
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
@@ -70,6 +83,10 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that the server supports code completion
 			completionProvider: {
 				resolveProvider: true
+			},
+			// Tell the client that the server supports code actions (quick fixes)
+			codeActionProvider: {
+				codeActionKinds: [CodeActionKind.QuickFix]
 			}
 		}
 	};
@@ -218,9 +235,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const tree = parser.parse(stream, 0);
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
-		// Generate enhanced error message for editor (without redundant location/context info)
-		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, tree);
-		const positions = tokenPosition(tree.token);
+		// Use statistics to select the best failure from the array
+		const bestFailure = tree.best_failure_array 
+			? selectBestFailure(tree.best_failure_array, tree.best_failure || tree)
+			: (tree.best_failure || tree);
+		
+		// Generate enbestFailurced error message for editor (without redundant location/context info)
+		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
+		const positions = tokenPosition(bestFailure.token);
 		const errorMsg = formatEnhancedError(errorParts, positions, true);
 
 		const token = tree.token;
@@ -231,8 +253,19 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 				end: textDocument.positionAt(token.start + Math.max(1, token.len))
 			},
 			message: errorMsg,
-			source: 'blop'
+			source: 'blop',
+			code: errorParts.patternName || 'generic'
 		};
+		
+		// Store metadata for code actions
+		const metadataKey = `${textDocument.uri}:${token.start}:${token.len}`;
+		diagnosticMetadata.set(metadataKey, {
+			patternName: errorParts.patternName,
+			tokenStart: token.start,
+			tokenLen: token.len,
+			tokenValue: token.value
+		});
+		
 		// if (hasDiagnosticRelatedInformationCapability) { }
 		diagnostics.push(diagnosic);
 		connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -269,6 +302,136 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 connection.onDidChangeWatchedFiles((_change) => {
 	// Monitored files have change in VSCode
 	connection.console.log('We received an file change event');
+});
+
+// Code Actions (Quick Fixes) Handler
+connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
+	const textDocument = documents.get(params.textDocument.uri);
+	if (!textDocument) {
+		return [];
+	}
+
+	const codeActions: CodeAction[] = [];
+	
+	// Look at diagnostics in the requested range
+	for (const diagnostic of params.context.diagnostics) {
+		if (diagnostic.source !== 'blop') {
+			continue;
+		}
+
+		const patternName = diagnostic.code as string;
+
+		// Generate code action based on the error pattern
+		if (patternName === 'missing_whitespace_after_colon') {
+			// Add space after colon: "key:value" -> "key: value"
+			const range = diagnostic.range;
+			const text = textDocument.getText();
+			const offset = textDocument.offsetAt(range.start);
+			
+			// Find the colon before the error position
+			let colonPos = offset - 1;
+			while (colonPos >= 0 && text[colonPos] !== ':') {
+				colonPos--;
+			}
+			
+			if (colonPos >= 0 && text[colonPos] === ':') {
+				const action: CodeAction = {
+					title: 'Add space after colon',
+					kind: CodeActionKind.QuickFix,
+					diagnostics: [diagnostic],
+					edit: {
+						changes: {
+							[params.textDocument.uri]: [{
+								range: {
+									start: textDocument.positionAt(colonPos + 1),
+									end: textDocument.positionAt(colonPos + 1)
+								},
+								newText: ' '
+							}]
+						}
+					}
+				};
+				codeActions.push(action);
+			}
+		} else if (patternName === 'unwanted_whitespace_after_equals') {
+			// Remove space after equals: "key= value" -> "key=value"
+			const range = diagnostic.range;
+			const action: CodeAction = {
+				title: 'Remove space after equals sign',
+				kind: CodeActionKind.QuickFix,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [{
+							range: range,
+							newText: ''
+						}]
+					}
+				}
+			};
+			codeActions.push(action);
+		} else if (patternName === 'unexpected_semicolon') {
+			// Remove semicolon
+			const range = diagnostic.range;
+			const action: CodeAction = {
+				title: 'Remove semicolon',
+				kind: CodeActionKind.QuickFix,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [{
+							range: range,
+							newText: ''
+						}]
+					}
+				}
+			};
+			codeActions.push(action);
+		} else if (patternName === 'jsx_confusion') {
+			// Convert JSX attributes to Blop
+			const text = textDocument.getText(diagnostic.range);
+			let newText = text;
+			if (text === 'className') {
+				newText = 'class';
+			} else if (text === 'htmlFor') {
+				newText = 'for';
+			}
+			
+			const action: CodeAction = {
+				title: `Convert '${text}' to '${newText}'`,
+				kind: CodeActionKind.QuickFix,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [{
+							range: diagnostic.range,
+							newText: newText
+						}]
+					}
+				}
+			};
+			codeActions.push(action);
+		} else if (patternName === 'var_let_const') {
+			// Remove var/let/const keywords
+			const text = textDocument.getText(diagnostic.range);
+			const action: CodeAction = {
+				title: `Remove '${text}' keyword`,
+				kind: CodeActionKind.QuickFix,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [{
+							range: diagnostic.range,
+							newText: ''
+						}]
+					}
+				}
+			};
+			codeActions.push(action);
+		}
+	}
+
+	return codeActions;
 });
 
 connection.onCompletion(

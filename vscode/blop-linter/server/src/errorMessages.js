@@ -32,6 +32,9 @@ const RULE_EXPLANATIONS = {
   'import_statement': 'an import statement',
   'try_catch': 'a try-catch block',
   'object_destructuring': 'object destructuring',
+  'object_literal_body': 'an object literal property (key: value)',
+  'virtual_node_attributes': 'a virtual DOM element attribute',
+  'name_exp': 'an identifier or expression',
   'annotation': 'a type annotation',
 };
 
@@ -39,33 +42,33 @@ const RULE_EXPLANATIONS = {
  * Token type explanations - makes token types more understandable
  */
 const TOKEN_EXPLANATIONS = {
-  'newline': 'a line break',
+  'newline': 'line break',
   'w': 'whitespace',
   'W': 'required whitespace',
   'ws': 'whitespace',
-  'name': 'an identifier',
-  'number': 'a number',
-  'string': 'a string',
-  'EOS': 'the end of the file',
-  'def': 'the `def` keyword',
-  'if': 'the `if` keyword',
-  'for': 'the `for` keyword',
-  'while': 'the `while` keyword',
-  'return': 'the `return` keyword',
-  'class': 'the `class` keyword',
-  'import': 'the `import` keyword',
-  'fat_arrow': 'an arrow function `=>`',
-  'lbracket': 'an opening bracket `[`',
-  'rbracket': 'a closing bracket `]`',
-  'lparen': 'an opening parenthesis `(`',
-  'rparen': 'a closing parenthesis `)`',
-  'lbrace': 'an opening brace `{`',
-  'rbrace': 'a closing brace `}`',
-  'comma': 'a comma `,`',
-  'colon': 'a colon `:`',
-  'semicolon': 'a semicolon `;`',
-  'dot': 'a dot `.`',
-  'explicit_assign': 'the explicit assignment operator `:=`',
+  'name': 'identifier',
+  'number': 'number',
+  'string': 'string',
+  'EOS': 'end of the file',
+  'def': '`def` keyword',
+  'if': '`if` keyword',
+  'for': '`for` keyword',
+  'while': '`while` keyword',
+  'return': '`return` keyword',
+  'class': '`class` keyword',
+  'import': '`import` keyword',
+  'fat_arrow': 'arrow function `=>`',
+  'lbracket': 'opening bracket `[`',
+  'rbracket': 'closing bracket `]`',
+  'lparen': 'opening parenthesis `(`',
+  'rparen': 'closing parenthesis `)`',
+  'lbrace': 'opening brace `{`',
+  'rbrace': 'closing brace `}`',
+  'comma': 'comma `,`',
+  'colon': 'colon `:`',
+  'semicolon': 'semicolon `;`',
+  'dot': 'dot `.`',
+  'explicit_assign': 'explicit assignment operator `:=`',
 };
 
 /**
@@ -213,6 +216,71 @@ const ERROR_PATTERNS = [
       '  myVar := 20       // explicit reassignment',
   },
   {
+    name: 'missing_whitespace_after_colon',
+    detect: (context) => {
+      // Detect when we expect whitespace after a colon (common in object literals)
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      return lastToken && 
+             lastToken.type === 'colon' && 
+             context.token.type === 'name' &&
+             (context.ruleName === 'object_literal_body' || 
+              context.ruleName.includes('object'));
+    },
+    message: () => 'Missing whitespace after colon',
+    suggestion: (context) => {
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      const prevToken = context.precedingTokens[context.precedingTokens.length - 2];
+      const key = prevToken ? prevToken.value : 'key';
+      const value = context.token.value;
+      return `Object literal syntax requires a space after the colon:\n` +
+        `  { ${key}: ${value} }     // correct\n` +
+        `  { ${key}:${value} }      // missing space (error)`;
+    },
+  },
+  {
+    name: 'missing_required_whitespace',
+    detect: (context) => {
+      // Generic pattern: grammar explicitly expects a 'w' token (single space) but found something else
+      // The token stream is missing a whitespace token that the grammar requires
+      if (context.expectedToken !== 'w') {
+        return false;
+      }
+      
+      // We expected a whitespace token, but got a different token type
+      return context.token.type !== 'w';
+    },
+    message: () => 'Missing required whitespace',
+    suggestion: (context) => {
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      if (lastToken) {
+        const tokenDesc = TOKEN_EXPLANATIONS[lastToken.type] || lastToken.type;
+        return `Add a space after ${tokenDesc}`;
+      }
+      return 'Add a space at this position';
+    },
+  },
+  {
+    name: 'unwanted_whitespace_after_equals',
+    detect: (context) => {
+      // Detect unwanted whitespace after '=' in contexts like HTML attributes
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      return lastToken && 
+             lastToken.type === '=' && 
+             context.token.type === 'w' &&
+             (context.ruleName === 'virtual_node_attributes' || 
+              context.ruleName === 'exp' ||
+              context.ruleName === 'name_exp');
+    },
+    message: () => 'Unexpected whitespace after equals sign',
+    suggestion: (context) => {
+      const prevPrevToken = context.precedingTokens[context.precedingTokens.length - 2];
+      const attrName = prevPrevToken ? prevPrevToken.value : 'attribute';
+      return `Remove the space after '=' in attribute assignment:\n` +
+        `  ${attrName}="value"     // correct\n` +
+        `  ${attrName}= "value"    // unwanted space (error)`;
+    },
+  },
+  {
     name: 'missing_def_keyword',
     detect: (context) => {
       return context.expectedToken === 'def' && 
@@ -262,6 +330,18 @@ const QUICK_FIXES = {
       'Change `className` to `class`' : 
       'Change `htmlFor` to `for`',
   }),
+  missing_whitespace_after_colon: (token) => ({
+    description: 'Add space after colon',
+    fix: `Add a space after the colon on line ${token.lineStart + 1}`,
+  }),
+  missing_required_whitespace: (token) => ({
+    description: 'Add required whitespace',
+    fix: `Add a space before '${token.value}' on line ${token.lineStart + 1}`,
+  }),
+  unwanted_whitespace_after_equals: (token) => ({
+    description: 'Remove unwanted whitespace',
+    fix: `Remove the space after '=' on line ${token.lineStart + 1}`,
+  }),
 };
 
 /**
@@ -278,15 +358,28 @@ function getPrecedingTokens(stream, currentIndex, count = 5) {
 /**
  * Analyze error context and detect patterns
  */
-function analyzeErrorContext(stream, bestFailure) {
+function analyzeErrorContext(stream, bestFailure, grammar) {
   const token = bestFailure.token;
   const precedingTokens = getPrecedingTokens(stream, token.stream_index);
+  
+  // Try to determine what token was expected based on grammar
+  let expectedToken = null;
+  if (grammar && bestFailure.rule_name && 
+      grammar[bestFailure.rule_name] && 
+      grammar[bestFailure.rule_name][bestFailure.sub_rule_index]) {
+    const subRule = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+    const expectedTokenIndex = bestFailure.sub_rule_token_index;
+    if (subRule[expectedTokenIndex]) {
+      // Remove any annotations like 'object_literal_key:key' -> 'object_literal_key'
+      expectedToken = String(subRule[expectedTokenIndex]).split(':')[0];
+    }
+  }
   
   return {
     token,
     ruleName: bestFailure.rule_name,
     subRuleIndex: bestFailure.sub_rule_index,
-    expectedToken: null, // Will be determined from grammar
+    expectedToken,
     precedingTokens,
     stream,
   };
@@ -308,7 +401,7 @@ function detectErrorPattern(context) {
  * Generate enhanced error message
  */
 function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
-  const context = analyzeErrorContext(stream, bestFailure);
+  const context = analyzeErrorContext(stream, bestFailure, grammar);
   const pattern = detectErrorPattern(context);
   
   const token = bestFailure.token;
@@ -321,6 +414,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     description: '',
     suggestion: '',
     quickFix: null,
+    patternName: null, // Store pattern name for code actions
   };
   
   if (pattern) {
@@ -329,13 +423,21 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     parts.suggestion = pattern.suggestion(context);
     parts.quickFix = QUICK_FIXES[pattern.name] ? 
       QUICK_FIXES[pattern.name](token) : null;
+    parts.patternName = pattern.name; // Store for code actions
   } else {
     // Generate generic but improved message
     const ruleExplanation = RULE_EXPLANATIONS[ruleName] || `in a ${ruleName}`;
     const tokenExplanation = TOKEN_EXPLANATIONS[token.type] || `'${token.type}'`;
     
     parts.title = `Unexpected ${tokenExplanation}`;
-    parts.description = `Expected ${ruleExplanation}, but found '${tokenValue}'`;
+    
+    // Build description with expected token info if available
+    if (context.expectedToken) {
+      const expectedExplanation = TOKEN_EXPLANATIONS[context.expectedToken] || `'${context.expectedToken}'`;
+      parts.description = `Expected ${expectedExplanation} ${ruleExplanation}, but found '${tokenValue}'`;
+    } else {
+      parts.description = `Expected ${ruleExplanation}, but found '${tokenValue}'`;
+    }
     
     // Try to provide generic helpful info based on rule name
     if (ruleName.includes('func')) {
