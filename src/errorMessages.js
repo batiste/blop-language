@@ -414,6 +414,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     description: '',
     suggestion: '',
     quickFix: null,
+    patternName: null, // Store pattern name for code actions
   };
   
   if (pattern) {
@@ -422,6 +423,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     parts.suggestion = pattern.suggestion(context);
     parts.quickFix = QUICK_FIXES[pattern.name] ? 
       QUICK_FIXES[pattern.name](token) : null;
+    parts.patternName = pattern.name; // Store for code actions
   } else {
     // Generate generic but improved message
     const ruleExplanation = RULE_EXPLANATIONS[ruleName] || `in a ${ruleName}`;
