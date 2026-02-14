@@ -40,10 +40,24 @@ function createLiteralGenerators(context) {
     },
     'object_literal_body': (node) => {
       const output = [];
+      // Handle spread syntax in objects
+      if (node.named.spread) {
+        output.push('...');
+        output.push(...generateCode(node.named.spread_exp));
+        // Process remaining children but skip the spread and spread_exp tokens
+        for (let i = 0; i < node.children.length; i++) {
+          const child = node.children[i];
+          if (child.type !== 'spread' && child !== node.named.spread_exp) {
+            output.push(...generateCode(child));
+          }
+        }
+        return output;
+      }
       if (node.named.key) {
         const name = node.named.key.children[0].value;
         shouldBeDefined(name, node.named.key.children[0]);
       }
+      // Process all children for non-spread cases
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }

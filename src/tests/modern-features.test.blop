@@ -1,0 +1,148 @@
+
+// Modern JavaScript features tests
+
+// Object spread tests
+obj1 = { a: 1, b: 2 }
+obj2 = { c: 3, d: 4 }
+merged = { ...obj1, ...obj2 }
+
+obj3 = { a: 1, b: 2 }
+obj4 = { ...obj3, b: 3 }
+
+obj5 = { a: 1 }
+obj6 = { ...obj5, b: 2, c: 3 }
+
+// Optional chaining tests
+nestedObj = { a: { b: { c: 42 } } }
+safeResult = nestedObj?.a?.b?.c
+
+obj7 = { a: 1 }
+missingResult = obj7?.b?.c?.d
+
+nullObj = null
+nullResult = nullObj?.a?.b
+
+objWithArray = { arr: [1, 2, 3] }
+arrayResult = objWithArray?.arr?.[1]
+
+objWithNull = { a: null }
+nullChainResult = objWithNull?.a?.b?.c
+
+// Nullish coalescing tests
+nullValue = null
+nullishResult1 = nullValue ?? 'default'
+
+undefinedValue = undefined
+nullishResult2 = undefinedValue ?? 'default'
+
+zeroValue = 0
+nullishResult3 = zeroValue ?? 42
+
+emptyString = ''
+nullishResult4 = emptyString ?? 'default'
+
+falseValue = false
+nullishResult5 = falseValue ?? true
+
+val1 = null
+val2 = undefined
+val3 = 'result'
+chainedNullish = val1 ?? val2 ?? val3 ?? 'default'
+
+// Combined features
+combined1 = { a: { b: null } }
+combinedResult = combined1?.a?.b?.c ?? 'default'
+
+combined2 = { a: { b: 1 } }
+spreadOptional = { ...combined2?.a }
+
+data = {
+  user: {
+    settings: {
+      theme: null
+    }
+  }
+}
+
+theme = data?.user?.settings?.theme ?? 'light'
+config = {
+  ...data?.user?.settings,
+  theme: theme
+}
+
+test('Object spread should merge properties', () => {
+  expect(merged.a).toBe(1)
+  expect(merged.b).toBe(2)
+  expect(merged.c).toBe(3)
+  expect(merged.d).toBe(4)
+})
+
+test('Object spread should override properties', () => {
+  expect(obj4.a).toBe(1)
+  expect(obj4.b).toBe(3)
+})
+
+test('Object spread should work with mixed properties', () => {
+  expect(obj6.a).toBe(1)
+  expect(obj6.b).toBe(2)
+  expect(obj6.c).toBe(3)
+})
+
+test('Optional chaining should safely access nested properties', () => {
+  expect(safeResult).toBe(42)
+})
+
+test('Optional chaining should return undefined for missing properties', () => {
+  expect(missingResult).toBe(undefined)
+})
+
+test('Optional chaining should work with null values', () => {
+  expect(nullResult).toBe(undefined)
+})
+
+test('Optional chaining should work with array access', () => {
+  expect(arrayResult).toBe(2)
+})
+
+test('Optional chaining should short-circuit on null', () => {
+  expect(nullChainResult).toBe(undefined)
+})
+
+test('Nullish coalescing should return right value when left is null', () => {
+  expect(nullishResult1).toBe('default')
+})
+
+test('Nullish coalescing should return right value when left is undefined', () => {
+  expect(nullishResult2).toBe('default')
+})
+
+test('Nullish coalescing should return left value when it is 0', () => {
+  expect(nullishResult3).toBe(0)
+})
+
+test('Nullish coalescing should return left value when it is empty string', () => {
+  expect(nullishResult4).toBe('')
+})
+
+test('Nullish coalescing should return left value when it is false', () => {
+  expect(nullishResult5).toBe(false)
+})
+
+test('Nullish coalescing should chain properly', () => {
+  expect(chainedNullish).toBe('result')
+})
+
+test('Combined features - optional chaining with nullish coalescing', () => {
+  expect(combinedResult).toBe('default')
+})
+
+test('Combined features - spread with optional chaining', () => {
+  expect(spreadOptional.b).toBe(1)
+})
+
+test('Combined features in complex expressions', () => {
+  expect(theme).toBe('light')
+  expect(config.theme).toBe('light')
+})
+
+

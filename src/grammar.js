@@ -73,7 +73,16 @@ const grammar = {
     ['async?:async', '(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
   ],
   'annotation': [
-    ['colon', 'w', 'name:name'],
+    ['colon', 'w', 'type_expression:type'],
+  ],
+  'type_expression': [
+    ['type_primary', 'w', 'pipe', 'w', 'type_expression:union'],
+    ['type_primary', 'w', 'ampersand', 'w', 'type_expression:intersection'],
+    ['type_primary'],
+  ],
+  'type_primary': [
+    ['name:name', '[', ']'],
+    ['name:name'],
   ],
   'func_def_params': [
     ['name:name', '=', 'exp', 'annotation?:annotation', ',', 'w', 'func_def_params'],
@@ -142,6 +151,8 @@ const grammar = {
   ],
   'newline_and_space': [['newline', 'w?', 'W?']],
   'object_literal_body': [
+    ['spread:spread', 'exp:spread_exp', ',', 'single_space_or_newline', 'object_literal_body'],
+    ['spread:spread', 'exp:spread_exp'],
     ['object_literal_key', 'colon', 'w', 'exp', ',', 'single_space_or_newline', 'object_literal_body'],
     ['object_literal_key:key', ',', 'single_space_or_newline', 'object_literal_body'],
     ['object_literal_key', 'colon', 'w', 'exp'],
@@ -198,11 +209,14 @@ const grammar = {
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
   'object_access': [
+    ['optional_chain:optional', 'name:name', 'object_access?'],
     ['.', 'name', 'object_access?'],
+    ['optional_chain:optional', '[', 'exp', ']', 'object_access?'],
     ['func_call', 'object_access?'],
     ['[', 'exp', ']', 'object_access?'],
   ],
   'operation': [
+    ['nullish:nullish_op', 'w', 'exp'],
     ['math_operator:math_op', 'w', 'exp'],
     ['boolean_operator:boolean_op', 'w', 'exp'],
     ['<:boolean_op', 'w', 'exp'],

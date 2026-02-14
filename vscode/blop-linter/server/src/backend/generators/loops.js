@@ -23,11 +23,31 @@ function createLoopGenerators(context) {
         export: false, hoist: false, token: node.named.value,
       };
 
-      // generate a different type of loop using annotation
-      const isArray = (node.named.keyannotation
-        && node.named.keyannotation.children[2].value === 'int')
-        || (node.named.objectannotation
-          && node.named.objectannotation.children[2].value === 'array');
+      //generate a different type of loop using annotation
+      // Extract type from annotation structure (handles both old and new format)
+      const getAnnotationType = (annotation) => {
+        if (!annotation) return null;
+        // New format: annotation.named.type.children[0] (type_primary) has named.name
+        if (annotation.named &&annotation.named.type) {
+          const typeExp = annotation.named.type;
+          if (typeExp.children && typeExp.children[0]) {
+            const typePrimary = typeExp.children[0];
+            if (typePrimary.named && typePrimary.named.name) {
+              return typePrimary.named.name.value;
+            }
+          }
+        }
+        // Old format fallback: annotation.children[2] is the name token
+        if (annotation.children && annotation.children[2]) {
+          return annotation.children[2].value;
+        }
+        return null;
+      };
+      
+      const keyAnnotationType = getAnnotationType(node.named.keyannotation);
+      const objAnnotationType = getAnnotationType(node.named.objectannotation);
+      const isArray = (keyAnnotationType === 'int') || (objAnnotationType === 'array');
+      
       // an proper array is expected
       if (isArray) {
         const f_uid = uid();

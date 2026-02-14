@@ -8,6 +8,36 @@ const pushScope = () => functionScopes.push({}) && getCurrentScope();
 const popScope = () => functionScopes.pop();
 
 /**
+ * Extract type name from annotation node
+ * Handles both old format (name) and new format (type_expression)
+ * @param {Object} annotationNode - The annotation AST node
+ * @returns {string} The type name
+ */
+function getAnnotationType(annotationNode) {
+  if (!annotationNode) return null;
+  
+  // New format: annotation.named.type is a type_expression
+  if (annotationNode.named && annotationNode.named.type) {
+    const typeExp = annotationNode.named.type;
+    // For now, just get the first type_primary name
+    // TODO: Handle union and intersection types properly
+    if (typeExp.children && typeExp.children[0]) {
+      const typePrimary = typeExp.children[0];
+      if (typePrimary.named && typePrimary.named.name) {
+        return typePrimary.named.name.value;
+      }
+    }
+  }
+  
+  // Old format fallback: annotation.named.name
+  if (annotationNode.named && annotationNode.named.name) {
+    return annotationNode.named.name.value;
+  }
+  
+  return null;
+}
+
+/**
  * Look up a variable in the scope chain
  * @param {string} name - Variable name to look up
  * @returns {Object|undefined} Variable definition or undefined
@@ -161,15 +191,32 @@ function handleBooleanOperator(types, i) {
   return i - 2;
 }
 
+function handleNullishOperator(types, i) {
+  // Nullish coalescing returns the type of the left side if not null/undefined, 
+  // otherwise the type of the right side
+  const leftType = types[i - 1];
+  const rightType = types[i - 2];
+  // Simplify: return the union or 'any' if types differ
+  if (leftType === rightType) {
+    types[i - 2] = leftType;
+  } else {
+    types[i - 2] = 'any';
+  }
+  types.splice(i - 1, 2);
+  return i - 2;
+}
+
 function handleAssignment(types, i, assignNode) {
   const { annotation, name } = assignNode.named;
   const valueType = types[i - 1];
   
   if (annotation && valueType && valueType !== 'any') {
-    const annotationType = annotation.named.name.value;
-    const result = TypeChecker.checkAssignment(valueType, annotationType);
-    if (!result.valid) {
-      pushWarning(assignNode, result.warning);
+    const annotationType = getAnnotationType(annotation);
+    if (annotationType) {
+      const result = TypeChecker.checkAssignment(valueType, annotationType);
+      if (!result.valid) {
+        pushWarning(assignNode, result.warning);
+      }
     }
   }
   
@@ -208,6 +255,8 @@ function resolveTypes(node) {
         i = handleMathOperator(types, i, t);
       } else if (t && t.type === 'boolean_operator') {
         i = handleBooleanOperator(types, i);
+      } else if (t && t.type === 'nullish') {
+        i = handleNullishOperator(types, i);
       } else if (t && t.type === 'assign') {
         handleAssignment(types, i, t);
       } else if (t && t.type === 'object_access' && types[i - 1]) {
@@ -322,11 +371,15 @@ const functionHandlers = {
       scope.__currentFctParams = [];
     }
     if (node.named.annotation) {
-      const annotation = node.named.annotation.named.name.value;
-      scope[node.named.name.value] = {
-        type: annotation,
-      };
-      scope.__currentFctParams.push(annotation);
+      const annotation = getAnnotationType(node.named.annotation);
+      if (annotation) {
+        scope[node.named.name.value] = {
+          type: annotation,
+        };
+        scope.__currentFctParams.push(annotation);
+      } else {
+        scope.__currentFctParams.push('any');
+      }
     } else {
       scope.__currentFctParams.push('any');
     }
@@ -363,10 +416,10 @@ const functionHandlers = {
     
     if (node.named.name) {
       const { annotation } = node.named;
-      const type = annotation ? annotation.named.name.value : 'any';
+      const type = annotation ? getAnnotationType(annotation) : 'any';
       
       // Validate return types if annotation exists
-      if (annotation && scope.__returnTypes && scope.__returnTypes.length > 0) {
+      if (annotation && type && scope.__returnTypes && scope.__returnTypes.length > 0) {
         const result = TypeChecker.checkReturnTypes(scope.__returnTypes, type, node.named.name.value);
         if (!result.valid) {
           pushWarning(node.named.name, result.warning);

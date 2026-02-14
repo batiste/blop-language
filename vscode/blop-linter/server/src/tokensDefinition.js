@@ -72,6 +72,18 @@ function continueDef(input) {
   }
 }
 
+function singlePipe(input) {
+  if (input[0] === '|' && input[1] !== '|') {
+    return '|';
+  }
+}
+
+function singleAmpersand(input) {
+  if (input[0] === '&' && input[1] !== '&') {
+    return '&';
+  }
+}
+
 const tokensDefinition = {
   'number': { reg: /^[0-9]+(\.[0-9]*)?/ },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
@@ -101,7 +113,12 @@ const tokensDefinition = {
   'from': { str: 'from ' },
   'operand': { reg: /^typeof / },
   ',': { str: ',' },
+  'nullish': { str: '??' },
+  'optional_chain': { str: '?.' },
+  'boolean_operator': { reg: /^(\|\||&&|>=|<=|==|!=|instanceof)/ },
   '.': { str: '.' },
+  'pipe': { func: singlePipe },
+  'ampersand': { func: singleAmpersand },
   '(': { str: '(' },
   ')': { str: ')' },
   '{': { str: '{' },
@@ -111,7 +128,6 @@ const tokensDefinition = {
   '[': { str: '[' },
   ']': { str: ']' },
   '=>': { str: '=>' },
-  'boolean_operator': { reg: /^(\|\|?|&&|>=|<=|==|!=|instanceof)/ },
   'question': { str: '?' },
   '>': { str: '>' },
   '<': { str: '<' },

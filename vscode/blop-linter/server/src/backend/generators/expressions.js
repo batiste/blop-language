@@ -39,6 +39,59 @@ function createExpressionGenerators(context) {
       }
       return [node.value];
     },
+    'nullish': () => ['??'],
+    'optional_chain': () => ['?.'],
+    'pipe': () => ['|'],
+    'ampersand': () => ['&'],
+    'object_access': (node) => {
+      const output = [];
+      // Handle optional chaining
+      if (node.named.optional) {
+        output.push('?.');
+        if (node.named.name) {
+          output.push(node.named.name.value);
+        } else if (node.children.some(c => c.type === 'exp')) {
+          // Optional chaining with bracket notation ?.[exp]
+          output.push('[');
+          const expChild = node.children.find(c => c.type === 'exp');
+          if (expChild) {
+            output.push(...generateCode(expChild));
+          }
+          output.push(']');
+        }
+        // Continue with recursive object_access if it exists
+        const recursiveAccess = node.children.find(c => c.type === 'object_access');
+        if (recursiveAccess) {
+          output.push(...generateCode(recursiveAccess));
+        }
+      } else {
+        // Regular access - use default traversal
+        for (let i = 0; i < node.children.length; i++) {
+          output.push(...generateCode(node.children[i]));
+        }
+      }
+      return output;
+    },
+    'type_expression': (node) => {
+      const output = [];
+      // Type annotations are comments in the generated code
+      output.push(...generateCode(node.children[0])); // type_primary
+      if (node.named.union) {
+        output.push(' | ');
+        output.push(...generateCode(node.named.union));
+      } else if (node.named.intersection) {
+        output.push(' & ');
+        output.push(...generateCode(node.named.intersection));
+      }
+      return output;
+    },
+    'type_primary': (node) => {
+      const output = [];
+      for (let i = 0; i < node.children.length; i++) {
+        output.push(...generateCode(node.children[i]));
+      }
+      return output;
+    },
     'short_if_expression': (node) => {
       const output = [];
       output.push(...generateCode(node.named.exp1));
