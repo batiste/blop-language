@@ -57,6 +57,7 @@ interface DiagnosticMetadata {
 	tokenStart: number;
 	tokenLen: number;
 	tokenValue: string;
+	quickFix?: any; // Structured edit from errorMessages.js
 }
 const diagnosticMetadata = new Map<string, DiagnosticMetadata>();
 
@@ -257,13 +258,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 			code: errorParts.patternName || 'generic'
 		};
 		
-		// Store metadata for code actions
+		// Store metadata for code actions including the quick fix edit instructions
 		const metadataKey = `${textDocument.uri}:${token.start}:${token.len}`;
 		diagnosticMetadata.set(metadataKey, {
 			patternName: errorParts.patternName,
 			tokenStart: token.start,
 			tokenLen: token.len,
-			tokenValue: token.value
+			tokenValue: token.value,
+			quickFix: errorParts.quickFix // Store the entire quick fix object with edit instructions
 		});
 		
 		// if (hasDiagnosticRelatedInformationCapability) { }
@@ -319,151 +321,74 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 			continue;
 		}
 
-		const patternName = diagnostic.code as string;
+		// Look up the stored metadata for this diagnostic
+		const text = textDocument.getText();
+		const offset = textDocument.offsetAt(diagnostic.range.start);
+		const len = textDocument.offsetAt(diagnostic.range.end) - offset;
+		const metadataKey = `${params.textDocument.uri}:${offset}:${len}`;
+		const metadata = diagnosticMetadata.get(metadataKey);
+		
+		if (!metadata || !metadata.quickFix || !metadata.quickFix.edit) {
+			continue;
+		}
 
-		// Generate code action based on the error pattern
-		if (patternName === 'missing_whitespace_after_colon') {
-			// Add space after colon: "key:value" -> "key: value"
-			const range = diagnostic.range;
-			const text = textDocument.getText();
-			const offset = textDocument.offsetAt(range.start);
-			
-			// Find the colon before the error position
-			let colonPos = offset - 1;
-			while (colonPos >= 0 && text[colonPos] !== ':') {
-				colonPos--;
-			}
-			
-			if (colonPos >= 0 && text[colonPos] === ':') {
-				const action: CodeAction = {
-					title: 'Add space after colon',
-					kind: CodeActionKind.QuickFix,
-					diagnostics: [diagnostic],
-					edit: {
-						changes: {
-							[params.textDocument.uri]: [{
-								range: {
-									start: textDocument.positionAt(colonPos + 1),
-									end: textDocument.positionAt(colonPos + 1)
-								},
-								newText: ' '
-							}]
-						}
-					}
+		const quickFix = metadata.quickFix;
+		const edit = quickFix.edit;
+		
+		// Apply the structured edit based on its type
+		let textEdit;
+		
+		if (edit.type === 'delete') {
+			// Delete the token
+			if (edit.range === 'token') {
+				textEdit = {
+					range: diagnostic.range,
+					newText: ''
 				};
-				codeActions.push(action);
 			}
-		} else if (patternName === 'unwanted_whitespace_after_equals') {
-			// Remove space after equals: "key= value" -> "key=value"
-			const range = diagnostic.range;
-			const action: CodeAction = {
-				title: 'Remove space after equals sign',
-				kind: CodeActionKind.QuickFix,
-				diagnostics: [diagnostic],
-				edit: {
-					changes: {
-						[params.textDocument.uri]: [{
-							range: range,
-							newText: ''
-						}]
-					}
-				}
-			};
-			codeActions.push(action);
-		} else if (patternName === 'unexpected_semicolon') {
-			// Remove semicolon
-			const range = diagnostic.range;
-			const action: CodeAction = {
-				title: 'Remove semicolon',
-				kind: CodeActionKind.QuickFix,
-				diagnostics: [diagnostic],
-				edit: {
-					changes: {
-						[params.textDocument.uri]: [{
-							range: range,
-							newText: ''
-						}]
-					}
-				}
-			};
-			codeActions.push(action);
-		} else if (patternName === 'jsx_confusion') {
-			// Convert JSX attributes to Blop
-			const text = textDocument.getText(diagnostic.range);
-			let newText = text;
-			if (text === 'className') {
-				newText = 'class';
-			} else if (text === 'htmlFor') {
-				newText = 'for';
+		} else if (edit.type === 'replace') {
+			// Replace the token
+			if (edit.range === 'token') {
+				textEdit = {
+					range: diagnostic.range,
+					newText: edit.newText
+				};
 			}
+		} else if (edit.type === 'insert') {
+			// Insert text at a specific position
+			let insertOffset = offset;
 			
-			const action: CodeAction = {
-				title: `Convert '${text}' to '${newText}'`,
-				kind: CodeActionKind.QuickFix,
-				diagnostics: [diagnostic],
-				edit: {
-					changes: {
-						[params.textDocument.uri]: [{
-							range: diagnostic.range,
-							newText: newText
-						}]
-					}
+			if (edit.position === 'before-token') {
+				// Insert before the current token
+				insertOffset = offset;
+			} else if (edit.position === 'after-previous-token') {
+				// Insert after the previous token (find the last non-whitespace character before current position)
+				let prevPos = offset - 1;
+				while (prevPos >= 0 && /\s/.test(text[prevPos])) {
+					prevPos--;
 				}
-			};
-			codeActions.push(action);
-		} else if (patternName === 'var_let_const') {
-			// Remove var/let/const keywords
-			const text = textDocument.getText(diagnostic.range);
-			const action: CodeAction = {
-				title: `Remove '${text}' keyword`,
-				kind: CodeActionKind.QuickFix,
-				diagnostics: [diagnostic],
-				edit: {
-					changes: {
-						[params.textDocument.uri]: [{
-							range: diagnostic.range,
-							newText: ''
-						}]
-					}
-				}
-			};
-			codeActions.push(action);
-		} else if (patternName === 'missing_required_whitespace') {
-			// Add space - the diagnostic range points to where the space is missing
-			// Simply insert a space at the start of the diagnostic range
-			const range = diagnostic.range;
-			const text = textDocument.getText();
-			const offset = textDocument.offsetAt(range.start);
-			
-			// Determine if we need space before or after by checking the previous character
-			let prevPos = offset - 1;
-			let insertPos = offset;
-			let title = 'Add required space';
-			
-			if (prevPos >= 0) {
-				const prevChar = text[prevPos];
-				// If previous char is a token that needs space after it
-				if (/[=:,]/.test(prevChar)) {
-					title = `Add space after '${prevChar}'`;
-				} else if (prevChar === '}' || prevChar === ')') {
-					// Space before current token (like }from or )=>)
-					title = `Add space before '${textDocument.getText(range).split(/\s/)[0]}'`;
+				if (prevPos >= 0) {
+					insertOffset = prevPos + 1;
 				}
 			}
 			
+			textEdit = {
+				range: {
+					start: textDocument.positionAt(insertOffset),
+					end: textDocument.positionAt(insertOffset)
+				},
+				newText: edit.text
+			};
+		}
+		
+		if (textEdit) {
 			const action: CodeAction = {
-				title,
+				title: quickFix.title,
 				kind: CodeActionKind.QuickFix,
 				diagnostics: [diagnostic],
 				edit: {
 					changes: {
-						[params.textDocument.uri]: [{
-							range: {
-								start: textDocument.positionAt(insertPos),
-								end: textDocument.positionAt(insertPos)
-							},
-							newText: ' '
-						}]
+						[params.textDocument.uri]: [textEdit]
 					}
 				}
 			};

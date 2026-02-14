@@ -306,41 +306,96 @@ const ERROR_PATTERNS = [
 
 /**
  * Quick fixes that can be suggested programmatically
+ * Returns structured edit information that can be applied by code action handlers
  */
 const QUICK_FIXES = {
-  missing_closing_brace: (token) => ({
-    description: 'Add closing brace',
-    fix: 'Add `}` at the end of the block',
+  missing_closing_brace: (token, context) => ({
+    title: 'Add closing brace',
+    description: 'Add `}` at the end of the block',
+    edit: null, // Complex - needs more context about where to add it
   }),
-  missing_closing_paren: (token) => ({
-    description: 'Add closing parenthesis',
-    fix: 'Add `)` after the expression',
+  missing_closing_paren: (token, context) => ({
+    title: 'Add closing parenthesis',
+    description: 'Add `)` after the expression',
+    edit: null, // Complex - needs more context
   }),
-  missing_closing_bracket: (token) => ({
-    description: 'Add closing bracket',
-    fix: 'Add `]` after the array expression',
+  missing_closing_bracket: (token, context) => ({
+    title: 'Add closing bracket',
+    description: 'Add `]` after the array expression',
+    edit: null, // Complex - needs more context
   }),
-  unexpected_semicolon: (token) => ({
-    description: 'Remove semicolon',
-    fix: `Remove the semicolon on line ${token.lineStart + 1}`,
+  unexpected_semicolon: (token, context) => ({
+    title: 'Remove semicolon',
+    description: `Remove the semicolon on line ${token.lineStart + 1}`,
+    edit: {
+      type: 'delete',
+      range: 'token', // Delete the entire token range
+    }
   }),
-  jsx_confusion: (token) => ({
-    description: 'Convert JSX to Blop syntax',
-    fix: token.value === 'className' ? 
-      'Change `className` to `class`' : 
-      'Change `htmlFor` to `for`',
+  jsx_confusion: (token, context) => {
+    const newText = token.value === 'className' ? 'class' : 
+                    token.value === 'htmlFor' ? 'for' : token.value;
+    return {
+      title: `Convert '${token.value}' to '${newText}'`,
+      description: 'Convert JSX to Blop syntax',
+      edit: {
+        type: 'replace',
+        range: 'token',
+        newText: newText
+      }
+    };
+  },
+  var_let_const: (token, context) => ({
+    title: `Remove '${token.value}' keyword`,
+    description: 'Remove unnecessary keyword',
+    edit: {
+      type: 'delete',
+      range: 'token',
+    }
   }),
-  missing_whitespace_after_colon: (token) => ({
-    description: 'Add space after colon',
-    fix: `Add a space after the colon on line ${token.lineStart + 1}`,
-  }),
-  missing_required_whitespace: (token) => ({
-    description: 'Add required whitespace',
-    fix: `Add a space before '${token.value}' on line ${token.lineStart + 1}`,
-  }),
-  unwanted_whitespace_after_equals: (token) => ({
-    description: 'Remove unwanted whitespace',
-    fix: `Remove the space after '=' on line ${token.lineStart + 1}`,
+  missing_whitespace_after_colon: (token, context) => {
+    // Find the colon in preceding tokens
+    const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+    return {
+      title: 'Add space after colon',
+      description: `Add a space after the colon on line ${token.lineStart + 1}`,
+      edit: {
+        type: 'insert',
+        position: 'after-previous-token', // Insert after the : token
+        text: ' '
+      }
+    };
+  },
+  missing_required_whitespace: (token, context) => {
+    // Determine what comes before this token
+    const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+    let title = 'Add required space';
+    
+    if (lastToken) {
+      if (lastToken.type === '=' || lastToken.type === 'colon' || lastToken.type === ',') {
+        title = `Add space after '${lastToken.value || lastToken.type}'`;
+      } else {
+        title = `Add space before '${token.value}'`;
+      }
+    }
+    
+    return {
+      title,
+      description: `Add a space before '${token.value}' on line ${token.lineStart + 1}`,
+      edit: {
+        type: 'insert',
+        position: 'before-token', // Insert space before current token
+        text: ' '
+      }
+    };
+  },
+  unwanted_whitespace_after_equals: (token, context) => ({
+    title: 'Remove space after equals sign',
+    description: `Remove the space after '=' on line ${token.lineStart + 1}`,
+    edit: {
+      type: 'delete',
+      range: 'token', // Delete the whitespace token
+    }
   }),
 };
 
@@ -422,7 +477,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     parts.title = pattern.message(context);
     parts.suggestion = pattern.suggestion(context);
     parts.quickFix = QUICK_FIXES[pattern.name] ? 
-      QUICK_FIXES[pattern.name](token) : null;
+      QUICK_FIXES[pattern.name](token, context) : null; // Pass context for structured edits
     parts.patternName = pattern.name; // Store for code actions
   } else {
     // Generate generic but improved message
@@ -485,7 +540,7 @@ function formatEnhancedError(errorParts, positions, forEditor = false) {
     }
     
     if (errorParts.quickFix) {
-      message += '\n⚡ Quick fix: ' + errorParts.quickFix.fix;
+      message += '\n⚡ Quick fix: ' + errorParts.quickFix.description;
     }
   } else {
     // Console format: with colors and location
@@ -512,7 +567,7 @@ function formatEnhancedError(errorParts, positions, forEditor = false) {
     
     // Quick fix
     if (errorParts.quickFix) {
-      message += '\n' + chalk.yellow('  ⚡ Quick fix: ') + errorParts.quickFix.fix + '\n';
+      message += '\n' + chalk.yellow('  ⚡ Quick fix: ') + errorParts.quickFix.description + '\n';
     }
   }
   
