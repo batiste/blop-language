@@ -59,8 +59,8 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     const output = [];
     if (backend[node.type]) {
       output.push(...backend[node.type](node));
-    } else if (backend[node.rule_name]) {
-      output.push(...backend[node.rule_name](node));
+    } else if (backend[node.type]) {
+      output.push(...backend[node.type](node));
     } else {
       if (node.value) {
         output.push(node.value);

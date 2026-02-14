@@ -45,7 +45,7 @@
     "express": "^4.21.2",
     "html-webpack-plugin": "^5.6.6",
     "jest": "^29.7.0",
-    "meta-parser-generator": "^1.0.3",
+    "meta-parser-generator": "==1.1.2",
     "node-fetch": "^2.7.0",
     "nodemon": "^3.1.11",
     "null-loader": "^4.0.1",

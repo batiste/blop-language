@@ -212,7 +212,7 @@ const ERROR_PATTERNS = [
              lastToken.type === 'colon' && 
              context.token.type === 'name' &&
              (context.ruleName === 'object_literal_body' || 
-              context.ruleName.includes('object'));
+              (context.ruleName && context.ruleName.includes('object')));
     },
     message: () => 'Missing whitespace after colon',
     suggestion: (context) => {
@@ -420,10 +420,10 @@ function analyzeErrorContext(stream, bestFailure, grammar) {
   
   // Try to determine what token was expected based on grammar
   let expectedToken = null;
-  if (grammar && bestFailure.rule_name && 
-      grammar[bestFailure.rule_name] && 
-      grammar[bestFailure.rule_name][bestFailure.sub_rule_index]) {
-    const subRule = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+  if (grammar && bestFailure.type && 
+      grammar[bestFailure.type] && 
+      grammar[bestFailure.type][bestFailure.sub_rule_index]) {
+    const subRule = grammar[bestFailure.type][bestFailure.sub_rule_index];
     const expectedTokenIndex = bestFailure.sub_rule_token_index;
     if (subRule[expectedTokenIndex]) {
       // Remove any annotations like 'object_literal_key:key' -> 'object_literal_key'
@@ -433,7 +433,7 @@ function analyzeErrorContext(stream, bestFailure, grammar) {
   
   return {
     token,
-    ruleName: bestFailure.rule_name,
+    ruleName: bestFailure.type,
     subRuleIndex: bestFailure.sub_rule_index,
     expectedToken,
     precedingTokens,
@@ -461,7 +461,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
   const pattern = detectErrorPattern(context);
   
   const token = bestFailure.token;
-  const ruleName = bestFailure.rule_name;
+  const ruleName = bestFailure.type;
   const tokenValue = token.value.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   
   // Build the error message parts
@@ -482,7 +482,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     parts.patternName = pattern.name; // Store for code actions
   } else {
     // Generate generic but improved message
-    const ruleExplanation = RULE_EXPLANATIONS[ruleName] || `in a ${ruleName}`;
+    const ruleExplanation = RULE_EXPLANATIONS[ruleName] || (ruleName ? `in a ${ruleName}` : 'here');
     const tokenExplanation = TOKEN_EXPLANATIONS[token.type] || `'${token.type}'`;
     
     parts.title = `Unexpected ${tokenExplanation}`;
@@ -496,17 +496,17 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     }
     
     // Try to provide generic helpful info based on rule name
-    if (ruleName.includes('func')) {
+    if (ruleName && ruleName.includes('func')) {
       parts.suggestion = 'Check your function syntax. Functions should be defined with:\n' +
         '  def functionName(params) { body }';
-    } else if (ruleName.includes('assign')) {
+    } else if (ruleName && ruleName.includes('assign')) {
       parts.suggestion = 'Check your assignment syntax:\n' +
         '  variable = value      // initial assignment\n' +
         '  variable := value     // explicit reassignment';
-    } else if (ruleName.includes('import')) {
+    } else if (ruleName && ruleName.includes('import')) {
       parts.suggestion = 'Check your import syntax:\n' +
         '  import { name } from \'./file.blop\'';
-    } else if (ruleName.includes('loop')) {
+    } else if (ruleName && ruleName.includes('loop')) {
       parts.suggestion = 'Check your loop syntax:\n' +
         '  for item in items { ... }\n' +
         '  while condition { ... }';

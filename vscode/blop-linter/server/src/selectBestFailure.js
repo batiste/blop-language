@@ -61,8 +61,8 @@ function selectBestFailure(failureArray, defaultFailure) {
   let bestTokenIndex = -1;
   
   for (const failure of failureArray) {
-    // Build the position key: rule_name:sub_rule_index:token_index
-    const posKey = `${failure.rule_name}:${failure.sub_rule_index}:${failure.sub_rule_token_index}`;
+    // Build the position key: type:sub_rule_index:token_index
+    const posKey = `${failure.type}:${failure.sub_rule_index}:${failure.sub_rule_token_index}`;
     const posStats = stats[posKey];
     
     if (!posStats) {
