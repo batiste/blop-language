@@ -212,7 +212,7 @@ const ERROR_PATTERNS = [
              lastToken.type === 'colon' && 
              context.token.type === 'name' &&
              (context.ruleName === 'object_literal_body' || 
-              context.ruleName.includes('object'));
+              (context.ruleName && context.ruleName.includes('object')));
     },
     message: () => 'Missing whitespace after colon',
     suggestion: (context) => {
@@ -226,6 +226,17 @@ const ERROR_PATTERNS = [
     },
   },
   {
+    name: 'multiple_spaces_instead_of_single',
+    detect: (context) => {
+      // Expected single space but got multiple spaces
+      return context.expectedToken === 'w' && context.token.type === 'W';
+    },
+    message: () => 'Multiple spaces where single space expected',
+    suggestion: () => 'Use only a single space:\n' +
+      '  a = 1     // correct\n' +
+      '  a =  1    // too many spaces (error)',
+  },
+  {
     name: 'missing_required_whitespace',
     detect: (context) => {
       // Generic pattern: grammar explicitly expects a 'w' token (single space) but found something else
@@ -235,7 +246,8 @@ const ERROR_PATTERNS = [
       }
       
       // We expected a whitespace token, but got a different token type
-      return context.token.type !== 'w';
+      // Exclude 'W' (multiple spaces) as that has its own pattern above
+      return context.token.type !== 'w' && context.token.type !== 'W';
     },
     message: () => 'Missing required whitespace',
     suggestion: (context) => {
@@ -327,7 +339,7 @@ const QUICK_FIXES = {
   }),
   unexpected_semicolon: (token, context) => ({
     title: 'Remove semicolon',
-    description: `Remove the semicolon on line ${token.lineStart + 1}`,
+    description: `Remove the semicolon on line ${token.line_start + 1}`,
     edit: {
       type: 'delete',
       range: 'token', // Delete the entire token range
@@ -359,7 +371,7 @@ const QUICK_FIXES = {
     const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
     return {
       title: 'Add space after colon',
-      description: `Add a space after the colon on line ${token.lineStart + 1}`,
+      description: `Add a space after the colon on line ${token.line_start + 1}`,
       edit: {
         type: 'insert',
         position: 'after-previous-token', // Insert after the : token
@@ -382,7 +394,7 @@ const QUICK_FIXES = {
     
     return {
       title,
-      description: `Add a space before '${token.value}' on line ${token.lineStart + 1}`,
+      description: `Add a space before '${token.value}' on line ${token.line_start + 1}`,
       edit: {
         type: 'insert',
         position: 'before-token', // Insert space before current token
@@ -392,10 +404,19 @@ const QUICK_FIXES = {
   },
   unwanted_whitespace_after_equals: (token, context) => ({
     title: 'Remove space after equals sign',
-    description: `Remove the space after '=' on line ${token.lineStart + 1}`,
+    description: `Remove the space after '=' on line ${token.line_start + 1}`,
     edit: {
       type: 'delete',
       range: 'token', // Delete the whitespace token
+    }
+  }),
+  multiple_spaces_instead_of_single: (token, context) => ({
+    title: 'Replace with single space',
+    description: `Replace multiple spaces with a single space on line ${token.line_start + 1}`,
+    edit: {
+      type: 'replace',
+      range: 'token',
+      newText: ' '
     }
   }),
 };
@@ -420,10 +441,10 @@ function analyzeErrorContext(stream, bestFailure, grammar) {
   
   // Try to determine what token was expected based on grammar
   let expectedToken = null;
-  if (grammar && bestFailure.rule_name && 
-      grammar[bestFailure.rule_name] && 
-      grammar[bestFailure.rule_name][bestFailure.sub_rule_index]) {
-    const subRule = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+  if (grammar && bestFailure.type && 
+      grammar[bestFailure.type] && 
+      grammar[bestFailure.type][bestFailure.sub_rule_index]) {
+    const subRule = grammar[bestFailure.type][bestFailure.sub_rule_index];
     const expectedTokenIndex = bestFailure.sub_rule_token_index;
     if (subRule[expectedTokenIndex]) {
       // Remove any annotations like 'object_literal_key:key' -> 'object_literal_key'
@@ -433,7 +454,7 @@ function analyzeErrorContext(stream, bestFailure, grammar) {
   
   return {
     token,
-    ruleName: bestFailure.rule_name,
+    ruleName: bestFailure.type,
     subRuleIndex: bestFailure.sub_rule_index,
     expectedToken,
     precedingTokens,
@@ -461,7 +482,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
   const pattern = detectErrorPattern(context);
   
   const token = bestFailure.token;
-  const ruleName = bestFailure.rule_name;
+  const ruleName = bestFailure.type;
   const tokenValue = token.value.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   
   // Build the error message parts
@@ -482,7 +503,7 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     parts.patternName = pattern.name; // Store for code actions
   } else {
     // Generate generic but improved message
-    const ruleExplanation = RULE_EXPLANATIONS[ruleName] || `in a ${ruleName}`;
+    const ruleExplanation = RULE_EXPLANATIONS[ruleName] || (ruleName ? `in a ${ruleName}` : 'here');
     const tokenExplanation = TOKEN_EXPLANATIONS[token.type] || `'${token.type}'`;
     
     parts.title = `Unexpected ${tokenExplanation}`;
@@ -496,17 +517,17 @@ function enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure) {
     }
     
     // Try to provide generic helpful info based on rule name
-    if (ruleName.includes('func')) {
+    if (ruleName && ruleName.includes('func')) {
       parts.suggestion = 'Check your function syntax. Functions should be defined with:\n' +
         '  def functionName(params) { body }';
-    } else if (ruleName.includes('assign')) {
+    } else if (ruleName && ruleName.includes('assign')) {
       parts.suggestion = 'Check your assignment syntax:\n' +
         '  variable = value      // initial assignment\n' +
         '  variable := value     // explicit reassignment';
-    } else if (ruleName.includes('import')) {
+    } else if (ruleName && ruleName.includes('import')) {
       parts.suggestion = 'Check your import syntax:\n' +
         '  import { name } from \'./file.blop\'';
-    } else if (ruleName.includes('loop')) {
+    } else if (ruleName && ruleName.includes('loop')) {
       parts.suggestion = 'Check your loop syntax:\n' +
         '  for item in items { ... }\n' +
         '  while condition { ... }';

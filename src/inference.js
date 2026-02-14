@@ -426,8 +426,8 @@ const nodeHandlers = {
 function visit(node, parent) {
   if (nodeHandlers[node.type]) {
     nodeHandlers[node.type](node, parent);
-  } else if (nodeHandlers[node.rule_name]) {
-    nodeHandlers[node.rule_name](node, parent);
+  } else if (nodeHandlers[node.type]) {
+    nodeHandlers[node.type](node, parent);
   } else {
     visitChildren(node);
     pushToParent(node, parent);

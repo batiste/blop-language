@@ -21,8 +21,8 @@ function noNewline(v) {
 
 
 function tokenPosition(token) {
-  const lineNumber = token.lineStart !== undefined ? token.lineStart : 0;
-  const charNumber = token.columnStart !== undefined ? token.columnStart : 0;
+  const lineNumber = token.line_start !== undefined ? token.line_start : 0;
+  const charNumber = token.column_start !== undefined ? token.column_start : 0;
   const end = charNumber + (token.len || 0);
   return { lineNumber, charNumber, end };
 }
@@ -86,7 +86,7 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
   
   // Add technical details for debugging (can be disabled in production)
   if (process.env.BLOP_DEBUG) {
-    const sub_rules = grammar[bestFailure.rule_name][bestFailure.sub_rule_index];
+    const sub_rules = grammar[bestFailure.type][bestFailure.sub_rule_index];
     let rule = '';
     for (let i = 0; i < sub_rules.length; i++) {
       let sr = sub_rules[i];
@@ -100,7 +100,7 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
       }
     }
     fullMessage += '\n' + chalk.dim('  Technical details:');
-    fullMessage += chalk.dim(`\n  Rule: ${bestFailure.rule_name}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
+    fullMessage += chalk.dim(`\n  Rule: ${bestFailure.type}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
     fullMessage += chalk.dim(`\n  Expected: ${rule}`);
     fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
   }
@@ -123,8 +123,8 @@ ${streamContext(error.token, token, stream)}
 }
 
 function printTree(node, sp) {
-  if (node.rule_name) {
-    console.log(`${sp}r ${node.rule_name}(${node.sub_rule_index})`);
+  if (node.type) {
+    console.log(`${sp}r ${node.type}(${node.sub_rule_index})`);
   } else {
     console.log(`${sp}t ${node.type} ${node.value}`);
   }

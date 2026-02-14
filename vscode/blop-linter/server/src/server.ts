@@ -237,16 +237,21 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
 		// Use statistics to select the best failure from the array
-		const bestFailure = tree.best_failure_array 
-			? selectBestFailure(tree.best_failure_array, tree.best_failure || tree)
-			: (tree.best_failure || tree);
+		const bestFailure = tree.all_failures 
+			? selectBestFailure(tree.all_failures, tree.primary_failure)
+			: tree.primary_failure;
+		
+		if (!bestFailure || !bestFailure.token) {
+			// No valid failure info, skip diagnostic
+			return;
+		}
 		
 		// Generate enbestFailurced error message for editor (without redundant location/context info)
 		const errorParts = enhanceErrorMessage(stream, tokensDefinition, grammar, bestFailure);
 		const positions = tokenPosition(bestFailure.token);
 		const errorMsg = formatEnhancedError(errorParts, positions, true);
 
-		const token = tree.token;
+		const token = bestFailure.token;
 		const diagnosic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
 			range: {

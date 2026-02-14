@@ -33,9 +33,9 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   }
   if (!tree.success) {
     // Use statistics to select the best failure from the array
-    const bestFailure = tree.best_failure_array 
-      ? selectBestFailure(tree.best_failure_array, tree.best_failure || tree)
-      : (tree.best_failure || tree);
+    const bestFailure = tree.all_failures 
+      ? selectBestFailure(tree.all_failures, tree.primary_failure)
+      : tree.primary_failure;
     utils.displayError(stream, tokensDefinition, grammar, bestFailure);
   }
 
