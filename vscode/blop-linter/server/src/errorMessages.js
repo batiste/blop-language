@@ -116,38 +116,6 @@ const ERROR_PATTERNS = [
     suggestion: () => 'Add a closing bracket `]` to match the opening bracket',
   },
   {
-    name: 'missing_whitespace_after_equals',
-    detect: (context) => {
-      // Detect missing whitespace after '=' in assignment context
-      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
-      return context.ruleName === 'assign' && 
-             lastToken && 
-             lastToken.type === '=' && 
-             (context.token.type === 'name' || 
-              context.token.type === 'number' || 
-              context.token.type === 'string' ||
-              context.token.type === 'lparen' ||
-              context.token.type === 'lbracket' ||
-              context.token.type === 'lbrace');
-    },
-    message: () => 'Missing whitespace after equals sign',
-    suggestion: () => 'Add a space after the equals sign in assignments:\n' +
-      '  myVar = value     // correct\n' +
-      '  myVar =value      // missing space (error)',
-  },
-  {
-    name: 'invalid_assignment',
-    detect: (context) => {
-      return context.ruleName === 'assign' && 
-             context.token.type !== '=' && 
-             context.token.type !== 'explicit_assign';
-    },
-    message: (context) => `Invalid assignment syntax with token '${context.token.value}'`,
-    suggestion: () => 'Use `=` for initial assignment or `:=` for explicit reassignment:\n' +
-      '  myVar = 10       // initial assignment\n' +
-      '  myVar := 20      // explicit reassignment',
-  },
-  {
     name: 'missing_import_from',
     detect: (context) => {
       return context.ruleName === 'import_statement' && 
@@ -274,7 +242,20 @@ const ERROR_PATTERNS = [
       const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
       if (lastToken) {
         const tokenDesc = TOKEN_EXPLANATIONS[lastToken.type] || lastToken.type;
-        return `Add a space after ${tokenDesc}`;
+        
+        // Provide context-specific examples based on what came before
+        if (lastToken.type === '=' && context.ruleName === 'assign') {
+          return `Add a space after the equals sign:\n` +
+            `  myVar = value     // correct\n` +
+            `  myVar =value      // missing space (error)\n` +
+            `  response = await fetch()  // correct`;
+        } else if (lastToken.type === 'colon') {
+          return `Add a space after the colon:\n` +
+            `  { key: value }    // correct\n` +
+            `  { key:value }     // missing space (error)`;
+        } else {
+          return `Add a space after ${tokenDesc}`;
+        }
       }
       return 'Add a space at this position';
     },
@@ -417,18 +398,6 @@ const QUICK_FIXES = {
       range: 'token', // Delete the whitespace token
     }
   }),
-  missing_whitespace_after_equals: (token, context) => {
-    const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
-    return {
-      title: 'Add space after equals sign',
-      description: `Add a space after '=' on line ${token.lineStart + 1}`,
-      edit: {
-        type: 'insert',
-        position: 'before-token', // Insert space before current token (after the =)
-        text: ' '
-      }
-    };
-  },
 };
 
 /**
