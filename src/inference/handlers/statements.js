@@ -3,7 +3,7 @@
 // ============================================================================
 
 const { resolveTypes, pushToParent, visitChildren, visit } = require('../visitor');
-const { getAnnotationType, parseTypeExpression } = require('../typeSystem');
+const { getAnnotationType, parseTypeExpression, parseGenericParams } = require('../typeSystem');
 const { detectTypeofCheck, applyNarrowing, applyExclusion } = require('../typeGuards');
 
 function createStatementHandlers(getState) {
@@ -50,8 +50,22 @@ function createStatementHandlers(getState) {
       const aliasName = node.named.name.value;
       const aliasType = parseTypeExpression(node.named.type);
       
+      // Parse generic parameters if present
+      const genericParams = node.named.generic_params 
+        ? parseGenericParams(node.named.generic_params)
+        : [];
+      
       // Store the type alias
-      typeAliases[aliasName] = aliasType;
+      if (genericParams.length > 0) {
+        // Store as generic type alias with parameters
+        typeAliases[aliasName] = {
+          type: aliasType,
+          genericParams,
+        };
+      } else {
+        // Store as regular type alias (maintain backward compatibility)
+        typeAliases[aliasName] = aliasType;
+      }
       
       // Type aliases don't produce values, so don't push to parent
     },

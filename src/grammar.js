@@ -69,10 +69,17 @@ const grammar = {
     ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'annotation?:objectannotation', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'func_def': [
-    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
-    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
     ['async?:async', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
     ['async?:async', '(', ')', 'annotation?:annotation', 'w', '=>:fat-arrow', 'w', 'func_body_fat:body'],
+  ],
+  'generic_params': [
+    ['<', 'generic_param_list:params', '>'],
+  ],
+  'generic_param_list': [
+    ['name:param', ',', 'w', 'generic_param_list:rest'],
+    ['name:param'],
   ],
   'annotation': [
     ['colon', 'w', 'type_expression:type'],
@@ -86,8 +93,14 @@ const grammar = {
     ['object_type'],
     ['str:literal'],
     ['number:literal'],
+    ['type_name:name', '<', 'type_arg_list:type_args', '>', '[', ']'],
+    ['type_name:name', '<', 'type_arg_list:type_args', '>'],
     ['type_name:name', '[', ']'],
     ['type_name:name'],
+  ],
+  'type_arg_list': [
+    ['type_expression:arg', ',', 'w', 'type_arg_list:rest'],
+    ['type_expression:arg'],
   ],
   'object_type': [
     ['{', 'single_space_or_newline', 'object_type_properties:properties', 'single_space_or_newline', '}'],
@@ -198,7 +211,7 @@ const grammar = {
     ['import', 'str:file'],
   ],
   'type_alias': [
-    ['type', 'name:name', 'w', '=', 'w', 'type_expression:type'],
+    ['type', 'name:name', 'generic_params?:generic_params', 'w', '=', 'w', 'type_expression:type'],
   ],
   'object_literal_key': [['str'], ['name']],
   'virtual_node': [

@@ -3,7 +3,14 @@
 // ============================================================================
 
 const { visitChildren } = require('../visitor');
-const { getAnnotationType, createUnionType, isTypeCompatible } = require('../typeSystem');
+const { 
+  getAnnotationType, 
+  createUnionType, 
+  isTypeCompatible,
+  parseGenericParams,
+  inferGenericArguments,
+  substituteType,
+} = require('../typeSystem');
 const TypeChecker = require('../typeChecker');
 
 function createFunctionHandlers(getState) {
@@ -60,14 +67,44 @@ function createFunctionHandlers(getState) {
       const def = lookupVariable(name.value);
       
       if (def && def.params) {
-        if (node.inference) {
-          const result = TypeChecker.checkFunctionCall(node.inference, def.params, name.value, typeAliases);
-          if (!result.valid) {
-            result.warnings.forEach(warning => pushWarning(name, warning));
+        // Check if this is a generic function
+        if (def.genericParams && def.genericParams.length > 0) {
+          // Infer generic type arguments from call site
+          const argTypes = node.inference || [];
+          const paramTypes = def.params || [];
+          
+          const substitutions = inferGenericArguments(
+            def.genericParams,
+            paramTypes,
+            argTypes
+          );
+          
+          // Substitute type parameters in return type
+          let returnType = def.type;
+          if (returnType) {
+            returnType = substituteType(returnType, substitutions);
+            pushInference(parent, returnType);
           }
-        }
-        if (def.type) {
-          pushInference(parent, def.type);
+          
+          // Also check parameter types with substituted generics
+          if (argTypes.length > 0) {
+            const substitutedParams = paramTypes.map(p => substituteType(p, substitutions));
+            const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, name.value, typeAliases);
+            if (!result.valid) {
+              result.warnings.forEach(warning => pushWarning(name, warning));
+            }
+          }
+        } else {
+          // Non-generic function - existing behavior
+          if (node.inference) {
+            const result = TypeChecker.checkFunctionCall(node.inference, def.params, name.value, typeAliases);
+            if (!result.valid) {
+              result.warnings.forEach(warning => pushWarning(name, warning));
+            }
+          }
+          if (def.type) {
+            pushInference(parent, def.type);
+          }
         }
       }
     },
@@ -78,6 +115,23 @@ function createFunctionHandlers(getState) {
       const scope = pushScope();
       scope.__currentFctParams = [];
       scope.__returnTypes = [];
+      
+      // Parse generic parameters if present
+      const genericParams = node.named.generic_params 
+        ? parseGenericParams(node.named.generic_params)
+        : [];
+      
+      // Store generic params in scope so they're recognized as valid types
+      if (genericParams.length > 0) {
+        scope.__genericParams = genericParams;
+        // Mark each generic parameter as a valid type in this scope
+        for (const param of genericParams) {
+          scope[param] = {
+            type: param,
+            isGenericParam: true,
+          };
+        }
+      }
       
       visitChildren(node);
       
@@ -145,6 +199,7 @@ function createFunctionHandlers(getState) {
           declaredReturnType: declaredType,
           node,
           params: scope.__currentFctParams,
+          genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
       }
       popScope();

@@ -158,10 +158,47 @@ function resolveTypeAlias(type, typeAliases) {
     return resolveTypeAlias(elementType, typeAliases) + '[]';
   }
   
-  // Resolve the alias itself
+  // Check if it's a generic type instantiation like "Box<number>"
+  const genericMatch = type.match(/^(\w+)<(.+)>$/);
+  if (genericMatch) {
+    const [, baseType, argsString] = genericMatch;
+    
+    // Check if the base type is a generic type alias
+    const aliasInfo = typeAliases[baseType];
+    if (aliasInfo && typeof aliasInfo === 'object' && aliasInfo.genericParams) {
+      // Parse type arguments (simple comma split for now)
+      const typeArgs = argsString.split(',').map(arg => arg.trim());
+      
+      // Create substitution map
+      const substitutions = {};
+      for (let i = 0; i < aliasInfo.genericParams.length && i < typeArgs.length; i++) {
+        substitutions[aliasInfo.genericParams[i]] = typeArgs[i];
+      }
+      
+      // Apply substitutions to the aliased type
+      const instantiated = substituteType(aliasInfo.type, substitutions);
+      
+      // Recursively resolve in case the result contains more aliases
+      return resolveTypeAlias(instantiated, typeAliases);
+    }
+    
+    // Not a generic alias, return as-is
+    return type;
+  }
+  
+  // Resolve the alias itself (non-generic)
   if (typeAliases[type]) {
-    // Recursively resolve in case an alias points to another alias
-    return resolveTypeAlias(typeAliases[type], typeAliases);
+    const aliasValue = typeAliases[type];
+    
+    // Check if it's a generic type alias (should not be instantiated without args)
+    if (typeof aliasValue === 'object' && aliasValue.genericParams) {
+      // Generic type used without type arguments - return as-is or error
+      // For now, return the raw type (could be enhanced to show error)
+      return type;
+    }
+    
+    // Regular alias - recursively resolve
+    return resolveTypeAlias(aliasValue, typeAliases);
   }
   
   return type;
@@ -482,7 +519,7 @@ function parseTypeExpression(typeExprNode) {
 
 /**
  * Parse a type_primary AST node into a type string
- * Handles basic types, array types, object types, and literal types
+ * Handles basic types, array types, object types, literal types, and generic type instantiation
  * @param {Object} typePrimaryNode - The type_primary AST node
  * @returns {string} The parsed type string
  */
@@ -507,12 +544,29 @@ function parseTypePrimary(typePrimaryNode) {
     return typePrimaryNode.named.literal.value;
   }
   
-  const { name } = typePrimaryNode.named;
+  const { name, type_args } = typePrimaryNode.named;
   if (!name) return 'any';
   
   // name is now a type_name node, get its first child
   const typeToken = name.children ? name.children[0] : name;
   const typeName = typeToken.value;
+  
+  // Check if it's a generic type instantiation: Type<Args>
+  if (type_args) {
+    const typeArgs = parseGenericArguments(type_args);
+    const instantiatedType = `${typeName}<${typeArgs.join(', ')}>`;
+    
+    // Check if it's also an array: Type<Args>[]
+    const hasArrayBrackets = typePrimaryNode.children?.some((child, i) => 
+      child.value === '[' && typePrimaryNode.children[i + 1]?.value === ']'
+    );
+    
+    if (hasArrayBrackets) {
+      return `${instantiatedType}[]`;
+    }
+    
+    return instantiatedType;
+  }
   
   // Check if it's an array type (has [ ] after the name)
   // The grammar matches: ['type_name:name', '[', ']']
@@ -569,6 +623,229 @@ function parseObjectType(objectTypeNode) {
   return `{${propertyStrings.join(', ')}}`;
 }
 
+// ============================================================================
+// Generic Type System
+// ============================================================================
+
+/**
+ * Parse generic parameters from generic_params AST node
+ * @param {Object} genericParamsNode - The generic_params AST node
+ * @returns {string[]} Array of type parameter names (e.g., ['T', 'U'])
+ */
+function parseGenericParams(genericParamsNode) {
+  if (!genericParamsNode || !genericParamsNode.named || !genericParamsNode.named.params) {
+    return [];
+  }
+  
+  const params = [];
+  let current = genericParamsNode.named.params;
+  
+  // Traverse the recursive generic_param_list structure
+  while (current) {
+    if (current.named && current.named.param) {
+      params.push(current.named.param.value);
+    }
+    current = current.named ? current.named.rest : null;
+  }
+  
+  return params;
+}
+
+/**
+ * Parse generic type arguments from type_arg_list AST node
+ * @param {Object} typeArgListNode - The type_arg_list AST node
+ * @returns {string[]} Array of type arguments (e.g., ['number', 'string'])
+ */
+function parseGenericArguments(typeArgListNode) {
+  if (!typeArgListNode) {
+    return [];
+  }
+  
+  const args = [];
+  let current = typeArgListNode;
+  
+  // Traverse the recursive type_arg_list structure
+  while (current) {
+    if (current.named && current.named.arg) {
+      const argType = parseTypeExpression(current.named.arg);
+      args.push(argType);
+    }
+    current = current.named ? current.named.rest : null;
+  }
+  
+  return args;
+}
+
+/**
+ * Check if a type string is a generic type parameter (single uppercase letter or name)
+ * @param {string} type - Type string to check
+ * @param {string[]} genericParams - List of generic parameter names in scope
+ * @returns {boolean}
+ */
+function isGenericTypeParameter(type, genericParams = []) {
+  if (!type || typeof type !== 'string') return false;
+  
+  // Check if it's in the list of current generic parameters
+  if (genericParams.includes(type)) {
+    return true;
+  }
+  
+  // Fallback: single uppercase letter (T, U, V, K, etc.)
+  return /^[A-Z]$/.test(type);
+}
+
+/**
+ * Substitute generic type parameters with concrete types
+ * @param {string} type - Type string that may contain type parameters
+ * @param {Object} substitutions - Map of type parameter names to concrete types (e.g., {T: 'number', U: 'string'})
+ * @returns {string} Type with substitutions applied
+ */
+function substituteType(type, substitutions = {}) {
+  if (!type || typeof type !== 'string') return type;
+  
+  // Direct substitution for simple type parameter
+  if (substitutions[type]) {
+    return substitutions[type];
+  }
+  
+  // Handle union types
+  if (isUnionType(type)) {
+    const types = parseUnionType(type);
+    const substituted = types.map(t => substituteType(t, substitutions));
+    return createUnionType(substituted);
+  }
+  
+  // Handle array types
+  if (type.endsWith('[]')) {
+    const elementType = type.slice(0, -2);
+    const substitutedElement = substituteType(elementType, substitutions);
+    return substitutedElement + '[]';
+  }
+  
+  // Handle object types
+  if (type.startsWith('{') && type.endsWith('}')) {
+    const structure = parseObjectTypeString(type);
+    if (!structure) return type;
+    
+    const substitutedProps = [];
+    for (const [key, prop] of Object.entries(structure)) {
+      const propType = typeof prop === 'string' ? prop : prop.type;
+      const optional = typeof prop === 'object' && prop.optional;
+      const substitutedType = substituteType(propType, substitutions);
+      
+      if (optional) {
+        substitutedProps.push(`${key}?: ${substitutedType}`);
+      } else {
+        substitutedProps.push(`${key}: ${substitutedType}`);
+      }
+    }
+    
+    return `{${substitutedProps.join(', ')}}`;
+  }
+  
+  // Handle generic type instantiation like "Box<T>" -> "Box<number>"
+  // This is a simplified version - full implementation would need proper parsing
+  const genericMatch = type.match(/^(\w+)<(.+)>$/);
+  if (genericMatch) {
+    const [, baseType, args] = genericMatch;
+    // Parse and substitute each argument
+    const argTypes = args.split(',').map(arg => arg.trim());
+    const substitutedArgs = argTypes.map(arg => substituteType(arg, substitutions));
+    return `${baseType}<${substitutedArgs.join(', ')}>`;
+  }
+  
+  // No substitution needed
+  return type;
+}
+
+/**
+ * Infer generic type arguments from function call
+ * @param {string[]} genericParams - Generic parameter names (e.g., ['T', 'U'])
+ * @param {string[]} paramTypes - Expected parameter types (may contain type variables)
+ * @param {string[]} argTypes - Actual argument types from call site
+ * @returns {Object} Map of type parameter to inferred type (e.g., {T: 'number'})
+ */
+function inferGenericArguments(genericParams, paramTypes, argTypes) {
+  const substitutions = {};
+  
+  if (!genericParams || genericParams.length === 0) {
+    return substitutions;
+  }
+  
+  // Iterate through parameters and arguments to collect constraints
+  for (let i = 0; i < Math.min(paramTypes.length, argTypes.length); i++) {
+    const paramType = paramTypes[i];
+    const argType = argTypes[i];
+    
+    if (!paramType || !argType) continue;
+    
+    // Simple case: parameter is directly a type parameter
+    if (genericParams.includes(paramType)) {
+      if (substitutions[paramType] && substitutions[paramType] !== argType) {
+        // Conflict - create union
+        substitutions[paramType] = createUnionType([substitutions[paramType], argType]);
+      } else {
+        substitutions[paramType] = argType;
+      }
+      continue;
+    }
+    
+    // Array case: T[] with number[] => T = number
+    if (paramType.endsWith('[]') && argType.endsWith('[]')) {
+      const paramElement = paramType.slice(0, -2);
+      const argElement = argType.slice(0, -2);
+      
+      if (genericParams.includes(paramElement)) {
+        if (substitutions[paramElement] && substitutions[paramElement] !== argElement) {
+          substitutions[paramElement] = createUnionType([substitutions[paramElement], argElement]);
+        } else {
+          substitutions[paramElement] = argElement;
+        }
+      }
+      continue;
+    }
+    
+    // Object type inference - simplified for now
+    // Future: traverse object structures and infer nested type parameters
+  }
+  
+  // Fill in any remaining unresolved type parameters with 'any'
+  for (const param of genericParams) {
+    if (!substitutions[param]) {
+      substitutions[param] = 'any';
+    }
+  }
+  
+  return substitutions;
+}
+
+/**
+ * Instantiate a generic type with concrete type arguments
+ * @param {string} genericType - Generic type name (e.g., 'Box')
+ * @param {string[]} typeArgs - Type arguments (e.g., ['number'])
+ * @param {Object} typeAliases - Type aliases map
+ * @returns {string} Instantiated type
+ */
+function instantiateGenericType(genericType, typeArgs, typeAliases) {
+  const aliasInfo = typeAliases[genericType];
+  
+  if (!aliasInfo || !aliasInfo.genericParams) {
+    // Not a generic type, return as-is
+    return genericType;
+  }
+  
+  const { genericParams, type } = aliasInfo;
+  
+  // Create substitution map
+  const substitutions = {};
+  for (let i = 0; i < genericParams.length && i < typeArgs.length; i++) {
+    substitutions[genericParams[i]] = typeArgs[i];
+  }
+  
+  // Apply substitutions
+  return substituteType(type, substitutions);
+}
+
 module.exports = {
   resolveTypeAlias,
   isUnionType,
@@ -588,4 +865,11 @@ module.exports = {
   isNumberLiteral,
   isBooleanLiteral,
   getBaseTypeOfLiteral,
+  // Generic type system
+  parseGenericParams,
+  parseGenericArguments,
+  isGenericTypeParameter,
+  substituteType,
+  inferGenericArguments,
+  instantiateGenericType,
 };
