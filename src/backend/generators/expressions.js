@@ -66,8 +66,11 @@ function createExpressionGenerators(context) {
         }
       } else {
         // Regular access - use default traversal
+        // Skip type_arguments node (only for static type checking)
         for (let i = 0; i < node.children.length; i++) {
-          output.push(...generateCode(node.children[i]));
+          if (node.children[i].type !== 'type_arguments') {
+            output.push(...generateCode(node.children[i]));
+          }
         }
       }
       return output;

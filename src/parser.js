@@ -2409,6 +2409,131 @@ function generic_param_list(stream, index) {
   return generic_param_list_0(stream, index)
     || generic_param_list_1(stream, index);
 }
+let type_arguments_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_arguments',
+    sub_rule_index: 0, type: 'type_arguments', named,
+  };
+
+  if (stream[i].type !== '<') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_arguments', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_1 = type_argument_list(stream, i);
+  if (!_rule_1) return false;
+  named['args'] = _rule_1;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+
+  if (stream[i].type !== '>') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_arguments', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_arguments_0 = memoize('type_arguments_0', type_arguments_0);
+
+
+function type_arguments(stream, index) {
+  return type_arguments_0(stream, index);
+}
+let type_argument_list_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_argument_list',
+    sub_rule_index: 0, type: 'type_argument_list', named,
+  };
+  const _rule_0 = type_expression(stream, i);
+  if (!_rule_0) return false;
+  named['arg'] = _rule_0;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+
+  if (stream[i].type !== ',') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_argument_list', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_argument_list', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_3 = type_argument_list(stream, i);
+  if (!_rule_3) return false;
+  named['rest'] = _rule_3;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_argument_list_0 = memoize('type_argument_list_0', type_argument_list_0);
+
+
+let type_argument_list_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_argument_list',
+    sub_rule_index: 1, type: 'type_argument_list', named,
+  };
+  const _rule_0 = type_expression(stream, i);
+  if (!_rule_0) return false;
+  named['arg'] = _rule_0;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_argument_list_1 = memoize('type_argument_list_1', type_argument_list_1);
+
+
+function type_argument_list(stream, index) {
+  return type_argument_list_0(stream, index)
+    || type_argument_list_1(stream, index);
+}
 let annotation_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -7737,14 +7862,19 @@ let object_access_3 = (stream, index) => {
     children, stream_index: index, name: 'object_access',
     sub_rule_index: 3, type: 'object_access', named,
   };
-  const _rule_0 = func_call(stream, i);
+  const _rule_0 = type_arguments(stream, i);
   if (!_rule_0) return false;
+  named['type_args'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
-  const _rule_1 = object_access(stream, i);
-  if (_rule_1) {
-    children.push(_rule_1);
-    i = _rule_1.last_index;
+  const _rule_1 = func_call(stream, i);
+  if (!_rule_1) return false;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  const _rule_2 = object_access(stream, i);
+  if (_rule_2) {
+    children.push(_rule_2);
+    i = _rule_2.last_index;
   }
   node.success = i === stream.length; node.last_index = i;
   return node;
@@ -7760,11 +7890,34 @@ let object_access_4 = (stream, index) => {
     children, stream_index: index, name: 'object_access',
     sub_rule_index: 4, type: 'object_access', named,
   };
+  const _rule_0 = func_call(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  const _rule_1 = object_access(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_access_4 = memoize('object_access_4', object_access_4);
+
+
+let object_access_5 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_access',
+    sub_rule_index: 5, type: 'object_access', named,
+  };
 
   if (stream[i].type !== '[') {
     if (i >= best_failure_index) {
       const failure = {
-        type: 'object_access', sub_rule_index: 4,
+        type: 'object_access', sub_rule_index: 5,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -7782,7 +7935,7 @@ let object_access_4 = (stream, index) => {
   if (stream[i].type !== ']') {
     if (i >= best_failure_index) {
       const failure = {
-        type: 'object_access', sub_rule_index: 4,
+        type: 'object_access', sub_rule_index: 5,
         sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -7800,7 +7953,7 @@ let object_access_4 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-object_access_4 = memoize('object_access_4', object_access_4);
+object_access_5 = memoize('object_access_5', object_access_5);
 
 
 function object_access(stream, index) {
@@ -7808,7 +7961,8 @@ function object_access(stream, index) {
     || object_access_1(stream, index)
     || object_access_2(stream, index)
     || object_access_3(stream, index)
-    || object_access_4(stream, index);
+    || object_access_4(stream, index)
+    || object_access_5(stream, index);
 }
 let operation_0 = (stream, index) => {
   let i = index;

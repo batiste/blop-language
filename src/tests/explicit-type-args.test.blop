@@ -1,0 +1,50 @@
+// Explicit Type Arguments - Basic Tests
+
+def identity<T>(value: T): T {
+  return value
+}
+
+def pair<T, U>(first: T, second: U): object {
+  return { first, second }
+}
+
+def firstElement<T>(arr: T[]): T | undefined {
+  if arr.length > 0 {
+    return arr[0]
+  }
+  return undefined
+}
+
+test('explicit type arguments with identity', () => {
+  result1 = identity<string>('hello')
+  expect(result1).toBe('hello')
+  
+  result2 = identity<number>(42)
+  expect(result2).toBe(42)
+})
+
+test('explicit type arguments with multiple parameters', () => {
+  p = pair<number, string>(1, 'one')
+  expect(p.first).toBe(1)
+  expect(p.second).toBe('one')
+})
+
+test('explicit type arguments with arrays', () => {
+  result = firstElement<number>([1, 2, 3])
+  expect(result).toBe(1)
+})
+
+test('inference still works without explicit types', () => {
+  auto1 = identity('inferred')
+  auto2 = pair(99, 'ninety-nine')
+  auto3 = firstElement([10, 20])
+  
+  expect(auto1).toBe('inferred')
+  expect(auto2.first).toBe(99)
+  expect(auto3).toBe(10)
+})
+
+test('explicit union types', () => {
+  result = identity<string | number>('hello')
+  expect(result).toBe('hello')
+})

@@ -81,6 +81,13 @@ const grammar = {
     ['name:param', ',', 'w', 'generic_param_list:rest'],
     ['name:param'],
   ],
+  'type_arguments': [
+    ['<', 'type_argument_list:args', '>'],
+  ],
+  'type_argument_list': [
+    ['type_expression:arg', ',', 'w', 'type_argument_list:rest'],
+    ['type_expression:arg'],
+  ],
   'annotation': [
     ['colon', 'w', 'type_expression:type'],
   ],
@@ -252,6 +259,7 @@ const grammar = {
     ['optional_chain:optional', 'name:name', 'object_access?'],
     ['.', 'name', 'object_access?'],
     ['optional_chain:optional', '[', 'exp', ']', 'object_access?'],
+    ['type_arguments:type_args', 'func_call', 'object_access?'],
     ['func_call', 'object_access?'],
     ['[', 'exp', ']', 'object_access?'],
   ],
