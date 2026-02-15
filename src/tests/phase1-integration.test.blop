@@ -1,0 +1,157 @@
+
+// Comprehensive Phase 1 Integration Test
+// Demonstrating null/undefined types, union types, nullish coalescing, and type narrowing
+
+// Example: User data fetching with all Phase 1 features
+def fetchUserData(userId: number): object | null {
+  if userId == 0 {
+    return null
+  }
+  return { id: userId, name: 'User 'userId'' }
+}
+
+// Using type narrowing + nullish coalescing
+def getUserName(userId: number): string {
+  userData = fetchUserData(userId)
+  
+  // Type narrowing: typeof checks exclude null (since typeof null == 'object' in JS)
+  // but userData is 'object | null', so we still need nullish coalescing
+  if userData == null {
+    return 'User not found'
+  } else {
+    return userData.name ?? 'Anonymous'
+  }
+}
+
+// Complex example with multiple type narrowing
+def processValue(val: string | number | null): string {
+  if val == null {
+    return 'null value'
+  } elseif typeof val == 'string' {
+    return 'String: 'val.toUpperCase()''
+  } else {
+    return 'Number: 'val''
+  }
+}
+
+// Optional chaining with narrowing and nullish coalescing
+def getNestedValue(data: object | string): string | number {
+  if typeof data == 'object' {
+    result = data?.nested?.value
+    return result ?? 0
+  } else {
+    return data
+  }
+}
+
+// Union types with narrowing showing typeof behavior
+def formatOutput(value: string | number | boolean): string {
+  if typeof value == 'string' {
+    return 'str: 'value''
+  } elseif typeof value == 'number' {
+    return 'num: 'value''
+  } else {
+    if value {
+      return 'bool: true'
+    } else {
+      return 'bool: false'
+    }
+  }
+}
+
+// Demonstrating all features together
+def complexExample(input: string | number | null): object {
+  displayValue: string = 'default'
+  processedType: string = 'unknown'
+  
+  if input == null {
+    displayValue := 'Input was null'
+    processedType := 'null'
+  } elseif typeof input == 'string' {
+    displayValue := input.toUpperCase()
+    processedType := 'string'
+  } else {
+    displayValue := input.toString()
+    processedType := 'number'
+  }
+  
+  return {
+    original: input,
+    display: displayValue,
+    type: processedType
+  }
+}
+
+// Demonstrating nullish coalescing with union types
+def handleOptionalValue(val: string | null | undefined): string {
+  result = val ?? 'default value'
+  return result
+}
+
+// Demonstrating complex union type with typeof narrowing
+def smartProcess(val: string | number | boolean | null): string {
+  if val == null {
+    return 'got null'
+  } elseif typeof val == 'string' {
+    return 'string length: 'val.length''
+  } elseif typeof val == 'number' {
+    return 'number doubled: '(val * 2)''
+  } else {
+    return 'boolean: 'val''
+  }
+}
+
+test('user data fetching with type narrowing and nullish coalescing', () => {
+  expect(getUserName(1)).toBe('User 1')
+  expect(getUserName(0)).toBe('User not found')
+})
+
+test('process value with null check and typeof narrowing', () => {
+  expect(processValue(null)).toBe('null value')
+  expect(processValue('hello')).toBe('String: HELLO')
+  expect(processValue(42)).toBe('Number: 42')
+})
+
+test('nested value with typeof narrowing and optional chaining', () => {
+  data1 = { nested: { value: 123 } }
+  expect(getNestedValue(data1)).toBe(123)
+  expect(getNestedValue('text')).toBe('text')
+})
+
+test('format output with typeof narrowing on multiple types', () => {
+  expect(formatOutput('test')).toBe('str: test')
+  expect(formatOutput(42)).toBe('num: 42')
+  expect(formatOutput(true)).toBe('bool: true')
+  expect(formatOutput(false)).toBe('bool: false')
+})
+
+test('complex example integrating all Phase 1 features', () => {
+  result1 = complexExample(null)
+  expect(result1.original).toBe(null)
+  expect(result1.display).toBe('Input was null')
+  expect(result1.type).toBe('null')
+  
+  result2 = complexExample('test')
+  expect(result2.original).toBe('test')
+  expect(result2.display).toBe('TEST')
+  expect(result2.type).toBe('string')
+  
+  result3 = complexExample(42)
+  expect(result3.original).toBe(42)
+  expect(result3.display).toBe('42')
+  expect(result3.type).toBe('number')
+})
+
+test('nullish coalescing with union types', () => {
+  expect(handleOptionalValue('hello')).toBe('hello')
+  expect(handleOptionalValue(null)).toBe('default value')
+  expect(handleOptionalValue(undefined)).toBe('default value')
+})
+
+test('smart process with complex unions and type narrowing', () => {
+  expect(smartProcess(null)).toBe('got null')
+  expect(smartProcess('hello')).toBe('string length: 5')
+  expect(smartProcess(10)).toBe('number doubled: 20')
+  expect(smartProcess(true)).toBe('boolean: true')
+  expect(smartProcess(false)).toBe('boolean: false')
+})

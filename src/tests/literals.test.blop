@@ -1,0 +1,60 @@
+
+// Test reserved literal keywords
+
+// Boolean literals
+boolTrue: boolean = true
+boolFalse: boolean = false
+
+def returnTrue(): boolean {
+  return true
+}
+
+def returnFalse(): boolean {
+  return false
+}
+
+// Null and undefined literals
+nullVal: null = null
+undefVal: undefined = undefined
+
+def returnNull(): null {
+  return null
+}
+
+def returnUndefined(): undefined {
+  return undefined
+}
+
+// Literals in expressions
+result1 = true && false
+result2 = null ?? 'default'
+result3 = undefined ?? 'fallback'
+
+// Literals in conditionals
+check1 = if true => 'yes' else 'no'
+check2 = if false => 'yes' else 'no'
+
+test('boolean literals', () => {
+  expect(boolTrue).toBe(true)
+  expect(boolFalse).toBe(false)
+  expect(returnTrue()).toBe(true)
+  expect(returnFalse()).toBe(false)
+})
+
+test('null and undefined literals', () => {
+  expect(nullVal).toBe(null)
+  expect(undefVal).toBe(undefined)
+  expect(returnNull()).toBe(null)
+  expect(returnUndefined()).toBe(undefined)
+})
+
+test('literals in expressions', () => {
+  expect(result1).toBe(false)
+  expect(result2).toBe('default')
+  expect(result3).toBe('fallback')
+})
+
+test('literals in conditionals', () => {
+  expect(check1).toBe('yes')
+  expect(check2).toBe('no')
+})

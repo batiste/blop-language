@@ -1,0 +1,122 @@
+
+// Type narrowing tests
+
+// Test 1: Basic typeof string narrowing
+def processString(val: string | number): string {
+  if typeof val == 'string' {
+    return val.toUpperCase()
+  } else {
+    return val.toString()
+  }
+}
+
+// Test 2: typeof number narrowing
+def processNumber(val: string | number): number {
+  if typeof val == 'number' {
+    return val * 2
+  } else {
+    return parseInt(val)
+  }
+}
+
+// Test 3: typeof with null
+def handleNullable(val: string | null): string {
+  if typeof val == 'string' {
+    return val.toUpperCase()
+  } else {
+    return 'null value'
+  }
+}
+
+// Test 4: typeof with undefined
+def handleOptional(val: number | undefined): number {
+  if typeof val == 'number' {
+    return val + 10
+  } else {
+    return 0
+  }
+}
+
+// Test 5: typeof boolean
+def handleBoolean(val: boolean | string): string {
+  if typeof val == 'boolean' {
+    if val {
+      return 'true'
+    } else {
+      return 'false'
+    }
+  } else {
+    return val
+  }
+}
+
+// Test 6: typeof object
+def handleObject(val: object | string): string {
+  if typeof val == 'object' {
+    return 'is object'
+  } else {
+    return val
+  }
+}
+
+// Test 7: Multiple unions
+def handleMultiple(val: string | number | boolean): string {
+  if typeof val == 'string' {
+    return val.toUpperCase()
+  } elseif typeof val == 'number' {
+    return val.toString()
+  } else {
+    return 'boolean'
+  }
+}
+
+// Test 8: Works with else branch
+def useElseBranch(val: string | number): string {
+  if typeof val == 'number' {
+    return 'number: 'val''
+  } else {
+    return val.toUpperCase()
+  }
+}
+
+test('typeof narrowing with string', () => {
+  expect(processString('hello')).toBe('HELLO')
+  expect(processString(42)).toBe('42')
+})
+
+test('typeof narrowing with number', () => {
+  expect(processNumber(21)).toBe(42)
+  expect(processNumber('10')).toBe(10)
+})
+
+test('typeof narrowing with null', () => {
+  expect(handleNullable('test')).toBe('TEST')
+  expect(handleNullable(null)).toBe('null value')
+})
+
+test('typeof narrowing with undefined', () => {
+  expect(handleOptional(5)).toBe(15)
+  expect(handleOptional(undefined)).toBe(0)
+})
+
+test('typeof narrowing with boolean', () => {
+  expect(handleBoolean(true)).toBe('true')
+  expect(handleBoolean(false)).toBe('false')
+  expect(handleBoolean('text')).toBe('text')
+})
+
+test('typeof narrowing with object', () => {
+  expect(handleObject({})).toBe('is object')
+  expect(handleObject('text')).toBe('text')
+})
+
+test('typeof narrowing with multiple types', () => {
+  expect(handleMultiple('test')).toBe('TEST')
+  expect(handleMultiple(42)).toBe('42')
+  expect(handleMultiple(true)).toBe('boolean')
+})
+
+test('typeof narrowing in else branch', () => {
+  expect(useElseBranch(42)).toBe('number: 42')
+  expect(useElseBranch('hello')).toBe('HELLO')
+})

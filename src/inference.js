@@ -98,6 +98,161 @@ function removeNullish(type) {
   return type;
 }
 
+// ============================================================================
+// Type Narrowing - Track type changes through control flow
+// ============================================================================
+
+/**
+ * Narrow a union type to only include specified types
+ * @param {string} type - Original type
+ * @param {string} narrowedType - Type to narrow to
+ * @returns {string} Narrowed type
+ */
+function narrowType(type, narrowedType) {
+  if (type === 'any') {
+    return narrowedType;
+  }
+  
+  if (!isUnionType(type)) {
+    // If it's already the narrowed type, keep it
+    if (type === narrowedType) {
+      return type;
+    }
+    // Otherwise, narrowing is impossible
+    return 'never';
+  }
+  
+  const types = parseUnionType(type);
+  const narrowedTypes = types.filter(t => t === narrowedType);
+  
+  if (narrowedTypes.length === 0) {
+    return 'never';
+  }
+  
+  return createUnionType(narrowedTypes);
+}
+
+/**
+ * Narrow a union type by removing specified types (for else branches)
+ * @param {string} type - Original type
+ * @param {string} excludedType - Type to exclude
+ * @returns {string} Type with excluded types removed
+ */
+function excludeType(type, excludedType) {
+  if (type === 'any') {
+    return 'any';
+  }
+  
+  if (!isUnionType(type)) {
+    if (type === excludedType) {
+      return 'never';
+    }
+    return type;
+  }
+  
+  const types = parseUnionType(type);
+  const remainingTypes = types.filter(t => t !== excludedType);
+  
+  if (remainingTypes.length === 0) {
+    return 'never';
+  }
+  
+  return createUnionType(remainingTypes);
+}
+
+/**
+ * Detect typeof checks in expressions
+ * Returns { variable, checkType } if detected, null otherwise
+ * @param {Object} expNode - Expression node to analyze
+ * @returns {Object|null} Type guard info or null
+ */
+function detectTypeofCheck(expNode) {
+  if (!expNode || !expNode.inference) {
+    return null;
+  }
+  
+  // Look for pattern: typeof variable == 'type'
+  // This appears in inference as operator nodes
+  let typeofVar = null;
+  let comparisonType = null;
+  let hasComparison = false;
+  
+  // Walk the expression tree looking for typeof and comparison
+  const checkNode = (node) => {
+    if (!node) return;
+    
+    // Check for typeof operand
+    if (node.type === 'exp' && node.children) {
+      for (let child of node.children) {
+        if (child.type === 'operand' && child.value && child.value.includes('typeof')) {
+          // Next node should be the variable name
+          const varNode = node.children.find(c => c.type === 'name_exp');
+          if (varNode && varNode.named && varNode.named.name) {
+            typeofVar = varNode.named.name.value;
+          }
+        }
+        if (child.type === 'str' && typeofVar) {
+          // Extract string value (remove quotes)
+          const strValue = child.value.slice(1, -1);
+          comparisonType = strValue;
+        }
+        if (child.type === 'boolean_operator' && (child.value === '==' || child.value === '!=')) {
+          hasComparison = true;
+        }
+      }
+    }
+    
+    if (node.children) {
+      node.children.forEach(checkNode);
+    }
+  };
+  
+  checkNode(expNode);
+  
+  if (typeofVar && comparisonType && hasComparison) {
+    return { variable: typeofVar, checkType: comparisonType };
+  }
+  
+  return null;
+}
+
+/**
+ * Apply type narrowing to a scope
+ * @param {Object} scope - Scope to apply narrowing to
+ * @param {string} variable - Variable name to narrow
+ * @param {string} narrowedType - Type to narrow to
+ */
+function applyNarrowing(scope, variable, narrowedType) {
+  const def = lookupVariable(variable);
+  if (def && def.type) {
+    const newType = narrowType(def.type, narrowedType);
+    // Create a narrowed version in the current scope
+    scope[variable] = {
+      ...def,
+      type: newType,
+      narrowed: true,
+    };
+  }
+}
+
+/**
+ * Apply type exclusion to a scope (for else branches)
+ * @param {Object} scope - Scope to apply exclusion to
+ * @param {string} variable - Variable name
+ * @param {string} excludedType - Type to exclude
+ */
+function applyExclusion(scope, variable, excludedType) {
+  const def = lookupVariable(variable);
+  if (def && def.type) {
+    const newType = excludeType(def.type, excludedType);
+    scope[variable] = {
+      ...def,
+      type: newType,
+      narrowed: true,
+    };
+  }
+}
+
 /**
  * Extract type name from annotation node
  * Handles both old format (name) and new format (type_expression) with union/intersection types
@@ -641,6 +796,50 @@ const statementHandlers = {
       pushToParent(node, parent);
       pushInference(parent, node);
     }
+  },
+  condition: (node, parent) => {
+    // Check if this is a typeof check that enables type narrowing
+    const typeGuard = detectTypeofCheck(node.named.exp);
+    
+    if (typeGuard) {
+      // Process expression first
+      visit(node.named.exp, node);
+      
+      // Create a new scope for the if branch with narrowed type
+      const ifScope = pushScope();
+      applyNarrowing(ifScope, typeGuard.variable, typeGuard.checkType);
+      
+      // Visit if branch statements
+      if (node.named.stats) {
+        node.named.stats.forEach(stat => visit(stat, node));
+      }
+      popScope();
+      
+      // Handle else/elseif branches
+      if (node.named.elseif) {
+        const elseifNode = node.named.elseif;
+        
+        // Check if it's an else branch (no exp) or elseif
+        if (elseifNode.named && elseifNode.named.exp) {
+          // It's an elseif - process normally
+          visit(elseifNode, node);
+        } else {
+          // It's an else branch - narrow to excluded types
+          const elseScope = pushScope();
+          applyExclusion(elseScope, typeGuard.variable, typeGuard.checkType);
+          
+          if (elseifNode.named && elseifNode.named.stats) {
+            elseifNode.named.stats.forEach(stat => visit(stat, node));
+          }
+          popScope();
+        }
+      }
+    } else {
+      // No type narrowing, process normally
+      visitChildren(node);
+    }
+    
+    pushToParent(node, parent);
   },
 };
 
