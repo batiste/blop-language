@@ -2,7 +2,12 @@
 // Type Checker - Validates type operations and assignments
 // ============================================================================
 
-const { isTypeCompatible } = require('./typeSystem');
+const { 
+  isTypeCompatible, 
+  resolveTypeAlias,
+  parseObjectTypeString,
+  checkObjectStructuralCompatibility 
+} = require('./typeSystem');
 
 const TypeChecker = {
   /**
@@ -39,6 +44,23 @@ const TypeChecker = {
   checkAssignment(valueType, annotationType, typeAliases) {
     if (annotationType && valueType !== 'any') {
       if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
+        // Check if this is an object type mismatch - provide detailed errors
+        const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
+        const resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
+        
+        if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
+          const valueStructure = parseObjectTypeString(resolvedValueType);
+          const targetStructure = parseObjectTypeString(resolvedTargetType);
+          
+          if (valueStructure && targetStructure) {
+            const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
+            if (!result.compatible && result.errors.length > 0) {
+              const detailedError = `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}`;
+              return { valid: false, warning: detailedError };
+            }
+          }
+        }
+        
         return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
       }
     }

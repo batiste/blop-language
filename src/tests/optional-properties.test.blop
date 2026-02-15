@@ -1,0 +1,50 @@
+// Test optional properties - negative tests are in optional-properties.test.js
+
+type User = { name: string, email?: string }
+type UserWithAge = { name: string, email?: string, age?: number }
+type Options = { debug?: boolean, verbose?: boolean }
+type Address = { street: string, city?: string }
+type UserWithAddress = { name: string, address?: Address }
+
+// Optional property can be omitted
+user1: User = { name: "Alice" }
+
+// Optional property can be included with correct type
+user2: User = { name: "Bob", email: "bob@example.com" }
+
+// Multiple optional properties
+user3: UserWithAge = { name: "Alice" }
+user4: UserWithAge = { name: "Bob", email: "bob@example.com" }
+user5: UserWithAge = { name: "Charlie", age: 30 }
+user6: UserWithAge = { name: "Dave", email: "dave@example.com", age: 25 }
+
+// All properties optional
+opts1: Options = {}
+opts2: Options = { debug: true }
+
+// Nested objects with optional properties
+user7: UserWithAddress = { name: "Alice" }
+user8: UserWithAddress = { name: "Bob", address: { street: "123 Main St" } }
+user9: UserWithAddress = { name: "Charlie", address: { street: "456 Oak Ave", city: "Boston" } }
+
+test('optional property can be omitted', () => {
+  expect(user1.name).toBe('Alice')
+})
+
+test('optional property can be included', () => {
+  expect(user2.email).toBe('bob@example.com')
+})
+
+test('multiple optional properties work', () => {
+  expect(user3.name).toBe('Alice')
+  expect(user6.age).toBe(25)
+})
+
+test('all properties optional works', () => {
+  expect(opts2.debug).toBe(true)
+})
+
+test('nested optional properties work', () => {
+  expect(user7.name).toBe('Alice')
+  expect(user8.address.street).toBe('123 Main St')
+})

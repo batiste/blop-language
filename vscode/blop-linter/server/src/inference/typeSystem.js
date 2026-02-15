@@ -8,6 +8,119 @@
  * @param {Object} typeAliases - Map of type aliases
  * @returns {string} The resolved type (or original if not an alias)
  */
+/**
+ * Parse an object type string like "{name: string, id: number}" into a structured format
+ * @param {string} objectTypeString - Object type string from type definition
+ * @returns {Object|null} Object with property names as keys and types as values, or null if invalid
+ */
+function parseObjectTypeString(objectTypeString) {
+  if (!objectTypeString || typeof objectTypeString !== 'string') {
+    return null;
+  }
+  
+  // Check if it's an object type
+  if (!objectTypeString.startsWith('{') || !objectTypeString.endsWith('}')) {
+    return null;
+  }
+  
+  // Empty object
+  if (objectTypeString === '{}') {
+    return {};
+  }
+  
+  // Extract the content between braces
+  const content = objectTypeString.slice(1, -1).trim();
+  if (!content) {
+    return {};
+  }
+  
+  const properties = {};
+  
+  // Split by comma, but be careful of nested structures and unions
+  const parts = [];
+  let current = '';
+  let depth = 0;
+  let inUnion = false;
+  
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    
+    if (char === '{') depth++;
+    else if (char === '}') depth--;
+    else if (char === '|' && depth === 0) inUnion = true;
+    else if (char === ',' && depth === 0 && !inUnion) {
+      parts.push(current.trim());
+      current = '';
+      inUnion = false;
+      continue;
+    }
+    
+    current += char;
+    if (char !== '|' && char !== ' ') inUnion = false;
+  }
+  
+  if (current.trim()) {
+    parts.push(current.trim());
+  }
+  
+  // Parse each part as "key: type"
+  for (const part of parts) {
+    const colonIndex = part.indexOf(':');
+    if (colonIndex === -1) continue;
+    
+    const key = part.slice(0, colonIndex).trim();
+    const type = part.slice(colonIndex + 1).trim();
+    
+    if (key && type) {
+      properties[key] = type;
+    }
+  }
+  
+  return properties;
+}
+
+/**
+ * Check if two object type structures are compatible (structural typing)
+ * @param {Object} valueStructure - The structure of the value being assigned
+ * @param {Object} targetStructure - The expected structure from type definition
+ * @param {Object} typeAliases - Type aliases for resolving nested types
+ * @returns {Object} { compatible: boolean, errors: string[] }
+ */
+function checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases = {}) {
+  const errors = [];
+  
+  if (!valueStructure || !targetStructure) {
+    return { compatible: false, errors: ['Invalid object structures'] };
+  }
+  
+  // Check all required properties in target exist in value
+  for (const [key, targetType] of Object.entries(targetStructure)) {
+    if (!(key in valueStructure)) {
+      errors.push(`Missing property '${key}'`);
+      continue;
+    }
+    
+    const valueType = valueStructure[key];
+    
+    // Check if the property type is compatible
+    if (!isTypeCompatible(valueType, targetType, typeAliases)) {
+      errors.push(`Property '${key}' has type ${valueType} but expected ${targetType}`);
+    }
+  }
+  
+  // Check for excess properties (optional, could be a warning instead)
+  for (const key of Object.keys(valueStructure)) {
+    if (!(key in targetStructure)) {
+      errors.push(`Excess property '${key}' not in type definition`);
+    }
+  }
+  
+  return {
+    compatible: errors.length === 0,
+    errors
+  };
+}
+
 function resolveTypeAlias(type, typeAliases) {
   if (!type || typeof type !== 'string') return type;
   
@@ -105,15 +218,44 @@ function isTypeCompatible(valueType, targetType, typeAliases = {}) {
     return true;
   }
   
+  // Allow object structure to be compatible with generic "object" (widening)
+  if (resolvedValueType.startsWith('{') && resolvedTargetType === 'object') {
+    return true;
+  }
+  
+  // Structural type checking for object types
+  // Both value and target are object type structures like "{name: string, id: number}"
+  if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
+    const valueStructure = parseObjectTypeString(resolvedValueType);
+    const targetStructure = parseObjectTypeString(resolvedTargetType);
+    
+    if (valueStructure && targetStructure) {
+      const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
+      return result.compatible;
+    }
+    
+    // If parsing failed, fall back to string comparison
+    return resolvedValueType === resolvedTargetType;
+  }
+  
+  // Generic "object" assigned to an object type structure - not enough information
+  // This should ideally not happen if we infer proper structures for object literals
+  if (resolvedValueType === 'object' && resolvedTargetType.startsWith('{')) {
+    return true; // Allow for now, but this won't validate structure
+  }
+  
   // Check if valueType is in targetType's union
   if (isUnionType(resolvedTargetType)) {
     const targetTypes = parseUnionType(resolvedTargetType);
     if (isUnionType(resolvedValueType)) {
       const valueTypes = parseUnionType(resolvedValueType);
-      // All value types must be in target types
-      return valueTypes.every(vt => targetTypes.includes(vt));
+      // All value types must be compatible with at least one target type
+      return valueTypes.every(vt => 
+        targetTypes.some(tt => isTypeCompatible(vt, tt, typeAliases))
+      );
     }
-    return targetTypes.includes(resolvedValueType);
+    // Single value type must be compatible with at least one target type
+    return targetTypes.some(tt => isTypeCompatible(resolvedValueType, tt, typeAliases));
   }
   
   return false;
@@ -250,12 +392,18 @@ function parseTypeExpression(typeExprNode) {
 
 /**
  * Parse a type_primary AST node into a type string
- * Handles basic types and array types
+ * Handles basic types, array types, and object types
  * @param {Object} typePrimaryNode - The type_primary AST node
  * @returns {string} The parsed type string
  */
 function parseTypePrimary(typePrimaryNode) {
   if (!typePrimaryNode || !typePrimaryNode.named) return 'any';
+  
+  // Check for object type
+  if (typePrimaryNode.children && typePrimaryNode.children[0] && 
+      typePrimaryNode.children[0].type === 'object_type') {
+    return parseObjectType(typePrimaryNode.children[0]);
+  }
   
   const { name } = typePrimaryNode.named;
   if (!name) return 'any';
@@ -273,6 +421,46 @@ function parseTypePrimary(typePrimaryNode) {
   return typeName;
 }
 
+/**
+ * Parse an object_type AST node into a type string
+ * @param {Object} objectTypeNode - The object_type AST node
+ * @returns {string} The parsed type string like "{name: string, id: number}"
+ */
+function parseObjectType(objectTypeNode) {
+  if (!objectTypeNode || !objectTypeNode.named || !objectTypeNode.named.properties) {
+    return '{}'; // Empty object type
+  }
+  
+  // Collect all properties from the recursive properties structure
+  function collectProperties(propertiesNode) {
+    if (!propertiesNode) return [];
+    
+    const props = [];
+    let current = propertiesNode;
+    
+    // Handle the recursive structure: object_type_properties can contain another object_type_properties
+    while (current) {
+      // Find the object_type_property node
+      const propertyNode = current.children ? current.children.find(c => c.type === 'object_type_property') : null;
+      
+      if (propertyNode && propertyNode.named && propertyNode.named.key && propertyNode.named.valueType) {
+        const key = propertyNode.named.key.value;
+        const valueType = parseTypeExpression(propertyNode.named.valueType);
+        props.push(`${key}: ${valueType}`);
+      }
+      
+      // Check for nested object_type_properties
+      const nested = current.children ? current.children.find(c => c.type === 'object_type_properties') : null;
+      current = nested;
+    }
+    
+    return props;
+  }
+  
+  const propertyStrings = collectProperties(objectTypeNode.named.properties);
+  return `{${propertyStrings.join(', ')}}`;
+}
+
 module.exports = {
   resolveTypeAlias,
   isUnionType,
@@ -285,4 +473,7 @@ module.exports = {
   getAnnotationType,
   parseTypeExpression,
   parseTypePrimary,
+  parseObjectType,
+  parseObjectTypeString,
+  checkObjectStructuralCompatibility,
 };

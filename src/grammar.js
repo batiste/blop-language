@@ -4,6 +4,7 @@ const grammar = {
   'START': [
     ['GLOBAL_STATEMENT', 'GLOBAL_STATEMENTS*', 'EOS'],
     ['GLOBAL_STATEMENTS*', 'EOS'],
+    ['scomment', 'GLOBAL_STATEMENTS*', 'EOS'],
   ],
   'GLOBAL_STATEMENTS': [
     ['newline', 'GLOBAL_STATEMENT', 'wcomment?'],
@@ -82,8 +83,23 @@ const grammar = {
     ['type_primary'],
   ],
   'type_primary': [
+    ['object_type'],
+    ['str:literal'],
+    ['number:literal'],
     ['type_name:name', '[', ']'],
     ['type_name:name'],
+  ],
+  'object_type': [
+    ['{', 'single_space_or_newline', 'object_type_properties:properties', 'single_space_or_newline', '}'],
+    ['{', '}'],
+  ],
+  'object_type_properties': [
+    ['object_type_property', ',', 'single_space_or_newline', 'object_type_properties'],
+    ['object_type_property', ',?'],
+  ],
+  'object_type_property': [
+    ['name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
+    ['name:key', 'w?', 'colon', 'w?', 'type_expression:valueType'],
   ],
   'type_name': [
     ['name'],
