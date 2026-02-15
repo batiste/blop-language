@@ -67,13 +67,13 @@ def navigation(state) {
     e.preventDefault()
   }
 
-  def navItem(ttype, go, name) {
+  def navItem(pageType, go, name) {
     classes = "nav-item"
-    if state.page == ttype {
+    if state.page == pageType {
       classes := ""classes" active"
     }
     <li class=classes>
-      <a href="/"ttype"" class="nav-link" on={ click: go }>
+      <a href="/"pageType"" class="nav-link" on={ click: go }>
         = name
       </a>
     </li>
