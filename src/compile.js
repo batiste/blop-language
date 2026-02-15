@@ -23,7 +23,9 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   if (env === 'webpack') {
     file = stringifyRequest(this, `!${name}`);
   } else {
-    file = stringifyRequest(this, name);
+    // For non-webpack environments (node, jest), don't use stringifyRequest
+    // Just use JSON.stringify to quote the path properly
+    file = JSON.stringify(name);
   }
   const header = `const blop = require(${file});\n`;
 

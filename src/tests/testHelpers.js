@@ -19,12 +19,13 @@ function dedent(code) {
 }
 
 /**
- * Test that code compiles successfully
+ * Test that code compiles successfully,
+ * This shouldn't be used, if you expect blop test code to compile,
+ * you should just write it in a .blop file in the tests/ folder 
+ * and it will be compiled as part of the test suite.
  */
 function expectCompiles(source, filename = 'test.blop') {
-  // This shouldn't be used, if you expect blop test code to compile,
-  // you should just write it in a .blop file in the tests/ folder 
-  // and it will be compiled as part of the test suite.
+
   const code = dedent(source);
   try {
     compileSource(code, 'node', filename, false, false, true); // Enable inference

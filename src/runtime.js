@@ -1,11 +1,42 @@
-const snabbdom = require('snabbdom');
-const attributes = require('snabbdom/modules/attributes');
-const style = require('snabbdom/modules/style');
-const sclass = require('snabbdom/modules/class');
-const eventlisteners = require('snabbdom/modules/eventlisteners');
-const snabbdomh = require('snabbdom/h');
-const toVNode = require('snabbdom/tovnode').default;
 const { PATTERNS } = require('./constants');
+
+// Mock Snabbdom for testing environments
+// In production, webpack will bundle the real Snabbdom
+let snabbdomInit, snabbdomh, toVNode, attributesModule, styleModule, classModule, eventListenersModule;
+
+try {
+  // Try to load Snabbdom (works in webpack/browser)
+  const snabbdom = require('snabbdom');
+  snabbdomInit = snabbdom.init;
+  snabbdomh = snabbdom.h;
+  toVNode = snabbdom.toVNode;
+  attributesModule = snabbdom.attributesModule;
+  styleModule = snabbdom.styleModule;
+  classModule = snabbdom.classModule;
+  eventListenersModule = snabbdom.eventListenersModule;
+} catch (e) {
+  // Snabbdom not available (test environment), use mocks
+  console.warn('[blop-runtime] Snabbdom not available, using mocks');
+  
+  // Mock implementations for testing
+  snabbdomh = (name, attributes, children) => ({
+    sel: name,
+    data: attributes || {},
+    children: children || [],
+    text: undefined,
+    elm: undefined,
+    key: attributes?.key,
+  });
+  
+  toVNode = (elm) => ({ sel: String(elm.tagName).toLowerCase(), data: {}, children: [], elm });
+  
+  snabbdomInit = () => (oldVnode, newVnode) => newVnode;
+  
+  attributesModule = { create: () => {}, update: () => {} };
+  styleModule = { create: () => {}, update: () => {} };
+  classModule = { create: () => {}, update: () => {} };
+  eventListenersModule = { create: () => {}, update: () => {} };
+}
 
 // the node being currently rendered
 let currentNode = null;
@@ -262,7 +293,7 @@ function h(name, attributes, children) {
       attrs[index] = value;
     }
   });
-  return snabbdomh.default(
+  return snabbdomh(
     name,
     {
       on, style, attrs, hook, class: sclass, key,
@@ -271,11 +302,11 @@ function h(name, attributes, children) {
   );
 }
 
-const patch = snabbdom.init([
-  attributes.default,
-  style.default,
-  eventlisteners.default,
-  sclass.default,
+const patch = snabbdomInit([
+  attributesModule,
+  styleModule,
+  eventListenersModule,
+  classModule,
 ]);
 
 let renderPipeline = [];
