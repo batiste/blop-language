@@ -182,7 +182,7 @@ const grammar = {
     ['import', 'str:file'],
   ],
   'type_alias': [
-    ['type', 'w', 'name:name', 'w', '=', 'w', 'type_expression:type'],
+    ['type', 'name:name', 'w', '=', 'w', 'type_expression:type'],
   ],
   'object_literal_key': [['str'], ['name']],
   'virtual_node': [

@@ -90,7 +90,7 @@ const tokensDefinition = {
   'undefined': { reg: /^undefined(?![\w$_])/ },
   'true': { reg: /^true(?![\w$_])/ },
   'false': { reg: /^false(?![\w$_])/ },
-  'type': { reg: /^type(?=\s)/ }, // Only match 'type' followed by whitespace
+  'type': { str: 'type ' },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
   'multiline_comment': { reg: /^\/\*+[^*]*\*+(?:[^/*][^*]*\*+)*\//, verbose: 'comment' },
   'as': { str: 'as ' },
