@@ -25,6 +25,7 @@ State management and routing can be up to you, but 2 small libraries provide the
  * [Install the example application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
  * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
  * [How do Blop Components work?](https://github.com/batiste/blop-language/wiki/Components)
+ * [CLI Usage Guide](docs/CLI_USAGE.md)
 
 ## Language features
 
