@@ -32,6 +32,27 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
     },
     
+    func_body_fat: (node, parent) => {
+      const { getFunctionScope } = getState();
+      
+      // Check if this is an expression body (implicit return)
+      // func_body_fat can be either `{ stats }` or just `exp`
+      if (node.named.exp) {
+        // This is an implicit return: visit the expression to get its type
+        visitChildren(node);
+        
+        // Get the type of the expression and add it as an implicit return
+        const functionScope = getFunctionScope();
+        if (functionScope && functionScope.__returnTypes && node.named.exp.inference) {
+          const returnType = node.named.exp.inference[0] || 'undefined';
+          functionScope.__returnTypes.push(returnType);
+        }
+      } else {
+        // Regular block body
+        visitChildren(node);
+      }
+    },
+    
     named_func_call: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
       visitChildren(node);
