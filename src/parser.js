@@ -624,7 +624,7 @@ let GLOBAL_STATEMENT_9 = (stream, index) => {
     children, stream_index: index, name: 'GLOBAL_STATEMENT',
     sub_rule_index: 9, type: 'GLOBAL_STATEMENT', named,
   };
-  const _rule_0 = exp_statement(stream, i);
+  const _rule_0 = type_alias(stream, i);
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
@@ -642,11 +642,29 @@ let GLOBAL_STATEMENT_10 = (stream, index) => {
     children, stream_index: index, name: 'GLOBAL_STATEMENT',
     sub_rule_index: 10, type: 'GLOBAL_STATEMENT', named,
   };
+  const _rule_0 = exp_statement(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+GLOBAL_STATEMENT_10 = memoize('GLOBAL_STATEMENT_10', GLOBAL_STATEMENT_10);
+
+
+let GLOBAL_STATEMENT_11 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'GLOBAL_STATEMENT',
+    sub_rule_index: 11, type: 'GLOBAL_STATEMENT', named,
+  };
 
   if (stream[i].type !== 'throw') {
     if (i >= best_failure_index) {
       const failure = {
-        type: 'GLOBAL_STATEMENT', sub_rule_index: 10,
+        type: 'GLOBAL_STATEMENT', sub_rule_index: 11,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -663,7 +681,7 @@ let GLOBAL_STATEMENT_10 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-GLOBAL_STATEMENT_10 = memoize('GLOBAL_STATEMENT_10', GLOBAL_STATEMENT_10);
+GLOBAL_STATEMENT_11 = memoize('GLOBAL_STATEMENT_11', GLOBAL_STATEMENT_11);
 
 
 function GLOBAL_STATEMENT(stream, index) {
@@ -677,7 +695,8 @@ function GLOBAL_STATEMENT(stream, index) {
     || GLOBAL_STATEMENT_7(stream, index)
     || GLOBAL_STATEMENT_8(stream, index)
     || GLOBAL_STATEMENT_9(stream, index)
-    || GLOBAL_STATEMENT_10(stream, index);
+    || GLOBAL_STATEMENT_10(stream, index)
+    || GLOBAL_STATEMENT_11(stream, index);
 }
 let exp_statement_0 = (stream, index) => {
   let i = index;
@@ -5538,6 +5557,113 @@ function import_statement(stream, index) {
     || import_statement_2(stream, index)
     || import_statement_3(stream, index);
 }
+let type_alias_0 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_alias',
+    sub_rule_index: 0, type: 'type_alias', named,
+  };
+
+  if (stream[i].type !== 'type') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['name'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '=') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_alias', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_6 = type_expression(stream, i);
+  if (!_rule_6) return false;
+  named['type'] = _rule_6;
+  children.push(_rule_6);
+  i = _rule_6.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_alias_0 = memoize('type_alias_0', type_alias_0);
+
+
+function type_alias(stream, index) {
+  return type_alias_0(stream, index);
+}
 let object_literal_key_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -8220,6 +8346,10 @@ function _tokenize(tokenDef, input, char, stream) {
   match = input.substring(char).match(tokenDef.false.reg);
   if (match !== null) {
     return [match[0], 'false'];
+  }
+  match = input.substring(char).match(tokenDef.type.reg);
+  if (match !== null) {
+    return [match[0], 'type'];
   }
   match = input.substring(char).match(tokenDef.comment.reg);
   if (match !== null) {

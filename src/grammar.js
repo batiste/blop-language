@@ -31,6 +31,7 @@ const grammar = {
     ['for_loop'],
     ['while_loop'],
     ['import_statement'],
+    ['type_alias'],
     ['exp_statement'],
     ['throw', 'exp'],
   ],
@@ -179,6 +180,9 @@ const grammar = {
     ['import', '{', 'w', 'destructuring_values:dest_values', 'w', '}', 'w', 'from', 'str:file'],
     ['import', 'str:module', 'w', 'as', 'name:name'],
     ['import', 'str:file'],
+  ],
+  'type_alias': [
+    ['type', 'w', 'name:name', 'w', '=', 'w', 'type_expression:type'],
   ],
   'object_literal_key': [['str'], ['name']],
   'virtual_node': [

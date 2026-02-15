@@ -90,13 +90,13 @@ def SuccessIcon() {
 }
 
 def Message(attributes) {
-  { type, text } = attributes
-  if type == 'error' {
+  { msgType, text } = attributes
+  if msgType == 'error' {
     <div class="error">
       <ErrorIcon />
       = text
     </div>
-  } elseif type == 'success' {
+  } elseif msgType == 'success' {
     <div class="success">
       <SuccessIcon />
       = text
@@ -212,15 +212,15 @@ test('composed components', () => {
 })
 
 test('conditional component rendering', () => {
-  vnode1 = Message({ type: 'error', text: 'Error!' })
+  vnode1 = Message({ msgType: 'error', text: 'Error!' })
   expect(vnode1.sel).toBe('div')
   expect(vnode1.data.attrs['class']).toBe('error')
   
-  vnode2 = Message({ type: 'success', text: 'Success!' })
+  vnode2 = Message({ msgType: 'success', text: 'Success!' })
   expect(vnode2.sel).toBe('div')
   expect(vnode2.data.attrs['class']).toBe('success')
   
-  vnode3 = Message({ type: 'info', text: 'Info' })
+  vnode3 = Message({ msgType: 'info', text: 'Info' })
   expect(vnode3.sel).toBe('div')
   expect(vnode3.data.attrs['class']).toBe('info')
 })

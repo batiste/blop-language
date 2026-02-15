@@ -9,6 +9,7 @@ function createStatementGenerators(context) {
   return {
     'EOS': () => [],
     'annotation': () => [],
+    'type_alias': () => [], // Type aliases are compile-time only, no runtime code
     'def': () => ['function '],
     'SCOPED_STATEMENT': (node) => {
       const output = [];

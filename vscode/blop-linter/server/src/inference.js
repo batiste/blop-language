@@ -2,10 +2,47 @@
 let warnings;
 let stream;
 let functionScopes;
+let typeAliases; // Track type aliases defined with `type Name = Type`
 
 const getCurrentScope = () => functionScopes[functionScopes.length - 1];
 const pushScope = () => functionScopes.push({}) && getCurrentScope();
 const popScope = () => functionScopes.pop();
+
+// ============================================================================
+// Type Alias Resolution
+// ============================================================================
+
+/**
+ * Resolve a type alias to its underlying type
+ * @param {string} type - Type name that might be an alias
+ * @returns {string} The resolved type (or original if not an alias)
+ */
+function resolveTypeAlias(type) {
+  if (!type || typeof type !== 'string') return type;
+  
+  // Check if it's a union or intersection type
+  if (type.includes(' | ') || type.includes(' & ')) {
+    // Parse and resolve each component
+    const separator = type.includes(' | ') ? ' | ' : ' & ';
+    const types = type.split(separator).map(t => t.trim());
+    const resolved = types.map(t => resolveTypeAlias(t));
+    return resolved.join(separator);
+  }
+  
+  // Check if it's an array type
+  if (type.endsWith('[]')) {
+    const elementType = type.slice(0, -2);
+    return resolveTypeAlias(elementType) + '[]';
+  }
+  
+  // Resolve the alias itself
+  if (typeAliases[type]) {
+    // Recursively resolve in case an alias points to another alias
+    return resolveTypeAlias(typeAliases[type]);
+  }
+  
+  return type;
+}
 
 // ============================================================================
 // Union Type Utilities
@@ -58,23 +95,37 @@ function createUnionType(types) {
  * @returns {boolean}
  */
 function isTypeCompatible(valueType, targetType) {
-  if (valueType === 'any' || targetType === 'any') {
+  // Resolve type aliases first
+  const resolvedValueType = resolveTypeAlias(valueType);
+  const resolvedTargetType = resolveTypeAlias(targetType);
+  
+  if (resolvedValueType === 'any' || resolvedTargetType === 'any') {
     return true;
   }
   
-  if (valueType === targetType) {
+  if (resolvedValueType === resolvedTargetType) {
+    return true;
+  }
+  
+  // Allow generic "array" to be compatible with typed arrays like "number[]"
+  if (resolvedValueType === 'array' && resolvedTargetType.endsWith('[]')) {
+    return true;
+  }
+  
+  // Allow generic "object" to be compatible with any object-based type
+  if (resolvedValueType === 'object' && resolvedTargetType === 'object') {
     return true;
   }
   
   // Check if valueType is in targetType's union
-  if (isUnionType(targetType)) {
-    const targetTypes = parseUnionType(targetType);
-    if (isUnionType(valueType)) {
-      const valueTypes = parseUnionType(valueType);
+  if (isUnionType(resolvedTargetType)) {
+    const targetTypes = parseUnionType(resolvedTargetType);
+    if (isUnionType(resolvedValueType)) {
+      const valueTypes = parseUnionType(resolvedValueType);
       // All value types must be in target types
       return valueTypes.every(vt => targetTypes.includes(vt));
     }
-    return targetTypes.includes(valueType);
+    return targetTypes.includes(resolvedValueType);
   }
   
   return false;
@@ -790,6 +841,16 @@ const functionHandlers = {
 const statementHandlers = {
   GLOBAL_STATEMENT: resolveTypes,
   SCOPED_STATEMENTS: resolveTypes,
+  type_alias: (node, parent) => {
+    // Extract the alias name and its type
+    const aliasName = node.named.name.value;
+    const aliasType = parseTypeExpression(node.named.type);
+    
+    // Store the type alias
+    typeAliases[aliasName] = aliasType;
+    
+    // Type aliases don't produce values, so don't push to parent
+  },
   assign: (node, parent) => {
     if (node.named.name) {
       visit(node.named.exp, node);
@@ -879,6 +940,7 @@ function visit(node, parent) {
 function inference(node, _stream) {
   warnings = [];
   functionScopes = [{}];
+  typeAliases = {}; // Reset type aliases for each file
   stream = _stream;
   visit(node);
   return warnings;
