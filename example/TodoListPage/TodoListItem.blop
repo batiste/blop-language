@@ -23,6 +23,7 @@ TodoListItem = (attributes: object, _children: array): VNode => {
         } else {
           <div on={ click: editItem } style={ padding: '10px' }>
             = value
+            <span class="badge badge-secondary" style={ marginLeft: '10px' }>'click to edit'</span>
           </div>
         }
       </div>

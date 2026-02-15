@@ -48,7 +48,7 @@ end = parseInt(process.hrtime.bigint())
 
 microseconds = (end - start) / 1000000
 
-// console.log('Benchmark took 'microseconds' microseconds')
+// console.log('Benchmark took 'microseconds' microseconds, for a total of 'str.split('\n').length' lines of code.')
 
 test('long enough', () => {
   expect(str.split('\n').length > 4000).toBe(true)
