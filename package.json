@@ -17,7 +17,7 @@
     "webpack": "node_modules/webpack/bin/webpack.js",
     "webpack-watch": "node_modules/webpack/bin/webpack.js --watch",
     "debug": "BLOP_DEBUG=true SOURCEMAP=true node_modules/webpack/bin/webpack.js --config webpack.server.js && node dist/server.js",
-    "linter": "cp {src/parser.js,src/grammar.js,src/tokensDefinition.js,src/backend.js,src/builtin.js,src/inference.js,src/constants.js,src/utils.js,src/errorMessages.js,src/selectBestFailure.js,src/tokenStatistics.json} vscode/blop-linter/server/src/ && cp -r src/backend vscode/blop-linter/server/src/ && cd vscode/blop-linter && npm install && npm run compile",
+    "linter": "./scripts/sync-linter.sh",
     "link-extensions": "ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/batistebieler.blop-linter-1.0.35 && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/batistebieler.blop-syntax-highlighter-1.0.14",
     "build": "npm run parser && npm run test && node src/updateAutocompleteFile.js && npm run linter && npm run webpack",
     "build-ci": "npm run parser && npm run test"
