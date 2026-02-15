@@ -32,7 +32,9 @@ function createStatementGenerators(context) {
       if (node.named.name) {
         if (!node.named.explicit_assign) {
           checkRedefinition(node.named.name.value, node, node.named.explicit_assign);
-          scope.names[node.named.name.value] = { node, token: node.named.name };
+          // Register in function scope for hoisting so variable is declared
+          const funcScope = scopes.type(SCOPE_TYPES.FUNCTION);
+          funcScope.names[node.named.name.value] = { node, token: node.named.name, hoist: true };
         }
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {

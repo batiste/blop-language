@@ -116,9 +116,10 @@ function createVirtualNodeGenerators(context) {
     'virtual_node_assign': (node) => {
       const output = [];
       const parent = currentScopeVN().__currentVNode;
-      const scope = scopes.currentBlock();
+      const scope = scopes.type(SCOPE_TYPES.FUNCTION);
       const a_uid = uid();
-      scope.names[a_uid] = node;
+      // Register for hoisting at function level so variable is declared
+      scope.names[a_uid] = { node, token: node, hoist: true };
       output.push(`${a_uid} = `);
       output.push(...generateCode(node.named.exp));
       if (!parent) {

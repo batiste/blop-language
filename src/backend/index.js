@@ -5,7 +5,7 @@ const { ScopesStack } = require('./scopes');
 const { createValidators } = require('./validators');
 const { createBackendHandlers } = require('./generators');
 
-function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false) {
+function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack') {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -25,6 +25,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const exportObjects = {};
   let exportKeys = [];
   const dependencies = [];
+  const imports = [];
 
   const config = utils.getConfig(_filename);
   const keysCache = {};
@@ -45,8 +46,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     errors,
     warnings,
     dependencies,
+    imports,
     uid,
     resolve,
+    env, // Track environment for import/export generation
     generateCode: null, // Will be set after creation
   };
 
@@ -115,14 +118,58 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         acc[key] = scope.names[key];
         return acc;
       }, exportObjects);
+      
+      // Generate imports at the top (format depends on environment)
+      imports.forEach(imp => {
+        if (context.env === 'webpack') {
+          // CommonJS for webpack
+          if (imp.type === 'default') {
+            final.push(`let ${imp.as} = require('${imp.path}');\n`);
+          } else if (imp.type === 'destructured') {
+            const specifiers = imp.names.map(n => 
+              n.source !== n.local ? `${n.source}: ${n.local}` : n.source
+            ).join(', ');
+            final.push(`let { ${specifiers} } = require('${imp.path}');\n`);
+          } else if (imp.type === 'named') {
+            // For named imports in CJS, access properties
+            imp.names.forEach(name => {
+              final.push(`let ${name} = require('${imp.path}').${name};\n`);
+            });
+          }
+        } else {
+          // ESM for other environments
+          if (imp.type === 'default') {
+            final.push(`import * as ${imp.as} from '${imp.path}';\n`);
+          } else if (imp.type === 'destructured') {
+            const specifiers = imp.names.map(n => 
+              n.source !== n.local ? `${n.source} as ${n.local}` : n.source
+            ).join(', ');
+            final.push(`import { ${specifiers} } from '${imp.path}';\n`);
+          } else if (imp.type === 'named') {
+            final.push(`import { ${imp.names.join(', ')} } from '${imp.path}';\n`);
+          }
+        }
+      });
+      
       const hoistKeys = Object.keys(scope.names).filter(key => scope.names[key].hoist !== false);
       if (hoistKeys.length > 0) {
         final.push(`let ${hoistKeys.join(', ')};\n`);
       }
       final.push(module.join(''));
-      final.push('\nmodule.exports = { ');
-      final.push(exportKeys.join(', '));
-      final.push(' };\n');
+      
+      // Generate exports based on environment
+      // Webpack needs CommonJS, Vitest needs ESM
+      if (context.env === 'webpack') {
+        // CommonJS for webpack
+        final.push('\nmodule.exports = { ');
+        final.push(exportKeys.join(', '));
+        final.push(' };\n');
+      } else {
+        // ESM for everything else (Vitest, CLI)
+        final.push('\nexport { ');
+        final.push(exportKeys.join(', '));
+        final.push(' };\n');
+      }
       return final;
     },
   };

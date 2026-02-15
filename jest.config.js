@@ -7,7 +7,16 @@ module.exports = {
   testMatch: ['**/*.test.blop', '**/tests/**/*.test.js'],
   transform: {
     '^.+\\.blop$': './src/jest.js',
-  },  collectCoverage: false, // Set to true to enable coverage
+    '^.+\\.js$': 'babel-jest',
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(snabbdom)/)',
+  ],
+  moduleNameMapper: {
+    '^.*/runtime\\.js$': '<rootDir>/src/runtime.mock.js',
+  },
+  testEnvironment: 'jsdom',
+  collectCoverage: false, // Set to true to enable coverage
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/tests/**',
