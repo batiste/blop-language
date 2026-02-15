@@ -67,14 +67,24 @@ function createStatementHandlers(getState) {
     },
     
     condition: (node, parent) => {
-      const { pushScope, popScope, lookupVariable } = getState();
+      const { pushScope, popScope, lookupVariable, getFunctionScope } = getState();
+      
+      const functionScope = getFunctionScope();
+      const debug = functionScope && JSON.stringify(functionScope).includes('acceptsNull');
       
       // Check if this is a typeof check that enables type narrowing
       const typeGuard = detectTypeofCheck(node.named.exp);
       
+      if (debug) {
+        console.log('[DEBUG acceptsNull condition] typeGuard:', typeGuard ? 'YES' : 'NO', 'has elseif:', !!node.named.elseif);
+      }
+      
       if (typeGuard) {
         // Process expression first
         visit(node.named.exp, node);
+        
+        const functionScope = getFunctionScope();
+        const returnsBeforeIf = functionScope?.__returnTypes?.length || 0;
         
         // Create a new scope for the if branch with narrowed type
         const ifScope = pushScope();
@@ -86,9 +96,12 @@ function createStatementHandlers(getState) {
         }
         popScope();
         
+        const returnsAfterIf = functionScope?.__returnTypes?.length || 0;
+        
         // Handle else/elseif branches
         if (node.named.elseif) {
           const elseifNode = node.named.elseif;
+          const returnsBeforeElse = functionScope?.__returnTypes?.length || 0;
           
           // Check if it's an else branch (no exp) or elseif
           if (elseifNode.named && elseifNode.named.exp) {
@@ -104,10 +117,67 @@ function createStatementHandlers(getState) {
             }
             popScope();
           }
+          
+          const returnsAfterElse = functionScope?.__returnTypes?.length || 0;
+          
+          // If we have if/else but not all branches added returns, some path falls through
+          const ifBranchReturns = returnsAfterIf > returnsBeforeIf;
+          const elseBranchReturns = returnsAfterElse > returnsBeforeElse;
+          
+          if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
+            if (!functionScope.__returnTypes.includes('undefined')) {
+              functionScope.__returnTypes.push('undefined');
+            }
+          }
         }
       } else {
-        // No type narrowing, process normally
-        visitChildren(node);
+        // No type narrowing, but still track returns for if/else
+        const functionScope = getFunctionScope();
+        const returnsBeforeIf = functionScope?.__returnTypes?.length || 0;
+        
+        // Visit condition expression
+        if (node.named.exp) {
+          visit(node.named.exp, node);
+        }
+        
+        // Visit if branch
+        if (node.named.stats) {
+          node.named.stats.forEach(stat => visit(stat, node));
+        }
+        
+        const returnsAfterIf = functionScope?.__returnTypes?.length || 0;
+        const ifBranchReturns = returnsAfterIf > returnsBeforeIf;
+        
+        // Visit else branch if it exists
+        if (node.named.elseif) {
+          const returnsBeforeElse = functionScope?.__returnTypes?.length || 0;
+          
+          // Debug for acceptsNull
+          const debug = functionScope && JSON.stringify(functionScope).includes('acceptsNull');
+          if (debug) {
+            console.log('[DEBUG acceptsNull] Has else, returnsBeforeElse:', returnsBeforeElse, 'ifBranchReturns:', ifBranchReturns);
+            console.log('[DEBUG acceptsNull] elseif type:', node.named.elseif.type);
+            console.log('[DEBUG acceptsNull] elseif has exp?', !!node.named.elseif.named?.exp);
+            console.log('[DEBUG acceptsNull] elseif has stats?', !!node.named.elseif.named?.stats);
+          }
+          
+          visit(node.named.elseif, node);
+          const returnsAfterElse = functionScope?.__returnTypes?.length || 0;
+          const elseBranchReturns = returnsAfterElse > returnsBeforeElse;
+          
+          if (debug) {
+            console.log('[DEBUG acceptsNull] returnsAfterElse:', returnsAfterElse, 'elseBranchReturns:', elseBranchReturns);
+            console.log('[DEBUG acceptsNull] Will add undefined?', !ifBranchReturns || !elseBranchReturns);
+          }
+          
+          // If we have if/else but not all branches return, add undefined
+          if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
+            if (!functionScope.__returnTypes.includes('undefined')) {
+              if (debug) console.log('[DEBUG acceptsNull] Adding undefined!');
+              functionScope.__returnTypes.push('undefined');
+            }
+          }
+        }
       }
       
       pushToParent(node, parent);

@@ -12,9 +12,13 @@ const { PATHS, ERROR_MESSAGES } = require('./constants');
 const { selectBestFailure } = require('./selectBestFailure');
 
 
-function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
+function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false, enableInference = false) {
   const name = require.resolve(path.join(__dirname, PATHS.RUNTIME_MODULE));
   const config = utils.getConfig(filename);
+  
+  // CLI flag overrides config file
+  const shouldRunInference = enableInference || config.inference;
+  
   let file;
   if (env === 'webpack') {
     file = stringifyRequest(this, `!${name}`);
@@ -61,7 +65,7 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   if (config.strictness === 'perfect' && !result.perfect) {
     utils.displayBackendError(stream, result.warnings[0]);
   }
-  if (config.inference) {
+  if (shouldRunInference) {
     const warnings = inference(tree, stream);
     if (warnings.length) {
       utils.displayBackendError(stream, warnings[0]);

@@ -4,7 +4,7 @@ module.exports = {
     'blop',
     'js',
   ],
-  testMatch: ['**/*.test.blop'],
+  testMatch: ['**/*.test.blop', '**/tests/**/*.test.js'],
   transform: {
     '^.+\\.blop$': './src/jest.js',
   },  collectCoverage: false, // Set to true to enable coverage
