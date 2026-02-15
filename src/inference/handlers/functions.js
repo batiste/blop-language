@@ -32,6 +32,27 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
     },
     
+    func_body_fat: (node, parent) => {
+      const { getFunctionScope } = getState();
+      
+      // Check if this is an expression body (implicit return)
+      // func_body_fat can be either `{ stats }` or just `exp`
+      if (node.named.exp) {
+        // This is an implicit return: visit the expression to get its type
+        visitChildren(node);
+        
+        // Get the type of the expression and add it as an implicit return
+        const functionScope = getFunctionScope();
+        if (functionScope && functionScope.__returnTypes && node.named.exp.inference) {
+          const returnType = node.named.exp.inference[0] || 'undefined';
+          functionScope.__returnTypes.push(returnType);
+        }
+      } else {
+        // Regular block body
+        visitChildren(node);
+      }
+    },
+    
     named_func_call: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
       visitChildren(node);
@@ -60,40 +81,53 @@ function createFunctionHandlers(getState) {
       
       visitChildren(node);
       
+      const { annotation } = node.named;
+      const declaredType = annotation ? getAnnotationType(annotation) : null;
+      
+      // Infer return type from actual returns
+      let inferredType = 'undefined'; // Default to undefined for empty function bodies
+      if (scope.__returnTypes && scope.__returnTypes.length > 0) {
+        // Filter out empty/undefined returns unless they're all undefined
+        const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
+        
+        if (explicitReturns.length > 0) {
+          // Create union type from all return types
+          inferredType = createUnionType(explicitReturns);
+          
+          // If there were also undefined returns, add undefined to the union
+          const hasUndefined = scope.__returnTypes.some(t => t === 'undefined');
+          if (hasUndefined) {
+            inferredType = createUnionType([inferredType, 'undefined']);
+          }
+        } else {
+          // All returns are undefined (bare return or no return)
+          inferredType = 'undefined';
+        }
+      }
+      
       // Anonymous functions as expressions should infer as 'function'
       if (parent && !node.named.name) {
         pushInference(parent, 'function');
+        
+        // Validate anonymous function return types if they have type annotations
+        if (declaredType && inferredType !== 'any') {
+          const { typeAliases } = getState();
+          if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+            // For anonymous functions, use the parent token for error reporting
+            const errorToken = parent.children?.find(c => c.type === 'name') || parent;
+            pushWarning(
+              errorToken,
+              `Function returns ${inferredType} but declared as ${declaredType}`
+            );
+          }
+        }
       }
       
       if (node.named.name) {
-        const { annotation } = node.named;
-        const declaredType = annotation ? getAnnotationType(annotation) : null;
-        
-        // Infer return type from actual returns
-        let inferredType = 'undefined'; // Default to undefined for empty function bodies
-        if (scope.__returnTypes && scope.__returnTypes.length > 0) {
-          // Filter out empty/undefined returns unless they're all undefined
-          const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
-          
-          if (explicitReturns.length > 0) {
-            // Create union type from all return types
-            inferredType = createUnionType(explicitReturns);
-            
-            // If there were also undefined returns, add undefined to the union
-            const hasUndefined = scope.__returnTypes.some(t => t === 'undefined');
-            if (hasUndefined) {
-              inferredType = createUnionType([inferredType, 'undefined']);
-            }
-          } else {
-            // All returns are undefined (bare return or no return)
-            inferredType = 'undefined';
-          }
-        }
-        
         // Use declared type if provided, otherwise use inferred type
         const finalType = declaredType || inferredType;
         
-        // Validate inferred type matches declared type if both exist
+        // Validate named function return types
         if (declaredType && inferredType !== 'any') {
           const { typeAliases } = getState();
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {

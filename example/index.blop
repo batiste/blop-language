@@ -35,7 +35,7 @@ def navigationLinks(state) {
   return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
 }
 
-def linkList(state) {
+def linkList(state): VNode {
   links = navigationLinks(state)
   <div>
     <p>
@@ -59,7 +59,7 @@ def linkList(state) {
   </div>
 }
 
-def navigation(state) {
+def navigation(state): VNode {
   links = navigationLinks(state)
 
   def saveStateEvent(e) {
@@ -121,7 +121,7 @@ def navigation(state) {
   </nav>
 }
 
-Index = (state) => {
+Index = (state): VNode => {
   def indexPage(e) {
     state.$.router.go('/')
     e.preventDefault()
