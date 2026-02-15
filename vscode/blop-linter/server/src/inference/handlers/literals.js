@@ -3,7 +3,7 @@
 // ============================================================================
 
 const { visitChildren, resolveTypes } = require('../visitor');
-const { getBaseTypeOfLiteral } = require('../typeSystem');
+const { getBaseTypeOfLiteral, parseObjectTypeString } = require('../typeSystem');
 
 /**
  * Infer the element type of an array literal from its AST node
@@ -44,6 +44,45 @@ function inferArrayElementType(node) {
     return null;
   }
   
+  // Check if all elements are object types
+  const allObjectTypes = elementTypes.every(t => t.startsWith('{') && t.endsWith('}'));
+  
+  if (allObjectTypes && elementTypes.length > 1) {
+    // Parse all object structures
+    const structures = elementTypes.map(t => parseObjectTypeString(t)).filter(s => s !== null);
+    
+    if (structures.length === elementTypes.length) {
+      // All objects parsed successfully
+      // Check if they have the same properties
+      const firstKeys = Object.keys(structures[0]).sort();
+      const allSameKeys = structures.every(s => {
+        const keys = Object.keys(s).sort();
+        return keys.length === firstKeys.length && keys.every((k, i) => k === firstKeys[i]);
+      });
+      
+      if (allSameKeys) {
+        // Unify property types to their base types
+        const unifiedStructure = {};
+        for (const key of firstKeys) {
+          const propTypes = structures.map(s => s[key].type);
+          const basePropTypes = propTypes.map(t => getBaseTypeOfLiteral(t));
+          const uniqueBasePropTypes = [...new Set(basePropTypes)];
+          
+          if (uniqueBasePropTypes.length === 1) {
+            unifiedStructure[key] = uniqueBasePropTypes[0];
+          } else {
+            // Mixed types for this property - create union
+            unifiedStructure[key] = `(${uniqueBasePropTypes.sort().join(' | ')})`;
+          }
+        }
+        
+        // Build unified object type string
+        const propStrings = Object.keys(unifiedStructure).map(k => `${k}: ${unifiedStructure[k]}`);
+        return `{${propStrings.join(', ')}}`;
+      }
+    }
+  }
+  
   // Unify all element types to a common base type
   // If all elements are literals of the same base type (e.g., 1, 2, 3 -> number)
   // or all the same type, return that type
@@ -56,9 +95,10 @@ function inferArrayElementType(node) {
     return uniqueBaseTypes[0];
   }
   
-  // Mixed types - could create a union type, but for now return null to fall back to 'array'
-  // Future: could return something like (number | string)[]
-  return null;
+  // Mixed types - create a union type like (number | string)
+  // Sort for consistency
+  const sortedTypes = uniqueBaseTypes.sort();
+  return `(${sortedTypes.join(' | ')})`;
 }
 
 /**

@@ -340,6 +340,16 @@ function isTypeCompatible(valueType, targetType, typeAliases = {}) {
     return true;
   }
   
+  // Allow typed arrays like "number[]" to be compatible with generic "array"
+  if (resolvedValueType.endsWith('[]') && resolvedTargetType === 'array') {
+    return true;
+  }
+  
+  // Allow union arrays like "(string | null)[]" to be compatible with generic "array"
+  if (resolvedValueType.match(/\(.+\)\[\]$/) && resolvedTargetType === 'array') {
+    return true;
+  }
+  
   // Allow generic "object" to be compatible with any object-based type
   if (resolvedValueType === 'object' && resolvedTargetType === 'object') {
     return true;
