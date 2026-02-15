@@ -3,6 +3,63 @@
 // ============================================================================
 
 const { visitChildren, resolveTypes } = require('../visitor');
+const { getBaseTypeOfLiteral } = require('../typeSystem');
+
+/**
+ * Infer the element type of an array literal from its AST node
+ * @param {Object} node - The array_literal AST node
+ * @returns {string|null} Array element type or null
+ */
+function inferArrayElementType(node) {
+  if (!node || !node.children) {
+    return null;
+  }
+  
+  // Find the array_literal_body node
+  const bodyNode = node.children.find(c => c.type === 'array_literal_body');
+  if (!bodyNode) {
+    // Empty array - can't infer element type
+    return null;
+  }
+  
+  const elementTypes = [];
+  
+  // Recursively collect element types from array_literal_body
+  function collectElementTypes(current) {
+    if (!current || !current.children) return;
+    
+    for (const child of current.children) {
+      if (child.type === 'exp' && child.inference && child.inference.length > 0) {
+        elementTypes.push(child.inference[0]);
+      } else if (child.type === 'array_literal_body') {
+        // Recursive body (for comma-separated elements)
+        collectElementTypes(child);
+      }
+    }
+  }
+  
+  collectElementTypes(bodyNode);
+  
+  if (elementTypes.length === 0) {
+    return null;
+  }
+  
+  // Unify all element types to a common base type
+  // If all elements are literals of the same base type (e.g., 1, 2, 3 -> number)
+  // or all the same type, return that type
+  
+  const baseTypes = elementTypes.map(t => getBaseTypeOfLiteral(t));
+  const uniqueBaseTypes = [...new Set(baseTypes)];
+  
+  if (uniqueBaseTypes.length === 1) {
+    // All elements have the same base type
+    return uniqueBaseTypes[0];
+  }
+  
+  // Mixed types - could create a union type, but for now return null to fall back to 'array'
+  // Future: could return something like (number | string)[]
+  return null;
+}
 
 /**
  * Infer the structure of an object literal from its AST node
@@ -102,7 +159,14 @@ function createLiteralHandlers(getState) {
     array_literal: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      pushInference(parent, 'array');
+      
+      // Try to infer the element type
+      const elementType = inferArrayElementType(node);
+      if (elementType) {
+        pushInference(parent, `${elementType}[]`);
+      } else {
+        pushInference(parent, 'array');
+      }
     },
     object_literal: (node, parent) => {
       const { pushInference } = getState();

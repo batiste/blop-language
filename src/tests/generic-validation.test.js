@@ -55,9 +55,8 @@ describe('Generic type parameter consistency', () => {
     expectCompiles(code); // Each call infers T separately
   });
 
-  // TODO: This test requires array element type tracking which isn't implemented yet
-  // Arrays are currently inferred as 'array', not 'number[]' or 'string[]'
-  test.skip('rejects two array parameters with different element types', () => {
+  // Array element type tracking is now implemented
+  test('rejects two array parameters with different element types', () => {
     const code = `
       def merge<T>(a: T[], b: T[]): T[] {
         return a

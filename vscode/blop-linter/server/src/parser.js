@@ -3753,42 +3753,6 @@ function func_call(stream, index) {
   return func_call_0(stream, index)
     || func_call_1(stream, index);
 }
-let named_func_call_0 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'named_func_call',
-    sub_rule_index: 0, type: 'named_func_call', named,
-  };
-
-  if (stream[i].type !== 'name') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'named_func_call', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['name'] = stream[i];
-  children.push(stream[i]); i++;
-  const _rule_1 = func_call(stream, i);
-  if (!_rule_1) return false;
-  children.push(_rule_1);
-  i = _rule_1.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-named_func_call_0 = memoize('named_func_call_0', named_func_call_0);
-
-
-function named_func_call(stream, index) {
-  return named_func_call_0(stream, index);
-}
 let func_call_params_0 = (stream, index) => {
   let i = index;
   const children = [];

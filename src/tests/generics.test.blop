@@ -150,7 +150,7 @@ test('generic Pair type alias', () => {
 // Test 8: Generic function with conditional logic
 // ============================================================================
 
-def wrapIfNotNull<T>(value: T | null): T[] {
+def wrapIfNotNull<T>(value: T | null) {
   if value == null {
     return []
   }
