@@ -1,0 +1,155 @@
+
+// Type alias tests
+
+// Test 1: Basic type aliases
+type UserId = number
+type UserName = string
+
+userId: UserId = 123
+userName: UserName = 'Alice'
+
+test('basic type aliases work', () => {
+  expect(userId).toBe(123)
+  expect(userName).toBe('Alice')
+})
+
+// Test 2: Union type aliases
+type Nullable = string | null
+type Optional = number | undefined
+
+nullableValue: Nullable = 'hello'
+nullableValue2: Nullable = null
+optionalValue: Optional = 42
+optionalValue2: Optional = undefined
+
+test('union type aliases work', () => {
+  expect(nullableValue).toBe('hello')
+  expect(nullableValue2).toBe(null)
+  expect(optionalValue).toBe(42)
+  expect(optionalValue2).toBe(undefined)
+})
+
+// Test 3: Complex union type aliases
+type StringOrNumber = string | number
+type MaybeString = string | null | undefined
+
+def processValue(val: StringOrNumber): string {
+  if typeof val == 'string' {
+    return val.toUpperCase()
+  } else {
+    return val.toString()
+  }
+}
+
+def handleMaybe(val: MaybeString): string {
+  return val ?? 'default'
+}
+
+test('complex union type aliases with type narrowing', () => {
+  expect(processValue('hello')).toBe('HELLO')
+  expect(processValue(123)).toBe('123')
+  expect(handleMaybe('test')).toBe('test')
+  expect(handleMaybe(null)).toBe('default')
+  expect(handleMaybe(undefined)).toBe('default')
+})
+
+// Test 4: Array type aliases
+type NumberList = number[]
+type StringArray = string[]
+
+numbers: NumberList = [1, 2, 3]
+strings: StringArray = ['a', 'b', 'c']
+
+test('array type aliases work', () => {
+  expect(numbers.length).toBe(3)
+  expect(strings.length).toBe(3)
+  expect(numbers[0]).toBe(1)
+  expect(strings[0]).toBe('a')
+})
+
+// Test 5: Function parameter type aliases
+type Callback = object
+type ResultType = string | number
+
+def executeCallback(fn: Callback, value: ResultType): any {
+  return fn(value)
+}
+
+test('type aliases in function parameters', () => {
+  doubler = (x) => x * 2
+  result = executeCallback(doubler, 5)
+  expect(result).toBe(10)
+})
+
+// Test 6: Nested type aliases (alias of alias)
+type ID = number
+type UserID = ID
+type ProductID = ID
+
+myUserId: UserID = 100
+myProductId: ProductID = 200
+
+test('nested type aliases work', () => {
+  expect(myUserId).toBe(100)
+  expect(myProductId).toBe(200)
+})
+
+// Test 7: Type aliases with object types
+type User = object
+type Product = object
+
+user: User = { name: 'Alice', age: 30 }
+product: Product = { title: 'Book', price: 10 }
+
+test('object type aliases work', () => {
+  expect(user.name).toBe('Alice')
+  expect(product.title).toBe('Book')
+})
+
+// Test 8: Type aliases used in multiple places
+type Status = string | null
+
+def getStatus(): Status {
+  return 'active'
+}
+
+def checkStatus(status: Status): boolean {
+  return status != null
+}
+
+currentStatus: Status = getStatus()
+
+test('type aliases used consistently', () => {
+  expect(currentStatus).toBe('active')
+  expect(checkStatus(currentStatus)).toBe(true)
+  expect(checkStatus(null)).toBe(false)
+})
+
+// Test 9: Type aliases with boolean unions
+type Toggle = boolean | null
+
+toggle: Toggle = true
+toggle2: Toggle = false
+toggle3: Toggle = null
+
+test('boolean type aliases work', () => {
+  expect(toggle).toBe(true)
+  expect(toggle2).toBe(false)
+  expect(toggle3).toBe(null)
+})
+
+// Test 10: Type aliases don't generate runtime code
+type Alias1 = string
+type Alias2 = number
+type Alias3 = boolean
+
+// These should all work without any runtime impact
+value1: Alias1 = 'test'
+value2: Alias2 = 42
+value3: Alias3 = true
+
+test('multiple type aliases work together', () => {
+  expect(value1).toBe('test')
+  expect(value2).toBe(42)
+  expect(value3).toBe(true)
+})
