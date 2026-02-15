@@ -86,6 +86,10 @@ function singleAmpersand(input) {
 
 const tokensDefinition = {
   'number': { reg: /^[0-9]+(\.[0-9]*)?/ },
+  'null': { reg: /^null(?![\w$_])/ },
+  'undefined': { reg: /^undefined(?![\w$_])/ },
+  'true': { reg: /^true(?![\w$_])/ },
+  'false': { reg: /^false(?![\w$_])/ },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
   'multiline_comment': { reg: /^\/\*+[^*]*\*+(?:[^/*][^*]*\*+)*\//, verbose: 'comment' },
   'as': { str: 'as ' },

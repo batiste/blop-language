@@ -111,7 +111,7 @@
         "captures": {"1": {"name":"variable.parameter"}}
       },
       {
-        "match":"def |if |else|elseif |for |delete |new |extends |in |as |class |try|catch|throw |return|undefined|false|debugger|true|while |not |null|pass|async |await |import |from |this|typeof |instanceof |\\.\\.\\.",
+        "match":"\\bdef |\\bif |\\belse\\b|\\belseif |\\bfor |\\bdelete |\\bnew |\\bextends |\\bin |\\bas |\\bclass |\\btry\\b|\\bcatch\\b|\\bthrow |\\breturn\\b|\\bundefined\\b|\\bfalse\\b|\\bdebugger\\b|\\btrue\\b|\\bwhile |\\bnot\\b|\\bnull\\b|\\bpass\\b|\\basync |\\bawait |\\bimport |\\bfrom |\\bthis\\b|\\btypeof |\\binstanceof |\\.\\.\\.",
         "name":"keyword.statement.blop"
       },
       {

@@ -28,12 +28,17 @@ function createLoopGenerators(context) {
       const getAnnotationType = (annotation) => {
         if (!annotation) return null;
         // New format: annotation.named.type.children[0] (type_primary) has named.name
-        if (annotation.named &&annotation.named.type) {
+        if (annotation.named && annotation.named.type) {
           const typeExp = annotation.named.type;
           if (typeExp.children && typeExp.children[0]) {
             const typePrimary = typeExp.children[0];
             if (typePrimary.named && typePrimary.named.name) {
-              return typePrimary.named.name.value;
+              // type_name node - get first child (the actual token)
+              const typeName = typePrimary.named.name;
+              if (typeName.children && typeName.children[0]) {
+                return typeName.children[0].value;
+              }
+              return typeName.value;
             }
           }
         }

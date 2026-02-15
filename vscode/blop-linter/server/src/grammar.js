@@ -81,8 +81,15 @@ const grammar = {
     ['type_primary'],
   ],
   'type_primary': [
-    ['name:name', '[', ']'],
-    ['name:name'],
+    ['type_name:name', '[', ']'],
+    ['type_name:name'],
+  ],
+  'type_name': [
+    ['name'],
+    ['null'],
+    ['undefined'],
+    ['true'],
+    ['false'],
   ],
   'func_def_params': [
     ['name:name', '=', 'exp', 'annotation?:annotation', ',', 'w', 'func_def_params'],
@@ -247,6 +254,10 @@ const grammar = {
     ['func_def'],
     ['named_func_call'],
     ['number'],
+    ['null'],
+    ['undefined'],
+    ['true'],
+    ['false'],
     ['str_expression'],
     ['str'],
     ['regexp'],

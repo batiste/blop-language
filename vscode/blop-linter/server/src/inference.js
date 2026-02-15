@@ -163,10 +163,12 @@ function parseTypePrimary(typePrimaryNode) {
   const { name } = typePrimaryNode.named;
   if (!name) return 'any';
   
-  const typeName = name.value;
+  // name is now a type_name node, get its first child
+  const typeToken = name.children ? name.children[0] : name;
+  const typeName = typeToken.value;
   
   // Check if it's an array type (has [ ] after the name)
-  // The grammar matches: ['name:name', '[', ']']
+  // The grammar matches: ['type_name:name', '[', ']']
   if (typePrimaryNode.children && typePrimaryNode.children.length > 1) {
     return `${typeName}[]`;
   }
@@ -459,6 +461,18 @@ const literalHandlers = {
   str: (node, parent) => {
     pushInference(parent, 'string');
   },
+  null: (node, parent) => {
+    pushInference(parent, 'null');
+  },
+  undefined: (node, parent) => {
+    pushInference(parent, 'undefined');
+  },
+  true: (node, parent) => {
+    pushInference(parent, 'boolean');
+  },
+  false: (node, parent) => {
+    pushInference(parent, 'boolean');
+  },
   array_literal: (node, parent) => {
     visitChildren(node);
     pushInference(parent, 'array');
@@ -491,20 +505,15 @@ const expressionHandlers = {
     }
     const def = lookupVariable(name.value);
     
-    // Handle literal values
-    if (name.value === 'true' || name.value === 'false') {
-      pushInference(parent, 'boolean');
-    } else if (name.value === 'null') {
-      pushInference(parent, 'null');
-    } else if (name.value === 'undefined') {
-      pushInference(parent, 'undefined');
-    } else if (def) {
+    // Check if it's a variable definition
+    if (def) {
       if (def.source === 'func_def') {
         pushInference(parent, 'function');
       } else {
         pushInference(parent, def.type);
       }
     } else {
+      // Unknown identifier - could be undefined or from outer scope
       pushInference(parent, 'any');
     }
     if (op) {

@@ -70,6 +70,10 @@ function createLiteralGenerators(context) {
       }
       return [child.value];
     },
+    'null': (node) => ['null'],
+    'undefined': (node) => ['undefined'],
+    'true': (node) => ['true'],
+    'false': (node) => ['false'],
   };
 }
 
