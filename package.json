@@ -54,7 +54,6 @@
     "null-loader": "^4.0.1",
     "sass": "^1.97.3",
     "sass-loader": "^13.3.3",
-    "snabbdom-to-html": "^7.1.0",
     "style-loader": "^3.3.4",
     "vitest": "^3.2.4",
     "webpack": "^5.105.2",
@@ -70,7 +69,8 @@
     "commander": "^10.0.1",
     "loader-utils": "^2.0.4",
     "schema-utils": "^3.3.0",
-    "snabbdom": "^3.6.2",
+    "snabbdom": "==3.5.1",
+    "snabbdom-to-html": "^7.1.0",
     "source-map": "^0.7.6"
   }
 }
