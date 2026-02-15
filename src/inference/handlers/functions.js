@@ -70,7 +70,7 @@ function createFunctionHandlers(getState) {
         const declaredType = annotation ? getAnnotationType(annotation) : null;
         
         // Infer return type from actual returns
-        let inferredType = 'any';
+        let inferredType = 'undefined'; // Default to undefined for empty function bodies
         if (scope.__returnTypes && scope.__returnTypes.length > 0) {
           // Filter out empty/undefined returns unless they're all undefined
           const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
@@ -78,7 +78,13 @@ function createFunctionHandlers(getState) {
           if (explicitReturns.length > 0) {
             // Create union type from all return types
             inferredType = createUnionType(explicitReturns);
-          } else if (scope.__returnTypes.every(t => t === 'undefined')) {
+            
+            // If there were also undefined returns, add undefined to the union
+            const hasUndefined = scope.__returnTypes.some(t => t === 'undefined');
+            if (hasUndefined) {
+              inferredType = createUnionType([inferredType, 'undefined']);
+            }
+          } else {
             // All returns are undefined (bare return or no return)
             inferredType = 'undefined';
           }

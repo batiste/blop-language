@@ -41,14 +41,26 @@ function createLiteralHandlers(getState) {
       pushInference(parent, 'object');
     },
     virtual_node: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, getFunctionScope } = getState();
       resolveTypes(node);
       pushInference(parent, 'VNode');
+      
+      // VNodes create implicit returns in Blop
+      const functionScope = getFunctionScope();
+      if (functionScope && functionScope.__returnTypes) {
+        functionScope.__returnTypes.push('VNode');
+      }
     },
     virtual_node_exp: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, getFunctionScope } = getState();
       visitChildren(node);
       pushInference(parent, 'VNode');
+      
+      // VNodes create implicit returns in Blop
+      const functionScope = getFunctionScope();
+      if (functionScope && functionScope.__returnTypes) {
+        functionScope.__returnTypes.push('VNode');
+      }
     },
   };
 }
