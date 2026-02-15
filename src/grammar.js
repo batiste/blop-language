@@ -84,6 +84,8 @@ const grammar = {
   ],
   'type_primary': [
     ['object_type'],
+    ['str:literal'],
+    ['number:literal'],
     ['type_name:name', '[', ']'],
     ['type_name:name'],
   ],

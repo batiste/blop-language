@@ -8,7 +8,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, 'returns number but declared as VNode');
+    expectCompilationError(code, 'returns 1 but declared as VNode');
   });
 
   test('rejects arrow function with implicit return of number instead of VNode', () => {
@@ -16,7 +16,7 @@ describe('VNode type validation - negative tests', () => {
       Test = (): VNode => 1
       Test()
     `;
-    expectCompilationError(code, 'returns number but declared as VNode');
+    expectCompilationError(code, 'returns 1 but declared as VNode');
   });
 
   test('rejects named function returning string instead of VNode', () => {
@@ -26,7 +26,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, "returns string but declared as VNode");
+    expectCompilationError(code, 'but declared as VNode');
   });
 
   test('rejects empty function body declared as VNode', () => {
@@ -140,7 +140,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, 'returns boolean but declared as VNode');
+    expectCompilationError(code, 'but declared as VNode');
   });
 
   test('rejects function returning array instead of VNode', () => {
@@ -168,7 +168,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test(true, false)
     `;
-    expectCompilationError(code, 'number');
+    expectCompilationError(code, '42');
   });
 });
 

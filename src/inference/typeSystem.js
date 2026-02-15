@@ -195,7 +195,7 @@ function parseUnionType(unionType) {
  */
 function createUnionType(types) {
   // Remove duplicates and 'any'
-  const uniqueTypes = [...new Set(types.filter(t => t && t !== 'any'))];
+  let uniqueTypes = [...new Set(types.filter(t => t && t !== 'any'))];
   
   if (uniqueTypes.length === 0) {
     return 'any';
@@ -204,7 +204,71 @@ function createUnionType(types) {
     return uniqueTypes[0];
   }
   
+  // Simplify unions: if a base type is present, remove its literals
+  // e.g., "true" | "false" | boolean → boolean
+  // e.g., "hello" | "world" | string → string
+  // e.g., 1 | 2 | 3 | number → number
+  const hasString = uniqueTypes.includes('string');
+  const hasNumber = uniqueTypes.includes('number');
+  const hasBoolean = uniqueTypes.includes('boolean');
+  
+  if (hasString || hasNumber || hasBoolean) {
+    uniqueTypes = uniqueTypes.filter(t => {
+      const base = getBaseTypeOfLiteral(t);
+      // Remove literal if its base type is in the union
+      if (base !== t) {
+        if (base === 'string' && hasString) return false;
+        if (base === 'number' && hasNumber) return false;
+        if (base === 'boolean' && hasBoolean) return false;
+      }
+      return true;
+    });
+  }
+  
+  if (uniqueTypes.length === 1) {
+    return uniqueTypes[0];
+  }
+  
   return uniqueTypes.join(' | ');
+}
+
+/**
+ * Check if a type is a string literal type
+ * @param {string} type - Type to check
+ * @returns {boolean}
+ */
+function isStringLiteral(type) {
+  return typeof type === 'string' && type.startsWith('"') && type.endsWith('"');
+}
+
+/**
+ * Check if a type is a number literal type
+ * @param {string} type - Type to check
+ * @returns {boolean}
+ */
+function isNumberLiteral(type) {
+  return typeof type === 'string' && /^-?\d+(\.\d+)?$/.test(type);
+}
+
+/**
+ * Check if a type is a boolean literal type
+ * @param {string} type - Type to check
+ * @returns {boolean}
+ */
+function isBooleanLiteral(type) {
+  return type === 'true' || type === 'false';
+}
+
+/**
+ * Get the base type of a literal (e.g., "hello" -> string, 42 -> number)
+ * @param {string} type - Literal type
+ * @returns {string} Base type
+ */
+function getBaseTypeOfLiteral(type) {
+  if (isStringLiteral(type)) return 'string';
+  if (isNumberLiteral(type)) return 'number';
+  if (isBooleanLiteral(type)) return 'boolean';
+  return type;
 }
 
 /**
@@ -224,6 +288,13 @@ function isTypeCompatible(valueType, targetType, typeAliases = {}) {
   }
   
   if (resolvedValueType === resolvedTargetType) {
+    return true;
+  }
+  
+  // Literal type widening: literal types can be assigned to their base types
+  // e.g., "hello" can be assigned to string, 42 can be assigned to number
+  const valueBaseType = getBaseTypeOfLiteral(resolvedValueType);
+  if (valueBaseType !== resolvedValueType && valueBaseType === resolvedTargetType) {
     return true;
   }
   
@@ -411,7 +482,7 @@ function parseTypeExpression(typeExprNode) {
 
 /**
  * Parse a type_primary AST node into a type string
- * Handles basic types, array types, and object types
+ * Handles basic types, array types, object types, and literal types
  * @param {Object} typePrimaryNode - The type_primary AST node
  * @returns {string} The parsed type string
  */
@@ -422,6 +493,18 @@ function parseTypePrimary(typePrimaryNode) {
   if (typePrimaryNode.children && typePrimaryNode.children[0] && 
       typePrimaryNode.children[0].type === 'object_type') {
     return parseObjectType(typePrimaryNode.children[0]);
+  }
+  
+  // Check for string literal type
+  if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'str') {
+    // Strip quotes from the token value (which includes quotes like 'hello' or "hello")
+    const rawValue = typePrimaryNode.named.literal.value.slice(1, -1);
+    return `"${rawValue}"`;
+  }
+  
+  // Check for number literal type
+  if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'number') {
+    return typePrimaryNode.named.literal.value;
   }
   
   const { name } = typePrimaryNode.named;
@@ -501,4 +584,8 @@ module.exports = {
   parseObjectType,
   parseObjectTypeString,
   checkObjectStructuralCompatibility,
+  isStringLiteral,
+  isNumberLiteral,
+  isBooleanLiteral,
+  getBaseTypeOfLiteral,
 };

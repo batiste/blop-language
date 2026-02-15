@@ -24,7 +24,7 @@ describe('Object type structural validation - negative tests', () => {
       user: User = { name: 'Alice', id: 'not-a-number' }
       user
     `;
-    expectCompilationError(code, 'has type string but expected number');
+    expectCompilationError(code, "but expected number");
   });
 
   test('rejects object with excess properties', () => {

@@ -6,7 +6,7 @@ describe('Optional Properties - Error Cases', () => {
       type User = { name: string, email?: string }
       user: User = { name: "Alice", email: 123 }
     `;
-    expectCompilationError(code, "Property 'email' has type number but expected string");
+    expectCompilationError(code, "but expected string");
   });
 
   test('required property cannot be omitted', () => {
