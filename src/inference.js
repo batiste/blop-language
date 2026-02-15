@@ -7,26 +7,109 @@ const getCurrentScope = () => functionScopes[functionScopes.length - 1];
 const pushScope = () => functionScopes.push({}) && getCurrentScope();
 const popScope = () => functionScopes.pop();
 
+// ============================================================================
+// Union Type Utilities
+// ============================================================================
+
+/**
+ * Check if a type string represents a union type
+ * @param {string} type - Type string to check
+ * @returns {boolean}
+ */
+function isUnionType(type) {
+  return typeof type === 'string' && type.includes(' | ');
+}
+
+/**
+ * Parse a union type into its constituent types
+ * @param {string} unionType - Union type string like "string | number"
+ * @returns {string[]} Array of individual types
+ */
+function parseUnionType(unionType) {
+  if (!isUnionType(unionType)) {
+    return [unionType];
+  }
+  return unionType.split(' | ').map(t => t.trim());
+}
+
+/**
+ * Create a union type string from multiple types
+ * @param {string[]} types - Array of type strings
+ * @returns {string} Union type string or single type
+ */
+function createUnionType(types) {
+  // Remove duplicates and 'any'
+  const uniqueTypes = [...new Set(types.filter(t => t && t !== 'any'))];
+  
+  if (uniqueTypes.length === 0) {
+    return 'any';
+  }
+  if (uniqueTypes.length === 1) {
+    return uniqueTypes[0];
+  }
+  
+  return uniqueTypes.join(' | ');
+}
+
+/**
+ * Check if a type is compatible with another, including union types
+ * @param {string} valueType - The type being assigned
+ * @param {string} targetType - The target type
+ * @returns {boolean}
+ */
+function isTypeCompatible(valueType, targetType) {
+  if (valueType === 'any' || targetType === 'any') {
+    return true;
+  }
+  
+  if (valueType === targetType) {
+    return true;
+  }
+  
+  // Check if valueType is in targetType's union
+  if (isUnionType(targetType)) {
+    const targetTypes = parseUnionType(targetType);
+    if (isUnionType(valueType)) {
+      const valueTypes = parseUnionType(valueType);
+      // All value types must be in target types
+      return valueTypes.every(vt => targetTypes.includes(vt));
+    }
+    return targetTypes.includes(valueType);
+  }
+  
+  return false;
+}
+
+/**
+ * Remove null and undefined from a union type (for nullish coalescing)
+ * @param {string} type - Type to process
+ * @returns {string} Type without null/undefined
+ */
+function removeNullish(type) {
+  if (type === 'null' || type === 'undefined') {
+    return 'never';
+  }
+  
+  if (isUnionType(type)) {
+    const types = parseUnionType(type).filter(t => t !== 'null' && t !== 'undefined');
+    return createUnionType(types);
+  }
+  
+  return type;
+}
+
 /**
  * Extract type name from annotation node
- * Handles both old format (name) and new format (type_expression)
+ * Handles both old format (name) and new format (type_expression) with union/intersection types
  * @param {Object} annotationNode - The annotation AST node
- * @returns {string} The type name
+ * @returns {string} The type name (may be a union/intersection type string)
  */
 function getAnnotationType(annotationNode) {
   if (!annotationNode) return null;
   
   // New format: annotation.named.type is a type_expression
   if (annotationNode.named && annotationNode.named.type) {
-    const typeExp = annotationNode.named.type;
-    // For now, just get the first type_primary name
-    // TODO: Handle union and intersection types properly
-    if (typeExp.children && typeExp.children[0]) {
-      const typePrimary = typeExp.children[0];
-      if (typePrimary.named && typePrimary.named.name) {
-        return typePrimary.named.name.value;
-      }
-    }
+    return parseTypeExpression(annotationNode.named.type);
   }
   
   // Old format fallback: annotation.named.name
@@ -35,6 +118,60 @@ function getAnnotationType(annotationNode) {
   }
   
   return null;
+}
+
+/**
+ * Parse a type_expression AST node into a type string
+ * Handles union (|), intersection (&), and array types
+ * @param {Object} typeExprNode - The type_expression AST node
+ * @returns {string} The parsed type string
+ */
+function parseTypeExpression(typeExprNode) {
+  if (!typeExprNode) return 'any';
+  
+  // Check for union type: type_primary | type_expression
+  if (typeExprNode.named && typeExprNode.named.union) {
+    const leftType = parseTypePrimary(typeExprNode.children[0]);
+    const rightType = parseTypeExpression(typeExprNode.named.union);
+    return `${leftType} | ${rightType}`;
+  }
+  
+  // Check for intersection type: type_primary & type_expression  
+  if (typeExprNode.named && typeExprNode.named.intersection) {
+    const leftType = parseTypePrimary(typeExprNode.children[0]);
+    const rightType = parseTypeExpression(typeExprNode.named.intersection);
+    return `${leftType} & ${rightType}`;
+  }
+  
+  // Just a single type_primary
+  if (typeExprNode.children && typeExprNode.children[0]) {
+    return parseTypePrimary(typeExprNode.children[0]);
+  }
+  
+  return 'any';
+}
+
+/**
+ * Parse a type_primary AST node into a type string
+ * Handles basic types and array types
+ * @param {Object} typePrimaryNode - The type_primary AST node
+ * @returns {string} The parsed type string
+ */
+function parseTypePrimary(typePrimaryNode) {
+  if (!typePrimaryNode || !typePrimaryNode.named) return 'any';
+  
+  const { name } = typePrimaryNode.named;
+  if (!name) return 'any';
+  
+  const typeName = name.value;
+  
+  // Check if it's an array type (has [ ] after the name)
+  // The grammar matches: ['name:name', '[', ']']
+  if (typePrimaryNode.children && typePrimaryNode.children.length > 1) {
+    return `${typeName}[]`;
+  }
+  
+  return typeName;
 }
 
 /**
@@ -104,7 +241,7 @@ const TypeChecker = {
    */
   checkAssignment(valueType, annotationType) {
     if (annotationType && valueType !== 'any') {
-      if (annotationType !== valueType && valueType !== 'any') {
+      if (!isTypeCompatible(valueType, annotationType)) {
         return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
       }
     }
@@ -116,7 +253,7 @@ const TypeChecker = {
    */
   checkVariableReassignment(valueType, variable) {
     const def = lookupVariable(variable);
-    if (def && def.type !== valueType) {
+    if (def && !isTypeCompatible(valueType, def.type)) {
       return { valid: false, warning: `Cannot assign ${valueType} to ${def.type}` };
     }
     return { valid: true, definition: def };
@@ -130,7 +267,7 @@ const TypeChecker = {
     for (let i = 0; i < expectedParams.length; i++) {
       const arg = args[i];
       const expected = expectedParams[i];
-      if (arg && expected && expected !== arg && arg !== 'any' && expected !== 'any') {
+      if (arg && expected && !isTypeCompatible(arg, expected)) {
         warnings.push(`function ${functionName} expected ${expected} for param ${i + 1} but got ${arg}`);
       }
     }
@@ -151,7 +288,7 @@ const TypeChecker = {
     }
 
     for (const returnType of explicitReturns) {
-      if (returnType !== declaredType && returnType !== 'any') {
+      if (!isTypeCompatible(returnType, declaredType)) {
         return { 
           valid: false, 
           warning: `Function '${functionName}' returns ${returnType} but declared as ${declaredType}` 
@@ -192,22 +329,40 @@ function handleBooleanOperator(types, i) {
 }
 
 function handleNullishOperator(types, i) {
-  // Nullish coalescing returns the type of the left side if not null/undefined, 
-  // otherwise the type of the right side
+  // Nullish coalescing: left ?? right
+  // Returns the left side if it's not null/undefined, otherwise right side
   const leftType = types[i - 1];
   const rightType = types[i - 2];
-  // Simplify: return the union or 'any' if types differ
-  if (leftType === rightType) {
+  
+  // If left can never be nullish, result is left type
+  if (leftType !== 'null' && leftType !== 'undefined' && 
+      !isUnionType(leftType) || 
+      (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === 'null' || t === 'undefined'))) {
     types[i - 2] = leftType;
   } else {
-    types[i - 2] = 'any';
+    // Remove nullish from left and union with right
+    const nonNullishLeft = removeNullish(leftType);
+    if (nonNullishLeft === 'never') {
+      // Left is definitely null/undefined, result is right type
+      types[i - 2] = rightType;
+    } else {
+      // Left might be nullish, result is union of non-nullish left and right
+      const resultTypes = [];
+      if (nonNullishLeft !== 'never') {
+        resultTypes.push(nonNullishLeft);
+      }
+      if (rightType) {
+        resultTypes.push(rightType);
+      }
+      types[i - 2] = createUnionType(resultTypes);
+    }
   }
   types.splice(i - 1, 2);
   return i - 2;
 }
 
 function handleAssignment(types, i, assignNode) {
-  const { annotation, name } = assignNode.named;
+  const { annotation, name, explicit_assign } = assignNode.named;
   const valueType = types[i - 1];
   
   if (annotation && valueType && valueType !== 'any') {
@@ -221,15 +376,25 @@ function handleAssignment(types, i, assignNode) {
   }
   
   if (valueType && name && valueType !== 'any') {
-    const result = TypeChecker.checkVariableReassignment(valueType, name.value);
-    if (!result.valid) {
-      pushWarning(assignNode, result.warning);
-    } else if (!result.definition) {
+    // If explicit_assign (:=), always create new variable in current scope
+    if (explicit_assign) {
       const scope = getCurrentScope();
       scope[name.value] = {
         type: valueType,
         node: assignNode,
       };
+    } else {
+      // Regular assignment (=), check if reassigning existing variable
+      const result = TypeChecker.checkVariableReassignment(valueType, name.value);
+      if (!result.valid) {
+        pushWarning(assignNode, result.warning);
+      } else if (!result.definition) {
+        const scope = getCurrentScope();
+        scope[name.value] = {
+          type: valueType,
+          node: assignNode,
+        };
+      }
     }
   }
 }
@@ -325,8 +490,14 @@ const expressionHandlers = {
       return;
     }
     const def = lookupVariable(name.value);
+    
+    // Handle literal values
     if (name.value === 'true' || name.value === 'false') {
       pushInference(parent, 'boolean');
+    } else if (name.value === 'null') {
+      pushInference(parent, 'null');
+    } else if (name.value === 'undefined') {
+      pushInference(parent, 'undefined');
     } else if (def) {
       if (def.source === 'func_def') {
         pushInference(parent, 'function');

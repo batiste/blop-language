@@ -1,0 +1,182 @@
+
+// Test 1: Null and undefined as first-class types
+nullValue: null = null
+undefinedValue: undefined = undefined
+
+def returnsNull(): null {
+  return null
+}
+
+def returnsUndefined(): undefined {
+  return undefined
+}
+
+def acceptsNull(value: null): string {
+  if value == null {
+    return 'got null'
+  }
+  return 'not null'
+}
+
+def acceptsUndefined(value: undefined): string {
+  if value == undefined {
+    return 'got undefined'
+  }
+  return 'not undefined'
+}
+
+// Test 2: Union types with null and undefined
+nullableString: string | null = null
+nullableNumber: number | undefined = undefined
+optionalValue: string | null | undefined = null
+
+def findUser(id: number): object | null {
+  if id == 1 {
+    return { name: 'Alice', id: 1 }
+  }
+  return null
+}
+
+def getUserName(id: number): string | null {
+  user = findUser(id)
+  if user {
+    return user.name
+  }
+  return null
+}
+
+// Test 3: Nullish coalescing with proper type inference
+value1: null = null
+defaultValue: string = 'default'
+result1: string = value1 ?? defaultValue
+
+value2: string | null = 'hello'
+result2: string = value2 ?? 'fallback'
+
+value3: number | undefined = undefined
+result3: number = value3 ?? 42
+
+// Chained nullish coalescing
+val1: null = null
+val2: undefined = undefined
+val3: string = 'result'
+chainedResult: string = val1 ?? val2 ?? val3 ?? 'default'
+
+// Test 4: Union types with multiple non-nullish types
+stringOrNumber: string | number = 42
+boolOrString: boolean | string = true
+
+def processValue(val: string | number): string {
+  if typeof val == 'number' {
+    return 'processed number'
+  }
+  return 'processed string'
+}
+
+processValue(42)
+processValue('hello')
+
+// Test 5: Optional chaining with nullable types
+nullableObj: object | null = { value: 42 }
+safeAccess = nullableObj?.value
+
+undefinedObj: object | undefined = undefined
+safeAccess2 = undefinedObj?.value
+
+// Test 6: Combining optional chaining with nullish coalescing
+config: object | null = null
+theme: string = config?.theme ?? 'light'
+timeout: number = config?.timeout ?? 5000
+
+user: object | undefined = { profile: { name: 'Bob' } }
+userName: string = user?.profile?.name ?? 'Anonymous'
+
+// Test 7: Zero and empty string should not be replaced by ??
+count: number = 0
+displayCount: number = count ?? 100
+
+text: string = ''
+displayText: string = text ?? 'empty'
+
+active: boolean = false
+isActive: boolean = active ?? true
+
+// Test 8: Complex nested types
+nested: object | null = {
+  data: {
+    user: {
+      name: 'Charlie',
+      age: null
+    }
+  }
+}
+
+age: number | null = nested?.data?.user?.age
+displayAge: string = (nested?.data?.user?.age ?? 0).toString()
+
+// Test 9: Function returns with union types
+def divide(a: number, b: number): number | null {
+  if b == 0 {
+    return null
+  }
+  return a / b
+}
+
+result: number | null = divide(10, 2)
+safeResult: number = divide(10, 2) ?? 0
+
+// Test 10: Simplified nullable array test
+items = ['a', null, 'b', null, 'c']
+
+def getFirst(arr: array): string | null {
+  if arr.length > 0 {
+    return arr[0]
+  }
+  return null
+}
+
+firstItem: string | null = getFirst(items)
+displayFirst: string = getFirst(items) ?? 'no items'
+
+test('null and undefined are recognized as types', () => {
+  expect(nullValue).toBe(null)
+  expect(undefinedValue).toBe(undefined)
+  expect(returnsNull()).toBe(null)
+  expect(returnsUndefined()).toBe(undefined)
+})
+
+test('nullish coalescing works correctly', () => {
+  expect(result1).toBe('default')
+  expect(result2).toBe('hello')
+  expect(result3).toBe(42)
+  expect(chainedResult).toBe('result')
+})
+
+test('nullish coalescing respects falsy but non-nullish values', () => {
+  expect(displayCount).toBe(0)
+  expect(displayText).toBe('')
+  expect(isActive).toBe(false)
+})
+
+test('optional chaining with nullish coalescing', () => {
+  expect(theme).toBe('light')
+  expect(timeout).toBe(5000)
+  expect(userName).toBe('Bob')
+})
+
+test('union types work with functions', () => {
+  expect(processValue(42)).toBe('processed number')
+  expect(processValue('hello')).toBe('processed string')
+})
+
+test('nullable function returns', () => {
+  expect(divide(10, 2)).toBe(5)
+  expect(divide(10, 0)).toBe(null)
+  expect(safeResult).toBe(5)
+})
+
+test('nullable arrays', () => {
+  expect(items[0]).toBe('a')
+  expect(items[1]).toBe(null)
+  expect(displayFirst).toBe('a')
+})
