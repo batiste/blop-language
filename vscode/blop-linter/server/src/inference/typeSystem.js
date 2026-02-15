@@ -105,6 +105,17 @@ function isTypeCompatible(valueType, targetType, typeAliases = {}) {
     return true;
   }
   
+  // Allow generic "object" to be compatible with object type structures
+  // Object type structures look like: "{name: string, id: number}"
+  if (resolvedValueType === 'object' && resolvedTargetType.startsWith('{')) {
+    return true; // TODO: Implement structural type checking
+  }
+  
+  // Allow object type structures to match each other (for now, accept any object structure)
+  if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
+    return true; // TODO: Implement proper structural type checking
+  }
+  
   // Check if valueType is in targetType's union
   if (isUnionType(resolvedTargetType)) {
     const targetTypes = parseUnionType(resolvedTargetType);
