@@ -250,12 +250,18 @@ function parseTypeExpression(typeExprNode) {
 
 /**
  * Parse a type_primary AST node into a type string
- * Handles basic types and array types
+ * Handles basic types, array types, and object types
  * @param {Object} typePrimaryNode - The type_primary AST node
  * @returns {string} The parsed type string
  */
 function parseTypePrimary(typePrimaryNode) {
   if (!typePrimaryNode || !typePrimaryNode.named) return 'any';
+  
+  // Check for object type
+  if (typePrimaryNode.children && typePrimaryNode.children[0] && 
+      typePrimaryNode.children[0].type === 'object_type') {
+    return parseObjectType(typePrimaryNode.children[0]);
+  }
   
   const { name } = typePrimaryNode.named;
   if (!name) return 'any';
@@ -273,6 +279,46 @@ function parseTypePrimary(typePrimaryNode) {
   return typeName;
 }
 
+/**
+ * Parse an object_type AST node into a type string
+ * @param {Object} objectTypeNode - The object_type AST node
+ * @returns {string} The parsed type string like "{name: string, id: number}"
+ */
+function parseObjectType(objectTypeNode) {
+  if (!objectTypeNode || !objectTypeNode.named || !objectTypeNode.named.properties) {
+    return '{}'; // Empty object type
+  }
+  
+  // Collect all properties from the recursive properties structure
+  function collectProperties(propertiesNode) {
+    if (!propertiesNode) return [];
+    
+    const props = [];
+    let current = propertiesNode;
+    
+    // Handle the recursive structure: object_type_properties can contain another object_type_properties
+    while (current) {
+      // Find the object_type_property node
+      const propertyNode = current.children ? current.children.find(c => c.type === 'object_type_property') : null;
+      
+      if (propertyNode && propertyNode.named && propertyNode.named.key && propertyNode.named.valueType) {
+        const key = propertyNode.named.key.value;
+        const valueType = parseTypeExpression(propertyNode.named.valueType);
+        props.push(`${key}: ${valueType}`);
+      }
+      
+      // Check for nested object_type_properties
+      const nested = current.children ? current.children.find(c => c.type === 'object_type_properties') : null;
+      current = nested;
+    }
+    
+    return props;
+  }
+  
+  const propertyStrings = collectProperties(objectTypeNode.named.properties);
+  return `{${propertyStrings.join(', ')}}`;
+}
+
 module.exports = {
   resolveTypeAlias,
   isUnionType,
@@ -285,4 +331,5 @@ module.exports = {
   getAnnotationType,
   parseTypeExpression,
   parseTypePrimary,
+  parseObjectType,
 };

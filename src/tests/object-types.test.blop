@@ -1,0 +1,124 @@
+
+// Test 1: Basic object type (syntax demonstration)
+type User = {
+  name: string,
+  id: number
+}
+
+// Object literals work but full structural type checking not yet implemented
+user = { name: 'Alice', id: 123 }
+
+test('basic object type syntax works', () => {
+  expect(user.name).toBe('Alice')
+  expect(user.id).toBe(123)
+})
+
+// Test 2: Nested object types
+type Address = {
+  street: string,
+  city: string
+}
+
+type Person = {
+  name: string,
+  address: Address
+}
+
+address = { street: '123 Main St', city: 'NYC' }
+person = { name: 'Bob', address: address }
+
+test('nested object types work', () => {
+  expect(person.name).toBe('Bob')
+  expect(person.address.city).toBe('NYC')
+})
+
+// Test 3: Empty object type
+type EmptyObj = {}
+
+emptyObj = {}
+
+test('empty object type works', () => {
+  expect(emptyObj).toBeDefined()
+})
+
+// Test 4: Object type with union properties
+type Config = {
+  debug: boolean,
+  port: number | string
+}
+
+config1 = { debug: true, port: 3000 }
+config2 = { debug: false, port: '8080' }
+
+test('object type with union properties', () => {
+  expect(config1.debug).toBe(true)
+  expect(config1.port).toBe(3000)
+  expect(config2.port).toBe('8080')
+})
+
+// Test 5: Object type in function parameters (syntax demonstration)
+type Point = {
+  x: number,
+  y: number
+}
+
+def distance(p1, p2) {
+  dx = p1.x - p2.x
+  dy = p1.y - p2.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+test('object types in function parameters', () => {
+  p1 = { x: 0, y: 0 }
+  p2 = { x: 3, y: 4 }
+  result = distance(p1, p2)
+  expect(result).toBe(5)
+})
+
+// Test 6: Object type in function return (syntax demonstration)
+type Result = {
+  success: boolean,
+  value: number
+}
+
+def compute(n) {
+  return { success: true, value: n * 2 }
+}
+
+test('object types in function return', () => {
+  result = compute(21)
+  expect(result.success).toBe(true)
+  expect(result.value).toBe(42)
+})
+
+// Test 7: Object type with optional-like properties (using union with undefined)
+type OptionalFields = {
+  required: string,
+  optional: string | undefined
+}
+
+obj1 = { required: 'yes', optional: 'maybe' }
+obj2 = { required: 'yes', optional: undefined }
+
+test('object type with optional-like properties', () => {
+  expect(obj1.required).toBe('yes')
+  expect(obj1.optional).toBe('maybe')
+  expect(obj2.optional).toBe(undefined)
+})
+
+// Test 8: Array of object types
+type Item = {
+  id: number,
+  name: string
+}
+
+items = [
+  { id: 1, name: 'First' },
+  { id: 2, name: 'Second' }
+]
+
+test('array of object types', () => {
+  expect(items.length).toBe(2)
+  expect(items[0].name).toBe('First')
+  expect(items[1].id).toBe(2)
+})
