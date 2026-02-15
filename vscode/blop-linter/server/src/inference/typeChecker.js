@@ -6,7 +6,10 @@ const {
   isTypeCompatible, 
   resolveTypeAlias,
   parseObjectTypeString,
-  checkObjectStructuralCompatibility 
+  checkObjectStructuralCompatibility,
+  getBaseTypeOfLiteral,
+  isNumberLiteral,
+  isStringLiteral 
 } = require('./typeSystem');
 
 const TypeChecker = {
@@ -14,24 +17,28 @@ const TypeChecker = {
    * Check if a math operation is valid for the given types
    */
   checkMathOperation(leftType, rightType, operator) {
+    // Get base types for literals
+    const leftBase = getBaseTypeOfLiteral(leftType);
+    const rightBase = getBaseTypeOfLiteral(rightType);
+    
     if (operator === '+') {
-      if (leftType === 'string' && rightType === 'string') {
+      if (leftBase === 'string' && rightBase === 'string') {
         return { valid: false, resultType: 'string', warning: 'Use template strings instead of \'++\' for string concatenation' };
       }
-      if ((leftType === 'string' && rightType === 'number') || (leftType === 'number' && rightType === 'string')) {
+      if ((leftBase === 'string' && rightBase === 'number') || (leftBase === 'number' && rightBase === 'string')) {
         return { valid: true, resultType: 'string' };
       }
-      if ((leftType === 'number' || leftType === 'any') && (rightType === 'number' || rightType === 'any')) {
+      if ((leftBase === 'number' || leftType === 'any') && (rightBase === 'number' || rightType === 'any')) {
         return { valid: true, resultType: 'number' };
       }
-      return { valid: false, resultType: 'any', warning: `Cannot apply '+' operator to ${rightType} and ${leftType}` };
+      return { valid: false, resultType: 'any', warning: `Cannot apply '+' operator to ${leftType} and ${rightType}` };
     } else {
       // Other math operators require numbers
       const warnings = [];
-      if (leftType !== 'number' && leftType !== 'any') {
+      if (leftBase !== 'number' && leftType !== 'any') {
         warnings.push(`Math operator '${operator}' not allowed on ${leftType}`);
       }
-      if (rightType !== 'number' && rightType !== 'any') {
+      if (rightBase !== 'number' && rightType !== 'any') {
         warnings.push(`Math operator '${operator}' not allowed on ${rightType}`);
       }
       return { valid: warnings.length === 0, resultType: 'number', warnings };

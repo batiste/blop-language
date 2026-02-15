@@ -133,7 +133,7 @@ test('infers union with undefined', () => {
 })
 
 // Test 9: Array union inference
-def getCollection(asArray: boolean): array | string {
+def getCollection(asArray: boolean): number[] | string {
   if asArray {
     return [1, 2, 3]
   }

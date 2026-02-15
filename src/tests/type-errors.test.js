@@ -150,7 +150,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, 'returns array but declared as VNode');
+    expectCompilationError(code, 'returns number[] but declared as VNode');
   });
 
   test('rejects nested conditionals with type mismatches', () => {

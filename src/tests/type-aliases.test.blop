@@ -68,7 +68,7 @@ test('array type aliases work', () => {
 })
 
 // Test 5: Function parameter type aliases
-type Callback = object
+type Callback = function
 type ResultType = string | number
 
 def executeCallback(fn: Callback, value: ResultType): any {
