@@ -20,14 +20,16 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   const shouldRunInference = enableInference || config.inference;
   
   let file;
+  let header;
   if (env === 'webpack') {
     file = stringifyRequest(this, `!${name}`);
+    // Webpack needs CommonJS
+    header = `const blop = require(${file});\n`;
   } else {
-    // For non-webpack environments (node, jest), don't use stringifyRequest
-    // Just use JSON.stringify to quote the path properly
+    // For non-webpack environments (node, jest), use ESM
     file = JSON.stringify(name);
+    header = `import * as blop from ${file};\n`;
   }
-  const header = `const blop = require(${file});\n`;
 
   const t1 = performance.now();
   const stream = parser.tokenize(tokensDefinition, source);
@@ -53,11 +55,11 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
   if (useSourceMap) {
     const rootSource = new sourceMap.SourceNode(null, null, filename);
     rootSource.add(new sourceMap.SourceNode(1, 1, filename, header));
-    result = backend.generateCode(tree, stream, source, filename, rootSource, resolve);
+    result = backend.generateCode(tree, stream, source, filename, rootSource, resolve, env);
     const sourceMapGen = rootSource.toStringWithSourceMap({ file: filename }).map;
     _sourceMap = JSON.parse(sourceMapGen.toString());
   } else {
-    result = backend.generateCode(tree, stream, source, filename, null, resolve);
+    result = backend.generateCode(tree, stream, source, filename, null, resolve, env);
   }
 
 
