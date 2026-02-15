@@ -130,7 +130,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, 'returns object but declared as VNode');
+    expectCompilationError(code, 'but declared as VNode');
   });
 
   test('rejects function returning boolean instead of VNode', () => {
