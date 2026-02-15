@@ -1,0 +1,256 @@
+// Generics Tests - Basic generic functions and type aliases
+
+// ============================================================================
+// Test 1: Basic generic function - identity
+// ============================================================================
+
+def identity<T>(value: T): T {
+  return value
+}
+
+test('generic identity function with number', () => {
+  result = identity(42)
+  expect(result).toBe(42)
+})
+
+test('generic identity function with string', () => {
+  result = identity('hello')
+  expect(result).toBe('hello')
+})
+
+test('generic identity function with boolean', () => {
+  result = identity(true)
+  expect(result).toBe(true)
+})
+
+// ============================================================================
+// Test 2: Generic function with array
+// ============================================================================
+
+def firstElement<T>(arr: T[]): T | undefined {
+  if arr.length > 0 {
+    return arr[0]
+  }
+  return undefined
+}
+
+test('generic first function with number array', () => {
+  result = firstElement([1, 2, 3])
+  expect(result).toBe(1)
+})
+
+test('generic first function with string array', () => {
+  result = firstElement(['a', 'b', 'c'])
+  expect(result).toBe('a')
+})
+
+test('generic first function with empty array', () => {
+  result = firstElement([])
+  expect(result).toBe(undefined)
+})
+
+// ============================================================================
+// Test 3: Generic function with multiple type parameters
+// ============================================================================
+
+def pair<T, U>(first: T, second: U): object {
+  return { first, second }
+}
+
+test('generic pair function', () => {
+  p = pair(1, 'hello')
+  expect(p.first).toBe(1)
+  expect(p.second).toBe('hello')
+})
+
+test('generic pair with same types', () => {
+  p = pair('foo', 'bar')
+  expect(p.first).toBe('foo')
+  expect(p.second).toBe('bar')
+})
+
+// ============================================================================
+// Test 4: Generic function returning array
+// ============================================================================
+
+def wrap<T>(value: T): T[] {
+  return [value]
+}
+
+test('generic wrap function with number', () => {
+  result = wrap(42)
+  expect(result.length).toBe(1)
+  expect(result[0]).toBe(42)
+})
+
+test('generic wrap function with string', () => {
+  result = wrap('test')
+  expect(result.length).toBe(1)
+  expect(result[0]).toBe('test')
+})
+
+// ============================================================================
+// Test 5: Generic function with object parameter
+// ============================================================================
+
+def getProperty<T>(obj: T, key: string): any {
+  return obj[key]
+}
+
+test('generic getProperty function', () => {
+  obj = { name: 'Alice', age: 30 }
+  name = getProperty(obj, 'name')
+  age = getProperty(obj, 'age')
+  expect(name).toBe('Alice')
+  expect(age).toBe(30)
+})
+
+// ============================================================================
+// Test 6: Generic type alias - Box
+// ============================================================================
+
+type Box<T> = {
+  value: T
+}
+
+def createBox<T>(value: T): Box<T> {
+  return { value }
+}
+
+test('generic Box type alias with number', () => {
+  box: Box<number> = createBox(42)
+  expect(box.value).toBe(42)
+})
+
+test('generic Box type alias with string', () => {
+  box: Box<string> = createBox('hello')
+  expect(box.value).toBe('hello')
+})
+
+// ============================================================================
+// Test 7: Generic type alias - Pair
+// ============================================================================
+
+type Pair<T, U> = {
+  first: T,
+  second: U
+}
+
+def makePair<T, U>(a: T, b: U): Pair<T, U> {
+  return { first: a, second: b }
+}
+
+test('generic Pair type alias', () => {
+  p: Pair<number, string> = makePair(1, 'one')
+  expect(p.first).toBe(1)
+  expect(p.second).toBe('one')
+})
+
+// ============================================================================
+// Test 8: Generic function with conditional logic
+// ============================================================================
+
+def wrapIfNotNull<T>(value: T | null): T[] {
+  if value == null {
+    return []
+  }
+  return [value]
+}
+
+test('generic wrapIfNotNull with value', () => {
+  result = wrapIfNotNull(42)
+  expect(result.length).toBe(1)
+  expect(result[0]).toBe(42)
+})
+
+test('generic wrapIfNotNull with null', () => {
+  result = wrapIfNotNull(null)
+  expect(result.length).toBe(0)
+})
+
+// ============================================================================
+// Test 9: Nested generic types
+// ============================================================================
+
+type Container<T> = {
+  items: T[]
+}
+
+def createContainer<T>(items: T[]): Container<T> {
+  return { items }
+}
+
+test('nested generic types', () => {
+  container: Container<number> = createContainer([1, 2, 3])
+  expect(container.items.length).toBe(3)
+  expect(container.items[0]).toBe(1)
+})
+
+// ============================================================================
+// Test 10: Generic function with simple logic
+// ============================================================================
+
+def orDefault<T>(value: T | null, defaultVal: T): T {
+  result = value ?? defaultVal
+  return result
+}
+
+test('generic orDefault with value', () => {
+  result = orDefault(42, 0)
+  expect(result).toBe(42)
+})
+
+test('generic orDefault with null', () => {
+  result = orDefault(null, 99)
+  expect(result).toBe(99)
+})
+
+// ============================================================================
+// Test 11: Multiple generic functions
+// ============================================================================
+
+def map<T, U>(arr: T[], fn: object): U[] {
+  result: U[] = []
+  for item in arr {
+    result.push(fn(item))
+  }
+  return result
+}
+
+test('generic map function', () => {
+  numbers = [1, 2, 3]
+  doubled = map(numbers, (x) => x * 2)
+  expect(doubled.length).toBe(3)
+  expect(doubled[0]).toBe(2)
+  expect(doubled[1]).toBe(4)
+  expect(doubled[2]).toBe(6)
+})
+
+// ============================================================================
+// Test 12: Generic type with object return
+// ============================================================================
+
+type Result<T> = {
+  success: boolean,
+  value?: T
+}
+
+def successValue<T>(value: T): object {
+  return { success: true, value }
+}
+
+def errorValue<T>(): object {
+  return { success: false }
+}
+
+test('generic Result-like type with success', () => {
+  result = successValue(42)
+  expect(result.success).toBe(true)
+  expect(result.value).toBe(42)
+})
+
+test('generic Result-like type with error', () => {
+  result = errorValue()
+  expect(result.success).toBe(false)
+  expect(result.value).toBe(undefined)
+})
