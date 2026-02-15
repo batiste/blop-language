@@ -1,0 +1,17 @@
+// Test for generic type parameter consistency
+
+def pairSame<T>(a: T, b: T): object {
+  return { a, b }
+}
+
+test('should allow same types', () => {
+  result = pairSame(1, 2)
+  expect(result.a).toBe(1)
+  expect(result.b).toBe(2)
+})
+
+test('should allow same types with strings', () => {
+  result = pairSame('hello', 'world')
+  expect(result.a).toBe('hello')
+  expect(result.b).toBe('world')
+})

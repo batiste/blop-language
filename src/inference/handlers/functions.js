@@ -2,7 +2,7 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-const { visitChildren } = require('../visitor');
+const { visitChildren, pushToParent } = require('../visitor');
 const { 
   getAnnotationType, 
   createUnionType, 
@@ -70,14 +70,22 @@ function createFunctionHandlers(getState) {
         // Check if this is a generic function
         if (def.genericParams && def.genericParams.length > 0) {
           // Infer generic type arguments from call site
-          const argTypes = node.inference || [];
+          // Arguments are in the func_call child node's inference
+          const funcCallNode = node.children?.find(child => child.type === 'func_call');
+          const argTypes = funcCallNode?.inference || node.inference || [];
           const paramTypes = def.params || [];
           
-          const substitutions = inferGenericArguments(
+          const { substitutions, errors } = inferGenericArguments(
             def.genericParams,
             paramTypes,
-            argTypes
+            argTypes,
+            typeAliases
           );
+          
+          // Report type parameter inference errors
+          if (errors.length > 0) {
+            errors.forEach(error => pushWarning(name, error));
+          }
           
           // Substitute type parameters in return type
           let returnType = def.type;
@@ -86,7 +94,7 @@ function createFunctionHandlers(getState) {
             pushInference(parent, returnType);
           }
           
-          // Also check parameter types with substituted generics
+         // Also check parameter types with substituted generics
           if (argTypes.length > 0) {
             const substitutedParams = paramTypes.map(p => substituteType(p, substitutions));
             const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, name.value, typeAliases);

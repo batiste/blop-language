@@ -10,6 +10,7 @@ let warnings;
 let stream;
 let functionScopes;
 let typeAliases;
+let currentFunctionCall; // Track function name for call validation
 
 // Scope management
 const getCurrentScope = () => functionScopes[functionScopes.length - 1];

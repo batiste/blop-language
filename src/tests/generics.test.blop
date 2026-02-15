@@ -181,7 +181,7 @@ def createContainer<T>(items: T[]): Container<T> {
 }
 
 test('nested generic types', () => {
-  container: Container<number> = createContainer([1, 2, 3])
+  container = createContainer([1, 2, 3])
   expect(container.items.length).toBe(3)
   expect(container.items[0]).toBe(1)
 })
@@ -209,7 +209,7 @@ test('generic orDefault with null', () => {
 // Test 11: Multiple generic functions
 // ============================================================================
 
-def map<T, U>(arr: T[], fn: object): U[] {
+def map<T, U>(arr: T[], fn: function): U[] {
   result: U[] = []
   for item in arr {
     result.push(fn(item))

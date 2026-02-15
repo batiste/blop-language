@@ -123,7 +123,7 @@ def divide(a: number, b: number): number | null {
 }
 
 result: number | null = divide(10, 2)
-safeResult: number = divide(10, 2) ?? 0
+safeResult = divide(10, 2) ?? 0
 
 // Test 10: Simplified nullable array test
 items = ['a', null, 'b', null, 'c']
@@ -136,7 +136,7 @@ def getFirst(arr: array): string | null {
 }
 
 firstItem: string | null = getFirst(items)
-displayFirst: string = getFirst(items) ?? 'no items'
+displayFirst = getFirst(items) ?? 'no items'
 
 test('null and undefined are recognized as types', () => {
   expect(nullValue).toBe(null)

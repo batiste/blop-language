@@ -3,6 +3,8 @@
 // ============================================================================
 
 const { visitChildren, resolveTypes, pushToParent } = require('../visitor');
+const { inferGenericArguments, substituteType } = require('../typeSystem');
+const TypeChecker = require('../typeChecker');
 
 function createExpressionHandlers(getState) {
   return {
@@ -12,10 +14,72 @@ function createExpressionHandlers(getState) {
       pushInference(parent, 'number');
     },
     name_exp: (node, parent) => {
-      const { lookupVariable, pushInference } = getState();
+      const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
       const { name, access, op } = node.named;
       
       if (access) {
+        // Check if this is a function call: access contains object_access with func_call
+        const hasFuncCall = access.children?.some(child => 
+          child.type === 'object_access' && 
+          child.children?.some(c => c.type === 'func_call')
+        );
+        
+        if (hasFuncCall) {
+          // This is a function call - get the function definition
+          visitChildren(access);
+          
+          const def = lookupVariable(name.value);
+          if (def && def.params) {
+            // Extract argument types from the func_call node
+            const objectAccess = access.children?.find(child => child.type === 'object_access');
+            const funcCall = objectAccess?.children?.find(child => child.type === 'func_call');
+            const argTypes = funcCall?.inference || [];
+            
+            // Handle generic functions
+            if (def.genericParams && def.genericParams.length > 0) {
+              const paramTypes = def.params || [];
+              
+              const { substitutions, errors } = inferGenericArguments(
+                def.genericParams,
+                paramTypes,
+                argTypes,
+                typeAliases
+              );
+              
+              // Report type parameter inference errors
+              if (errors.length > 0) {
+                errors.forEach(error => pushWarning(name, error));
+              }
+              
+              // Check parameter types with substituted generics
+              if (argTypes.length > 0) {
+                const substitutedParams = paramTypes.map(p => substituteType(p, substitutions));
+                const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, name.value, typeAliases);
+                if (!result.valid) {
+                  result.warnings.forEach(warning => pushWarning(name, warning));
+                }
+              }
+              
+              // Substitute type parameters in return type
+              let returnType = def.type || 'any';
+              returnType = substituteType(returnType, substitutions);
+              pushInference(parent, returnType);
+              return;
+            } else {
+              // Non-generic function - validate parameters
+              if (argTypes.length > 0) {
+                const result = TypeChecker.checkFunctionCall(argTypes, def.params, name.value, typeAliases);
+                if (!result.valid) {
+                  result.warnings.forEach(warning => pushWarning(name, warning));
+                }
+              }
+              pushInference(parent, def.type || 'any');
+              return;
+            }
+          }
+        }
+        
+        // Not a function call or unknown function
         visitChildren(access);
         pushInference(parent, 'any');
         return;

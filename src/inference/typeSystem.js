@@ -763,13 +763,15 @@ function substituteType(type, substitutions = {}) {
  * @param {string[]} genericParams - Generic parameter names (e.g., ['T', 'U'])
  * @param {string[]} paramTypes - Expected parameter types (may contain type variables)
  * @param {string[]} argTypes - Actual argument types from call site
- * @returns {Object} Map of type parameter to inferred type (e.g., {T: 'number'})
+ * @param {Object} typeAliases - Type aliases for compatibility checking
+ * @returns {Object} Object with `substitutions` map and `errors` array
  */
-function inferGenericArguments(genericParams, paramTypes, argTypes) {
+function inferGenericArguments(genericParams, paramTypes, argTypes, typeAliases = {}) {
   const substitutions = {};
+  const errors = [];
   
   if (!genericParams || genericParams.length === 0) {
-    return substitutions;
+    return { substitutions, errors };
   }
   
   // Iterate through parameters and arguments to collect constraints
@@ -781,9 +783,44 @@ function inferGenericArguments(genericParams, paramTypes, argTypes) {
     
     // Simple case: parameter is directly a type parameter
     if (genericParams.includes(paramType)) {
-      if (substitutions[paramType] && substitutions[paramType] !== argType) {
-        // Conflict - create union
-        substitutions[paramType] = createUnionType([substitutions[paramType], argType]);
+      if (substitutions[paramType]) {
+        // Type parameter already inferred - check consistency
+        const existingType = substitutions[paramType];
+        
+        if (existingType !== argType) {
+          // Check if both are literals of the same base type
+          const argBase = getBaseTypeOfLiteral(argType);
+          const existingBase = getBaseTypeOfLiteral(existingType);
+          
+          if (argBase === existingBase && argBase !== argType) {
+            // Both are literals of the same base type (e.g., 1 and 2 are both numbers)
+            // Unify to the base type
+            substitutions[paramType] = argBase;
+          } else {
+            // Check if types are compatible before reporting error
+            const compatible = isTypeCompatible(argType, existingType, typeAliases) ||
+                             isTypeCompatible(existingType, argType, typeAliases);
+            
+            if (!compatible) {
+              errors.push(
+                `Type parameter ${paramType} inferred as both ${existingType} and ${argType} (param ${i + 1})`
+              );
+            } else {
+              // Types are compatible - use more specific type if one is a literal
+              if (argBase === existingType && argType !== existingType) {
+                // argType is a literal of existingType - keep existingType
+              } else if (existingBase === argType && existingType !== argType) {
+                // existingType is a literal of argType - keep argType
+                substitutions[paramType] = argType;
+              } else if (argType === 'any') {
+                // Keep existing type
+              } else if (existingType === 'any') {
+                substitutions[paramType] = argType;
+              }
+              // Otherwise keep the existing type
+            }
+          }
+        }
       } else {
         substitutions[paramType] = argType;
       }
@@ -796,13 +833,68 @@ function inferGenericArguments(genericParams, paramTypes, argTypes) {
       const argElement = argType.slice(0, -2);
       
       if (genericParams.includes(paramElement)) {
-        if (substitutions[paramElement] && substitutions[paramElement] !== argElement) {
-          substitutions[paramElement] = createUnionType([substitutions[paramElement], argElement]);
+        if (substitutions[paramElement]) {
+          const existingType = substitutions[paramElement];
+          
+          if (existingType !== argElement) {
+            // Check if both are literals of the same base type
+            const argBase = getBaseTypeOfLiteral(argElement);
+            const existingBase = getBaseTypeOfLiteral(existingType);
+            
+            if (argBase === existingBase && argBase !== argElement) {
+              // Both are literals of the same base type - unify to base type
+              substitutions[paramElement] = argBase;
+            } else {
+              const compatible = isTypeCompatible(argElement, existingType, typeAliases) ||
+                               isTypeCompatible(existingType, argElement, typeAliases);
+              
+              if (!compatible) {
+                errors.push(
+                  `Type parameter ${paramElement} inferred as both ${existingType}[] and ${argElement}[] (param ${i + 1})`
+                );
+              }
+            }
+          }
         } else {
           substitutions[paramElement] = argElement;
         }
       }
       continue;
+    }
+    
+    // Union type case: T | null with specific type => T = specific type
+    if (paramType.includes(' | ') && !argType.includes(' | ')) {
+      const unionTypes = parseUnionType(paramType);
+      
+      // Check if one of the union members is a type parameter
+      for (const unionMember of unionTypes) {
+        if (genericParams.includes(unionMember)) {
+          // Try to infer the type parameter from the argument
+          // If argType matches another member of the union, we can't infer
+          // Otherwise, infer T as argType
+          const otherMembers = unionTypes.filter(t => t !== unionMember);
+          const matchesOther = otherMembers.some(t => 
+            isTypeCompatible(argType, t, typeAliases)
+          );
+          
+          if (!matchesOther) {
+            if (substitutions[unionMember]) {
+              const existingType = substitutions[unionMember];
+              if (existingType !== argType) {
+                const compatible = isTypeCompatible(argType, existingType, typeAliases) ||
+                                 isTypeCompatible(existingType, argType, typeAliases);
+                if (!compatible) {
+                  errors.push(
+                    `Type parameter ${unionMember} inferred as both ${existingType} and ${argType} (param ${i + 1})`
+                  );
+                }
+              }
+            } else {
+              substitutions[unionMember] = argType;
+            }
+          }
+        }
+      }
     }
     
     // Object type inference - simplified for now
@@ -816,7 +908,7 @@ function inferGenericArguments(genericParams, paramTypes, argTypes) {
     }
   }
   
-  return substitutions;
+  return { substitutions, errors };
 }
 
 /**

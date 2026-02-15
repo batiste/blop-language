@@ -73,11 +73,15 @@ function createLiteralHandlers(getState) {
   return {
     number: (node, parent) => {
       const { pushInference } = getState();
-      pushInference(parent, 'number');
+      // Infer literal types for numbers
+      pushInference(parent, node.value);
     },
     str: (node, parent) => {
       const { pushInference } = getState();
-      pushInference(parent, 'string');
+      // Strip quotes from node.value and infer as literal type
+      // node.value includes quotes like 'hello' or "hello", so we strip them
+      const rawValue = node.value.slice(1, -1);
+      pushInference(parent, `"${rawValue}"`);
     },
     null: (node, parent) => {
       const { pushInference } = getState();
@@ -89,11 +93,11 @@ function createLiteralHandlers(getState) {
     },
     true: (node, parent) => {
       const { pushInference } = getState();
-      pushInference(parent, 'boolean');
+      pushInference(parent, 'true');
     },
     false: (node, parent) => {
       const { pushInference } = getState();
-      pushInference(parent, 'boolean');
+      pushInference(parent, 'false');
     },
     array_literal: (node, parent) => {
       const { pushInference } = getState();
