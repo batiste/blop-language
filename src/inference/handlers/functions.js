@@ -87,10 +87,6 @@ function createFunctionHandlers(getState) {
       // Infer return type from actual returns
       let inferredType = 'undefined'; // Default to undefined for empty function bodies
       if (scope.__returnTypes && scope.__returnTypes.length > 0) {
-        if (node.named.name && (node.named.name.value === 'acceptsNull' || node.named.name.value === 'acceptsBoolean')) {
-          console.log(`[DEBUG ${node.named.name.value}] __returnTypes:`, scope.__returnTypes);
-        }
-        
         // Filter out empty/undefined returns unless they're all undefined
         const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
         
