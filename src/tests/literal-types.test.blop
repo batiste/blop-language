@@ -1,0 +1,64 @@
+// Test literal types
+
+type Direction = "north" | "south" | "east" | "west"
+type StatusCode = 200 | 404 | 500
+type Enabled = true
+type Disabled = false
+type Version = 1 | 2 | 3
+
+// String literal types
+dir1: Direction = "north"
+dir2: Direction = "south"
+dir3: Direction = "east"
+dir4: Direction = "west"
+
+// Number literal types
+status1: StatusCode = 200
+status2: StatusCode = 404
+status3: StatusCode = 500
+
+// Boolean literal types
+enabled: Enabled = true
+disabled: Disabled = false
+
+// Number sequence
+version1: Version = 1
+version2: Version = 2
+version3: Version = 3
+
+// Literal types can be widened to base types
+dirStr: string = dir1
+statusNum: number = status1
+enabledBool: boolean = enabled
+
+// Mixed literal union with string and number
+type Value = "auto" | 100 | 200
+val1: Value = "auto"
+val2: Value = 100
+val3: Value = 200
+
+test('string literal types work', () => {
+  expect(dir1).toBe("north")
+  expect(dir2).toBe("south")
+})
+
+test('number literal types work', () => {
+  expect(status1).toBe(200)
+  expect(status2).toBe(404)
+})
+
+test('boolean literal types work', () => {
+  expect(enabled).toBe(true)
+  expect(disabled).toBe(false)
+})
+
+test('literal types widen to base types', () => {
+  expect(dirStr).toBe("north")
+  expect(statusNum).toBe(200)
+  expect(enabledBool).toBe(true)
+})
+
+test('mixed literal unions work', () => {
+  expect(val1).toBe("auto")
+  expect(val2).toBe(100)
+})
