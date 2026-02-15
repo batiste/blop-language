@@ -1,0 +1,108 @@
+
+// Test VNode return type validation
+
+// Test: component with automatic return (idiomatic Blop)
+def MyComponent(): VNode {
+  <div>'Hello'</div>
+}
+
+// Test: function with explicit return (alternative style)
+def Button(_label: string): VNode {
+  return <button class="btn">'Click'</button>
+}
+
+// Test: conditional VNode returns (automatic)
+def ConditionalRender(show: boolean): VNode {
+  if show {
+    <div>'Visible'</div>
+  } else {
+    <span>'Hidden'</span>
+  }
+}
+
+// Test: nested VNode creation (automatic)
+def Layout(): VNode {
+  <div class="container">
+    <header>'Header'</header>
+    <main>'Content'</main>
+    <footer>'Footer'</footer>
+  </div>
+}
+
+// Test: VNode with expression children (automatic)
+def Greeting(_name: string): VNode {
+  message = 'Hello, World!'
+  <p>message</p>
+}
+
+// Test: component with hooks returns VNode (automatic)
+def InputWithFocus(): VNode {
+  hooks = {
+    insert: (vnode) => {
+      vnode.elm.focus()
+    }
+  }
+  <input hooks type="text" />
+}
+
+// Test: arrow function returning VNode (automatic, most idiomatic)
+Card = (_title: string): VNode => {
+  <div class="card">
+    <h3>'My Card'</h3>
+  </div>
+}
+
+// Test: VNode inference without annotation (automatic)
+def InferredVNode() {
+  <div>'Inferred'</div>
+}
+
+// Test: complex nested structure (automatic)
+def ComplexComponent(_items: array): VNode {
+  <div class="wrapper">
+    <h1>'Title'</h1>
+    <ul>
+      <li>'Item 1'</li>
+      <li>'Item 2'</li>
+    </ul>
+  </div>
+}
+
+// Jest test cases
+test('VNode return types are validated', () => {
+  result = MyComponent()
+  expect(result).toBeTruthy()
+})
+
+test('VNode functions with parameters work', () => {
+  result = Button('Click me')
+  expect(result).toBeTruthy()
+})
+
+test('conditional VNode returns work', () => {
+  result1 = ConditionalRender(true)
+  result2 = ConditionalRender(false)
+  expect(result1).toBeTruthy()
+  expect(result2).toBeTruthy()
+})
+
+test('nested VNode structures work', () => {
+  result = Layout()
+  expect(result).toBeTruthy()
+})
+
+test('VNode with hooks work', () => {
+  result = InputWithFocus()
+  expect(result).toBeTruthy()
+})
+
+test('arrow functions returning VNode work', () => {
+  result = Card('Test Card')
+  expect(result).toBeTruthy()
+})
+
+test('VNode inference without annotation works', () => {
+  result = InferredVNode()
+  expect(result).toBeTruthy()
+})
+
