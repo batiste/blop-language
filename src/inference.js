@@ -218,41 +218,44 @@ function excludeType(type, excludedType) {
  * @returns {Object|null} Type guard info or null
  */
 function detectTypeofCheck(expNode) {
-  if (!expNode || !expNode.inference) {
+  if (!expNode) {
     return null;
   }
   
   // Look for pattern: typeof variable == 'type'
-  // This appears in inference as operator nodes
+  // Collect all relevant nodes first
+  let hasTypeof = false;
   let typeofVar = null;
   let comparisonType = null;
   let hasComparison = false;
   
-  // Walk the expression tree looking for typeof and comparison
+  // Walk the entire expression tree and collect pieces
   const checkNode = (node) => {
     if (!node) return;
     
     // Check for typeof operand
-    if (node.type === 'exp' && node.children) {
-      for (let child of node.children) {
-        if (child.type === 'operand' && child.value && child.value.includes('typeof')) {
-          // Next node should be the variable name
-          const varNode = node.children.find(c => c.type === 'name_exp');
-          if (varNode && varNode.named && varNode.named.name) {
-            typeofVar = varNode.named.name.value;
-          }
-        }
-        if (child.type === 'str' && typeofVar) {
-          // Extract string value (remove quotes)
-          const strValue = child.value.slice(1, -1);
-          comparisonType = strValue;
-        }
-        if (child.type === 'boolean_operator' && (child.value === '==' || child.value === '!=')) {
-          hasComparison = true;
-        }
-      }
+    if (node.type === 'operand' && node.value && node.value.includes('typeof')) {
+      hasTypeof = true;
     }
     
+    // Check for variable name
+    if (node.type === 'name' && hasTypeof && !typeofVar) {
+      typeofVar = node.value;
+    }
+    
+    // Check for comparison type (string literal)
+    if (node.type === 'str' && hasTypeof) {
+      // Extract string value (remove quotes)
+      const strValue = node.value.slice(1, -1);
+      comparisonType = strValue;
+    }
+    
+    // Check for comparison operator
+    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '!=')) {
+      hasComparison = true;
+    }
+    
+    // Recurse into children
     if (node.children) {
       node.children.forEach(checkNode);
     }
@@ -260,7 +263,7 @@ function detectTypeofCheck(expNode) {
   
   checkNode(expNode);
   
-  if (typeofVar && comparisonType && hasComparison) {
+  if (hasTypeof && typeofVar && comparisonType && hasComparison) {
     return { variable: typeofVar, checkType: comparisonType };
   }
   
@@ -395,6 +398,19 @@ function lookupVariable(name) {
       return definition;
     }
   }
+}
+
+/**
+ * Find the function scope (the scope with __returnTypes)
+ * @returns {Object|null} The function scope or null
+ */
+function getFunctionScope() {
+  for (let i = functionScopes.length - 1; i >= 0; i--) {
+    if (functionScopes[i].__returnTypes !== undefined) {
+      return functionScopes[i];
+    }
+  }
+  return null;
 }
 
 function pushInference(node, inference) {
@@ -802,45 +818,88 @@ const functionHandlers = {
     
     if (node.named.name) {
       const { annotation } = node.named;
-      const type = annotation ? getAnnotationType(annotation) : 'any';
+      const declaredType = annotation ? getAnnotationType(annotation) : null;
       
-      // Validate return types if annotation exists
-      if (annotation && type && scope.__returnTypes && scope.__returnTypes.length > 0) {
-        const result = TypeChecker.checkReturnTypes(scope.__returnTypes, type, node.named.name.value);
-        if (!result.valid) {
-          pushWarning(node.named.name, result.warning);
+      // Debug logging for specific functions
+      if (process.env.BLOP_DEBUG_TYPES && (node.named.name.value === 'handleBoolean' || node.named.name.value === 'getNestedValue')) {
+        console.log(`\nFunction ${node.named.name.value}:`);
+        console.log('  Return types collected:', scope.__returnTypes);
+        console.log('  Declared type:', declaredType);
+      }
+      
+      // Infer return type from actual returns
+      let inferredType = 'any';
+      if (scope.__returnTypes && scope.__returnTypes.length > 0) {
+        // Filter out empty/undefined returns unless they're all undefined
+        const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
+        
+        if (explicitReturns.length > 0) {
+          // Create union type from all return types
+          inferredType = createUnionType(explicitReturns);
+        } else if (scope.__returnTypes.every(t => t === 'undefined')) {
+          // All returns are undefined (bare return or no return)
+          inferredType = 'undefined';
+        }
+      }
+      
+      // Use declared type if provided, otherwise use inferred type
+      const finalType = declaredType || inferredType;
+      
+      // Validate inferred type matches declared type if both exist
+      if (declaredType && inferredType !== 'any') {
+        if (!isTypeCompatible(inferredType, declaredType)) {
+          pushWarning(
+            node.named.name,
+            `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
+          );
         }
       }
       
       parentScope[node.named.name.value] = {
-        source: 'func_def', type, node, params: scope.__currentFctParams,
+        source: 'func_def',
+        type: finalType,
+        inferredReturnType: inferredType,
+        declaredReturnType: declaredType,
+        node,
+        params: scope.__currentFctParams,
       };
     }
     popScope();
-  },
-  return: (node) => {
-    const scope = getCurrentScope();
-    if (!scope || !scope.__returnTypes) {
-      // Not in a function scope, skip
-      visitChildren(node);
-      return;
-    }
-    
-    visitChildren(node);
-    
-    // Check if this return has an expression
-    if (node.inference && node.inference.length > 0) {
-      scope.__returnTypes.push(node.inference[0]);
-    } else {
-      // Bare return statement
-      scope.__returnTypes.push('undefined');
-    }
   },
 };
 
 const statementHandlers = {
   GLOBAL_STATEMENT: resolveTypes,
   SCOPED_STATEMENTS: resolveTypes,
+  SCOPED_STATEMENT: (node, parent) => {
+    // Check if this is a return statement by looking at the first child
+    if (node.children && node.children[0] && node.children[0].type === 'return') {
+      const functionScope = getFunctionScope();
+      if (functionScope && functionScope.__returnTypes) {
+        // Visit children to get type inference on expressions
+        visitChildren(node);
+        
+        // Find the exp child and get its type
+        let returnType = 'undefined';
+        for (const child of node.children) {
+          if (child.type === 'exp') {
+            if (child.inference && child.inference.length > 0) {
+              returnType = child.inference[0];
+            }
+            break;
+          }
+        }
+        
+        functionScope.__returnTypes.push(returnType);
+        pushToParent(node, parent);
+        return;
+      }
+    }
+    
+    // Not a return statement, handle normally
+    resolveTypes(node);
+    pushToParent(node, parent);
+  },
   type_alias: (node, parent) => {
     // Extract the alias name and its type
     const aliasName = node.named.name.value;

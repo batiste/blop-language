@@ -1,0 +1,204 @@
+
+// Union Type Inference Tests
+// Testing automatic union type inference from multiple return statements
+
+// Test 1: Basic union inference from conditional returns
+def getValue(useString: boolean): string | number {
+  if useString {
+    return 'text'
+  } else {
+    return 42
+  }
+}
+
+test('infers union type from conditional returns', () => {
+  expect(getValue(true)).toBe('text')
+  expect(getValue(false)).toBe(42)
+})
+
+// Test 2: Union inference without type annotation
+def getValueNoAnnotation(flag: boolean) {
+  if flag {
+    return 'hello'
+  } else {
+    return 123
+  }
+}
+
+test('infers union type without annotation', () => {
+  expect(getValueNoAnnotation(true)).toBe('hello')
+  expect(getValueNoAnnotation(false)).toBe(123)
+})
+
+// Test 3: Three-way union inference
+def getMultipleTypes(n: number): string | number | boolean {
+  if n == 0 {
+    return false
+  } elseif n == 1 {
+    return 'one'
+  } else {
+    return n
+  }
+}
+
+test('infers three-way union', () => {
+  expect(getMultipleTypes(0)).toBe(false)
+  expect(getMultipleTypes(1)).toBe('one')
+  expect(getMultipleTypes(5)).toBe(5)
+})
+
+// Test 4: Union with null
+def findUser(id: number): object | null {
+  if id == 0 {
+    return null
+  }
+  return { name: 'User', id }
+}
+
+test('infers union with null', () => {
+  result = findUser(0)
+  expect(result).toBe(null)
+  
+  user = findUser(1)
+  expect(user.id).toBe(1)
+})
+
+// Test 5: Nested conditionals with union
+def processValue(val: number): string | number {
+  if val < 0 {
+    return 'negative'
+  } elseif val == 0 {
+    return 'zero'
+  } else {
+    return val
+  }
+}
+
+test('handles nested conditional unions', () => {
+  expect(processValue(0 - 5)).toBe('negative')
+  expect(processValue(0)).toBe('zero')
+  expect(processValue(10)).toBe(10)
+})
+
+// Test 6: Union inference with early returns
+def checkRange(n: number): string | boolean {
+  if n < 0 {
+    return 'too low'
+  }
+  if n > 100 {
+    return 'too high'
+  }
+  return true
+}
+
+test('infers union with early returns', () => {
+  expect(checkRange(0 - 1)).toBe('too low')
+  expect(checkRange(101)).toBe('too high')
+  expect(checkRange(50)).toBe(true)
+})
+
+// Test 7: Complex union with type narrowing
+def smartConvert(val: string | number): string | number | boolean {
+  if typeof val == 'string' {
+    if val == 'true' {
+      return true
+    }
+    if val == 'false' {
+      return false
+    }
+    return val
+  } else {
+    return val
+  }
+}
+
+test('complex union with type narrowing', () => {
+  expect(smartConvert('true')).toBe(true)
+  expect(smartConvert('false')).toBe(false)
+  expect(smartConvert('hello')).toBe('hello')
+  expect(smartConvert(42)).toBe(42)
+})
+
+// Test 8: Union with undefined
+def maybeGet(shouldGet: boolean): string | undefined {
+  if shouldGet {
+    return 'value'
+  }
+  return undefined
+}
+
+test('infers union with undefined', () => {
+  expect(maybeGet(true)).toBe('value')
+  expect(maybeGet(false)).toBe(undefined)
+})
+
+// Test 9: Array union inference
+def getCollection(asArray: boolean): array | string {
+  if asArray {
+    return [1, 2, 3]
+  }
+  return 'not an array'
+}
+
+test('infers union with array types', () => {
+  result1 = getCollection(true)
+  expect(result1.length).toBe(3)
+  
+  result2 = getCollection(false)
+  expect(result2).toBe('not an array')
+})
+
+// Test 10: Using inferred union with nullish coalescing
+def getOptionalValue(hasValue: boolean) {
+  if hasValue {
+    return 'value'
+  }
+  return null
+}
+
+def useInferredUnion(flag: boolean): string {
+  value = getOptionalValue(flag)
+  return value ?? 'default'
+}
+
+test('inferred union works with nullish coalescing', () => {
+  expect(useInferredUnion(true)).toBe('value')
+  expect(useInferredUnion(false)).toBe('default')
+})
+
+// Test 11: Multiple return points with same type (should not create union)
+def alwaysString(n: number): string {
+  if n < 0 {
+    return 'negative'
+  }
+  if n == 0 {
+    return 'zero'
+  }
+  return 'positive'
+}
+
+test('multiple returns of same type do not create union', () => {
+  expect(alwaysString(0 - 1)).toBe('negative')
+  expect(alwaysString(0)).toBe('zero')
+  expect(alwaysString(1)).toBe('positive')
+})
+
+// Test 12: Inferred union in nested functions
+def outerFunction(flag: boolean) {
+  def innerFunction(innerFlag: boolean) {
+    if innerFlag {
+      return 'inner string'
+    }
+    return 123
+  }
+  
+  if flag {
+    return innerFunction(true)
+  }
+  return false
+}
+
+test('inferred unions work in nested functions', () => {
+  expect(outerFunction(true)).toBe('inner string')
+  expect(outerFunction(false)).toBe(false)
+})
