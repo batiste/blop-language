@@ -63,16 +63,25 @@ function parseObjectTypeString(objectTypeString) {
     parts.push(current.trim());
   }
   
-  // Parse each part as "key: type"
+  // Parse each part as "key: type" or "key?: type"
   for (const part of parts) {
     const colonIndex = part.indexOf(':');
     if (colonIndex === -1) continue;
     
-    const key = part.slice(0, colonIndex).trim();
+    let key = part.slice(0, colonIndex).trim();
     const type = part.slice(colonIndex + 1).trim();
     
+    // Check if the property is optional (key ends with ?)
+    const isOptional = key.endsWith('?');
+    if (isOptional) {
+      key = key.slice(0, -1).trim();
+    }
+    
     if (key && type) {
-      properties[key] = type;
+      properties[key] = {
+        type: type,
+        optional: isOptional
+      };
     }
   }
   
@@ -81,8 +90,8 @@ function parseObjectTypeString(objectTypeString) {
 
 /**
  * Check if two object type structures are compatible (structural typing)
- * @param {Object} valueStructure - The structure of the value being assigned
- * @param {Object} targetStructure - The expected structure from type definition
+ * @param {Object} valueStructure - The structure of the value being assigned (properties can be strings or {type, optional})
+ * @param {Object} targetStructure - The expected structure from type definition (properties are {type, optional})
  * @param {Object} typeAliases - Type aliases for resolving nested types
  * @returns {Object} { compatible: boolean, errors: string[] }
  */
@@ -94,13 +103,23 @@ function checkObjectStructuralCompatibility(valueStructure, targetStructure, typ
   }
   
   // Check all required properties in target exist in value
-  for (const [key, targetType] of Object.entries(targetStructure)) {
+  for (const [key, targetProp] of Object.entries(targetStructure)) {
+    // Extract type and optional flag from target
+    const targetType = typeof targetProp === 'string' ? targetProp : targetProp.type;
+    const isOptional = typeof targetProp === 'object' && targetProp.optional === true;
+    
     if (!(key in valueStructure)) {
-      errors.push(`Missing property '${key}'`);
+      // Skip error for optional properties
+      if (!isOptional) {
+        errors.push(`Missing property '${key}'`);
+      }
       continue;
     }
     
-    const valueType = valueStructure[key];
+    // Extract type from value (handle both string and object formats)
+    const valueType = typeof valueStructure[key] === 'string' 
+      ? valueStructure[key] 
+      : valueStructure[key].type;
     
     // Check if the property type is compatible
     if (!isTypeCompatible(valueType, targetType, typeAliases)) {
@@ -446,7 +465,13 @@ function parseObjectType(objectTypeNode) {
       if (propertyNode && propertyNode.named && propertyNode.named.key && propertyNode.named.valueType) {
         const key = propertyNode.named.key.value;
         const valueType = parseTypeExpression(propertyNode.named.valueType);
-        props.push(`${key}: ${valueType}`);
+        const isOptional = propertyNode.named.optional ? true : false;
+        
+        if (isOptional) {
+          props.push(`${key}?: ${valueType}`);
+        } else {
+          props.push(`${key}: ${valueType}`);
+        }
       }
       
       // Check for nested object_type_properties
