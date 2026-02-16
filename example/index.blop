@@ -10,6 +10,10 @@ import { saveState } from './services.blop'
 import './style.css' as style
 
 def navigationLinks(state) {
+  def indexPage(e) {
+    state.$.router.go('/')
+    e.preventDefault()
+  }
   def memePage(e) {
     state.$.router.go('/meme')
     e.preventDefault()
@@ -38,7 +42,7 @@ def navigationLinks(state) {
     state.$.router.go('/playground')
     e.preventDefault()
   }
-  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, playgroundPage }
+  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, playgroundPage, indexPage }
 }
 
 // def linkList(state): VNode {
@@ -90,7 +94,7 @@ def navigation(state): VNode {
   }
 
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">
+    <a class="navbar-brand" href="/" on={ click: links.indexPage }>
       <img
         src="/blop/favicon.ico"
         width="37" height="33" class="d-inline-block align-top" alt="" />

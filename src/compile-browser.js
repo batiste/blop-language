@@ -59,7 +59,7 @@ function compile(source, options = {}) {
       inferenceWarnings = inference(tree, stream);
     }
 
-    return { 
+    return {
       code: result.code,
       success: true,
       errors: [],
