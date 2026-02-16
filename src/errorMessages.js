@@ -680,7 +680,7 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
   fullMessage += context;
   
   // Add technical details for debugging (can be disabled in production)
-  if (process.env.BLOP_DEBUG) {
+  // if (process.env.BLOP_DEBUG) {
     const sub_rules = grammar[bestFailure.type][bestFailure.sub_rule_index];
     let rule = '';
     for (let i = 0; i < sub_rules.length; i++) {
@@ -694,11 +694,11 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
         rule += chalk.yellow(`${sr} `);
       }
     }
-    fullMessage += '\n' + chalk.dim('  Technical details:');
-    fullMessage += chalk.dim(`\n  Rule: ${bestFailure.type}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
-    fullMessage += chalk.dim(`\n  Expected: ${rule}`);
-    fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
-  }
+  //   fullMessage += '\n' + chalk.dim('  Technical details:');
+  //   fullMessage += chalk.dim(`\n  Rule: ${bestFailure.type}[${bestFailure.sub_rule_index}][${bestFailure.sub_rule_token_index}]`);
+  //   fullMessage += chalk.dim(`\n  Expected: ${rule}`);
+  //   fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
+  // }
   
   throw new Error(fullMessage);
 }
