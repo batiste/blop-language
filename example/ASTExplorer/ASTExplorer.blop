@@ -184,10 +184,10 @@ def ASTExplorer(_attributes, _children, node): VNode {
             <div style={ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '10px', borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
               for token in tokens {
                 <div style={ marginBottom: '5px' }>
-                  <span style={ color: '#881391', fontWeight: 'bold' }>token.name</span>
+                  <span style={ color: '#881391', fontWeight: 'bold' }>token.type</span>
                   = ': '
-                  <span style={ color: '#1c00cf' }>'\"'token.text'\"'</span>
-                  = ' (pos: 'token.offset')'
+                  <span style={ color: '#1c00cf' }>'\"'token.value'\"'</span>
+                  = ' (pos: 'token.start', line: 'token.line_start')'
                 </div>
               }
             </div>
