@@ -1,71 +1,111 @@
-# The blop language
+# The Blop Language
 
 <img src="/img/blop.png" width="120">
 
-Blop is a language for the Web that can natively generates Virtual DOM trees using a familiar HTML like syntax. The Blop language compiles to ES6 compliant JavaScript. The language is mostly self contained and has very few dependencies.
+**Blop is a modern language for the Web that natively generates Virtual DOM trees using familiar HTML-like syntax.**
 
-Unlike JSX Blop is not limited to expressions and you can use the full power of the language to generate Virtual DOM trees.
-You can mix any statement, expressions, and HTML like syntax within the same function.
-Blop is using [snabbdom](https://github.com/snabbdom/snabbdom/) library to generate the Virtual DOM trees. The language is written using the [Meta Parser Generator](https://github.com/batiste/meta-parser-generator).
+The Blop language compiles to ES6-compliant JavaScript with minimal dependencies. Unlike JSX, Blop is not limited to expressions – you can mix statements, expressions, and HTML-like syntax within the same function, giving you the full power of the language to generate Virtual DOM trees.
 
-The blop runtime also comes with a Component and lifecycle system.
+Blop uses the [snabbdom](https://github.com/snabbdom/snabbdom/) library for Virtual DOM rendering and is built with the [Meta Parser Generator](https://github.com/batiste/meta-parser-generator).
 
-[Example project from this repository](https://batiste.github.io/blop/example/)
+<img src="/img/carbon.png" width="700">
 
-State management and routing can be up to you, but 2 small libraries provide the basics to get started
+## 🚀 Quick Start
 
- * [A state management system based on Proxies](https://github.com/batiste/blop-language/wiki/State-management)
- * [A routing system](https://github.com/batiste/blop-language/wiki/Routing)
- 
- <img src="/img/carbon.png" width="700">
- 
- ## How to get get started
- 
- * [Documentation](https://github.com/batiste/blop-language/wiki)
- * [Install the example application](https://github.com/batiste/blop-language/wiki/Install-the-example-application)
- * [Blop language syntax reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
- * [How do Blop Components work?](https://github.com/batiste/blop-language/wiki/Components)
- * [CLI Usage Guide](docs/CLI_USAGE.md)
+```bash
+# Install Blop
+npm install blop-language
 
-## Language features
+# Or clone and run the example
+git clone https://github.com/batiste/blop-language.git
+cd blop-language
+npm install
+npm start
+```
 
-  * Virtual DOM generation is natively supported by the language.
-  * Fast compilation (+30'000 lines by second).
-  * **Enhanced error messages** with helpful suggestions and quick fixes.
-  * A linter is integrated into the language: no linter debate.
-  * Good integration with Visual Studio Code: linter and syntactic coloration.
-  * Source maps.
-  * Hot module reloading (HMR)
-  * Type annotation with very basic type inference warnings.
-  * Similar syntax and features than ES6.
-  * 100% Vite and Vitest compatible
-  * Very small payload size for Snabbdom and Blop runtime: Parsed size: ~42KB, Gzipped: ~15KB
+**[📖 Quick Start Guide](docs/QUICK_START.md)** · **[🎮 Live Demo](https://batiste.github.io/blop/example/)**
 
-## Language features missing
+## ✨ Example
 
-  * The language is still in beta
-  * Server-Side Rendering (SSR) - removed in v1.1.0 with migration to Vite
+```blop
+import { mount, Component } from 'blop'
 
-## Installation
+// A simple counter component
+Counter = (attributes, children, node) => {
+  { value, setState } = node.useState('count', 0)
+  
+  <div>
+    <h2>'Counter: 'value''</h2>
+    <button on={ click: () => setState(value + 1) }>'Increment'</button>
+    <button on={ click: () => setState(value - 1) }>'Decrement'</button>
+  </div>
+}
 
-    npm install blop-language
+// Mount the app
+{ init } = mount(document.getElementById('app'), () => <Counter />)
+init()
+```
 
-Or if you want to use the development version with examples
+## 📚 Documentation
 
-    git clone this repo
-    npm install
-    npm start
-    open http://localhost:3000
+### Getting Started
+- **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions
+- **[Quick Start](docs/QUICK_START.md)** - Get running in 5 minutes
+- **[Syntax Reference](docs/SYNTAX_REFERENCE.md)** - Complete language syntax
 
-## Command line usage
+### Core Concepts
+- **[Components](docs/COMPONENTS.md)** - Building blocks of Blop applications
+- **[State Management](docs/STATE_MANAGEMENT.md)** - Proxy-based reactive state
+- **[Routing](docs/ROUTING.md)** - Client-side navigation
 
-To convert a single file
+### Advanced Topics
+- **[CLI Usage](docs/CLI_USAGE.md)** - Command-line interface
+- **[Modern JS Features](docs/MODERN_FEATURES.md)** - Spread, optional chaining, nullish coalescing
+- **[Generics](docs/GENERICS_QUICK_REFERENCE.md)** - Generic types and functions
 
-    blop -i input.blop -o output.js
+### For Contributors
+- **[Style Guide](docs/STYLE_GUIDE.md)** - Code standards and best practices
+- **[Error Prioritization](docs/STATISTICAL_ERROR_PRIORITIZATION.md)** - Error message system
 
-## Configure Vite plugin for blop
+**[📂 Browse All Documentation](docs/README.md)**
 
-Add this to your `vite.config.js`
+## ✨ Key Features
+
+### Language Features
+- **Native Virtual DOM** - HTML-like syntax built into the language
+- **Fast Compilation** - Process 30,000+ lines per second
+- **Enhanced Error Messages** - Helpful suggestions and quick fixes
+- **Integrated Linter** - No configuration needed
+- **VSCode Integration** - Syntax highlighting and real-time error checking
+- **Source Maps** - Debug with original source code
+- **Hot Module Reloading (HMR)** - Instant updates during development
+- **Type Annotations** - Optional type checking with inference warnings
+- **Modern JavaScript** - ES6+ syntax with optional chaining, nullish coalescing, spread operators
+- **Component System** - Built-in lifecycle and state management
+- **Generics Support** - Type-safe generic functions and types
+
+### Build & Test
+- **100% Vite Compatible** - Modern build tooling
+- **Vitest Integration** - Fast, modern testing
+- **Small Bundle Size** - ~15KB gzipped (Snabbdom + Blop runtime)
+
+### What's Missing
+- Server-Side Rendering (SSR) - Removed in v1.1.0 with migration to Vite
+- Still in beta - API may change
+
+## 🛠️ Setup
+
+#### Installation
+
+```bash
+npm install blop-language
+```
+
+**[📖 Full Installation Guide](docs/INSTALLATION.md)**
+
+### Vite Configuration
+
+Create or update `vite.config.js`:
 
 ```javascript
 import { defineConfig } from 'vite';
@@ -76,10 +116,11 @@ export default defineConfig({
 });
 ```
 
-## Configure Vitest for blop
+**[📖 More Vite Configuration Options](docs/INSTALLATION.md#setting-up-vite)**
 
-```javascript
-// vitest.config.js
+### Vitest Configuration
+
+Create `vitest.config.js`:
 import { defineConfig } from 'vitest/config';
 import { blopPlugin } from 'blop-language/src/vitest';
 
@@ -90,64 +131,100 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
+  },
 });
-};
 ```
 
-## Install Visual Studio Code extensions
+**[📖 Testing Guide](docs/INSTALLATION.md#setting-up-vitest)**
 
-### Install them though visualstudio marketplace.
+### VSCode Extensions
 
-vscode will prompt you to install the extension when you open a `.blop` file
+Install from the marketplace or via command:
 
-Here is a link to the extensions on the visualstudio marketplace
+```bash
+# If you cloned the repo
+npm run link-extensions
+```
 
- Install the extensions https://marketplace.visualstudio.com/search?term=blop&target=VSCode&category=All%20categories&sortBy=Relevance
+Search for "Blop" in VSCode Extensions for:
+- **Blop Language** - Syntax highlighting
+- **Blop Linter** - Real-time error checking
 
 <img src="/img/extensions.png" width="600">
 
-### Install them through github
+**[📖 Extension Setup Guide](docs/INSTALLATION.md#vscode-extensions)**
 
-If you cloned the repository, it is has simple has creating a symbolic link
-to your `~/.vscode/extensions` directory. This function will do it
-for you:
+## 💻 CLI Usage
 
-    cd blop-language/
-    npm run link-extensions
+Compile a single file:
 
-Relaunch vscode and open a `.blop` file to see if the linter and coloration work
+```bash
+npx blop -i input.blop -o output.js
+```
 
-<img src="/img/example.png" width="600">
+**[📖 Complete CLI Reference](docs/CLI_USAGE.md)**
 
-## Development
+## 🏃 Development
 
-### Building and testing changes
+### Running the Example App
 
-Run tests:
+```bash
+git clone https://github.com/batiste/blop-language.git
+cd blop-language
+npm install
+npm start  # Open http://localhost:3000
+```
 
-    npm test
+### Building and Testing
 
-Build the parser and run tests:
+```bash
+# Run tests
+npm test
 
-    npm run parser
-    npm test
+# Build parser
+npm run parser
 
-### Developing VSCode extensions
+# Build linter extension
+npm run linter
+```
 
-After modifying the linter or syntax highlighter:
+**[📖 Contributing Guide](docs/STYLE_GUIDE.md)**
 
-1. Build the linter extension:
-   ```
-   npm run linter
-   ```
+## 📦 Example Project Structure
 
-2. Reload VSCode to load the updated extension:
-   - Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
-   - Select "Developer: Reload Window"
+```
+my-blop-app/
+├── src/
+│   ├── main.blop          # Entry point
+│   ├── App.blop           # Root component
+│   ├── components/        # Reusable components
+│   ├── lib/               # Utilities (state, router)
+│   └── pages/             # Page components
+├── index.html             # HTML entry
+├── vite.config.js         # Vite configuration
+├── vitest.config.js       # Test configuration
+└── package.json
+```
 
-**Note:** If you have the marketplace versions installed, uninstall them first or remove their directories from `~/.vscode/extensions/` to avoid conflicts with the development versions.
+## 🌟 Links
 
-The `npm run linter` script:
-- Copies necessary source files to the extension directory
-- Installs dependencies
+- **[Live Demo](https://batiste.github.io/blop/example/)** - See Blop in action
+- **[GitHub Repository](https://github.com/batiste/blop-language)** - Source code
+- **[NPM Package](https://www.npmjs.com/package/blop-language)** - Install package
+- **[Documentation](docs/README.md)** - Complete guides
+- **[Issues](https://github.com/batiste/blop-language/issues)** - Bug reports & features
+
+## 📄 License
+
+MIT License - see [LICENSE.txt](LICENSE.txt)
+
+---
+
+## 📝 Note on Documentation
+
+**The documentation has been migrated from the GitHub Wiki to the main repository** (in the `/docs` folder) for better version control, review process, and maintainability. All wiki content has been preserved and enhanced.
+
+If you're looking for older documentation, the wiki is still available but **no longer maintained**: https://github.com/batiste/blop-language/wiki
+
+**Please use the [documentation in the /docs folder](docs/README.md) instead.**
 - Compiles TypeScript code
