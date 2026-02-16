@@ -1,4 +1,4 @@
-module.exports = {
+const properties = {
   'DTRACE_NET_SERVER_CONNECTION': ['length', 'name', 'arguments', 'caller', 'prototype'],
   'DTRACE_NET_STREAM_END': ['length', 'name', 'arguments', 'caller', 'prototype'],
   'DTRACE_HTTP_SERVER_REQUEST': ['length', 'name', 'arguments', 'caller', 'prototype'],
@@ -66,3 +66,5 @@ module.exports = {
   'JSON': ['parse', 'stringify'],
   'console': ['_stdout', '_stderr', '_ignoreErrors', '_times', '_stdoutErrorHandler', '_stderrErrorHandler', 'log', 'debug', 'info', 'dirxml', 'warn', 'error', 'dir', 'time', 'timeEnd', 'timeLog', 'trace', 'assert', 'clear', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'table', 'Console', 'markTimeline', 'profile', 'profileEnd', 'timeline', 'timeline_end', 'timeStamp', 'context'],
 };
+
+export default properties;

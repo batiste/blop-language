@@ -726,6 +726,7 @@ export {
   displayBackendError,
   displayError,
   streamContext,
+  tokenPosition,
   ERROR_PATTERNS,
   RULE_EXPLANATIONS,
   TOKEN_EXPLANATIONS,
