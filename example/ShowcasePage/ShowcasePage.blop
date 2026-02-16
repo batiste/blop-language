@@ -308,7 +308,7 @@ def ShowcasePage(attributes, _children, node): VNode {
           <div class="text-center" style={ marginTop: '3em' }>
             <h3 style={ marginBottom: '1em', color: '#495057' }>'Ready to try it?'</h3>
             <p style={ fontSize: '1.2em', color: '#6c757d', marginBottom: '1.5em' }>
-              'Click the tabs above to see live interactive examples!'
+              = 'Click the tabs above to see live interactive examples!'
             </p>
             <div style={ display: 'flex', gap: '1em', justifyContent: 'center', flexWrap: 'wrap' }>
               <a
