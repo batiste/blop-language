@@ -1,5 +1,3 @@
-import { default as fetch } from 'node-fetch'
-
 async def getMemes(state) {
   state.loading = true
   try {

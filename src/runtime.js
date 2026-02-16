@@ -1,42 +1,11 @@
-const { PATTERNS } = require('./constants');
+// ES module imports
+import { init, h as snabbdomh, toVNode, attributesModule, styleModule, classModule, eventListenersModule } from 'snabbdom';
 
-// Mock Snabbdom for testing environments
-// In production, webpack will bundle the real Snabbdom
-let snabbdomInit, snabbdomh, toVNode, attributesModule, styleModule, classModule, eventListenersModule;
+// Inline pattern for class detection (avoiding constants.js dependency)
+const CLASS_DEFINITION_PATTERN = /^\s*class\s+/;
 
-try {
-  // Try to load Snabbdom (works in webpack/browser)
-  const snabbdom = require('snabbdom');
-  snabbdomInit = snabbdom.init;
-  snabbdomh = snabbdom.h;
-  toVNode = snabbdom.toVNode;
-  attributesModule = snabbdom.attributesModule;
-  styleModule = snabbdom.styleModule;
-  classModule = snabbdom.classModule;
-  eventListenersModule = snabbdom.eventListenersModule;
-} catch (e) {
-  // Snabbdom not available (test environment), use mocks
-  console.warn('[blop-runtime] Snabbdom not available, using mocks');
-  
-  // Mock implementations for testing
-  snabbdomh = (name, attributes, children) => ({
-    sel: name,
-    data: attributes || {},
-    children: children || [],
-    text: undefined,
-    elm: undefined,
-    key: attributes?.key,
-  });
-  
-  toVNode = (elm) => ({ sel: String(elm.tagName).toLowerCase(), data: {}, children: [], elm });
-  
-  snabbdomInit = () => (oldVnode, newVnode) => newVnode;
-  
-  attributesModule = { create: () => {}, update: () => {} };
-  styleModule = { create: () => {}, update: () => {} };
-  classModule = { create: () => {}, update: () => {} };
-  eventListenersModule = { create: () => {}, update: () => {} };
-}
+// Initialize Snabbdom
+const snabbdomInit = init;
 
 // the node being currently rendered
 let currentNode = null;
@@ -232,7 +201,7 @@ class Component {
 }
 
 function isClass(v) {
-  return typeof v === 'function' && PATTERNS.CLASS_DEFINITION.test(v.toString());
+  return typeof v === 'function' && CLASS_DEFINITION_PATTERN.test(v.toString());
 }
 
 function createComponent(ComponentFct, attributes, children, name) {
@@ -395,10 +364,6 @@ function mount(dom, render) {
   return { refresh, init };
 }
 
-module.exports = {
-  h,
-  patch,
-  mount,
-  c: createComponent,
-  Component,
-};
+// ES module exports
+export { h, patch, mount, Component };
+export const c = createComponent;

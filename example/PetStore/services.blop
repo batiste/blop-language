@@ -1,5 +1,3 @@
-import { default as fetch } from 'node-fetch'
-
 async def findAvailablePets(state, controller) {
   state.loading = true
   signal = controller?.signal

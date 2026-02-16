@@ -27,15 +27,15 @@ function blopPlugin(options = {}) {
         const result = compileSource.call(
           { resourcePath: id },
           code,
-          'webpack', // Use webpack mode for consistency
+          'vite', // Use vite mode for ES modules
           id,
-          false, // No source maps in dev (Vite handles this)
+          true, // Enable source maps
           false  // No resolve
         );
 
         return {
           code: result.code,
-          map: null, // Let Vite handle source maps
+          map: result.map || null, // Pass source map to Vite
         };
       } catch (error) {
         this.error(error.message);

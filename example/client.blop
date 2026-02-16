@@ -50,10 +50,3 @@ proxiedState.$.listen((path) => {
     refreshCallback(time, path)
   })
 })
-
-// Hot module reloading hook
-if (module && module.hot) {
-  module.hot.accept((e) => {
-    console.warn(e)
-  })
-}
