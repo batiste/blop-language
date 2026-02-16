@@ -38,7 +38,7 @@ def navigationLinks(state) {
     state.$.router.go('/playground')
     e.preventDefault()
   }
-  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
+  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, playgroundPage }
 }
 
 // def linkList(state): VNode {
