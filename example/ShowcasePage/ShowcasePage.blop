@@ -172,7 +172,7 @@ def ConditionalDemo(_attributes, _children, node): VNode {
     <div style={ marginTop: '2em' }>
       <h5 class="text-center" style={ marginBottom: '1em' }>'Select your mood:'</h5>
       <div style={ display: 'flex', gap: '0.5em', justifyContent: 'center', flexWrap: 'wrap' }>
-        for m in moods {
+        for m in moods: array {
           isActive = m == mood
           btnClass := 'btn btn-outline-primary'
           if isActive {
@@ -231,7 +231,7 @@ def ShowcasePage(attributes, _children, node): VNode {
         { id: 'comparison', label: '⚖️ Blop vs JSX' }
       ]
       
-      for tab in tabs {
+      for tab in tabs: array {
         isActive = tab.id == activeTab
         linkClass = 'nav-link'
         if isActive {
@@ -515,8 +515,8 @@ def ShowcasePage(attributes, _children, node): VNode {
   }
 </ul>
 
-// Works with any iterable
-for key, value in myMap: map {
+// Object iteration (no annotation)
+for key, value in myObject {
   <div>key = ': ' value</div>
 }" />
               </div>
