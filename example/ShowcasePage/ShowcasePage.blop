@@ -1,5 +1,40 @@
 // ShowcasePage - Interactive demonstration of Blop's strengths
 
+// Code Display Component
+def CodeBlock(attributes, _children): VNode {
+  { code, title } = attributes
+  
+  borderRadius = '6px'
+  if title {
+    borderRadius := '0 0 6px 6px'
+  }
+  
+  <div class="code-block" style={ marginTop: '1em' }>
+    if title {
+      <div style={
+        backgroundColor: '#2d3748',
+        color: '#e2e8f0',
+        padding: '0.75em 1em',
+        fontWeight: 'bold',
+        borderRadius: '6px 6px 0 0',
+        fontSize: '0.9em'
+      }>
+        = title
+      </div>
+    }
+    <pre style={
+      backgroundColor: '#1a202c',
+      color: '#e2e8f0',
+      padding: '1.5em',
+      borderRadius,
+      overflow: 'auto',
+      margin: '0',
+      fontSize: '0.9em',
+      lineHeight: '1.6'
+    }><code>code</code></pre>
+  </div>
+}
+
 // Feature cards showing key advantages
 def FeatureCard(attributes, children): VNode {
   { icon, title, color } = attributes
@@ -192,7 +227,8 @@ def ShowcasePage(attributes, _children, node): VNode {
         { id: 'overview', label: '🚀 Overview' },
         { id: 'counter', label: '🔢 Counter' },
         { id: 'loops', label: '🔁 For Loops' },
-        { id: 'conditionals', label: '❓ Conditionals' }
+        { id: 'conditionals', label: '❓ Conditionals' },
+        { id: 'comparison', label: '⚖️ Blop vs JSX' }
       ]
       
       for tab in tabs {
@@ -303,9 +339,42 @@ def ShowcasePage(attributes, _children, node): VNode {
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
             = 'Simple, reactive state management with node.useState()'
           </p>
-          <div class="card">
-            <div class="card-body">
-              <CounterDemo />
+          
+          <div class="row">
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
+              <CodeBlock
+                title="CounterDemo.blop"
+                code="def CounterDemo(_attributes, _children, node): VNode {
+  { value as count, setState } = node.useState('count', 0)
+  
+  <div style={ textAlign: 'center', padding: '2em' }>
+    <h2 style={ fontSize: '4em' }>count</h2>
+    <div style={ display: 'flex', gap: '1em', justifyContent: 'center' }>
+      <button class=\"btn btn-primary btn-lg\"
+        on={ click: () => setState(count + 1) }>
+        = '+ Increment'
+      </button>
+      <button class=\"btn btn-danger btn-lg\"
+        on={ click: () => setState(count - 1) }>
+        = '- Decrement'
+      </button>
+      <button class=\"btn btn-secondary btn-lg\"
+        on={ click: () => setState(0) }>
+        = '↻ Reset'
+      </button>
+    </div>
+  </div>
+}" />
+            </div>
+            
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#28a745' }>'▶️ Live Demo'</h4>
+              <div class="card">
+                <div class="card-body">
+                  <CounterDemo />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -317,9 +386,56 @@ def ShowcasePage(attributes, _children, node): VNode {
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
             = 'No .map() needed - use real for loops directly in your markup!'
           </p>
-          <div class="card">
-            <div class="card-body">
-              <ListDemo />
+          
+          <div class="row">
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
+              <CodeBlock
+                title="ListDemo.blop"
+                code="def ListDemo(_attributes, _children, node): VNode {
+  { value as items, setState } = node.useState('items', 
+    ['Apple', 'Banana', 'Cherry'])
+  
+  def addItem() {
+    itemNumber = items.length + 1
+    newItems = [...items, 'Item #'itemNumber'']
+    setState(newItems)
+  }
+  
+  def removeItem(index: number) {
+    return () => {
+      newItems = items.filter((_, i) => i != index)
+      setState(newItems)
+    }
+  }
+  
+  <div style={ padding: '1em' }>
+    <button class=\"btn btn-success\" on={ click: addItem }>
+      = '➕ Add Item'
+    </button>
+    
+    <ul class=\"list-group\">
+      for index, item in items: array {
+        itemNumber = index + 1
+        <li class=\"list-group-item\">
+          <strong>'#'itemNumber''</strong> = ' 'item''
+          <button on={ click: removeItem(index) }>
+            = '✕ Remove'
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}" />
+            </div>
+            
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#28a745' }>'▶️ Live Demo'</h4>
+              <div class="card">
+                <div class="card-body">
+                  <ListDemo />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -331,10 +447,226 @@ def ShowcasePage(attributes, _children, node): VNode {
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
             = 'Use real if/else statements - no ternary operators required!'
           </p>
-          <div class="card">
-            <div class="card-body">
-              <ConditionalDemo />
+          
+          <div class="row">
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
+              <CodeBlock
+                title="ConditionalDemo.blop"
+                code="def ConditionalDemo(_attributes, _children, node): VNode {
+  { value as visible, setState as setVisible } = 
+    node.useState('visible', true)
+  
+  <div style={ padding: '1em' }>
+    // Simple if/else for button class and text
+    btnClass = 'btn btn-lg btn-danger'
+    btnText = '👁️ Hide Message'
+    if !visible {
+      btnClass := 'btn btn-lg btn-success'
+      btnText := '👁️‍🗨️ Show Message'
+    }
+    
+    <button class=btnClass on={ click: () => setVisible(!visible) }>
+      = btnText
+    </button>
+    
+    // Conditional rendering - so simple!
+    if visible {
+      <div class=\"alert alert-success\">
+        <strong>'🎯 Visible!!'</strong>
+        <p>'You can use if statements directly!'</p>
+      </div>
+    }
+  </div>
+}" />
             </div>
+            
+            <div class="col-lg-6">
+              <h4 style={ marginBottom: '1em', color: '#28a745' }>'▶️ Live Demo'</h4>
+              <div class="card">
+                <div class="card-body">
+                  <ConditionalDemo />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      } elseif activeTab == 'comparison' {
+        <div>
+          <h2 class="text-center" style={ marginBottom: '1em', color: '#495057' }>
+            = '⚖️ Blop vs React/JSX'
+          </h2>
+          <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
+            = 'See the difference - real statements vs JSX limitations'
+          </p>
+          
+          // For Loop Comparison
+          <div style={ marginBottom: '3em' }>
+            <h4 style={ color: '#6f42c1', marginBottom: '1.5em' }>'🔁 For Loops'</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Natural For Loops'</h5>
+                <CodeBlock code="<ul>
+  for index, item in items: array {
+    <li>
+      <strong>'#'index''</strong>
+      = ' 'item.name''
+    </li>
+  }
+</ul>
+
+// Works with any iterable
+for key, value in myMap: map {
+  <div>key = ': ' value</div>
+}" />
+              </div>
+              <div class="col-md-6">
+                <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - Must Use .map()'</h5>
+                <CodeBlock code="<ul>
+  {items.map((item, index) => (
+    <li key={index}>
+      <strong>#{index}</strong>
+      {' ' + item.name}
+    </li>
+  ))}
+</ul>
+
+// Always need callbacks
+{Array.from(myMap).map(([key, value]) => (
+  <div key={key}>{key}: {value}</div>
+))}" />
+              </div>
+            </div>
+          </div>
+          
+          // Conditionals Comparison
+          <div style={ marginBottom: '3em' }>
+            <h4 style={ color: '#6f42c1', marginBottom: '1.5em' }>'❓ Conditionals & Variables'</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Real If/Else'</h5>
+                <CodeBlock code="<div>
+  // Declare variables anywhere
+  userName = user?.name ?? 'Guest'
+  isAdmin = user?.role == 'admin'
+  
+  <h1>'Welcome, 'userName'!'</h1>
+  
+  // Natural if/elseif/else
+  if isAdmin {
+    <div class=\"admin-panel\">
+      = 'Admin controls'
+    </div>
+  } elseif user?.role == 'moderator' {
+    <div class=\"mod-panel\">
+      = 'Moderator controls'
+    </div>
+  } else {
+    <div class=\"user-panel\">
+      = 'User controls'
+    </div>
+  }
+</div>" />
+              </div>
+              <div class="col-md-6">
+                <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - Ternaries & Logic'</h5>
+                <CodeBlock code="<div>
+  {/* Variables must be declared outside JSX */}
+  {(() => {
+    const userName = user?.name ?? 'Guest';
+    const isAdmin = user?.role === 'admin';
+    
+    return (
+      <>
+        <h1>Welcome, {userName}!</h1>
+        
+        {/* Nested ternaries get messy */}
+        {isAdmin ? (
+          <div className=\"admin-panel\">
+            Admin controls
+          </div>
+        ) : user?.role === 'moderator' ? (
+          <div className=\"mod-panel\">
+            Moderator controls
+          </div>
+        ) : (
+          <div className=\"user-panel\">
+            User controls
+          </div>
+        )}
+      </>
+    );
+  })()}
+</div>" />
+              </div>
+            </div>
+          </div>
+          
+          // Component Definition Comparison
+          <div style={ marginBottom: '3em' }>
+            <h4 style={ color: '#6f42c1', marginBottom: '1.5em' }>'🏗️ Component Definition'</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
+                <CodeBlock code="def TodoItem(attributes, _children, node): VNode {
+  { todo } = attributes
+  { value as done, setState } = node.useState('done', false)
+  
+  classes = 'todo-item'
+  if done {
+    classes := 'todo-item completed'
+  }
+  
+  <li class=classes on={ click: () => setState(!done) }>
+    <span>todo.title</span>
+    if done {
+      <span class=\"check\">'✓'</span>
+    }
+  </li>
+}
+
+// No return needed!
+// No wrapping parens!
+// Just write your markup!" />
+              </div>
+              <div class="col-md-6">
+                <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - More Boilerplate'</h5>
+                <CodeBlock code="function TodoItem({ todo }) {
+  const [done, setDone] = useState(false);
+  
+  let classes = 'todo-item';
+  if (done) {
+    classes = 'todo-item completed';
+  }
+  
+  return ( // Explicit return needed
+    <li 
+      className={classes} 
+      onClick={() => setDone(!done)}
+    >
+      <span>{todo.title}</span>
+      {done && (
+        <span className=\"check\">✓</span>
+      )}
+    </li>
+  ); // Semicolon and closing paren
+}
+
+// Must return JSX
+// Wrapped in parentheses
+// More ceremony overall" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="alert alert-info text-center" style={ fontSize: '1.2em', padding: '2em' }>
+            <h4 style={ marginBottom: '1em' }>'💡 The Blop Advantage'</h4>
+            <p style={ marginBottom: '0.5em' }>
+              'Blop gives you the power of real programming constructs in your templates.'
+            </p>
+            <p style={ marginBottom: '0' }>
+              = 'No more fighting with JSX limitations or awkward workarounds!'
+            </p>
           </div>
         </div>
       }
