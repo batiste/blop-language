@@ -418,7 +418,8 @@ def ShowcasePage(attributes, _children, node): VNode {
       for index, item in items: array {
         itemNumber = index + 1
         <li class=\"list-group-item\">
-          <strong>'#'itemNumber</strong> = ' 'item
+          <strong>'#'itemNumber</strong>
+          ' 'item
           <button on={ click: removeItem(index) }>
             '✕ Remove'
           </button>
