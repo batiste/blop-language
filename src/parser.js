@@ -9543,22 +9543,24 @@ function tokenize(tokenDef, input) {
   return stream;
 }
 
-module.exports = {
-  parse: (stream) => {
-    best_failure = null;
-    best_failure_index = 0;
-    best_failure_array = [];
-    cache = {};
-    cacheR = {};
-    const result = START(stream, 0);
-    if (!result) {
-      return {
-        success: false,
-        primary_failure: best_failure,
-        all_failures: best_failure_array,
-      }
+const parse = (stream) => {
+  best_failure = null;
+  best_failure_index = 0;
+  best_failure_array = [];
+  cache = {};
+  cacheR = {};
+  const result = START(stream, 0);
+  if (!result) {
+    return {
+      success: false,
+      primary_failure: best_failure,
+      all_failures: best_failure_array,
     }
-    return result;
-  },
+  }
+  return result;
+};
+
+export default {
+  parse,
   tokenize,
 };

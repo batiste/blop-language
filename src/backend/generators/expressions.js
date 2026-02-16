@@ -1,4 +1,4 @@
-const { OPERATORS, SCOPE_TYPES } = require('../../constants');
+import { OPERATORS, SCOPE_TYPES } from '../../constants.js';
 
 function createExpressionGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;
@@ -151,6 +151,6 @@ function createExpressionGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createExpressionGenerators,
 };

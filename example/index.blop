@@ -5,6 +5,7 @@ import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { CounterPage } from './ComponentState/ComponentStatePage.blop'
 import { FetchPage } from './FetchPage/FetchPage.blop'
 import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
+import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
 import { saveState } from './services.blop'
 import './style.css' as style
 
@@ -33,6 +34,10 @@ def navigationLinks(state) {
     state.$.router.go('/fetch')
     e.preventDefault()
   }
+  // def playgroundPage(e) {
+  //   state.$.router.go('/playground')
+  //   e.preventDefault()
+  // }
   // def showcasePage(e) {
   //   state.$.router.go('/showcase')
   //   e.preventDefault()
@@ -103,6 +108,7 @@ def navigation(state): VNode {
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         // = navItem('showcase', links.showcasePage, '✨ Why Blop?')
+        = navItem('playground', links.playgroundPage, '🎮 Playground')
         = navItem('dog', links.dogPage, 'Breed game')
         = navItem('petstore', links.petStorePage, 'Pet store')
         = navItem('meme', links.memePage, 'Memes')
@@ -144,6 +150,8 @@ Index = (state): VNode => {
       // </h1>
       if state.page == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
+      } elseif state.page == 'playground' {
+        <PlaygroundPage state=state></PlaygroundPage>
       } elseif state.page == 'dog' {
         <DogPage state=state></DogPage>
       } elseif state.page == 'meme' {

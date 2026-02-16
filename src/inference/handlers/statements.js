@@ -2,9 +2,9 @@
 // Statement Handlers - Type inference for statements
 // ============================================================================
 
-const { resolveTypes, pushToParent, visitChildren, visit } = require('../visitor');
-const { getAnnotationType, parseTypeExpression, parseGenericParams } = require('../typeSystem');
-const { detectTypeofCheck, applyNarrowing, applyExclusion } = require('../typeGuards');
+import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
+import { detectTypeofCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
 
 function createStatementHandlers(getState) {
   return {
@@ -250,4 +250,4 @@ function createStatementHandlers(getState) {
   };
 }
 
-module.exports = createStatementHandlers;
+export default createStatementHandlers;

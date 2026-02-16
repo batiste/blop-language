@@ -5,7 +5,7 @@
  * with helpful suggestions and quick fixes.
  */
 
-const chalk = require('chalk');
+import chalk from 'chalk';
 
 /**
  * Grammar rule explanations - maps technical rule names to user-friendly descriptions
@@ -596,7 +596,7 @@ function formatEnhancedError(errorParts, positions, forEditor = false) {
   return message;
 }
 
-module.exports = {
+export {
   enhanceErrorMessage,
   formatEnhancedError,
   ERROR_PATTERNS,

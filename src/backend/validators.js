@@ -1,10 +1,14 @@
-const path = require('path');
-const fs = require('fs');
-const parser = require('../parser');
-const { tokensDefinition } = require('../tokensDefinition');
-const utils = require('../utils');
-const { all } = require('../builtin');
-const { ERROR_MESSAGES } = require('../constants');
+import path from 'path';
+import fs from 'fs';
+import { createRequire } from 'module';
+import parser from '../parser.js';
+import { tokensDefinition } from '../tokensDefinition.js';
+import utils from '../utils.js';
+import { all } from '../builtin.js';
+import { ERROR_MESSAGES } from '../constants.js';
+
+// Create a require function for module resolution in ESM environment
+const require = createRequire(import.meta.url);
 
 function createValidators(context) {
   const { scopes, stream, input, checkFilename, config, keysCache, errors, warnings } = context;
@@ -41,8 +45,8 @@ function createValidators(context) {
       if (upperScopeNode) {
         const { token } = upperScopeNode;
         const redefinedBy = stream[node.stream_index];
-        const sourceContext = utils.streamContext(input, token, token, stream);
-        const redefineContext = utils.streamContext(input, redefinedBy, redefinedBy, stream);
+        const sourceContext = streamContext(input, token, token, stream);
+        const redefineContext = streamContext(input, redefinedBy, redefinedBy, stream);
         const error = new Error(`Redefinition of ${name} within this scope. Use explicit := or rename ${name}
         ${sourceContext}
 
@@ -150,6 +154,6 @@ function createValidators(context) {
   };
 }
 
-module.exports = {
+export {
   createValidators,
 };

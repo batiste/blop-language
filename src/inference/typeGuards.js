@@ -2,7 +2,7 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-const { narrowType, excludeType } = require('./typeSystem');
+import { narrowType, excludeType } from './typeSystem.js';
 
 /**
  * Detect typeof checks in expressions
@@ -102,7 +102,7 @@ function applyExclusion(scope, variable, excludedType, lookupVariable) {
   }
 }
 
-module.exports = {
+export {
   detectTypeofCheck,
   applyNarrowing,
   applyExclusion,

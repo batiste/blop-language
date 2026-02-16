@@ -1,8 +1,11 @@
-const path = require('path');
-const fs = require('fs');
-const chalk = require('chalk');
-const { PATHS, PATTERNS } = require('./constants');
-const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
+import path from 'path';
+import fs from 'fs';
+import chalk from 'chalk';
+import { createRequire } from 'module';
+import { PATHS, PATTERNS } from './constants.js';
+import { enhanceErrorMessage, formatEnhancedError } from './errorMessages.js';
+
+const require = createRequire(import.meta.url);
 
 function replaceInvisibleChars(v) {
   v = v.replace(PATTERNS.INVISIBLE_CHARS.CARRIAGE_RETURN, '⏎\r');
@@ -162,7 +165,17 @@ function getConfig(filename) {
   return require(config);
 }
 
-module.exports = {
+export {
+  getConfig,
+  lookUp,
+  streamContext,
+  displayError,
+  displayBackendError,
+  printTree,
+  tokenPosition,
+};
+
+export default {
   getConfig,
   lookUp,
   streamContext,

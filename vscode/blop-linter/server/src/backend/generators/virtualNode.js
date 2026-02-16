@@ -1,4 +1,4 @@
-const { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, PATTERNS } = require('../../constants');
+import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, PATTERNS } from '../../constants';
 
 function createVirtualNodeGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;

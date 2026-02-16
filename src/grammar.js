@@ -319,6 +319,6 @@ const grammar = {
   ],
 };
 
-module.exports = {
+export {
   grammar,
 };

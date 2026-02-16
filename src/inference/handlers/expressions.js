@@ -2,9 +2,9 @@
 // Expression Handlers - Type inference for expressions
 // ============================================================================
 
-const { visitChildren, resolveTypes, pushToParent } = require('../visitor');
-const { inferGenericArguments, substituteType, parseTypeExpression } = require('../typeSystem');
-const TypeChecker = require('../typeChecker');
+import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
+import { inferGenericArguments, substituteType, parseTypeExpression } from '../typeSystem.js';
+import TypeChecker from '../typeChecker.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -188,4 +188,4 @@ function createExpressionHandlers(getState) {
   };
 }
 
-module.exports = createExpressionHandlers;
+export default createExpressionHandlers;

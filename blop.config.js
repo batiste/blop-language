@@ -1,5 +1,5 @@
 
-module.exports = {
+export default {
   'globals': {
     'window': true,
     'global': true,
@@ -11,4 +11,4 @@ module.exports = {
   },
   strictness: 'perfect', // will refuse to compile with a warning
   inference: true,
-};
+}

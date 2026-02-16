@@ -1,4 +1,4 @@
-const { compileSource } = require('../compile');
+import { compileSource } from '../compile.js';
 
 /**
  * Remove leading indentation from code string
@@ -28,7 +28,13 @@ function expectCompiles(source, filename = 'test.blop') {
 
   const code = dedent(source);
   try {
-    compileSource(code, 'node', filename, false, false, true); // Enable inference
+    const result = compileSource(code, filename, true); // Enable inference
+    if (!result.success) {
+      const errorMsg = result.errors.length > 0 
+        ? result.errors[0].message || 'Compilation failed'
+        : 'Compilation failed';
+      throw new Error(`Expected code to compile but got error: ${errorMsg}`);
+    }
     return true;
   } catch (error) {
     throw new Error(`Expected code to compile but got error: ${error.message}`);
@@ -41,9 +47,36 @@ function expectCompiles(source, filename = 'test.blop') {
 function expectCompilationError(source, expectedErrorPattern, filename = 'test.blop') {
   const code = dedent(source);
   try {
-    compileSource(code, 'node', filename, false, false, true); // Enable inference
-    throw new Error('Expected compilation to fail but it succeeded');
+    const result = compileSource(code, filename, true); // Enable inference
+    if (result.success) {
+      throw new Error('Expected compilation to fail but it succeeded');
+    }
+    // Check if error matches expected pattern
+    const errorMsg = result.errors.length > 0 
+      ? result.errors[0].message || ''
+      : '';
+    
+    if (expectedErrorPattern) {
+      if (typeof expectedErrorPattern === 'string') {
+        if (!errorMsg.includes(expectedErrorPattern)) {
+          throw new Error(
+            `Expected error containing "${expectedErrorPattern}" but got: ${errorMsg}`
+          );
+        }
+      } else if (expectedErrorPattern instanceof RegExp) {
+        if (!expectedErrorPattern.test(errorMsg)) {
+          throw new Error(
+            `Expected error matching ${expectedErrorPattern} but got: ${errorMsg}`
+          );
+        }
+      }
+    }
+    return errorMsg;
   } catch (error) {
+    if (error.message.startsWith('Expected error') || error.message === 'Expected compilation to fail but it succeeded') {
+      throw error;
+    }
+    // If we caught a compilation error, check if it matches
     if (expectedErrorPattern) {
       if (typeof expectedErrorPattern === 'string') {
         if (!error.message.includes(expectedErrorPattern)) {
@@ -63,7 +96,7 @@ function expectCompilationError(source, expectedErrorPattern, filename = 'test.b
   }
 }
 
-module.exports = {
+export {
   expectCompiles,
   expectCompilationError,
 };

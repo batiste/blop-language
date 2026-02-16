@@ -45,6 +45,11 @@ def showcasePageHandler(params, state) {
   console.log('showcasePageHandler called with', params)
 }
 
+def playgroundPageHandler(params, state) {
+  state.page = 'playground'
+  console.log('playgroundPageHandler called with', params)
+}
+
 def createRouter(state, global) {
   router = new Router(null, state, global)
 
@@ -55,6 +60,7 @@ def createRouter(state, global) {
   router.add({ path: '/petstore', name: 'petstore', handler: petStorePageIndexHandler })
   router.add({ path: '/state', name: 'componentstate', handler: statePageHandler })
   router.add({ path: '/showcase', name: 'showcase', handler: showcasePageHandler })
+  router.add({ path: '/playground', name: 'playground', handler: playgroundPageHandler })
   router.add({ path: '/fetch', name: 'fetch', handler: () => {
     state.page = 'fetch'
     console.log('fetch called')

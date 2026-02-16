@@ -1,4 +1,4 @@
-const { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES } = require('../../constants');
+import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES } from '../../constants';
 
 function createFunctionGenerators(context) {
   const { generateCode, validators, scopes } = context;

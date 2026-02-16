@@ -104,6 +104,6 @@ function createLiteralGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createLiteralGenerators,
 };

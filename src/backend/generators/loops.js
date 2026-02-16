@@ -1,4 +1,4 @@
-const { SCOPE_TYPES } = require('../../constants');
+import { SCOPE_TYPES } from '../../constants.js';
 
 function createLoopGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;
@@ -96,6 +96,6 @@ function createLoopGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createLoopGenerators,
 };
