@@ -33,40 +33,40 @@ def navigationLinks(state) {
     state.$.router.go('/fetch')
     e.preventDefault()
   }
-  def showcasePage(e) {
-    state.$.router.go('/showcase')
-    e.preventDefault()
-  }
-  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, showcasePage }
+  // def showcasePage(e) {
+  //   state.$.router.go('/showcase')
+  //   e.preventDefault()
+  // }
+  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
 }
 
-def linkList(state): VNode {
-  links = navigationLinks(state)
-  <div>
-    <p>
-      <a href="/showcase" on={ click: links.showcasePage } style={ fontSize: '1.2em', fontWeight: 'bold' }>'✨ Why Blop? (Showcase)'</a>
-    </p>
-    <hr />
-    <p>
-      <a href="/dog" on={ click: links.dogPage }>'Dog breed guessing game'</a>
-    </p>
-    <p>
-      <a href="/petstore" on={ click: links.petStorePage }>'A pet store'</a>
-    </p>
-    <p>
-      <a href="/meme" on={ click: links.memePage }>'Blank meme page'</a>
-    </p>
-    <p>
-      <a href="/todo" on={ click: links.todoPage }>'A basic todo app'</a>
-    </p>
-    <p>
-      <a href="/state" on={ click: links.statePage }>'Component state'</a>
-    </p>
-    <p>
-      <a href="/fetch" on={ click: links.fetchPage }>'Fetch state'</a>
-    </p>
-  </div>
-}
+// def linkList(state): VNode {
+//   links = navigationLinks(state)
+//   <div>
+//     <p>
+//       <a href="/showcase" on={ click: links.showcasePage } style={ fontSize: '1.2em', fontWeight: 'bold' }>'✨ Why Blop? (Showcase)'</a>
+//     </p>
+//     <hr />
+//     <p>
+//       <a href="/dog" on={ click: links.dogPage }>'Dog breed guessing game'</a>
+//     </p>
+//     <p>
+//       <a href="/petstore" on={ click: links.petStorePage }>'A pet store'</a>
+//     </p>
+//     <p>
+//       <a href="/meme" on={ click: links.memePage }>'Blank meme page'</a>
+//     </p>
+//     <p>
+//       <a href="/todo" on={ click: links.todoPage }>'A basic todo app'</a>
+//     </p>
+//     <p>
+//       <a href="/state" on={ click: links.statePage }>'Component state'</a>
+//     </p>
+//     <p>
+//       <a href="/fetch" on={ click: links.fetchPage }>'Fetch state'</a>
+//     </p>
+//   </div>
+// }
 
 def navigation(state): VNode {
   links = navigationLinks(state)
@@ -102,7 +102,7 @@ def navigation(state): VNode {
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        = navItem('showcase', links.showcasePage, '✨ Why Blop?')
+        // = navItem('showcase', links.showcasePage, '✨ Why Blop?')
         = navItem('dog', links.dogPage, 'Breed game')
         = navItem('petstore', links.petStorePage, 'Pet store')
         = navItem('meme', links.memePage, 'Memes')
@@ -139,9 +139,9 @@ Index = (state): VNode => {
   <div>
     = navigation(state)
     <div class=''style.container' container'>
-      <h1>
-        <b>state.page</b>
-      </h1>
+      // <h1>
+      //   <b>state.page</b>
+      // </h1>
       if state.page == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
       } elseif state.page == 'dog' {
@@ -157,7 +157,7 @@ Index = (state): VNode => {
       } elseif state.page == 'fetch' {
         <FetchPage state=state></FetchPage>
       } else {
-        = linkList(state)
+        <ShowcasePage state=state></ShowcasePage>
       }
     </div>
   </div>

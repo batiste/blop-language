@@ -115,17 +115,12 @@ def ConditionalDemo(_attributes, _children, node): VNode {
       
       btnClass = 'btn btn-lg btn-danger'
       btnText = '👁️ Hide Message'
-      console.log('Visible state is', visible)
       if !visible {
         btnClass := 'btn btn-lg btn-success'
         btnText := '👁️‍🗨️ Show Message'
       }
       
-      <button class=btnClass on={ click: () => {
-        setVisible(false)
-        console.log('Setting visible to false')
-       }
-    }>
+      <button class=btnClass on={ click: () => setVisible(!visible) }>
         = btnText
       </button>
     </div>

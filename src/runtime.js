@@ -111,7 +111,7 @@ class Component {
   }
 
   useState(name, initialValue) {
-    this.state[name] = this.state[name] || initialValue;
+    this.state[name] = this.state[name] ?? initialValue;
     const value = this.state[name];
     const setState = (newState) => {
       this.state[name] = newState;
