@@ -1,0 +1,17 @@
+// Test simplified string interpolation syntax
+
+def simplifiedSyntax() {
+  index = 5
+  username = 'Alice'
+  
+  result1 = '#'index
+  result2 = username' welcome!'
+  result3 = 'Hello 'username', you are user #'index
+  
+  return result1 + result2 + result3
+}
+
+test('simplified string interpolation syntax', () => {
+  result = simplifiedSyntax()
+  expect(result).toBe('#5Alice welcome!Hello Alice, you are user #5')
+})

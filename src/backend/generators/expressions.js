@@ -1,7 +1,7 @@
-const { OPERATORS } = require('../../constants');
+const { OPERATORS, SCOPE_TYPES } = require('../../constants');
 
 function createExpressionGenerators(context) {
-  const { generateCode, validators } = context;
+  const { generateCode, validators, scopes, uid } = context;
   const { shouldBeDefined } = validators;
 
   return {
@@ -110,10 +110,42 @@ function createExpressionGenerators(context) {
     },
     'exp_statement': (node) => {
       const output = [];
-      for (let i = 0; i < node.children.length; i++) {
-        output.push(...generateCode(node.children[i]));
+      
+      // Check if we're inside a virtual node and if the expression is a string
+      const currentVNodeScope = scopes.type(SCOPE_TYPES.VIRTUAL_NODE);
+      const parent = currentVNodeScope ? currentVNodeScope.__currentVNode : null;
+      
+      // Find if this is a string literal or string interpolation
+      let isString = false;
+      if (node.children.length > 0) {
+        const expNode = node.children.find(c => c.type === 'exp');
+        if (expNode && expNode.children.length > 0) {
+          const firstChild = expNode.children[0];
+          if (firstChild.type === 'str' || firstChild.type === 'str_expression') {
+            isString = true;
+          }
+        }
       }
-      output.push(';');
+      
+      // If inside a virtual node and it's a string, auto-add it to children
+      if (parent && isString) {
+        const scope = scopes.type(SCOPE_TYPES.FUNCTION);
+        const a_uid = uid();
+        // Register for hoisting at function level so variable is declared
+        scope.names[a_uid] = { node, token: node, hoist: true };
+        output.push(`${a_uid} = `);
+        for (let i = 0; i < node.children.length; i++) {
+          output.push(...generateCode(node.children[i]));
+        }
+        output.push(`; Array.isArray(${a_uid}) ? ${parent}c.push(...${a_uid}) : ${parent}c.push(${a_uid}); `);
+      } else {
+        // Normal expression statement
+        for (let i = 0; i < node.children.length; i++) {
+          output.push(...generateCode(node.children[i]));
+        }
+        output.push(';');
+      }
+      
       return output;
     },
   };

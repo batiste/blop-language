@@ -65,17 +65,17 @@ def CounterDemo(_attributes, _children, node): VNode {
       <button
         class="btn btn-primary btn-lg"
         on={ click: () => setState(count + 1) }>
-        = '+ Increment'
+        '+ Increment'
       </button>
       <button
         class="btn btn-danger btn-lg"
         on={ click: () => setState(count - 1) }>
-        = '- Decrement'
+        '- Decrement'
       </button>
       <button
         class="btn btn-secondary btn-lg"
         on={ click: () => setState(0) }>
-        = '↻ Reset'
+        '↻ Reset'
       </button>
     </div>
   </div>
@@ -101,10 +101,10 @@ def ListDemo(_attributes, _children, node): VNode {
   <div style={ padding: '1em' }>
     <div style={ marginBottom: '1.5em', textAlign: 'center' }>
       <p style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '1em' }>
-        = 'Using real for loops directly in templates - no map() needed!'
+        'Using real for loops directly in templates - no map() needed!'
       </p>
       <button class="btn btn-success btn-lg" on={ click: addItem }>
-        = '➕ Add Item'
+        '➕ Add Item'
       </button>
     </div>
     
@@ -114,12 +114,12 @@ def ListDemo(_attributes, _children, node): VNode {
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span style={ fontSize: '1.1em' }>
             <strong style={ color: '#0d6efd' }>'#'itemNumber</strong>
-            = ' 'item
+            ' 'item
           </span>
           <button
             class="btn btn-sm btn-outline-danger"
             on={ click: removeItem(index) }>
-            = '✕ Remove'
+            '✕ Remove'
           </button>
         </li>
       }
@@ -128,7 +128,7 @@ def ListDemo(_attributes, _children, node): VNode {
     if items.length == 0 {
       <div class="alert alert-info text-center" style={ marginTop: '1.5em', fontSize: '1.1em' }>
         <strong>'🎯 List is empty!'</strong>
-        = ' Click "Add Item" to start'
+        ' Click "Add Item" to start'
       </div>
     }
   </div>
@@ -145,7 +145,7 @@ def ConditionalDemo(_attributes, _children, node): VNode {
   <div style={ padding: '1em' }>
     <div style={ marginBottom: '2em', textAlign: 'center' }>
       <p style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '1em' }>
-        = 'Use if/else statements directly - no ternary operators needed!'
+        'Use if/else statements directly - no ternary operators needed!'
       </p>
       
       btnClass = 'btn btn-lg btn-danger'
@@ -164,7 +164,7 @@ def ConditionalDemo(_attributes, _children, node): VNode {
       <div class="alert alert-success text-center" style={ fontSize: '1.3em', padding: '1.5em' }>
         <strong>'🎯 Visible!!'</strong>
         <p style={ marginTop: '0.5em', marginBottom: '0' }>
-          = 'You can use if statements directly in your template!'
+          'You can use if statements directly in your template!'
         </p>
       </div>
     }
@@ -179,7 +179,7 @@ def ConditionalDemo(_attributes, _children, node): VNode {
             btnClass := 'btn btn-primary'
           }
           <button class=btnClass on={ click: () => setMood(m) }>
-            = ''emojis[m]' 'm
+            ''emojis[m]' 'm
           </button>
         }
       </div>
@@ -214,10 +214,10 @@ def ShowcasePage(attributes, _children, node): VNode {
       borderRadius: '0'
     }>
       <h1 class="display-3 text-center" style={ fontWeight: 'bold', marginBottom: '0.5em' }>
-        = '✨ Why Choose Blop?'
+        '✨ Why Choose Blop?'
       </h1>
       <p class="lead text-center" style={ fontSize: '1.4em', marginBottom: '0' }>
-        = 'Real statements in your templates. No JSX limitations.'
+        'Real statements in your templates. No JSX limitations.'
       </p>
     </div>
     
@@ -250,7 +250,7 @@ def ShowcasePage(attributes, _children, node): VNode {
       if activeTab == 'overview' {
         <div>
           <h2 class="text-center" style={ marginBottom: '2em', color: '#495057' }>
-            = '🎯 Key Advantages'
+            '🎯 Key Advantages'
           </h2>
           
           <div class="row">
@@ -308,25 +308,25 @@ def ShowcasePage(attributes, _children, node): VNode {
           <div class="text-center" style={ marginTop: '3em' }>
             <h3 style={ marginBottom: '1em', color: '#495057' }>'Ready to try it?'</h3>
             <p style={ fontSize: '1.2em', color: '#6c757d', marginBottom: '1.5em' }>
-              = 'Click the tabs above to see live interactive examples!'
+              'Click the tabs above to see live interactive examples!'
             </p>
             <div style={ display: 'flex', gap: '1em', justifyContent: 'center', flexWrap: 'wrap' }>
               <a
                 href="https://github.com/batiste/blop-language"
                 class="btn btn-primary btn-lg"
                 target="_blank">
-                = '📦 View on GitHub'
+                '📦 View on GitHub'
               </a>
               <a
                 href="https://www.npmjs.com/package/blop-language"
                 class="btn btn-success btn-lg"
                 target="_blank">
-                = '⚡ Install via NPM'
+                '⚡ Install via NPM'
               </a>
             </div>
             <div style={ marginTop: '1.5em' }>
               <code style={ backgroundColor: '#f8f9fa', padding: '1em 1.5em', borderRadius: '6px', fontSize: '1.1em', border: '1px solid #dee2e6' }>
-                = 'npm install blop-language'
+                'npm install blop-language'
               </code>
             </div>
           </div>
@@ -334,10 +334,10 @@ def ShowcasePage(attributes, _children, node): VNode {
       } elseif activeTab == 'counter' {
         <div>
           <h2 class="text-center" style={ marginBottom: '1em', color: '#495057' }>
-            = '🔢 Interactive Counter'
+            '🔢 Interactive Counter'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            = 'Simple, reactive state management with node.useState()'
+            'Simple, reactive state management with node.useState()'
           </p>
           
           <div class="row">
@@ -353,15 +353,15 @@ def ShowcasePage(attributes, _children, node): VNode {
     <div style={ display: 'flex', gap: '1em', justifyContent: 'center' }>
       <button class=\"btn btn-primary btn-lg\"
         on={ click: () => setState(count + 1) }>
-        = '+ Increment'
+        '+ Increment'
       </button>
       <button class=\"btn btn-danger btn-lg\"
         on={ click: () => setState(count - 1) }>
-        = '- Decrement'
+        '- Decrement'
       </button>
       <button class=\"btn btn-secondary btn-lg\"
         on={ click: () => setState(0) }>
-        = '↻ Reset'
+        '↻ Reset'
       </button>
     </div>
   </div>
@@ -381,10 +381,10 @@ def ShowcasePage(attributes, _children, node): VNode {
       } elseif activeTab == 'loops' {
         <div>
           <h2 class="text-center" style={ marginBottom: '1em', color: '#495057' }>
-            = '🔁 For Loops in Templates'
+            '🔁 For Loops in Templates'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            = 'No .map() needed - use real for loops directly in your markup!'
+            'No .map() needed - use real for loops directly in your markup!'
           </p>
           
           <div class="row">
@@ -411,7 +411,7 @@ def ShowcasePage(attributes, _children, node): VNode {
   
   <div style={ padding: '1em' }>
     <button class=\"btn btn-success\" on={ click: addItem }>
-      = '➕ Add Item'
+      '➕ Add Item'
     </button>
     
     <ul class=\"list-group\">
@@ -420,7 +420,7 @@ def ShowcasePage(attributes, _children, node): VNode {
         <li class=\"list-group-item\">
           <strong>'#'itemNumber</strong> = ' 'item
           <button on={ click: removeItem(index) }>
-            = '✕ Remove'
+            '✕ Remove'
           </button>
         </li>
       }
@@ -442,10 +442,10 @@ def ShowcasePage(attributes, _children, node): VNode {
       } elseif activeTab == 'conditionals' {
         <div>
           <h2 class="text-center" style={ marginBottom: '1em', color: '#495057' }>
-            = '❓ Conditional Rendering'
+            '❓ Conditional Rendering'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            = 'Use real if/else statements - no ternary operators required!'
+            'Use real if/else statements - no ternary operators required!'
           </p>
           
           <div class="row">
@@ -494,10 +494,10 @@ def ShowcasePage(attributes, _children, node): VNode {
       } elseif activeTab == 'comparison' {
         <div>
           <h2 class="text-center" style={ marginBottom: '1em', color: '#495057' }>
-            = '⚖️ Blop vs React/JSX'
+            '⚖️ Blop vs React/JSX'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            = 'See the difference - real statements vs JSX limitations'
+            'See the difference - real statements vs JSX limitations'
           </p>
           
           // For Loop Comparison
@@ -510,14 +510,14 @@ def ShowcasePage(attributes, _children, node): VNode {
   for index, item in items: array {
     <li>
       <strong>'#'index</strong>
-      = ' 'item.name
+      ' 'item.name
     </li>
   }
 </ul>
 
 // Object iteration (no annotation)
 for key, value in myObject {
-  <div>key = ': ' value</div>
+  <div>key': 'value</div>
 }" />
               </div>
               <div class="col-md-6">
@@ -555,15 +555,15 @@ for key, value in myObject {
   // Natural if/elseif/else
   if isAdmin {
     <div class=\"admin-panel\">
-      = 'Admin controls'
+      'Admin controls'
     </div>
   } elseif user?.role == 'moderator' {
     <div class=\"mod-panel\">
-      = 'Moderator controls'
+      'Moderator controls'
     </div>
   } else {
     <div class=\"user-panel\">
-      = 'User controls'
+      'User controls'
     </div>
   }
 </div>" />
@@ -612,10 +612,7 @@ for key, value in myObject {
   { todo } = attributes
   { value as done, setState } = node.useState('done', false)
   
-  classes = 'todo-item'
-  if done {
-    classes := 'todo-item completed'
-  }
+  classes = if done 'todo-item' else 'todo-item completed'
   
   <li class=classes on={ click: () => setState(!done) }>
     <span>todo.title</span>
@@ -665,7 +662,7 @@ for key, value in myObject {
               'Blop gives you the power of real programming constructs in your templates.'
             </p>
             <p style={ marginBottom: '0' }>
-              = 'No more fighting with JSX limitations or awkward workarounds!'
+              'No more fighting with JSX limitations or awkward workarounds!'
             </p>
           </div>
         </div>
@@ -684,7 +681,7 @@ for key, value in myObject {
     }>
       <h2 class="display-4" style={ marginBottom: '0.5em' }>'Love what you see?'</h2>
       <p class="lead" style={ fontSize: '1.3em' }>
-        = 'Get started in minutes with modern tooling and great developer experience.'
+        'Get started in minutes with modern tooling and great developer experience.'
       </p>
     </div>
     

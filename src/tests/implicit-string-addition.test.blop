@@ -1,0 +1,57 @@
+// Test implicit string addition to virtual nodes
+
+def ImplicitString() {
+  <div>
+    'Hello World'
+  </div>
+}
+
+def ImplicitInterpolation() {
+  name = 'Alice'
+  <div>
+    'Hello 'name
+  </div>
+}
+
+def MixedContent() {
+  count = 5
+  <div>
+    'Count: '
+    = count
+    ' items'
+  </div>
+}
+
+def NestedImplicit() {
+  <div>
+    <span>
+      'Nested text'
+    </span>
+  </div>
+}
+
+test('implicit string literal addition', () => {
+  vnode = ImplicitString()
+  expect(vnode.children.length).toBe(1)
+  expect(vnode.children[0].text).toBe('Hello World')
+})
+
+test('implicit string interpolation addition', () => {
+  vnode = ImplicitInterpolation()
+  expect(vnode.children.length).toBe(1)
+  expect(vnode.children[0].text).toBe('Hello Alice')
+})
+
+test('mixed explicit and implicit content', () => {
+  vnode = MixedContent()
+  expect(vnode.children.length).toBe(3)
+  expect(vnode.children[0].text).toBe('Count: ')
+  expect(vnode.children[1].text).toBe(5)
+  expect(vnode.children[2].text).toBe(' items')
+})
+
+test('nested implicit strings', () => {
+  vnode = NestedImplicit()
+  expect(vnode.children.length).toBe(1)
+  expect(vnode.children[0].children[0].text).toBe('Nested text')
+})
