@@ -6,6 +6,7 @@
  */
 
 import chalk from 'chalk';
+import { PATTERNS } from './constants.js';
 
 /**
  * Grammar rule explanations - maps technical rule names to user-friendly descriptions
