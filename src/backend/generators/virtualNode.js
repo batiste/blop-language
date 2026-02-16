@@ -95,7 +95,13 @@ function createVirtualNodeGenerators(context) {
       const start = node.named.opening.value;
       if (PATTERNS.UPPERCASE_START.test(start)) {
         shouldBeDefined(start, node.named.opening);
-        output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}');`);
+        // Check if component has a 'key' attribute for stable identity
+        const keyAttr = node.named.attrs?.find(attr => attr.named?.name?.value === 'key');
+        if (keyAttr) {
+          output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}', ${_uid}a['key']);`);
+        } else {
+          output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}');`);
+        }
       } else {
         output.push(` const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
       }

@@ -15,9 +15,11 @@ let cache = {};
 let nextCache = {};
 
 // eslint-disable-next-line arrow-body-style
-const componentPath = (name) => {
+const componentPath = (name, userKey) => {
+  // Use userKey if provided for stable identity, otherwise use position
+  const index = userKey !== undefined ? userKey : currentNode.componentsChildren.length;
   return currentNode
-    ? `${currentNode.path}.${currentNode.componentsChildren.length}.${name}`
+    ? `${currentNode.path}.${index}.${name}`
     : name;
 };
 
@@ -154,6 +156,8 @@ class Component {
 
   _resetForRender() {
     this.componentsChildren = [];
+    // Reset listeners to avoid stale references - components will re-register
+    // during render if they still use the context
     this.listeners = [];
   }
 
@@ -208,8 +212,10 @@ function isClass(v) {
   return typeof v === 'function' && CLASS_DEFINITION_PATTERN.test(v.toString());
 }
 
-function createComponent(ComponentFct, attributes, children, name) {
-  const path = componentPath(name);
+function createComponent(ComponentFct, attributes, children, name, userKey) {
+  // Extract key from attributes if not provided as parameter
+  const key = userKey !== undefined ? userKey : attributes.key;
+  const path = componentPath(name, key);
   if (cache[path]) {
     return cache[path]._render(attributes, children);
   }
@@ -304,11 +310,13 @@ function scheduleRender(node) {
 }
 
 function destroyUnreferencedComponents() {
-  const keysCache = Object.keys(cache);
-  const keysNextCache = Object.keys(nextCache);
-  // O(n2), not great
-  const difference = keysCache.filter(x => !keysNextCache.includes(x));
-  difference.forEach(path => cache[path]._destroy());
+  // O(n) using Set for lookup instead of O(n²) with includes
+  const nextCacheSet = new Set(Object.keys(nextCache));
+  Object.keys(cache).forEach(path => {
+    if (!nextCacheSet.has(path)) {
+      cache[path]._destroy();
+    }
+  });
 }
 
 let rootNode = new Component(() => {}, {}, [], 'root');

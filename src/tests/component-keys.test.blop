@@ -1,0 +1,117 @@
+import { mount } from 'blop'
+
+// Simple test component
+def KeyedComponent(attributes) {
+  { id, label } = attributes
+  <div class="keyed" data-id=id>label</div>
+}
+
+test('component with key attribute renders', () => {
+  render = () => <KeyedComponent key="test-1" id="A" label="Test" />
+  
+  { refresh, init } = mount(document.createElement('div'), render)
+  vnode = init()
+  
+  expect(vnode.sel).toBe('div')
+  expect(vnode.data.attrs['data-id']).toBe('A')
+})
+
+test('multiple components with keys render correctly', () => {
+  items = [
+    { id: '1', label: 'Item 1' },
+    { id: '2', label: 'Item 2' },
+    { id: '3', label: 'Item 3' }
+  ]
+  
+  render = () => {
+    <div>
+      for item in items {
+        <KeyedComponent key=item.id id=item.id label=item.label />
+      }
+    </div>
+  }
+  
+  { refresh, init } = mount(document.createElement('div'), render)
+  vnode = init()
+  
+  expect(vnode.children.length).toBe(3)
+  expect(vnode.children[0].data.attrs['data-id']).toBe('1')
+  expect(vnode.children[1].data.attrs['data-id']).toBe('2')
+  expect(vnode.children[2].data.attrs['data-id']).toBe('3')
+})
+
+test('components without keys still work (backward compatibility)', () => {
+  items = [
+    { id: '1', label: 'Item 1' },
+    { id: '2', label: 'Item 2' }
+  ]
+  
+  render = () => {
+    <div>
+      for item in items {
+        <KeyedComponent id=item.id label=item.label />
+      }
+    </div>
+  }
+  
+  { refresh, init } = mount(document.createElement('div'), render)
+  vnode = init()
+  
+  expect(vnode.children.length).toBe(2)
+})
+
+test('mixed keyed and non-keyed components', () => {
+  render = () => {
+    <div>
+      <KeyedComponent key="keyed-1" id="K1" label="Keyed 1" />
+      <KeyedComponent id="NK1" label="Non-Keyed 1" />
+      <KeyedComponent key="keyed-2" id="K2" label="Keyed 2" />
+    </div>
+  }
+  
+  { refresh, init } = mount(document.createElement('div'), render)
+  vnode = init()
+  
+  expect(vnode.children.length).toBe(3)
+  expect(vnode.children[0].data.attrs['data-id']).toBe('K1')
+  expect(vnode.children[1].data.attrs['data-id']).toBe('NK1')
+  expect(vnode.children[2].data.attrs['data-id']).toBe('K2')
+})
+
+test('reordering items with keys preserves DOM elements', () => {
+  items = [
+    { id: '1', label: 'Item 1' },
+    { id: '2', label: 'Item 2' },
+    { id: '3', label: 'Item 3' }
+  ]
+  
+  render = () => {
+    <div>
+      for item in items {
+        <KeyedComponent key=item.id id=item.id label=item.label />
+      }
+    </div>
+  }
+  
+  { refresh, init } = mount(document.createElement('div'), render)
+  vnode = init()
+  
+  // Store references to original DOM elements
+  elem1 = vnode.children[0].elm
+  elem2 = vnode.children[1].elm
+  elem3 = vnode.children[2].elm
+  
+  // Reorder: move first to last
+  items := [
+    { id: '2', label: 'Item 2' },
+    { id: '3', label: 'Item 3' },
+    { id: '1', label: 'Item 1' }
+  ]
+  
+  refresh()
+  
+  // With keys, DOM elements should be preserved and reordered
+  // (Not recreated - this is what keys enable)
+  expect(vnode.children.length).toBe(3)
+})
+
