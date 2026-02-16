@@ -13,8 +13,9 @@ AutoFocusInput = (state) => {
     style={ fontSize: '16px', padding: '0.5em' } />
 }
 
-TodoListPage = (attributes, _children, node) => {
+TodoListPage = (attributes, _children, node): VNode => {
   { todo } = attributes
+  todoList: string[] = todo.todoList
 
   def unselect() {
     // Using nullish coalescing to check for undefined/null
@@ -36,7 +37,7 @@ TodoListPage = (attributes, _children, node) => {
     // Using optional chaining with nullish coalescing
     inputValue = todo.inputValue?.trim() ?? ''
     if (inputValue) {
-      todo.todoList.push(inputValue)
+      todoList.push(inputValue)
       todo.inputValue = ''
     }
   }
@@ -50,11 +51,11 @@ TodoListPage = (attributes, _children, node) => {
   }
   changeItem = (index: number) => (e) => {
     todo.editItemIndex = false
-    todo.todoList[index] = e.target.value
+    todoList[index] = e.target.value
   }
   remove = (index: number) => () => {
     todo.editItemIndex = false
-    todo.todoList.splice(index, 1)
+    todoList.splice(index, 1)
   }
   <div>
     <form on={ submit: addItem }>
@@ -70,7 +71,7 @@ TodoListPage = (attributes, _children, node) => {
       </div>
     </form>
     <ul>
-      for index, value in todo.todoList {
+      for index, value in todoList {
         <TodoListItem
           removeItem=remove(index)
           editItem=editItem(index)

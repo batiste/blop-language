@@ -69,20 +69,20 @@
       "name": 1
     },
     "assign:1:1": {
-      "w": 0.9953650057937428,
-      "annotation": 0.004634994206257242
+      "w": 0.9031620553359684,
+      "annotation": 0.09683794466403162
     },
     "assign:1:2": {
-      "=": 0.9953650057937428,
-      "w": 0.004634994206257242
+      "=": 0.9031620553359684,
+      "w": 0.09683794466403162
     },
     "assign:1:3": {
-      "w": 0.9953650057937428,
-      "=": 0.004634994206257242
+      "w": 0.9031620553359684,
+      "=": 0.09683794466403162
     },
     "assign:1:4": {
-      "exp": 0.9953650057937428,
-      "w": 0.004634994206257242
+      "exp": 0.9031620553359684,
+      "w": 0.09683794466403162
     },
     "exp:0:0": {
       "name_exp": 1
@@ -96,28 +96,28 @@
     "access_or_operation:1:0": {
       "object_access": 1
     },
-    "object_access:1:0": {
+    "object_access:4:0": {
       "func_call": 1
     },
     "func_call:0:0": {
       "(": 1
     },
     "func_call:0:1": {
-      "func_call_params": 0.9891935701742537,
-      "newline_and_space": 0.01080642982574632
+      "func_call_params": 0.9945593035908596,
+      "newline_and_space": 0.00544069640914037
     },
     "func_call_params:2:0": {
       "exp": 1
     },
-    "object_access:0:0": {
+    "object_access:1:0": {
       ".": 1
     },
-    "object_access:0:1": {
+    "object_access:1:1": {
       "name": 1
     },
     "func_call:0:2": {
-      ")": 0.9891935701742537,
-      "func_call_params": 0.01080642982574632
+      ")": 0.9945593035908596,
+      "func_call_params": 0.00544069640914037
     },
     "START:0:6": {
       "GLOBAL_STATEMENTS": 1
@@ -160,35 +160,36 @@
       "func_def": 1
     },
     "func_def:3:0": {
-      "(": 0.9674267100977199,
-      "async": 0.03257328990228013
+      "(": 0.9831649831649831,
+      "async": 0.016835016835016835
     },
     "func_def:3:1": {
-      ")": 0.9674267100977199,
-      "(": 0.03257328990228013
+      ")": 0.9831649831649831,
+      "(": 0.016835016835016835
     },
     "func_def:3:2": {
-      "w": 0.9674267100977199,
-      ")": 0.03257328990228013
+      "w": 0.9814814814814815,
+      ")": 0.016835016835016835,
+      "annotation": 0.0016835016835016834
     },
     "func_def:3:3": {
-      "=>": 0.9674267100977199,
-      "w": 0.03257328990228013
+      "=>": 0.9814814814814815,
+      "w": 0.018518518518518517
     },
     "func_def:3:4": {
-      "w": 0.9674267100977199,
-      "=>": 0.03257328990228013
+      "w": 0.9814814814814815,
+      "=>": 0.018518518518518517
     },
     "func_def:3:5": {
-      "func_body_fat": 0.9674267100977199,
-      "w": 0.03257328990228013
+      "func_body_fat": 0.9814814814814815,
+      "w": 0.018518518518518517
     },
     "func_body_fat:0:0": {
       "{": 1
     },
     "func_body_fat:0:1": {
-      "SCOPED_STATEMENTS": 0.9781181619256017,
-      "}": 0.02188183807439825
+      "SCOPED_STATEMENTS": 0.9866131191432396,
+      "}": 0.013386880856760375
     },
     "SCOPED_STATEMENTS:0:0": {
       "newline": 1
@@ -205,7 +206,7 @@
     "exp_statement:0:0": {
       "exp": 1
     },
-    "object_access:0:2": {
+    "object_access:1:2": {
       "object_access": 1
     },
     "func_call:1:0": {
@@ -230,15 +231,15 @@
       "assign": 1
     },
     "func_body_fat:0:3": {
-      "SCOPED_STATEMENTS": 0.7293064876957495,
-      "}": 0.27069351230425054
+      "SCOPED_STATEMENTS": 0.7245590230664858,
+      "}": 0.27544097693351427
     },
-    "exp:6:0": {
+    "exp:9:0": {
       "str": 1
     },
     "func_body_fat:0:4": {
-      "SCOPED_STATEMENTS": 0.34662576687116564,
-      "}": 0.6533742331288344
+      "SCOPED_STATEMENTS": 0.4288389513108614,
+      "}": 0.5711610486891385
     },
     "SCOPED_STATEMENT:8:0": {
       "return": 1
@@ -247,15 +248,15 @@
       "exp": 1
     },
     "func_body_fat:0:5": {
-      "SCOPED_STATEMENTS": 0.6194690265486725,
-      "}": 0.3805309734513274
+      "SCOPED_STATEMENTS": 0.5065502183406113,
+      "}": 0.49344978165938863
     },
     "SCOPED_STATEMENTS:1:0": {
       "newline": 1
     },
     "func_body_fat:0:6": {
-      "}": 0.35714285714285715,
-      "SCOPED_STATEMENTS": 0.6428571428571429
+      "}": 0.5086206896551724,
+      "SCOPED_STATEMENTS": 0.49137931034482757
     },
     "START:0:10": {
       "GLOBAL_STATEMENTS": 0.9333333333333333,
@@ -314,17 +315,17 @@
     "START:0:13": {
       "GLOBAL_STATEMENTS": 1
     },
-    "GLOBAL_STATEMENT:9:0": {
+    "GLOBAL_STATEMENT:10:0": {
       "exp_statement": 1
     },
     "START:0:14": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:15": {
       "GLOBAL_STATEMENTS": 0.9166666666666666,
       "EOS": 0.08333333333333333
     },
-    "START:0:15": {
-      "GLOBAL_STATEMENTS": 1
-    },
-    "exp:4:0": {
+    "exp:3:0": {
       "number": 1
     },
     "START:0:16": {
@@ -342,57 +343,59 @@
       "EOS": 0.1
     },
     "func_def:1:0": {
-      "def": 0.9307692307692308,
-      "async": 0.06923076923076923
+      "def": 0.9538461538461539,
+      "async": 0.046153846153846156
     },
     "func_def:1:1": {
-      "name": 0.823076923076923,
-      "def": 0.06923076923076923,
-      "(": 0.1076923076923077
+      "name": 0.882051282051282,
+      "def": 0.046153846153846156,
+      "(": 0.07179487179487179
     },
     "func_def:1:2": {
-      "(": 0.823076923076923,
-      "name": 0.06923076923076923,
-      "func_def_params": 0.1076923076923077
+      "(": 0.7948717948717948,
+      "name": 0.046153846153846156,
+      "func_def_params": 0.07179487179487179,
+      "generic_params": 0.08717948717948718
     },
     "func_def:1:3": {
-      "func_def_params": 0.823076923076923,
-      "(": 0.06923076923076923,
-      ")": 0.1076923076923077
+      "func_def_params": 0.7948717948717948,
+      "(": 0.13333333333333333,
+      ")": 0.07179487179487179
     },
     "func_def_params:2:0": {
       "name": 1
     },
     "func_def_params:2:1": {
-      ",": 0.948905109489051,
-      "annotation": 0.051094890510948905
+      ",": 0.8783783783783784,
+      "annotation": 0.12162162162162163
     },
     "func_def_params:2:2": {
-      "w": 0.948905109489051,
-      ",": 0.051094890510948905
+      "w": 0.8783783783783784,
+      ",": 0.12162162162162163
     },
     "func_def_params:2:3": {
-      "func_def_params": 0.948905109489051,
-      "w": 0.051094890510948905
+      "func_def_params": 0.8783783783783784,
+      "w": 0.12162162162162163
     },
     "func_def_params:3:0": {
       "name": 1
     },
     "func_def:1:4": {
-      ")": 0.823076923076923,
-      "func_def_params": 0.06923076923076923,
-      "w": 0.09230769230769231,
-      "annotation": 0.015384615384615385
+      ")": 0.7948717948717948,
+      "func_def_params": 0.13333333333333333,
+      "w": 0.06153846153846154,
+      "annotation": 0.010256410256410256
     },
     "func_def:1:5": {
-      "w": 0.8153846153846154,
-      ")": 0.06923076923076923,
-      "func_body": 0.09230769230769231,
-      "annotation": 0.023076923076923078
+      "w": 0.558974358974359,
+      ")": 0.13333333333333333,
+      "annotation": 0.24615384615384617,
+      "func_body": 0.06153846153846154
     },
     "func_def:1:6": {
-      "func_body": 0.8983050847457628,
-      "w": 0.1016949152542373
+      "func_body": 0.5956284153005464,
+      "w": 0.31693989071038253,
+      "annotation": 0.08743169398907104
     },
     "func_body:0:0": {
       "{": 1
@@ -400,7 +403,7 @@
     "func_body:0:1": {
       "SCOPED_STATEMENTS": 1
     },
-    "exp:19:0": {
+    "exp:22:0": {
       "short_if_expression": 1
     },
     "short_if_expression:1:0": {
@@ -415,13 +418,13 @@
     "access_or_operation:2:1": {
       "operation": 1
     },
-    "operation:3:0": {
+    "operation:4:0": {
       ">": 1
     },
-    "operation:3:1": {
+    "operation:4:1": {
       "w": 1
     },
-    "operation:3:2": {
+    "operation:4:2": {
       "exp": 1
     },
     "short_if_expression:1:2": {
@@ -436,7 +439,7 @@
     "short_if_expression:1:5": {
       "exp": 1
     },
-    "exp:5:0": {
+    "exp:8:0": {
       "str_expression": 1
     },
     "str_expression:0:0": {
@@ -464,8 +467,8 @@
       "SCOPED_STATEMENTS": 1
     },
     "func_body:0:3": {
-      "SCOPED_STATEMENTS": 0.6774193548387096,
-      "}": 0.3225806451612903
+      "SCOPED_STATEMENTS": 0.6083650190114068,
+      "}": 0.3916349809885932
     },
     "SCOPED_STATEMENTS:1:1": {
       "W": 1
@@ -474,12 +477,12 @@
       "scomment": 1
     },
     "func_body:0:4": {
-      "SCOPED_STATEMENTS": 0.46825396825396826,
-      "}": 0.5317460317460317
+      "SCOPED_STATEMENTS": 0.41875,
+      "}": 0.58125
     },
     "func_body:0:5": {
-      "SCOPED_STATEMENTS": 0.7457627118644068,
-      "}": 0.2542372881355932
+      "SCOPED_STATEMENTS": 0.6865671641791045,
+      "}": 0.31343283582089554
     },
     "SCOPED_STATEMENT:0:0": {
       "condition": 1
@@ -490,13 +493,13 @@
     "condition:0:1": {
       "exp": 1
     },
-    "exp:8:0": {
+    "exp:11:0": {
       "(": 1
     },
-    "exp:8:1": {
+    "exp:11:1": {
       "exp": 1
     },
-    "exp:8:2": {
+    "exp:11:2": {
       ")": 1
     },
     "condition:0:2": {
@@ -523,20 +526,8 @@
     "assign:0:4": {
       "exp": 1
     },
-    "operation:0:0": {
-      "math_operator": 1
-    },
-    "operation:0:1": {
-      "w": 1
-    },
-    "operation:0:2": {
-      "exp": 1
-    },
-    "condition:0:5": {
-      "SCOPED_STATEMENTS": 1
-    },
     "operation:1:0": {
-      "boolean_operator": 1
+      "math_operator": 1
     },
     "operation:1:1": {
       "w": 1
@@ -544,64 +535,76 @@
     "operation:1:2": {
       "exp": 1
     },
-    "object_access:2:0": {
-      "[": 1
+    "condition:0:5": {
+      "SCOPED_STATEMENTS": 1
     },
-    "object_access:2:1": {
+    "operation:2:0": {
+      "boolean_operator": 1
+    },
+    "operation:2:1": {
+      "w": 1
+    },
+    "operation:2:2": {
       "exp": 1
     },
-    "object_access:2:2": {
+    "object_access:5:0": {
+      "[": 1
+    },
+    "object_access:5:1": {
+      "exp": 1
+    },
+    "object_access:5:2": {
       "]": 1
     },
     "condition:0:6": {
-      "SCOPED_STATEMENTS": 0.26373626373626374,
-      "}": 0.7362637362637363
+      "SCOPED_STATEMENTS": 0.20911528150134048,
+      "}": 0.7908847184986595
     },
     "condition:0:7": {
-      "SCOPED_STATEMENTS": 0.02197802197802198,
-      "else_if": 0.7362637362637363,
-      "}": 0.24175824175824176
+      "SCOPED_STATEMENTS": 0.021447721179624665,
+      "else_if": 0.7908847184986595,
+      "}": 0.1876675603217158
     },
     "condition:0:8": {
-      "SCOPED_STATEMENTS": 0.027777777777777776,
-      "}": 0.05555555555555555,
-      "else_if": 0.9166666666666666
+      "SCOPED_STATEMENTS": 0.02564102564102564,
+      "}": 0.07692307692307693,
+      "else_if": 0.8974358974358975
     },
     "condition:0:9": {
-      "}": 0.3333333333333333,
-      "else_if": 0.6666666666666666
+      "}": 0.25,
+      "else_if": 0.75
     },
     "condition:0:10": {
       "else_if": 1
     },
     "func_def:2:0": {
-      "(": 0.992,
-      "async": 0.008
+      "(": 0.992822966507177,
+      "async": 0.007177033492822967
     },
     "func_def:2:1": {
-      "func_def_params": 0.992,
-      "(": 0.008
+      "func_def_params": 0.992822966507177,
+      "(": 0.007177033492822967
     },
     "func_def:2:2": {
-      ")": 0.992,
-      "func_def_params": 0.008
+      ")": 0.992822966507177,
+      "func_def_params": 0.007177033492822967
     },
     "func_def:2:3": {
-      "w": 0.9893333333333333,
-      ")": 0.008,
-      "annotation": 0.0026666666666666666
+      "w": 0.9856459330143541,
+      "annotation": 0.007177033492822967,
+      ")": 0.007177033492822967
     },
     "func_def:2:4": {
-      "=>": 0.9893333333333333,
-      "w": 0.010666666666666666
+      "=>": 0.9856459330143541,
+      "w": 0.014354066985645933
     },
     "func_def:2:5": {
-      "w": 0.9893333333333333,
-      "=>": 0.010666666666666666
+      "w": 0.9856459330143541,
+      "=>": 0.014354066985645933
     },
     "func_def:2:6": {
-      "func_body_fat": 0.9893333333333333,
-      "w": 0.010666666666666666
+      "func_body_fat": 0.9856459330143541,
+      "w": 0.014354066985645933
     },
     "else_if:2:0": {
       "w": 1
@@ -619,12 +622,12 @@
       "SCOPED_STATEMENTS": 1
     },
     "else_if:2:5": {
-      "}": 0.9130434782608695,
-      "SCOPED_STATEMENTS": 0.08695652173913043
+      "}": 0.905511811023622,
+      "SCOPED_STATEMENTS": 0.09448818897637795
     },
     "func_body:0:6": {
-      "SCOPED_STATEMENTS": 0.7045454545454546,
-      "}": 0.29545454545454547
+      "SCOPED_STATEMENTS": 0.6739130434782609,
+      "}": 0.32608695652173914
     },
     "func_body:0:7": {
       "}": 0.4838709677419355,
@@ -690,14 +693,14 @@
       "name": 1
     },
     "virtual_node:1:2": {
-      ">": 0.21686746987951808,
-      "virtual_node_attributes": 0.7831325301204819
+      ">": 0.21653543307086615,
+      "virtual_node_attributes": 0.7834645669291339
     },
     "virtual_node:1:3": {
-      "SCOPED_STATEMENTS": 0.20883534136546184,
-      ">": 0.7028112449799196,
-      "virtual_node_attributes": 0.08032128514056225,
-      "</": 0.008032128514056224
+      "SCOPED_STATEMENTS": 0.20866141732283464,
+      ">": 0.7047244094488189,
+      "virtual_node_attributes": 0.07874015748031496,
+      "</": 0.007874015748031496
     },
     "virtual_node:2:0": {
       "<": 1
@@ -706,38 +709,38 @@
       "name": 1
     },
     "virtual_node:2:2": {
-      ">": 0.7067307692307693,
-      "virtual_node_attributes": 0.2932692307692308
+      ">": 0.7149122807017544,
+      "virtual_node_attributes": 0.2850877192982456
     },
     "virtual_node:2:3": {
-      "exp": 0.7067307692307693,
-      "virtual_node_attributes": 0.13942307692307693,
-      ">": 0.15384615384615385
+      "exp": 0.7149122807017544,
+      "virtual_node_attributes": 0.14473684210526316,
+      ">": 0.14035087719298245
     },
     "virtual_node:2:4": {
-      "</": 0.7067307692307693,
-      ">": 0.11057692307692307,
-      "exp": 0.15384615384615385,
-      "virtual_node_attributes": 0.028846153846153848
+      "</": 0.7149122807017544,
+      ">": 0.11842105263157894,
+      "exp": 0.14035087719298245,
+      "virtual_node_attributes": 0.02631578947368421
     },
     "virtual_node:2:5": {
-      "name": 0.7067307692307693,
-      "exp": 0.11057692307692307,
-      "</": 0.15384615384615385,
-      ">": 0.028846153846153848
+      "name": 0.7149122807017544,
+      "exp": 0.11842105263157894,
+      "</": 0.14035087719298245,
+      ">": 0.02631578947368421
     },
     "virtual_node:2:6": {
-      ">": 0.7067307692307693,
-      "</": 0.11057692307692307,
-      "name": 0.15384615384615385,
-      "exp": 0.028846153846153848
+      ">": 0.7149122807017544,
+      "</": 0.11842105263157894,
+      "name": 0.14035087719298245,
+      "exp": 0.02631578947368421
     },
     "virtual_node:1:4": {
-      "SCOPED_STATEMENTS": 0.3895582329317269,
-      "virtual_node_attributes": 0.020080321285140562,
-      ">": 0.060240963855421686,
-      "</": 0.5220883534136547,
-      "name": 0.008032128514056224
+      "SCOPED_STATEMENTS": 0.4015748031496063,
+      "virtual_node_attributes": 0.01968503937007874,
+      ">": 0.05905511811023622,
+      "</": 0.5118110236220472,
+      "name": 0.007874015748031496
     },
     "virtual_node_attributes:2:0": {
       "single_space_or_newline": 1
@@ -751,7 +754,7 @@
     "virtual_node_attributes:2:3": {
       "exp": 1
     },
-    "exp:11:0": {
+    "exp:14:0": {
       "object_literal": 1
     },
     "object_literal:0:0": {
@@ -763,19 +766,19 @@
     "object_literal:0:2": {
       "object_literal_body": 1
     },
-    "object_literal_body:2:0": {
+    "object_literal_body:4:0": {
       "object_literal_key": 1
     },
     "object_literal_key:1:0": {
       "name": 1
     },
-    "object_literal_body:2:1": {
+    "object_literal_body:4:1": {
       "colon": 1
     },
-    "object_literal_body:2:2": {
+    "object_literal_body:4:2": {
       "w": 1
     },
-    "object_literal_body:2:3": {
+    "object_literal_body:4:3": {
       "exp": 1
     },
     "object_literal:0:3": {
@@ -785,55 +788,55 @@
       "}": 1
     },
     "virtual_node:2:7": {
-      "name": 0.3770491803278688,
-      ">": 0.5245901639344263,
-      "</": 0.09836065573770492
+      "name": 0.4153846153846154,
+      ">": 0.49230769230769234,
+      "</": 0.09230769230769231
     },
     "virtual_node:2:8": {
-      ">": 0.7931034482758621,
-      "name": 0.20689655172413793
+      ">": 0.8181818181818182,
+      "name": 0.18181818181818182
     },
     "virtual_node:1:5": {
-      "SCOPED_STATEMENTS": 0.3293172690763052,
-      ">": 0.024096385542168676,
-      "</": 0.12048192771084337,
-      "name": 0.5220883534136547,
-      "virtual_node_attributes": 0.004016064257028112
+      "SCOPED_STATEMENTS": 0.3425196850393701,
+      ">": 0.023622047244094488,
+      "</": 0.11811023622047244,
+      "name": 0.5118110236220472,
+      "virtual_node_attributes": 0.003937007874015748
     },
     "object_literal_key:0:0": {
       "str": 1
     },
     "virtual_node:1:6": {
-      "SCOPED_STATEMENTS": 0.21862348178137653,
-      "</": 0.12955465587044535,
-      "name": 0.1214574898785425,
-      ">": 0.5263157894736842,
-      "virtual_node_attributes": 0.004048582995951417
+      "SCOPED_STATEMENTS": 0.2222222222222222,
+      "</": 0.1388888888888889,
+      "name": 0.11904761904761904,
+      ">": 0.5158730158730159,
+      "virtual_node_attributes": 0.003968253968253968
     },
     "virtual_node:1:7": {
-      "</": 0.26495726495726496,
-      "name": 0.27350427350427353,
-      "SCOPED_STATEMENTS": 0.19658119658119658,
-      ">": 0.2564102564102564,
-      "virtual_node_attributes": 0.008547008547008548
+      "</": 0.22950819672131148,
+      "name": 0.28688524590163933,
+      "SCOPED_STATEMENTS": 0.22950819672131148,
+      ">": 0.2459016393442623,
+      "virtual_node_attributes": 0.00819672131147541
     },
     "virtual_node:1:8": {
-      "name": 0.3563218390804598,
-      ">": 0.367816091954023,
-      "SCOPED_STATEMENTS": 0.09195402298850575,
-      "</": 0.1724137931034483,
-      "virtual_node_attributes": 0.011494252873563218
+      "name": 0.30434782608695654,
+      ">": 0.3804347826086957,
+      "SCOPED_STATEMENTS": 0.08695652173913043,
+      "</": 0.21739130434782608,
+      "virtual_node_attributes": 0.010869565217391304
     },
     "virtual_node:1:9": {
-      ">": 0.5818181818181818,
-      "SCOPED_STATEMENTS": 0.14545454545454545,
-      "name": 0.2727272727272727
+      ">": 0.5087719298245614,
+      "SCOPED_STATEMENTS": 0.14035087719298245,
+      "name": 0.3508771929824561
     },
     "func_body_fat:0:7": {
-      "}": 0.4666666666666667,
-      "SCOPED_STATEMENTS": 0.5333333333333333
+      "}": 0.47368421052631576,
+      "SCOPED_STATEMENTS": 0.5263157894736842
     },
-    "exp:15:0": {
+    "exp:18:0": {
       "virtual_node_exp": 1
     },
     "virtual_node_exp:0:0": {
@@ -858,14 +861,14 @@
       "name": 1
     },
     "virtual_node:0:2": {
-      "w": 0.3611111111111111,
-      "virtual_node_attributes": 0.6111111111111112,
-      "/>": 0.027777777777777776
+      "w": 0.35135135135135137,
+      "virtual_node_attributes": 0.6216216216216216,
+      "/>": 0.02702702702702703
     },
     "virtual_node:0:3": {
-      "/>": 0.37142857142857144,
-      "w": 0.22857142857142856,
-      "virtual_node_attributes": 0.4
+      "/>": 0.3611111111111111,
+      "w": 0.2222222222222222,
+      "virtual_node_attributes": 0.4166666666666667
     },
     "access_or_operation:0:0": {
       "object_access": 1
@@ -877,37 +880,40 @@
       "operation": 1
     },
     "func_def:0:0": {
-      "def": 0.9428571428571428,
-      "async": 0.05714285714285714
+      "def": 0.9574468085106383,
+      "async": 0.0425531914893617
     },
     "func_def:0:1": {
-      "name": 0.8857142857142857,
-      "def": 0.05714285714285714,
-      "(": 0.05714285714285714
+      "name": 0.9148936170212766,
+      "def": 0.0425531914893617,
+      "(": 0.0425531914893617
     },
     "func_def:0:2": {
-      "(": 0.8857142857142857,
-      "name": 0.05714285714285714,
-      ")": 0.05714285714285714
+      "(": 0.8936170212765957,
+      "name": 0.0425531914893617,
+      "generic_params": 0.02127659574468085,
+      ")": 0.0425531914893617
     },
     "func_def:0:3": {
-      ")": 0.8857142857142857,
-      "(": 0.05714285714285714,
-      "w": 0.05714285714285714
+      ")": 0.8936170212765957,
+      "(": 0.06382978723404255,
+      "w": 0.0425531914893617
     },
     "func_def:0:4": {
-      "w": 0.8857142857142857,
-      ")": 0.05714285714285714,
-      "func_body": 0.05714285714285714
+      "w": 0.6808510638297872,
+      ")": 0.06382978723404255,
+      "func_body": 0.0425531914893617,
+      "annotation": 0.2127659574468085
     },
     "func_def:0:5": {
-      "func_body": 0.9393939393939394,
-      "w": 0.06060606060606061
+      "func_body": 0.7111111111111111,
+      "w": 0.26666666666666666,
+      "annotation": 0.022222222222222223
     },
-    "exp:9:0": {
+    "exp:12:0": {
       "operand": 1
     },
-    "exp:9:1": {
+    "exp:12:1": {
       "exp": 1
     },
     "destructuring_values:2:0": {
@@ -923,29 +929,32 @@
       "name": 1
     },
     "func_body:0:8": {
-      "}": 0.1875,
-      "SCOPED_STATEMENTS": 0.8125
+      "}": 0.0625,
+      "SCOPED_STATEMENTS": 0.9375
     },
-    "object_literal_body:0:0": {
+    "object_literal_body:2:0": {
       "object_literal_key": 1
     },
-    "object_literal_body:0:1": {
+    "object_literal_body:2:1": {
       "colon": 1
     },
-    "object_literal_body:0:2": {
+    "object_literal_body:2:2": {
       "w": 1
     },
-    "object_literal_body:0:3": {
+    "object_literal_body:2:3": {
       "exp": 1
     },
-    "object_literal_body:0:4": {
+    "object_literal_body:2:4": {
       ",": 1
     },
-    "object_literal_body:0:5": {
+    "object_literal_body:2:5": {
       "single_space_or_newline": 1
     },
-    "object_literal_body:0:6": {
+    "object_literal_body:2:6": {
       "object_literal_body": 1
+    },
+    "exp:6:0": {
+      "true": 1
     },
     "SCOPED_STATEMENT:2:0": {
       "assign_op": 1
@@ -989,11 +998,14 @@
     "exp:1:1": {
       "access_or_operation": 1
     },
-    "func_body_fat:0:8": {
-      "SCOPED_STATEMENTS": 0.6666666666666666,
-      "}": 0.3333333333333333
+    "exp:7:0": {
+      "false": 1
     },
-    "exp:14:0": {
+    "func_body_fat:0:8": {
+      "SCOPED_STATEMENTS": 0.6,
+      "}": 0.4
+    },
+    "exp:17:0": {
       "virtual_node_assign": 1
     },
     "virtual_node_assign:0:0": {
@@ -1006,12 +1018,12 @@
       "exp": 1
     },
     "func_body_fat:0:9": {
-      "SCOPED_STATEMENTS": 0.875,
-      "}": 0.125
+      "SCOPED_STATEMENTS": 0.8888888888888888,
+      "}": 0.1111111111111111
     },
     "func_body_fat:0:10": {
-      "}": 0.35714285714285715,
-      "SCOPED_STATEMENTS": 0.6428571428571429
+      "}": 0.3125,
+      "SCOPED_STATEMENTS": 0.6875
     },
     "GLOBAL_STATEMENT:4:0": {
       "class_def": 1
@@ -1131,14 +1143,14 @@
       "CLASS_STATEMENT": 0.3333333333333333
     },
     "virtual_node:0:4": {
-      "/>": 0.36363636363636365,
-      "virtual_node_attributes": 0.45454545454545453,
-      "w": 0.18181818181818182
+      "/>": 0.34782608695652173,
+      "virtual_node_attributes": 0.43478260869565216,
+      "w": 0.21739130434782608
     },
     "virtual_node:1:10": {
-      "SCOPED_STATEMENTS": 0.20833333333333334,
-      "</": 0.16666666666666666,
-      ">": 0.625
+      "SCOPED_STATEMENTS": 0.1724137931034483,
+      "</": 0.13793103448275862,
+      ">": 0.6896551724137931
     },
     "virtual_node:1:11": {
       "SCOPED_STATEMENTS": 0.4444444444444444,
@@ -1164,25 +1176,25 @@
       "SCOPED_STATEMENTS": 1
     },
     "virtual_node:1:16": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "virtual_node:1:17": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "virtual_node:1:18": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "virtual_node:1:19": {
       "SCOPED_STATEMENTS": 0.6666666666666666,
       "</": 0.3333333333333333
     },
-    "virtual_node:1:17": {
+    "virtual_node:1:20": {
       "SCOPED_STATEMENTS": 0.6666666666666666,
       "name": 0.3333333333333333
     },
-    "virtual_node:1:18": {
+    "virtual_node:1:21": {
       "SCOPED_STATEMENTS": 0.6666666666666666,
       ">": 0.3333333333333333
-    },
-    "virtual_node:1:19": {
-      "SCOPED_STATEMENTS": 1
-    },
-    "virtual_node:1:20": {
-      "SCOPED_STATEMENTS": 1
-    },
-    "virtual_node:1:21": {
-      "SCOPED_STATEMENTS": 1
     },
     "virtual_node:1:22": {
       "SCOPED_STATEMENTS": 1
@@ -1214,6 +1226,12 @@
     "virtual_node:1:31": {
       ">": 1
     },
+    "object_access:0:0": {
+      "optional_chain": 1
+    },
+    "object_access:0:1": {
+      "name": 1
+    },
     "single_space_or_newline:1:0": {
       "newline": 1
     },
@@ -1232,43 +1250,37 @@
     "virtual_node_exp:0:6": {
       "/>": 1
     },
-    "object_access:1:1": {
+    "object_access:4:1": {
       "object_access": 1
     },
-    "assign_op:1:0": {
-      "name": 1
+    "operation:0:0": {
+      "nullish": 1
     },
-    "assign_op:1:1": {
-      "object_access": 1
-    },
-    "assign_op:1:2": {
+    "operation:0:1": {
       "w": 1
     },
-    "assign_op:1:3": {
-      "assign_operator": 1
-    },
-    "assign_op:1:4": {
-      "w": 1
-    },
-    "assign_op:1:5": {
+    "operation:0:2": {
       "exp": 1
     },
-    "exp:17:0": {
+    "exp:20:0": {
       "delete": 1
     },
-    "exp:17:1": {
+    "exp:20:1": {
       "exp": 1
     },
-    "object_literal_body:3:0": {
+    "object_literal_body:5:0": {
       "object_literal_key": 1
     },
+    "else_if:2:6": {
+      "}": 1
+    },
     "func_body:0:9": {
-      "SCOPED_STATEMENTS": 0.46153846153846156,
-      "}": 0.5384615384615384
+      "SCOPED_STATEMENTS": 0.4666666666666667,
+      "}": 0.5333333333333333
     },
     "func_body:0:10": {
-      "SCOPED_STATEMENTS": 0.6666666666666666,
-      "}": 0.3333333333333333
+      "SCOPED_STATEMENTS": 0.7142857142857143,
+      "}": 0.2857142857142857
     },
     "virtual_node:2:9": {
       ">": 1
@@ -1307,44 +1319,50 @@
       "name": 1
     },
     "virtual_node_exp:2:2": {
-      ">": 1
+      ">": 0.9803921568627451,
+      "virtual_node_attributes": 0.0196078431372549
     },
     "virtual_node_exp:2:3": {
-      "exp": 1
+      "exp": 0.9803921568627451,
+      ">": 0.0196078431372549
     },
     "virtual_node_exp:2:4": {
-      "</": 1
+      "</": 0.9803921568627451,
+      "exp": 0.0196078431372549
     },
     "virtual_node_exp:2:5": {
-      "name": 1
+      "name": 0.9803921568627451,
+      "</": 0.0196078431372549
     },
     "virtual_node_exp:2:6": {
-      ">": 1
+      ">": 0.9803921568627451,
+      "name": 0.0196078431372549
     },
     "func_body:0:11": {
       "SCOPED_STATEMENTS": 1
     },
     "func_body:0:12": {
-      "}": 0.5,
-      "SCOPED_STATEMENTS": 0.5
+      "}": 0.6,
+      "SCOPED_STATEMENTS": 0.4
     },
     "func_def:3:6": {
       "func_body_fat": 1
     },
-    "exp:10:0": {
-      "unary": 1
-    },
-    "exp:10:1": {
-      "exp": 1
-    },
     "exp:13:0": {
-      "await": 1
+      "unary": 1
     },
     "exp:13:1": {
       "exp": 1
     },
+    "exp:16:0": {
+      "await": 1
+    },
+    "exp:16:1": {
+      "exp": 1
+    },
     "func_def:1:7": {
-      "func_body": 1
+      "func_body": 0.7837837837837838,
+      "w": 0.21621621621621623
     },
     "SCOPED_STATEMENT:5:0": {
       "try_catch": 1
@@ -1367,30 +1385,31 @@
     },
     "try_catch:0:5": {
       "w": 0.8,
-      "}": 0.2
+      "SCOPED_STATEMENTS": 0.2
     },
     "try_catch:0:6": {
       "catch": 0.8,
-      "w": 0.2
+      "}": 0.2
     },
     "try_catch:0:7": {
       "name": 0.8,
-      "catch": 0.2
+      "w": 0.2
     },
     "try_catch:0:8": {
       "w": 0.8,
-      "name": 0.2
+      "catch": 0.2
     },
     "try_catch:0:9": {
       "{": 0.8,
-      "w": 0.2
+      "name": 0.2
     },
     "try_catch:0:10": {
       "SCOPED_STATEMENTS": 0.8,
-      "{": 0.2
+      "w": 0.2
     },
     "try_catch:0:11": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.8,
+      "{": 0.2
     },
     "try_catch:0:12": {
       "SCOPED_STATEMENTS": 1
@@ -1407,15 +1426,15 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:1": {
-      "GLOBAL_STATEMENTS": 0.9230769230769231,
-      "EOS": 0.07692307692307693
+      "GLOBAL_STATEMENTS": 0.9545454545454546,
+      "EOS": 0.045454545454545456
     },
     "START:1:2": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:3": {
-      "GLOBAL_STATEMENTS": 0.9166666666666666,
-      "EOS": 0.08333333333333333
+      "GLOBAL_STATEMENTS": 0.9523809523809523,
+      "EOS": 0.047619047619047616
     },
     "SCOPED_STATEMENT:6:0": {
       "for_loop": 1
@@ -1436,32 +1455,44 @@
       "exp": 1
     },
     "for_loop:0:5": {
-      "w": 0.20833333333333334,
-      "annotation": 0.7916666666666666
+      "w": 0.2692307692307692,
+      "annotation": 0.7307692307692307
     },
     "for_loop:0:6": {
-      "{": 0.20833333333333334,
-      "w": 0.7916666666666666
+      "{": 0.2692307692307692,
+      "w": 0.7307692307692307
     },
     "for_loop:0:7": {
-      "SCOPED_STATEMENTS": 0.20833333333333334,
-      "{": 0.7916666666666666
+      "SCOPED_STATEMENTS": 0.2692307692307692,
+      "{": 0.7307692307692307
     },
     "for_loop:0:8": {
       "SCOPED_STATEMENTS": 1
     },
     "for_loop:0:9": {
-      "}": 0.20833333333333334,
-      "SCOPED_STATEMENTS": 0.7916666666666666
+      "}": 0.2692307692307692,
+      "SCOPED_STATEMENTS": 0.7307692307692307
     },
     "class_func_def:0:6": {
       "func_body": 1
     },
-    "exp:16:0": {
+    "object_access:0:2": {
+      "object_access": 1
+    },
+    "exp:19:0": {
       "new": 1
     },
-    "exp:16:1": {
+    "exp:19:1": {
       "exp": 1
+    },
+    "exp:15:0": {
+      "array_literal": 1
+    },
+    "array_literal:1:0": {
+      "[": 1
+    },
+    "array_literal:1:1": {
+      "]": 1
     },
     "class_def:0:16": {
       "}": 1
@@ -1472,19 +1503,19 @@
     "START:1:5": {
       "GLOBAL_STATEMENTS": 1
     },
-    "exp:18:0": {
+    "exp:21:0": {
       "spread": 1
     },
-    "exp:18:1": {
+    "exp:21:1": {
       "exp": 1
     },
     "START:1:6": {
-      "GLOBAL_STATEMENTS": 0.8181818181818182,
-      "EOS": 0.18181818181818182
+      "GLOBAL_STATEMENTS": 0.9,
+      "EOS": 0.1
     },
     "START:1:7": {
-      "EOS": 0.1111111111111111,
-      "GLOBAL_STATEMENTS": 0.8888888888888888
+      "EOS": 0.05555555555555555,
+      "GLOBAL_STATEMENTS": 0.9444444444444444
     },
     "import_statement:2:0": {
       "import": 1
@@ -1501,22 +1532,40 @@
     "import_statement:2:4": {
       "name": 1
     },
-    "object_literal_body:1:0": {
+    "object_literal_body:3:0": {
       "object_literal_key": 1
     },
-    "object_literal_body:1:1": {
+    "object_literal_body:3:1": {
       ",": 1
     },
-    "object_literal_body:1:2": {
+    "object_literal_body:3:2": {
       "single_space_or_newline": 1
     },
-    "object_literal_body:1:3": {
+    "object_literal_body:3:3": {
       "object_literal_body": 1
     },
+    "annotation:0:0": {
+      "colon": 1
+    },
+    "annotation:0:1": {
+      "w": 1
+    },
+    "annotation:0:2": {
+      "type_expression": 1
+    },
+    "type_expression:2:0": {
+      "type_primary": 1
+    },
+    "type_primary:6:0": {
+      "type_name": 1
+    },
+    "type_name:0:0": {
+      "name": 1
+    },
     "virtual_node:0:5": {
-      "virtual_node_attributes": 0.5,
-      "/>": 0.2857142857142857,
-      "w": 0.21428571428571427
+      "virtual_node_attributes": 0.4666666666666667,
+      "/>": 0.3333333333333333,
+      "w": 0.2
     },
     "virtual_node:0:6": {
       "virtual_node_attributes": 0.7,
@@ -1543,6 +1592,9 @@
     "virtual_node_attributes:0:3": {
       "exp": 1
     },
+    "func_def:2:7": {
+      "func_body_fat": 1
+    },
     "else_if:0:0": {
       "w": 1
     },
@@ -1565,22 +1617,15 @@
       "SCOPED_STATEMENTS": 1
     },
     "else_if:0:7": {
-      "}": 1
+      "}": 0.9864864864864865,
+      "SCOPED_STATEMENTS": 0.013513513513513514
     },
     "else_if:0:8": {
-      "else_if": 1
+      "else_if": 0.9864864864864865,
+      "}": 0.013513513513513514
     },
-    "exp:7:0": {
+    "exp:10:0": {
       "regexp": 1
-    },
-    "exp:12:0": {
-      "array_literal": 1
-    },
-    "array_literal:1:0": {
-      "[": 1
-    },
-    "array_literal:1:1": {
-      "]": 1
     },
     "class_def:1:0": {
       "clazz": 1
@@ -1606,6 +1651,9 @@
     "func_def_params:1:2": {
       "exp": 1
     },
+    "exp:4:0": {
+      "null": 1
+    },
     "newline_and_space:0:0": {
       "newline": 1
     },
@@ -1614,9 +1662,6 @@
     },
     "func_call:0:3": {
       ")": 1
-    },
-    "else_if:2:6": {
-      "}": 1
     },
     "class_def:1:5": {
       "CLASS_STATEMENT": 1
@@ -1629,15 +1674,6 @@
     },
     "func_def_params:3:1": {
       "annotation": 1
-    },
-    "annotation:0:0": {
-      "colon": 1
-    },
-    "annotation:0:1": {
-      "w": 1
-    },
-    "annotation:0:2": {
-      "name": 1
     },
     "object_literal:1:0": {
       "{": 1
@@ -1709,10 +1745,13 @@
       "}": 1
     },
     "START:1:8": {
-      "EOS": 0.125,
-      "GLOBAL_STATEMENTS": 0.875
+      "EOS": 0.058823529411764705,
+      "GLOBAL_STATEMENTS": 0.9411764705882353
     },
-    "object_access:2:3": {
+    "exp:5:0": {
+      "undefined": 1
+    },
+    "object_access:5:3": {
       "object_access": 1
     },
     "SCOPED_STATEMENT:9:0": {
@@ -1731,13 +1770,31 @@
       "}": 0.631578947368421,
       "SCOPED_STATEMENTS": 0.3684210526315789
     },
-    "operation:2:0": {
-      "<": 1
+    "assign_op:1:0": {
+      "name": 1
     },
-    "operation:2:1": {
+    "assign_op:1:1": {
+      "object_access": 1
+    },
+    "assign_op:1:2": {
       "w": 1
     },
-    "operation:2:2": {
+    "assign_op:1:3": {
+      "assign_operator": 1
+    },
+    "assign_op:1:4": {
+      "w": 1
+    },
+    "assign_op:1:5": {
+      "exp": 1
+    },
+    "operation:3:0": {
+      "<": 1
+    },
+    "operation:3:1": {
+      "w": 1
+    },
+    "operation:3:2": {
       "exp": 1
     },
     "func_body:0:13": {
@@ -1765,9 +1822,6 @@
     },
     "scomment:1:0": {
       "multiline_comment": 1
-    },
-    "func_def:2:7": {
-      "func_body_fat": 1
     },
     "START:0:27": {
       "GLOBAL_STATEMENTS": 0.8333333333333334,
@@ -1822,6 +1876,9 @@
       "GLOBAL_STATEMENTS": 0.6666666666666666
     },
     "try_catch:0:15": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "try_catch:0:16": {
       "}": 1
     },
     "import_statement:0:0": {
@@ -1846,12 +1903,12 @@
       "[": 1
     },
     "array_literal:0:1": {
-      "newline": 0.059907834101382486,
-      "array_literal_body": 0.9400921658986175
+      "newline": 0.04426229508196721,
+      "array_literal_body": 0.9557377049180328
     },
     "array_literal:0:2": {
-      "W": 0.059907834101382486,
-      "]": 0.9400921658986175
+      "W": 0.04426229508196721,
+      "]": 0.9557377049180328
     },
     "array_literal:0:3": {
       "array_literal_body": 1
@@ -1875,8 +1932,8 @@
       "newline": 1
     },
     "array_literal:0:5": {
-      "W": 0.9615384615384616,
-      "]": 0.038461538461538464
+      "W": 0.9259259259259259,
+      "]": 0.07407407407407407
     },
     "array_literal:0:6": {
       "]": 1
@@ -1919,19 +1976,20 @@
       "/>": 1
     },
     "func_body_fat:0:11": {
-      "SCOPED_STATEMENTS": 0.5555555555555556,
-      "}": 0.4444444444444444
+      "SCOPED_STATEMENTS": 0.6363636363636364,
+      "}": 0.36363636363636365
     },
     "func_body_fat:0:12": {
+      "SCOPED_STATEMENTS": 0.7142857142857143,
+      "}": 0.2857142857142857
+    },
+    "func_body_fat:0:13": {
       "SCOPED_STATEMENTS": 0.6,
       "}": 0.4
     },
-    "func_body_fat:0:13": {
+    "func_body_fat:0:14": {
       "SCOPED_STATEMENTS": 0.3333333333333333,
       "}": 0.6666666666666666
-    },
-    "func_body_fat:0:14": {
-      "SCOPED_STATEMENTS": 1
     },
     "func_body_fat:0:15": {
       "}": 1
@@ -1952,15 +2010,15 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:13": {
-      "EOS": 0.14285714285714285,
-      "GLOBAL_STATEMENTS": 0.8571428571428571
+      "EOS": 0.0625,
+      "GLOBAL_STATEMENTS": 0.9375
     },
     "START:1:14": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:15": {
-      "EOS": 0.16666666666666666,
-      "GLOBAL_STATEMENTS": 0.8333333333333334
+      "EOS": 0.06666666666666667,
+      "GLOBAL_STATEMENTS": 0.9333333333333333
     },
     "START:0:43": {
       "GLOBAL_STATEMENTS": 1
@@ -2023,6 +2081,46 @@
       "EOS": 0.5,
       "GLOBAL_STATEMENTS": 0.5
     },
+    "START:2:0": {
+      "scomment": 1
+    },
+    "START:2:1": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "generic_params:0:0": {
+      "<": 1
+    },
+    "generic_params:0:1": {
+      "generic_param_list": 1
+    },
+    "generic_param_list:1:0": {
+      "name": 1
+    },
+    "generic_params:0:2": {
+      ">": 1
+    },
+    "func_def:1:8": {
+      "func_body": 1
+    },
+    "START:2:2": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:3": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "GLOBAL_STATEMENTS:0:2": {
+      "wcomment": 1
+    },
+    "START:2:4": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:5": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:6": {
+      "EOS": 0.16666666666666666,
+      "GLOBAL_STATEMENTS": 0.8333333333333334
+    },
     "START:1:16": {
       "GLOBAL_STATEMENTS": 1
     },
@@ -2042,8 +2140,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:22": {
-      "GLOBAL_STATEMENTS": 0.8,
-      "EOS": 0.2
+      "GLOBAL_STATEMENTS": 0.9285714285714286,
+      "EOS": 0.07142857142857142
     },
     "START:1:23": {
       "GLOBAL_STATEMENTS": 1
@@ -2052,8 +2150,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:25": {
-      "GLOBAL_STATEMENTS": 0.75,
-      "EOS": 0.25
+      "GLOBAL_STATEMENTS": 0.9230769230769231,
+      "EOS": 0.07692307692307693
     },
     "START:1:26": {
       "GLOBAL_STATEMENTS": 1
@@ -2086,14 +2184,15 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:35": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9166666666666666,
+      "EOS": 0.08333333333333333
     },
     "START:1:36": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:37": {
-      "GLOBAL_STATEMENTS": 0.6666666666666666,
-      "EOS": 0.3333333333333333
+      "GLOBAL_STATEMENTS": 0.9090909090909091,
+      "EOS": 0.09090909090909091
     },
     "START:1:38": {
       "GLOBAL_STATEMENTS": 1
@@ -2105,10 +2204,12 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:41": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9,
+      "EOS": 0.1
     },
     "START:1:42": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8888888888888888,
+      "EOS": 0.1111111111111111
     },
     "START:1:43": {
       "GLOBAL_STATEMENTS": 1
@@ -2123,7 +2224,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:47": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.875,
+      "EOS": 0.125
     },
     "START:1:48": {
       "GLOBAL_STATEMENTS": 1
@@ -2165,7 +2267,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:61": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8571428571428571,
+      "EOS": 0.14285714285714285
     },
     "START:1:62": {
       "GLOBAL_STATEMENTS": 1
@@ -2177,7 +2280,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:65": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8333333333333334,
+      "EOS": 0.16666666666666666
     },
     "START:1:66": {
       "GLOBAL_STATEMENTS": 1
@@ -2198,14 +2302,587 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:72": {
-      "EOS": 0.5,
-      "GLOBAL_STATEMENTS": 0.5
+      "EOS": 0.2,
+      "GLOBAL_STATEMENTS": 0.8
+    },
+    "generic_param_list:0:0": {
+      "name": 1
+    },
+    "generic_param_list:0:1": {
+      ",": 1
+    },
+    "generic_param_list:0:2": {
+      "w": 1
+    },
+    "generic_param_list:0:3": {
+      "generic_param_list": 1
+    },
+    "type_primary:5:0": {
+      "type_name": 1
+    },
+    "type_primary:5:1": {
+      "[": 1
+    },
+    "type_primary:5:2": {
+      "]": 1
+    },
+    "type_expression:0:0": {
+      "type_primary": 1
+    },
+    "type_expression:0:1": {
+      "w": 1
+    },
+    "type_expression:0:2": {
+      "pipe": 1
+    },
+    "type_expression:0:3": {
+      "w": 1
+    },
+    "type_expression:0:4": {
+      "type_expression": 1
+    },
+    "type_name:2:0": {
+      "undefined": 1
+    },
+    "START:2:7": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:8": {
+      "GLOBAL_STATEMENTS": 0.8,
+      "EOS": 0.2
+    },
+    "object_access:3:0": {
+      "type_arguments": 1
+    },
+    "type_arguments:0:0": {
+      "<": 1
+    },
+    "type_arguments:0:1": {
+      "type_argument_list": 1
+    },
+    "type_argument_list:1:0": {
+      "type_expression": 1
+    },
+    "type_arguments:0:2": {
+      ">": 1
+    },
+    "object_access:3:1": {
+      "func_call": 1
+    },
+    "START:2:9": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:10": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "type_argument_list:0:0": {
+      "type_expression": 1
+    },
+    "type_argument_list:0:1": {
+      ",": 1
+    },
+    "type_argument_list:0:2": {
+      "w": 1
+    },
+    "type_argument_list:0:3": {
+      "type_argument_list": 1
+    },
+    "START:2:11": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:12": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:13": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:14": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:15": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:16": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:17": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:18": {
+      "EOS": 0.25,
+      "GLOBAL_STATEMENTS": 0.75
     },
     "func_def:0:6": {
-      "func_body": 1
+      "func_body": 0.9230769230769231,
+      "w": 0.07692307692307693
     },
     "GLOBAL_STATEMENT:2:0": {
       "assign_op": 1
+    },
+    "START:2:19": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:20": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:21": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:22": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:23": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:24": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:25": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:26": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:27": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:28": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:29": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:30": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:31": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:32": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:33": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:34": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:35": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:36": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:37": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:38": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:39": {
+      "GLOBAL_STATEMENTS": 0.6666666666666666,
+      "EOS": 0.3333333333333333
+    },
+    "START:2:40": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:41": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:42": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:43": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:44": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:45": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:46": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:47": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:48": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:49": {
+      "GLOBAL_STATEMENTS": 0.5,
+      "EOS": 0.5
+    },
+    "START:2:50": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:51": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:52": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:53": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:54": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:55": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:56": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:57": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:58": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "GLOBAL_STATEMENT:9:0": {
+      "type_alias": 1
+    },
+    "type_alias:0:0": {
+      "type": 1
+    },
+    "type_alias:0:1": {
+      "name": 1
+    },
+    "type_alias:0:2": {
+      "generic_params": 0.09090909090909091,
+      "w": 0.9090909090909091
+    },
+    "type_alias:0:3": {
+      "w": 0.09090909090909091,
+      "=": 0.9090909090909091
+    },
+    "type_alias:0:4": {
+      "=": 0.09090909090909091,
+      "w": 0.9090909090909091
+    },
+    "type_alias:0:5": {
+      "w": 0.09090909090909091,
+      "type_expression": 0.9090909090909091
+    },
+    "type_alias:0:6": {
+      "type_expression": 1
+    },
+    "type_primary:0:0": {
+      "object_type": 1
+    },
+    "object_type:0:0": {
+      "{": 1
+    },
+    "object_type:0:1": {
+      "single_space_or_newline": 1
+    },
+    "object_type:0:2": {
+      "object_type_properties": 1
+    },
+    "object_type_properties:1:0": {
+      "object_type_property": 1
+    },
+    "object_type_property:1:0": {
+      "name": 1
+    },
+    "object_type_property:1:1": {
+      "colon": 1
+    },
+    "object_type_property:1:2": {
+      "w": 1
+    },
+    "object_type_property:1:3": {
+      "type_expression": 1
+    },
+    "object_type:0:3": {
+      "single_space_or_newline": 1
+    },
+    "object_type:0:4": {
+      "}": 1
+    },
+    "START:2:59": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:60": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "type_primary:4:0": {
+      "type_name": 1
+    },
+    "type_primary:4:1": {
+      "<": 1
+    },
+    "type_primary:4:2": {
+      "type_arg_list": 1
+    },
+    "type_arg_list:1:0": {
+      "type_expression": 1
+    },
+    "type_primary:4:3": {
+      ">": 1
+    },
+    "START:2:61": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:62": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:63": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:64": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:65": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:66": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:67": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:68": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:69": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:70": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "object_type_properties:0:0": {
+      "object_type_property": 1
+    },
+    "object_type_properties:0:1": {
+      ",": 1
+    },
+    "object_type_properties:0:2": {
+      "single_space_or_newline": 1
+    },
+    "object_type_properties:0:3": {
+      "object_type_properties": 1
+    },
+    "START:2:71": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:72": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "type_arg_list:0:0": {
+      "type_expression": 1
+    },
+    "type_arg_list:0:1": {
+      ",": 1
+    },
+    "type_arg_list:0:2": {
+      "w": 1
+    },
+    "type_arg_list:0:3": {
+      "type_arg_list": 1
+    },
+    "START:2:73": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:74": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:75": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:76": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:77": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:78": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:79": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:80": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "type_name:1:0": {
+      "null": 1
+    },
+    "START:2:81": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:82": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:83": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:84": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:85": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:86": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:87": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:88": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:89": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:90": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:91": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:92": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:93": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:94": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:95": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:96": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:97": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:98": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:99": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:100": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:101": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:102": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:103": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:104": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:105": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:106": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:107": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:108": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:109": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:110": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:111": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:112": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:113": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:114": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:115": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:116": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:117": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:118": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "object_type_property:0:0": {
+      "name": 1
+    },
+    "object_type_property:0:1": {
+      "question": 1
+    },
+    "object_type_property:0:2": {
+      "colon": 1
+    },
+    "object_type_property:0:3": {
+      "w": 1
+    },
+    "object_type_property:0:4": {
+      "type_expression": 1
+    },
+    "START:2:119": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:120": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:121": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:122": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "func_def:0:7": {
+      "func_body": 1
+    },
+    "START:2:123": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:124": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:125": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:126": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:127": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:128": {
+      "EOS": 1
+    },
+    "type_primary:1:0": {
+      "str": 1
+    },
+    "type_primary:2:0": {
+      "number": 1
+    },
+    "type_name:3:0": {
+      "true": 1
+    },
+    "type_name:4:0": {
+      "false": 1
     },
     "GLOBAL_STATEMENT:7:0": {
       "while_loop": 1
@@ -2252,6 +2929,39 @@
     "for_loop:1:17": {
       "}": 1
     },
+    "object_literal_body:0:0": {
+      "spread": 1
+    },
+    "object_literal_body:0:1": {
+      "exp": 1
+    },
+    "object_literal_body:0:2": {
+      ",": 1
+    },
+    "object_literal_body:0:3": {
+      "single_space_or_newline": 1
+    },
+    "object_literal_body:0:4": {
+      "object_literal_body": 1
+    },
+    "object_literal_body:1:0": {
+      "spread": 1
+    },
+    "object_literal_body:1:1": {
+      "exp": 1
+    },
+    "object_access:2:0": {
+      "optional_chain": 1
+    },
+    "object_access:2:1": {
+      "[": 1
+    },
+    "object_access:2:2": {
+      "exp": 1
+    },
+    "object_access:2:3": {
+      "]": 1
+    },
     "START:1:73": {
       "GLOBAL_STATEMENTS": 1
     },
@@ -2274,6 +2984,96 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:80": {
+      "GLOBAL_STATEMENTS": 0.75,
+      "EOS": 0.25
+    },
+    "START:1:81": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:82": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:83": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:84": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:85": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:86": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:87": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:88": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:89": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:90": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:91": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:92": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:93": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:94": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:95": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:96": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:97": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:98": {
+      "EOS": 0.3333333333333333,
+      "GLOBAL_STATEMENTS": 0.6666666666666666
+    },
+    "object_type:1:0": {
+      "{": 1
+    },
+    "object_type:1:1": {
+      "}": 1
+    },
+    "START:1:99": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:100": {
+      "EOS": 0.5,
+      "GLOBAL_STATEMENTS": 0.5
+    },
+    "else_if:0:9": {
+      "else_if": 1
+    },
+    "START:1:101": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:102": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:103": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:104": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:105": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:106": {
       "EOS": 1
     },
     "START:0:63": {
@@ -2299,10 +3099,13 @@
     },
     "START:0:70": {
       "EOS": 1
+    },
+    "virtual_node_exp:2:7": {
+      ">": 1
     }
   },
   "metadata": {
-    "generatedAt": "2026-02-13T20:27:13.466Z",
+    "generatedAt": "2026-02-15T20:53:43.830Z",
     "version": "1.0.0"
   }
 }

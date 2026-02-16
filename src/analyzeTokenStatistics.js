@@ -12,9 +12,9 @@ function traverseAST(node, stream) {
   if (!node || typeof node !== 'object') return;
 
   // If this is a parse node with children
-  if (node.name && node.subRule !== undefined && node.children) {
+  if (node.name && node.sub_rule_index !== undefined && node.children) {
     const ruleName = node.name;
-    const subRule = node.subRule;
+    const subRule = node.sub_rule_index;
     
     // Initialize stats for this rule if needed
     if (!ruleTokenStats[ruleName]) {
