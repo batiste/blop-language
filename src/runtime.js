@@ -54,6 +54,10 @@ class Component {
 
   // called on a partial render
   partialRender() {
+    // Don't render if component hasn't been initially mounted
+    // Error happening on the CI
+    if (!this.vnode) return;
+    
     const parentNode = currentNode;
     currentNode = this;
     this._resetForRender();
