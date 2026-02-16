@@ -4,179 +4,330 @@
     ],
     "name":"blop",
     "patterns":[
-      {  
-        "captures":{  
-          "1":{  
-            "name":"keyword.other.blop"
-          },
-          "2":{  
-            "name":"parens"
-          }
-        },
-        "match":"(def)(?:\\()",
-        "name":"def.blop"
-      },
-      {  
-        "match":"^(def |class |async def )([a-zA-Z_$][a-zA-Z_0-9_$]*)",
-        "captures": {
-          "1": {"name":"keyword.other.blop"},
-          "2": {"name":"support.type.object.module.blop"}
-        },
-        "name":"export.blop"
-      },
-      {  
-        "match":" (in) ([a-zA-Z_$][a-zA-Z_0-9_$]*)",
-        "captures": {
-          "1": {"name":"keyword.other.blop"},
-          "2": {"name":"name.blop"}
-        },
-        "name":"loop.blop"
-      },
-      {  
-        "match":"''",
-        "name":"string.cokescript"
-      },
-      {  
-        "match":"\"\"",
-        "name":"string.cokescript"
-      },
-      {  
-        "match":"``",
-        "name":"string.cokescript"
-      },
-      {  
-        "begin":"\\\"",
-        "end":"(\\\\.|[^\\\"])*\"",
-        "name":"string.blop"
-      },
-      {  
-        "begin":"\\'",
-        "end":"(\\\\.|[^\\'])*'",
-        "name":"string.blop"
-      },
-      {  
-        "begin":"\\`",
-        "end":"(\\\\.|[^\\`])*`",
-        "name":"string.blop"
-      },
-      {  
-        "begin":"\"",
-        "end":"\"",
-        "name":"string.blop"
-      },
-      {  
-        "begin":"\\'",
-        "end":"\\'",
-        "name":"string.blop"
-      },
-      {  
-        "begin":"\\`",
-        "end":"\\`",
-        "name":"string.blop"
-      },
-      {  
-        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*[ |\\n]",
-        "name":"keyword.html.compare.blop"
-      },
-      {  
-        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*\\>",
-        "name":"keyword.html.compare.blop"
-      },
-      {  
-        "match":"\\<\\/[a-zA-Z][a-zA-Z_0-9]*\\>",
-        "name":"keyword.html.compare.blop"
-      },
-      {  
-        "match":"\\<[a-zA-Z][a-zA-Z_0-9]*\\/>",
-        "name":"keyword.html.compare.blop"
-      },
-      {  
-        "match":"\\/>",
-        "name":"keyword.html.compare.blop"
-      },
-      {  
-        "match":"\\=\\=|\\!\\=|\\<\\=|\\:\\=|\\>\\=|\\=|\\&\\&?|\\<|\\>|\\+|\\-|\\|\\|?|\\=",
-        "name":"keyword.other.compare.blop"
-      },
-      {  
-        "match":"^([a-zA-Z_$][a-zA-Z_0-9_$]*) \\= ",
-        "captures": {"1": {"name":"support.type.object.module.blop"}}
-      },
-      {  
-        "match":"(\\.[a-zA-Z_$][a-zA-Z_0-9_$]*) \\= ",
-        "captures": {"1": {"name":"variable.assignment.blop"}}
-      },
-      {  
-        "match":" ([a-zA-Z_$][a-zA-Z_0-9_$]*)\\=",
-        "captures": {"1": {"name":"variable.parameter"}}
+      {
+        "include": "#comments"
       },
       {
-        "match":"\\btype |\\bdef |\\bif |\\belse\\b|\\belseif |\\bfor |\\bdelete |\\bnew |\\bextends |\\bin |\\bas |\\bclass |\\btry\\b|\\bcatch\\b|\\bthrow |\\breturn\\b|\\bundefined\\b|\\bfalse\\b|\\bdebugger\\b|\\btrue\\b|\\bwhile |\\bnot\\b|\\bnull\\b|\\bpass\\b|\\basync |\\bawait |\\bimport |\\bfrom |\\bthis\\b|\\btypeof |\\binstanceof |\\.\\.\\.",
-        "name":"keyword.statement.blop"
+        "include": "#strings"
       },
       {
-        "match":"^[ ]*break\n|continue\n",
-        "name":"keyword.statement.blop"
+        "include": "#regex"
       },
       {
-        "match":"\\: ([a-zA-Z_$][a-zA-Z_0-9_$]*)",
-        "name":"annotation.blop",
-        "captures": {
-          "1": {"name":"keyword.annotation.blop"}
-        }
+        "include": "#jsx"
       },
       {
-        "captures":{
-          "1":{  
-            "name":"support.function.misc.blop"
-          },
-          "2":{  
-            "name":"parens"
-          }
-        },
-        "match":"([a-zA-Z_$][a-zA-Z_0-9_$]*)(?:\\()",
-        "name":"func.call.blop"
+        "include": "#keywords"
       },
       {
-        "match":"[,|\\s|{][a-zA-Z_$][a-zA-Z_0-9_$]*\\:",
-        "name":"meta.object-literal.key.blop"
-      },
-      {  
-        "match":"[a-zA-Z_$][a-zA-Z_0-9_$]*",
-        "name":"name.blop"
-      },
-      {  
-        "match":"\\.|\\,|\\:",
-        "name":"punctuation.definition.string.blop"
-      },
-      {  
-        "match":"[0-9]+\\.?[0-9]*",
-        "name":"constant.numeric.decimal.blop"
-      },
-      {  
-        "match":"\\/\\/[^\\n]*",
-        "name":"comment.blop"
+        "include": "#function-declarations"
       },
       {
-        "name": "comment.block.blop",
-        "begin": "/\\*",
-        "beginCaptures": {
-          "0": {
-            "name": "definition.comment.blop"
-          }
-        },
-        "end": "\\*/",
-        "endCaptures": {
-          "0": {
-            "name": "definition.comment.blop"
-          }
-        }
+        "include": "#type-annotations"
       },
-      {  
-        "match":"\\/(\\\\.|[^\\/])*/",
-        "name":"string.blop"
+      {
+        "include": "#function-calls"
+      },
+      {
+        "include": "#constants"
+      },
+      {
+        "include": "#operators"
+      },
+      {
+        "include": "#numbers"
+      },
+      {
+        "include": "#variables"
+      },
+      {
+        "include": "#punctuation"
       }
     ],
+    "repository": {
+      "comments": {
+        "patterns": [
+          {
+            "name": "comment.line.double-slash.blop",
+            "match": "//.*$"
+          },
+          {
+            "name": "comment.block.blop",
+            "begin": "/\\*",
+            "end": "\\*/"
+          }
+        ]
+      },
+      "strings": {
+        "patterns": [
+          {
+            "name": "string.quoted.double.blop",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+              {
+                "name": "constant.character.escape.blop",
+                "match": "\\\\."
+              }
+            ]
+          },
+          {
+            "name": "string.quoted.single.blop",
+            "begin": "'",
+            "end": "'",
+            "patterns": [
+              {
+                "name": "constant.character.escape.blop",
+                "match": "\\\\."
+              }
+            ]
+          },
+          {
+            "name": "string.template.blop",
+            "begin": "`",
+            "end": "`",
+            "patterns": [
+              {
+                "name": "constant.character.escape.blop",
+                "match": "\\\\."
+              }
+            ]
+          }
+        ]
+      },
+      "regex": {
+        "patterns": [
+          {
+            "name": "string.regexp.blop",
+            "match": "(?<=[=(:,\\[!&|?]|^|return|=>)\\s*(/)(?![/*])(\\\\.|[^/\\\\\\n])+(/)([gimsuvy]*)",
+            "captures": {
+              "1": {"name": "punctuation.definition.string.begin.blop"},
+              "3": {"name": "punctuation.definition.string.end.blop"},
+              "4": {"name": "keyword.other.blop"}
+            }
+          }
+        ]
+      },
+      "jsx": {
+        "patterns": [
+          {
+            "name": "meta.tag.jsx.blop",
+            "match": "<([A-Z][a-zA-Z0-9_]*)",
+            "captures": {
+              "1": {"name": "entity.name.tag.component.blop"}
+            }
+          },
+          {
+            "name": "meta.tag.jsx.blop",
+            "match": "<([a-z][a-zA-Z0-9_-]*)",
+            "captures": {
+              "1": {"name": "entity.name.tag.html.blop"}
+            }
+          },
+          {
+            "name": "meta.tag.jsx.close.blop",
+            "match": "</([a-zA-Z][a-zA-Z0-9_-]*)>",
+            "captures": {
+              "1": {"name": "entity.name.tag.blop"}
+            }
+          },
+          {
+            "name": "meta.tag.jsx.self-closing.blop",
+            "match": "/>",
+            "captures": {
+              "0": {"name": "punctuation.definition.tag.end.blop"}
+            }
+          },
+          {
+            "name": "meta.tag.jsx.blop",
+            "match": ">",
+            "captures": {
+              "0": {"name": "punctuation.definition.tag.end.blop"}
+            }
+          }
+        ]
+      },
+      "keywords": {
+        "patterns": [
+          {
+            "name": "keyword.control.blop",
+            "match": "\\b(if|else|elseif|for|while|return|break|continue|try|catch|throw)\\b"
+          },
+          {
+            "name": "keyword.other.blop",
+            "match": "\\b(def|class|type|async|await|import|from|export|extends|in|as|delete|new|typeof|instanceof)\\b"
+          },
+          {
+            "name": "storage.modifier.blop",
+            "match": "\\b(this|pass)\\b"
+          },
+          {
+            "name": "keyword.operator.blop",
+            "match": "\\b(not|and|or)\\b"
+          },
+          {
+            "name": "constant.language.blop",
+            "match": "\\b(true|false|null|undefined)\\b"
+          },
+          {
+            "name": "keyword.other.blop",
+            "match": "\\.\\.\\."
+          },
+          {
+            "name": "keyword.control.blop",
+            "match": "\\b(debugger)\\b"
+          }
+        ]
+      },
+      "function-declarations": {
+        "patterns": [
+          {
+            "name": "meta.function.blop",
+            "match": "^\\s*(def|async\\s+def|class)\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)",
+            "captures": {
+              "1": {"name": "keyword.other.blop"},
+              "2": {"name": "entity.name.function.blop"}
+            }
+          },
+          {
+            "name": "meta.function.arrow.blop",
+            "match": "^\\s*([A-Z][a-zA-Z0-9_$]*)\\s*=",
+            "captures": {
+              "1": {"name": "entity.name.function.component.blop"}
+            }
+          }
+        ]
+      },
+      "type-annotations": {
+        "patterns": [
+          {
+            "name": "meta.type.annotation.blop",
+            "match": ":\\s*([A-Z][a-zA-Z0-9_$]*)",
+            "captures": {
+              "1": {"name": "entity.name.type.blop"}
+            }
+          }
+        ]
+      },
+      "function-calls": {
+        "patterns": [
+          {
+            "name": "meta.function-call.blop",
+            "match": "([a-z_$][a-zA-Z0-9_$]*)\\s*(?=\\()",
+            "captures": {
+              "1": {"name": "entity.name.function.blop"}
+            }
+          },
+          {
+            "name": "meta.function-call.component.blop",
+            "match": "([A-Z][a-zA-Z0-9_$]*)\\s*(?=\\()",
+            "captures": {
+              "1": {"name": "entity.name.function.component.blop"}
+            }
+          }
+        ]
+      },
+      "constants": {
+        "patterns": [
+          {
+            "name": "variable.other.constant.blop",
+            "match": "\\b[A-Z][A-Z0-9_]*\\b"
+          }
+        ]
+      },
+      "operators": {
+        "patterns": [
+          {
+            "name": "storage.type.function.arrow.blop",
+            "match": "\\=\\>"
+          },
+          {
+            "name": "keyword.operator.assignment.compound.blop",
+            "match": "\\+\\=|\\-\\=|\\*\\=|\\/\\=|\\%\\=|\\&\\=|\\|\\=|\\^\\=|\\<\\<\\=|\\>\\>\\=|\\:\\="
+          },
+          {
+            "name": "keyword.operator.comparison.blop",
+            "match": "\\=\\=\\=|\\!\\=\\=|\\=\\=|\\!\\=|\\<\\=|\\>\\=|\\<|\\>"
+          },
+          {
+            "name": "keyword.operator.logical.blop",
+            "match": "\\&\\&|\\|\\||!"
+          },
+          {
+            "name": "keyword.operator.bitwise.blop",
+            "match": "\\&|\\||\\^|~|\\<\\<|\\>\\>"
+          },
+          {
+            "name": "keyword.operator.arithmetic.blop",
+            "match": "\\+|\\-|\\*|\\/|\\%|\\*\\*"
+          },
+          {
+            "name": "keyword.operator.assignment.blop",
+            "match": "\\="
+          },
+          {
+            "name": "keyword.operator.accessor.blop",
+            "match": "\\."
+          }
+        ]
+      },
+      "numbers": {
+        "patterns": [
+          {
+            "name": "constant.numeric.hex.blop",
+            "match": "\\b0[xX][0-9a-fA-F]+\\b"
+          },
+          {
+            "name": "constant.numeric.binary.blop",
+            "match": "\\b0[bB][01]+\\b"
+          },
+          {
+            "name": "constant.numeric.octal.blop",
+            "match": "\\b0[oO][0-7]+\\b"
+          },
+          {
+            "name": "constant.numeric.decimal.blop",
+            "match": "\\b[0-9]+\\.?[0-9]*([eE][+-]?[0-9]+)?\\b"
+          }
+        ]
+      },
+      "variables": {
+        "patterns": [
+          {
+            "name": "variable.other.property.blop",
+            "match": "(?<=\\.)([a-zA-Z_$][a-zA-Z0-9_$]*)"
+          },
+          {
+            "name": "variable.parameter.blop",
+            "match": "\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*(?=\\=)"
+          },
+          {
+            "name": "meta.object-literal.key.blop",
+            "match": "([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*(?=:)"
+          },
+          {
+            "name": "variable.other.readwrite.blop",
+            "match": "\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\b"
+          }
+        ]
+      },
+      "punctuation": {
+        "patterns": [
+          {
+            "name": "punctuation.separator.comma.blop",
+            "match": ","
+          },
+          {
+            "name": "punctuation.separator.colon.blop",
+            "match": ":"
+          },
+          {
+            "name": "punctuation.terminator.statement.blop",
+            "match": ";"
+          }
+        ]
+      }
+    },
     "scopeName":"source.blop",
     "uuid":"80bb5c88-4a96-45ed-af77-18a15627612f"
   }
