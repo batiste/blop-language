@@ -11,6 +11,7 @@ def PlaygroundPage(_attributes, _children, node): VNode {
   { value as code, setState as setCode } = node.useState('code', defaultCode)
   { value as output, setState as setOutput } = node.useState('output', '')
   { value as error, setState as setError } = node.useState('error', null)
+  { value as warning, setState as setWarning } = node.useState('warning', null)
   { value as isCompiling, setState as setIsCompiling } = node.useState('isCompiling', false)
   
   def handleCodeChange(e) {
@@ -27,8 +28,11 @@ def PlaygroundPage(_attributes, _children, node): VNode {
     if result.success {
         setOutput(result.code)
         setError(null)
+        setWarning(null)
+        result.warnings.forEach((_warning) => {
+          setWarning(_warning.message)
+        })
     } else {
-        console.log(result)
         errorMsg = result.errors[0].message || 'Compilation failed'
         setError(errorMsg)
         setOutput('')
@@ -117,6 +121,26 @@ def PlaygroundPage(_attributes, _children, node): VNode {
               'Compiled JavaScript'
             </div>
             <div class="card-body" style={ padding: '0' }>
+
+              if warning {
+                <div style={
+                  height: 'auto',
+                  padding: '1.5em',
+                  backgroundColor: '#fff3cd',
+                  color: '#856404',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap'
+                }>
+                  <div style={ fontWeight: 'bold', marginBottom: '1em', fontSize: '1.1em' }>
+                    <span style={ marginRight: '0.5em' }>'⚠️'</span>
+                    'Compilation Warning'
+                  </div>
+                  = warning
+                </div>
+              }
+
               if error {
                 <div style={
                   height: '500px',
