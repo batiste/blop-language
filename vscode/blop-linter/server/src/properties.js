@@ -64,5 +64,5 @@ module.exports = {
   'Atomics': ['load', 'store', 'add', 'sub', 'and', 'or', 'xor', 'exchange', 'compareExchange', 'isLockFree', 'wait', 'wake', 'notify'],
   'DataView': ['length', 'name', 'prototype'],
   'JSON': ['parse', 'stringify'],
-  'console': ['_stdout', '_stderr', '_ignoreErrors', '_times', '_stdoutErrorHandler', '_stderrErrorHandler', 'log', 'debug', 'info', 'dirxml', 'warn', 'error', 'dir', 'time', 'timeEnd', 'timeLog', 'trace', 'assert', 'clear', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'table', 'Console', 'markTimeline', 'profile', 'profileEnd', 'timeline', 'timelineEnd', 'timeStamp', 'context'],
+  'console': ['_stdout', '_stderr', '_ignoreErrors', '_times', '_stdoutErrorHandler', '_stderrErrorHandler', 'log', 'debug', 'info', 'dirxml', 'warn', 'error', 'dir', 'time', 'timeEnd', 'timeLog', 'trace', 'assert', 'clear', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'table', 'Console', 'markTimeline', 'profile', 'profileEnd', 'timeline', 'timeline_end', 'timeStamp', 'context'],
 };

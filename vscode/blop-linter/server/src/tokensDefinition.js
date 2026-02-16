@@ -151,6 +151,6 @@ const tokensDefinition = {
   'W': { reg: /^[\s]+/, verbose: 'multiple white spaces' },
 };
 
-module.exports = {
+export {
   tokensDefinition,
 };

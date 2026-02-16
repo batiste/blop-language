@@ -1,4 +1,4 @@
-import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES } from '../../constants';
+import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES } from '../../constants.js';
 
 function createStatementGenerators(context) {
   const { generateCode, validators, scopes } = context;
@@ -73,6 +73,6 @@ function createStatementGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createStatementGenerators,
 };

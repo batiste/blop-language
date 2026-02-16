@@ -6,6 +6,7 @@ import utils from './utils.js';
 import parser from './parser.js';
 import { inference } from './inference/index.js';
 import { selectBestFailure } from './selectBestFailure.js';
+import { displayError, displayBackendError } from './errorMessages.js';
 
 /**
  * Compile Blop source code to JavaScript
@@ -34,22 +35,22 @@ function compileSource(source, filename = false, enableInference = false) {
     const bestFailure = tree.all_failures 
       ? selectBestFailure(tree.all_failures, tree.primary_failure)
       : tree.primary_failure;
-    utils.displayError(stream, tokensDefinition, grammar, bestFailure);
+    displayError(stream, tokensDefinition, grammar, bestFailure);
   }
 
   // Generate code - always use ESM format
   const result = backend.generateCode(tree, stream, source, filename, null, false, 'vite');
 
   if (!result.success) {
-    utils.displayBackendError(stream, result.errors[0]);
+    displayBackendError(stream, result.errors[0]);
   }
   if (config.strictness === 'perfect' && !result.perfect) {
-    utils.displayBackendError(stream, result.warnings[0]);
+    displayBackendError(stream, result.warnings[0]);
   }
   if (shouldRunInference) {
     const warnings = inference(tree, stream);
     if (warnings.length) {
-      utils.displayBackendError(stream, warnings[0]);
+      displayBackendError(stream, warnings[0]);
     }
   }
 

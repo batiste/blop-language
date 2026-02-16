@@ -9,6 +9,7 @@ import backend from './backend.js';
 import parser from './parser.js';
 import { inference } from './inference/index.js';
 import { selectBestFailure } from './selectBestFailure.js';
+import { displayError } from './errorMessages.js';
 
 /**
  * Compile Blop source code to JavaScript in the browser
@@ -32,22 +33,11 @@ function compile(source, options = {}) {
     const tree = parser.parse(stream);
     
     if (!tree.success) {
-      // Select the best failure from the array
-      const bestFailure = tree.all_failures 
+        // Use statistics to select the best failure from the array
+        const bestFailure = tree.all_failures 
         ? selectBestFailure(tree.all_failures, tree.primary_failure)
         : tree.primary_failure;
-      
-      return {
-        code: '',
-        success: false,
-        errors: [{
-          message: formatParseError(stream, bestFailure),
-          line: bestFailure.position?.line,
-          column: bestFailure.position?.column
-        }],
-        warnings: [],
-        dependencies: []
-      };
+        displayError(stream, tokensDefinition, grammar, bestFailure);
     }
 
     // Generate code - always use ESM format
@@ -90,28 +80,6 @@ function compile(source, options = {}) {
   }
 }
 
-/**
- * Format a parse error for display (simplified for browser)
- */
-function formatParseError(stream, failure) {
-  if (!failure) return 'Parse error';
-  
-  const pos = failure.position || {};
-  const line = pos.line || 0;
-  const column = pos.column || 0;
-  
-  let message = `Parse error at line ${line}, column ${column}`;
-  
-  if (failure.expected) {
-    message += `\nExpected: ${failure.expected}`;
-  }
-  
-  if (failure.found) {
-    message += `\nFound: ${failure.found}`;
-  }
-  
-  return message;
-}
 
 export {
   compile,

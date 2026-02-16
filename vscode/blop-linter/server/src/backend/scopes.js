@@ -1,4 +1,4 @@
-const { SCOPE_TYPES } = require('../constants');
+import { SCOPE_TYPES } from '../constants.js';
 
 class Scope {
   constructor(type) {
@@ -72,7 +72,7 @@ class ScopesStack {
   }
 }
 
-module.exports = {
+export {
   Scope,
   ScopesStack,
 };

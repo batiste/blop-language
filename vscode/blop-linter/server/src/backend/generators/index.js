@@ -1,11 +1,11 @@
-const { createLiteralGenerators } = require('./literals');
-const { createExpressionGenerators } = require('./expressions');
-const { createLoopGenerators } = require('./loops');
-const { createConditionalGenerators } = require('./conditionals');
-const { createFunctionGenerators } = require('./functions');
-const { createImportGenerators } = require('./imports');
-const { createVirtualNodeGenerators } = require('./virtualNode');
-const { createStatementGenerators } = require('./statements');
+import { createLiteralGenerators } from './literals.js';
+import { createExpressionGenerators } from './expressions.js';
+import { createLoopGenerators } from './loops.js';
+import { createConditionalGenerators } from './conditionals.js';
+import { createFunctionGenerators } from './functions.js';
+import { createImportGenerators } from './imports.js';
+import { createVirtualNodeGenerators } from './virtualNode.js';
+import { createStatementGenerators } from './statements.js';
 
 function createBackendHandlers(context) {
   return {
@@ -20,6 +20,6 @@ function createBackendHandlers(context) {
   };
 }
 
-module.exports = {
+export {
   createBackendHandlers,
 };

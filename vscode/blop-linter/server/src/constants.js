@@ -210,7 +210,7 @@ const LIMITS = {
   MAX_DEPTH: 100
 };
 
-module.exports = {
+export {
   SCOPE_TYPES,
   SCOPE_DEPTH,
   ERROR_MESSAGES,

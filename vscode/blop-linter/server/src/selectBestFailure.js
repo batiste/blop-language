@@ -1,11 +1,28 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Safely get __dirname - works in both Node.js and browser
+let __dirname;
+try {
+  const __filename = fileURLToPath(import.meta.url);
+  __dirname = path.dirname(__filename);
+} catch (e) {
+  // Browser environment - __dirname not available
+  __dirname = '';
+}
 
 let tokenStatistics = null;
 
 // Lazy load statistics (only if they exist)
 function loadStatistics() {
   if (tokenStatistics !== null) return tokenStatistics;
+  
+  // In browser, statistics won't be available
+  if (!__dirname || typeof window !== 'undefined') {
+    tokenStatistics = {};
+    return tokenStatistics;
+  }
   
   // Look for tokenStatistics.json in the same directory
   const statsPath = path.join(__dirname, 'tokenStatistics.json');
@@ -93,7 +110,7 @@ function selectBestFailure(failureArray, defaultFailure) {
   return bestFailure || defaultFailure || failureArray[0];
 }
 
-module.exports = {
+export {
   selectBestFailure,
   loadStatistics,
 };

@@ -1,4 +1,4 @@
-import { SCOPE_TYPES } from '../../constants';
+import { SCOPE_TYPES } from '../../constants.js';
 
 function createConditionalGenerators(context) {
   const { generateCode, validators, scopes } = context;
@@ -52,6 +52,6 @@ function createConditionalGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createConditionalGenerators,
 };

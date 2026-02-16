@@ -3,9 +3,9 @@ import fs from 'fs';
 import { createRequire } from 'module';
 import parser from '../parser.js';
 import { tokensDefinition } from '../tokensDefinition.js';
-import utils from '../utils.js';
 import { all } from '../builtin.js';
 import { ERROR_MESSAGES } from '../constants.js';
+import { streamContext } from '../errorMessages.js';
 
 // Create a require function for module resolution in ESM environment
 const require = createRequire(import.meta.url);
@@ -16,7 +16,7 @@ function createValidators(context) {
 
   function generateError(node, message, warning = false) {
     const token = stream[node.stream_index];
-    const sourceContext = utils.streamContext(input, token, token, stream);
+    const sourceContext = streamContext(input, token, token, stream);
     const error = new Error(`${message}
     ${sourceContext}
 `);

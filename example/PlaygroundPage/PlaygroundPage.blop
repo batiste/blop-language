@@ -1,6 +1,8 @@
 // PlaygroundPage - Live Blop Compiler Playground
 
 import { compile } from '../../src/compile-browser.js'
+import { grammar } from '../../src/grammar.js'
+import { tokensDefinition } from '../../src/tokensDefinition.js'
 
 
 def PlaygroundPage(_attributes, _children, node): VNode {
@@ -20,23 +22,18 @@ def PlaygroundPage(_attributes, _children, node): VNode {
     setError(null)
     setOutput('')
 
-    try {
-        result = compile(code, { inference: true })
-        console.log('Compilation result:', result)
-        if result.success {
-            setOutput(result.code)
-            setError(null)
-        } else {
-            errorMsg = result.errors[0].message || 'Compilation failed'
-            setError(errorMsg)
-            setOutput('')
-        }
-        setIsCompiling(false)
-    } catch e {
-        setError('Compilation error: 'e.message)
+    result = compile(code, { inference: true })
+    console.log('Compilation result:', result)
+    if result.success {
+        setOutput(result.code)
+        setError(null)
+    } else {
+        console.log(result)
+        errorMsg = result.errors[0].message || 'Compilation failed'
+        setError(errorMsg)
         setOutput('')
-        setIsCompiling(false)
     }
+    setIsCompiling(false)
   }
   
   <div>

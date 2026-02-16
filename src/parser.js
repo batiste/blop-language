@@ -9516,8 +9516,8 @@ function tokenize(tokenDef, input) {
       } else {
         column += candidateLen;
       }
-      lastToken.lineEnd = line;
-      lastToken.columnEnd = column;
+      lastToken.line_end = line;
+      lastToken.column_end = column;
       stream.push(lastToken);
       index++;
       char += candidateLen;
