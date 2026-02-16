@@ -4,7 +4,8 @@ const backend = require('./backend');
 const utils = require('./utils');
 const parser = require('./parser');
 const loader = require('./loader');
-const jest = require('./jest');
+const vite = require('./vite');
+const vitest = require('./vitest');
 
 module.exports = {
   grammar,
@@ -13,5 +14,6 @@ module.exports = {
   utils,
   parser,
   loader,
-  jest,
+  vite,
+  vitest,
 };

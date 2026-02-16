@@ -199,7 +199,7 @@ Add to `package.json`:
   "scripts": {
     "build": "node src/blop.js -i src/app.blop -o dist/app.js -s -r",
     "validate": "node src/blop.js -i src/app.blop --inference --validate",
-    "test": "jest"
+    "test": "vitest run"
   }
 }
 ```

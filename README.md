@@ -35,12 +35,11 @@ State management and routing can be up to you, but 2 small libraries provide the
   * A linter is integrated into the language: no linter debate.
   * Good integration with Visual Studio Code: linter and syntactic coloration.
   * Source maps.
-  * Server Side Rendering in the example.
-  * Hot module reloading in the example (HMR)
+  * Hot module reloading (HMR)
   * Type annotation with very basic type inference warnings.
   * Similar syntax and features than ES6.
-  * 100% Webpack and Jest compatible
-  * Very small payload size for Snabbdom and Blop runtime: Parsed size: ~20KB, Gzipped: ~7KB
+  * 100% Vite and Vitest compatible
+  * Very small payload size for Snabbdom and Blop runtime: Parsed size: ~42KB, Gzipped: ~15KB
 
 ## Language features missing
 
@@ -63,41 +62,34 @@ To convert a single file
 
     blop -i input.blop -o output.js
 
-## Configure Webpack loader for blop
+## Configure Vite plugin for blop
 
-Add this rule into your `webpack.config.js`
+Add this to your `vite.config.js`
 
 ```javascript
-module.exports = {
-  module: {
-    rules: [
-      {
-        test: /\.blop$/,
-        use: [
-          {
-            loader: 'blop-language/src/loader',
-            options: {debug: false}
-          }
-        ]
-      }
-    ]
-  }
-};
+import { defineConfig } from 'vite';
+import { blopPlugin } from 'blop-language/src/vite';
+
+export default defineConfig({
+  plugins: [blopPlugin()],
+});
 ```
 
-## Configure Jest for blop
+## Configure Vitest for blop
 
 ```javascript
-// jest.config.js
-module.exports = {
-  moduleFileExtensions: [
-    'blop',
-    'js',
-  ],
-  testMatch: ['**/*.test.blop'],
-  transform: {
-    '^.+\\.blop$': 'blop-language/src/jest',
+// vitest.config.js
+import { defineConfig } from 'vitest/config';
+import { blopPlugin } from 'blop-language/src/vitest';
+
+export default defineConfig({
+  plugins: [blopPlugin()],
+  test: {
+    include: ['**/*.test.blop'],
+    globals: true,
+    environment: 'jsdom',
   },
+});
 };
 ```
 
