@@ -1,6 +1,7 @@
 // PlaygroundPage - Live Blop Compiler Playground
 
-// import '../../src/parser.js' as parser
+import { compile } from '../../src/compile-browser.js'
+
 
 def PlaygroundPage(_attributes, _children, node): VNode {
   defaultCode = 'def Greeting(attributes, _children): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
@@ -18,14 +19,24 @@ def PlaygroundPage(_attributes, _children, node): VNode {
     setIsCompiling(true)
     setError(null)
     setOutput('')
-    
-    // Use setTimeout to allow UI to update
-    setTimeout(() => {
-      // Note: Direct browser compilation is not yet available
-      errorMsg = 'Live browser compilation coming soon! The Blop compiler currently requires Node.js APIs and cannot run directly in the browser. To compile Blop code: Use the Blop CLI, Vite plugin, or webpack loader. Check back soon for updates!'
-      setError(errorMsg)
-      setIsCompiling(false)
-    }, 500)
+
+    try {
+        result = compile(code, { inference: true })
+        console.log('Compilation result:', result)
+        if result.success {
+            setOutput(result.code)
+            setError(null)
+        } else {
+            errorMsg = result.errors[0].message || 'Compilation failed'
+            setError(errorMsg)
+            setOutput('')
+        }
+        setIsCompiling(false)
+    } catch e {
+        setError('Compilation error: 'e.message)
+        setOutput('')
+        setIsCompiling(false)
+    }
   }
   
   <div>
@@ -41,7 +52,7 @@ def PlaygroundPage(_attributes, _children, node): VNode {
         '🎮 Blop Playground'
       </h1>
       <p class="lead text-center" style={ fontSize: '1.2em', marginBottom: '0' }>
-        'Write Blop code and see the compiled JavaScript output'
+        'Write Blop code and see the compiled JavaScript output in real-time'
       </p>
     </div>
     
@@ -60,6 +71,7 @@ def PlaygroundPage(_attributes, _children, node): VNode {
               <span style={ marginRight: '0.5em' }>'📝'</span>
               'Blop Code'
             </div>
+            console.log(code)
             <div class="card-body" style={ padding: '0' }>
               <textarea
                 class="form-control"

@@ -2,8 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Safely get __dirname - works in both Node.js and browser
+let __dirname;
+try {
+  const __filename = fileURLToPath(import.meta.url);
+  __dirname = path.dirname(__filename);
+} catch (e) {
+  // Browser environment - __dirname not available
+  __dirname = '';
+}
 
 const builtin = {
   Infinity: { type: 'Value' },

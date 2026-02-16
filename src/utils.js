@@ -5,8 +5,6 @@ import { createRequire } from 'module';
 import { PATHS, PATTERNS } from './constants.js';
 import { enhanceErrorMessage, formatEnhancedError } from './errorMessages.js';
 
-const require = createRequire(import.meta.url);
-
 function replaceInvisibleChars(v) {
   v = v.replace(PATTERNS.INVISIBLE_CHARS.CARRIAGE_RETURN, '⏎\r');
   v = v.replace(PATTERNS.INVISIBLE_CHARS.NEWLINE, '⏎\n');
@@ -153,16 +151,30 @@ function lookUp(dir, name) {
 }
 
 function getConfig(filename) {
+  // In browser environments, config files aren't supported
+  // Check early to avoid any Node.js module operations
+  if (typeof window !== 'undefined' || typeof process === 'undefined') {
+    return {};
+  }
+  
   if (!filename) {
     return {};
   }
-  const dirname = path.dirname(filename) || process.cwd();
-  const config = lookUp(dirname, PATHS.CONFIG_FILE);
-  if (!config) {
+  
+  try {
+    const dirname = path.dirname(filename) || process.cwd();
+    const config = lookUp(dirname, PATHS.CONFIG_FILE);
+    if (!config) {
+      return {};
+    }
+    
+    // Use createRequire to dynamically load the config file
+    const requireFn = createRequire(import.meta.url);
+    return requireFn(config);
+  } catch (e) {
+    // If require fails (browser or other error), return empty config
     return {};
   }
-  // eslint-disable-next-line import/no-dynamic-require global-require
-  return require(config);
 }
 
 export {
