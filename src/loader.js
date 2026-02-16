@@ -1,12 +1,12 @@
-const loaderUtils = require('loader-utils');
-const { validate } = require('schema-utils');
-const { compileSource } = require('./compile');
+import loaderUtils from 'loader-utils';
+import { validate } from 'schema-utils';
+import { compileSource } from './compile.js';
 
 const schema = {
   type: 'object',
 };
 
-module.exports = function loader(source) {
+export default function loader(source) {
   const options = loaderUtils.getOptions(this) || { debug: false };
   validate(schema, options, { name: 'Blop Loader' });
   const { code, sourceMap } = compileSource(source, this.resourcePath, options.sourceMap);
@@ -24,4 +24,4 @@ module.exports = function loader(source) {
   } else {
     this.callback(null, code);
   }
-};
+}

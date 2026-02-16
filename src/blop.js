@@ -1,10 +1,10 @@
 #! /usr/bin/env node
 
-const program = require('commander');
-const fs = require('fs');
-const vm = require('vm');
-const { compileSource } = require('./compile');
-const { COLORS } = require('./constants');
+import { program } from 'commander';
+import fs from 'fs';
+import vm from 'vm';
+import { compileSource } from './compile.js';
+import { COLORS } from './constants.js';
 
 program
   .version('0.1.0')

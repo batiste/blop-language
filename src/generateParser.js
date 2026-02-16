@@ -28,7 +28,9 @@ obs.observe({ entryTypes: ['measure'] });
 performance.mark('A');
 
 // Load token statistics if available
-let options = {};
+let options = {
+  esm: true, // Generate ESM exports
+};
 const statsPath = path.join(__dirname, 'tokenStatistics.json');
 if (fs.existsSync(statsPath)) {
   const statistics = JSON.parse(fs.readFileSync(statsPath, 'utf8'));

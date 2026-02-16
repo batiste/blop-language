@@ -34,14 +34,10 @@ def navigationLinks(state) {
     state.$.router.go('/fetch')
     e.preventDefault()
   }
-  // def playgroundPage(e) {
-  //   state.$.router.go('/playground')
-  //   e.preventDefault()
-  // }
-  // def showcasePage(e) {
-  //   state.$.router.go('/showcase')
-  //   e.preventDefault()
-  // }
+  def playgroundPage(e) {
+    state.$.router.go('/playground')
+    e.preventDefault()
+  }
   return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
 }
 

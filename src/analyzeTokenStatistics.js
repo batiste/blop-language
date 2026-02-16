@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
-const parser = require('./parser');
-const { tokensDefinition } = require('./tokensDefinition');
+import fs from 'fs';
+import path from 'path';
+import glob from 'glob';
+import parser from './parser.js';
+import { tokensDefinition } from './tokensDefinition.js';
 
 // Statistics storage
 const ruleTokenStats = {}; // rule_name -> { token_type -> count }

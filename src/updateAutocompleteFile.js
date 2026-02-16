@@ -1,3 +1,3 @@
-const { generateAutoCompleteFile } = require('./builtin.js');
+import { generateAutoCompleteFile } from './builtin.js';
 
 generateAutoCompleteFile();
