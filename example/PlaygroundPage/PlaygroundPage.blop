@@ -71,7 +71,6 @@ def PlaygroundPage(_attributes, _children, node): VNode {
               <span style={ marginRight: '0.5em' }>'📝'</span>
               'Blop Code'
             </div>
-            console.log(code)
             <div class="card-body" style={ padding: '0' }>
               <textarea
                 class="form-control"
