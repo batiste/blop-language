@@ -44,6 +44,7 @@ State management and routing can be up to you, but 2 small libraries provide the
 ## Language features missing
 
   * The language is still in beta
+  * Server-Side Rendering (SSR) - removed in v1.1.0 with migration to Vite
 
 ## Installation
 
