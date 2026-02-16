@@ -12,15 +12,10 @@ const { PATHS, ERROR_MESSAGES } = require('./constants');
 const { selectBestFailure } = require('./selectBestFailure');
 
 
-function compileSource(source, env = 'webpack', filename = false, useSourceMap = false, resolve = false) {
+function compileSource(source, filename = false, useSourceMap = false, resolve = false) {
   const name = require.resolve(path.join(__dirname, PATHS.RUNTIME_MODULE));
   const config = utils.getConfig(filename);
-  let file;
-  if (env === 'webpack') {
-    file = stringifyRequest(this, `!${name}`);
-  } else {
-    file = stringifyRequest(this, name);
-  }
+  const file = stringifyRequest(this, name);
   const header = `const blop = require(${file});\n`;
 
   const t1 = performance.now();

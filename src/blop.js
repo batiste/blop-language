@@ -29,7 +29,7 @@ function execute() {
     const source = fs.readFileSync(options.input);
     
     try {
-      const result = compileSource(source.toString(), 'node', options.input, options.sourceMap, options.resolve, options.inference);
+      const result = compileSource(source.toString(), options.input, options.sourceMap, options.resolve, options.inference);
       
       // If validate flag is set, just report success and exit
       if (options.validate) {

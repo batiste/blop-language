@@ -1,12 +1,17 @@
 // Meta programming: generate an efficient parser from
 // a grammar and a token definition
-const { performance, PerformanceObserver } = require('perf_hooks');
-const fs = require('fs');
-const path = require('path');
+import { performance, PerformanceObserver } from 'perf_hooks';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { generateParser } = require('meta-parser-generator');
-const { grammar } = require('./grammar');
-const { tokensDefinition } = require('./tokensDefinition');
+import { generateParser } from 'meta-parser-generator';
+import { grammar } from './grammar.js';
+import { tokensDefinition } from './tokensDefinition.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 const GREEN = '\x1b[32m';
