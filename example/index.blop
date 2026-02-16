@@ -4,6 +4,7 @@ import { PetStore } from './PetStore/index.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { CounterPage } from './ComponentState/ComponentStatePage.blop'
 import { FetchPage } from './FetchPage/FetchPage.blop'
+import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { saveState } from './services.blop'
 import './style.css' as style
 
@@ -32,12 +33,20 @@ def navigationLinks(state) {
     state.$.router.go('/fetch')
     e.preventDefault()
   }
-  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage }
+  def showcasePage(e) {
+    state.$.router.go('/showcase')
+    e.preventDefault()
+  }
+  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, showcasePage }
 }
 
 def linkList(state): VNode {
   links = navigationLinks(state)
   <div>
+    <p>
+      <a href="/showcase" on={ click: links.showcasePage } style={ fontSize: '1.2em', fontWeight: 'bold' }>'✨ Why Blop? (Showcase)'</a>
+    </p>
+    <hr />
     <p>
       <a href="/dog" on={ click: links.dogPage }>'Dog breed guessing game'</a>
     </p>
@@ -93,6 +102,7 @@ def navigation(state): VNode {
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
+        = navItem('showcase', links.showcasePage, '✨ Why Blop?')
         = navItem('dog', links.dogPage, 'Breed game')
         = navItem('petstore', links.petStorePage, 'Pet store')
         = navItem('meme', links.memePage, 'Memes')
@@ -132,7 +142,9 @@ Index = (state): VNode => {
       <h1>
         <b>state.page</b>
       </h1>
-      if state.page == 'dog' {
+      if state.page == 'showcase' {
+        <ShowcasePage state=state></ShowcasePage>
+      } elseif state.page == 'dog' {
         <DogPage state=state></DogPage>
       } elseif state.page == 'meme' {
         <MemePage state=state></MemePage>
