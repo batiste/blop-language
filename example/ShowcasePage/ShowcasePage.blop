@@ -40,7 +40,7 @@ def FeatureCard(attributes, children): VNode {
   { icon, title, color } = attributes
   
   <div class="col-md-4" style={ marginBottom: '1.5em' }>
-    <div class="card h-100" style={ border: '2px solid 'color'' }>
+    <div class="card h-100" style={ border: '2px solid 'color }>
       <div class="card-body">
         <h2 class="text-center" style={ fontSize: '3em', marginBottom: '0.3em' }>icon</h2>
         <h5 class="card-title text-center" style={ color }>title</h5>
@@ -87,7 +87,7 @@ def ListDemo(_attributes, _children, node): VNode {
   
   def addItem() {
     itemNumber_ = items.length + 1
-    newItems = [...items, 'Item #'itemNumber_'']
+    newItems = [...items, 'Item #'itemNumber_]
     setState(newItems)
   }
   
@@ -113,8 +113,8 @@ def ListDemo(_attributes, _children, node): VNode {
         itemNumber = index + 1
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span style={ fontSize: '1.1em' }>
-            <strong style={ color: '#0d6efd' }>'#'itemNumber''</strong>
-            = ' 'item''
+            <strong style={ color: '#0d6efd' }>'#'itemNumber</strong>
+            = ' 'item
           </span>
           <button
             class="btn btn-sm btn-outline-danger"
@@ -179,14 +179,14 @@ def ConditionalDemo(_attributes, _children, node): VNode {
             btnClass := 'btn btn-primary'
           }
           <button class=btnClass on={ click: () => setMood(m) }>
-            = ''emojis[m]' 'm''
+            = ''emojis[m]' 'm
           </button>
         }
       </div>
       
       <div class="alert alert-info text-center" style={ marginTop: '1.5em', fontSize: '1.3em' }>
         currentEmoji = emojis[mood]
-        <strong>'Current mood: 'currentEmoji' 'mood''</strong>
+        <strong>'Current mood: 'currentEmoji' 'mood</strong>
       </div>
     </div>
   </div>
@@ -238,7 +238,7 @@ def ShowcasePage(attributes, _children, node): VNode {
           linkClass := 'nav-link active'
         }
         <li class="nav-item">
-          <a href='#'tab.id'' class=linkClass on={ click: switchTab(tab.id) } style={ cursor: 'pointer', fontSize: '1.1em' }>
+          <a href='#'tab.id class=linkClass on={ click: switchTab(tab.id) } style={ cursor: 'pointer', fontSize: '1.1em' }>
             = tab.label
           </a>
         </li>
@@ -398,7 +398,7 @@ def ShowcasePage(attributes, _children, node): VNode {
   
   def addItem() {
     itemNumber = items.length + 1
-    newItems = [...items, 'Item #'itemNumber'']
+    newItems = [...items, 'Item #'itemNumber]
     setState(newItems)
   }
   
@@ -418,7 +418,7 @@ def ShowcasePage(attributes, _children, node): VNode {
       for index, item in items: array {
         itemNumber = index + 1
         <li class=\"list-group-item\">
-          <strong>'#'itemNumber''</strong> = ' 'item''
+          <strong>'#'itemNumber</strong> = ' 'item
           <button on={ click: removeItem(index) }>
             = '✕ Remove'
           </button>
@@ -509,8 +509,8 @@ def ShowcasePage(attributes, _children, node): VNode {
                 <CodeBlock code="<ul>
   for index, item in items: array {
     <li>
-      <strong>'#'index''</strong>
-      = ' 'item.name''
+      <strong>'#'index</strong>
+      = ' 'item.name
     </li>
   }
 </ul>

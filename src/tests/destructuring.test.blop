@@ -20,7 +20,7 @@ greeting = greet({ name: 'Bob', age: 25 })
 def configure(attributes) {
   { host, port, secure } = attributes
   protocol = if secure => 'https' else 'http'
-  url = ''protocol'://'host':'port''
+  url = protocol'://'host':'port
   return url
 }
 

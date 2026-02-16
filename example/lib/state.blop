@@ -33,7 +33,7 @@ def create(state, options={ readOnly: false }) {
       if !hasBeenFlushed {
         return true
       }
-      completePath = ''path''extrapath''
+      completePath = path''extrapath
       return !!modifications.find(
         (modification) => modification.path.startsWith(completePath))
     }
@@ -50,7 +50,7 @@ def create(state, options={ readOnly: false }) {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
-            ''path'.'prop'', currentState))
+            path'.'prop, currentState))
         }
         return obj[prop]
       },
@@ -62,9 +62,9 @@ def create(state, options={ readOnly: false }) {
           throw new Error(`You cannot redefine the $ property in a proxied state`)
         }
 
-        modifications.push({ path: ''path'.'prop'', action: 'set', value })
+        modifications.push({ path: path'.'prop, action: 'set', value })
         obj[prop] = value
-        trigger(''path'.'prop'')
+        trigger(path'.'prop)
         return true
       },
       deleteProperty: def (target, prop) {
@@ -73,12 +73,12 @@ def create(state, options={ readOnly: false }) {
         }
 
         if target.hasOwnProperty(prop) {
-          modifications.push({ path: ''path'.'prop'', action: 'delete' })
+          modifications.push({ path: path'.'prop, action: 'delete' })
           delete target[prop]
         } else {
           return false
         }
-        trigger(''path'.'prop'')
+        trigger(path'.'prop)
         return true
       }
     }

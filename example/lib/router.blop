@@ -65,7 +65,7 @@ class Router {
   async def go(path: string, push=true) {
     m = this.match(path)
     if !m {
-      console.log('No route for path 'path'')
+      console.log('No route for path 'path)
       return
     }
     if push {

@@ -124,7 +124,7 @@ def UpdateTracker(attributes) {
     }
   }
   
-  <div hooks count=attributes.count>'Count: 'attributes.count''</div>
+  <div hooks count=attributes.count>'Count: 'attributes.count</div>
 }
 
 test('insert hook structure', () => {

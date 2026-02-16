@@ -26,7 +26,7 @@ for key, value in [1, 10, 100, 1000, 10000]: array {
     break
   }
   if value > 99 {
-    myobject['m'key''] = value
+    myobject['m'key] = value
   }
   c := key
 }
