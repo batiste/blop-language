@@ -1,9 +1,6 @@
-import { MemePage } from './MemePage/MemePage.blop'
 import { DogPage } from './DogPage/DogPage.blop'
-import { PetStore } from './PetStore/index.blop'
+import { ASTExplorer } from './ASTExplorer/ASTExplorer.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
-import { CounterPage } from './ComponentState/ComponentStatePage.blop'
-import { FetchPage } from './FetchPage/FetchPage.blop'
 import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
 import { saveState } from './services.blop'
@@ -14,10 +11,6 @@ def navigationLinks(state) {
     state.$.router.go('/')
     e.preventDefault()
   }
-  def memePage(e) {
-    state.$.router.go('/meme')
-    e.preventDefault()
-  }
   def dogPage(e) {
     state.$.router.go('/dogs')
     e.preventDefault()
@@ -26,23 +19,15 @@ def navigationLinks(state) {
     state.$.router.go('/todo')
     e.preventDefault()
   }
-  def petStorePage(e) {
-    state.$.router.go('/petstore')
-    e.preventDefault()
-  }
-  def statePage(e) {
-    state.$.router.go('/state')
-    e.preventDefault()
-  }
-  def fetchPage(e) {
-    state.$.router.go('/fetch')
+  def astExplorerPage(e) {
+    state.$.router.go('/ast')
     e.preventDefault()
   }
   def playgroundPage(e) {
     state.$.router.go('/playground')
     e.preventDefault()
   }
-  return { memePage, dogPage, todoPage, petStorePage, statePage, fetchPage, playgroundPage, indexPage }
+  return { dogPage, todoPage, astExplorerPage, playgroundPage, indexPage }
 }
 
 // def linkList(state): VNode {
@@ -107,14 +92,10 @@ def navigation(state): VNode {
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        // = navItem('showcase', links.showcasePage, '✨ Why Blop?')
         = navItem('playground', links.playgroundPage, '🎮 Playground')
-        = navItem('dog', links.dogPage, 'Breed game')
-        = navItem('petstore', links.petStorePage, 'Pet store')
-        = navItem('meme', links.memePage, 'Memes')
-        = navItem('todo', links.todoPage, 'A basic todo app')
-        = navItem('state', links.statePage, 'Components and state')
-        = navItem('fetch', links.fetchPage, 'Fetch component')
+        = navItem('dog', links.dogPage, '🐕 Breed game')
+        = navItem('todo', links.todoPage, '📝 Advanced Todo')
+        = navItem('ast', links.astExplorerPage, '🌳 AST Explorer')
       </ul>
       <div class=style['right-buttons']>
         if (state.loading) {
@@ -145,25 +126,16 @@ Index = (state): VNode => {
   <div>
     = navigation(state)
     <div class=''style.container' container'>
-      // <h1>
-      //   <b>state.page</b>
-      // </h1>
       if state.page == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
       } elseif state.page == 'playground' {
         <PlaygroundPage state=state></PlaygroundPage>
       } elseif state.page == 'dog' {
         <DogPage state=state></DogPage>
-      } elseif state.page == 'meme' {
-        <MemePage state=state></MemePage>
       } elseif state.page == 'todo' {
         <TodoListPage todo=state></TodoListPage>
-      } elseif state.page == 'petstore' {
-        <PetStore state=state></PetStore>
-      } elseif state.page == 'state' {
-        <CounterPage state=state></CounterPage>
-      } elseif state.page == 'fetch' {
-        <FetchPage state=state></FetchPage>
+      } elseif state.page == 'ast' {
+        <ASTExplorer state=state></ASTExplorer>
       } else {
         <ShowcasePage state=state></ShowcasePage>
       }

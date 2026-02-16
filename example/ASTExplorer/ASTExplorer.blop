@@ -1,0 +1,249 @@
+import { compile } from '../../src/compile-browser.js'
+import { tokenize, parse } from '../../src/parser-browser.js'
+
+// Recursive TreeNode component for displaying AST nodes
+def TreeNode(attributes, _children, node): VNode {
+  { astNode, depth, path } = attributes
+  
+  { value as expanded, setState as setExpanded } = node.useState('expanded', depth < 2)
+  
+  def toggleExpand() {
+    setExpanded(!expanded)
+  }
+  
+  // Check if node has children
+  hasChildren = astNode && typeof astNode == 'object' && !Array.isArray(astNode)
+  isArray = Array.isArray(astNode)
+  
+  // Style based on depth
+  indentSize = 16
+  nodeStyle = {
+    marginLeft: indentSize'px',
+    fontFamily: 'monospace',
+    fontSize: '13px',
+    lineHeight: '1.6'
+  }
+  
+  keyStyle = {
+    color: '#881391',
+    fontWeight: 'bold'
+  }
+  
+  valueStyle = {
+    color: '#1c00cf'
+  }
+  
+  typeStyle = {
+    color: '#0b7500',
+    fontStyle: 'italic'
+  }
+  
+  buttonStyle = {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0 5px',
+    color: '#666',
+    fontFamily: 'monospace'
+  }
+  
+  <div style=nodeStyle>
+    if hasChildren || isArray {
+      expandIcon = '▼'
+      if !expanded {
+        expandIcon := '▶'
+      }
+      <button style=buttonStyle on={ click: toggleExpand }>
+        = expandIcon
+      </button>
+    } else {
+      <span style={ paddingLeft: '18px' }></span>
+    }
+    
+    if path {
+      <span style=keyStyle>path': '</span>
+    }
+    
+    if isArray {
+      <span style=valueStyle>'['astNode.length' items]'</span>
+      if expanded {
+        <div>
+          for index, item in astNode {
+            <TreeNode astNode=item depth=depth + 1 path=''index'' />
+          }
+        </div>
+      }
+    } elseif hasChildren {
+      if astNode.name {
+        <span style=typeStyle>' {'astNode.name'} '</span>
+      } else {
+        <span style=valueStyle>' {object} '</span>
+      }
+      
+      if expanded {
+        <div>
+          for key, value in astNode {
+            if key != 'name' && value != null && value != undefined {
+              <TreeNode astNode=value depth=depth + 1 path=key />
+            }
+          }
+        </div>
+      }
+    } else {
+      if typeof astNode == 'string' {
+        <span style=valueStyle>'"'astNode'"'</span>
+      } elseif typeof astNode == 'number' {
+        <span style=valueStyle>astNode</span>
+      } elseif typeof astNode == 'boolean' {
+      boolText = 'false'
+      if astNode {
+        boolText := 'true'
+      }
+      <span style=valueStyle>boolText</span>
+      } elseif astNode == null {
+        <span style={ color: '#999' }>'null'</span>
+      } else {
+        <span style=valueStyle>''astNode''</span>
+      }
+    }
+  </div>
+}
+
+def ASTExplorer(_attributes, _children, node): VNode {
+  defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
+  
+  { value as code, setState as setCode } = node.useState('code', defaultCode)
+  { value as ast, setState as setAst } = node.useState('ast', null)
+  { value as error, setState as setError } = node.useState('error', null)
+  { value as showTokens, setState as setShowTokens } = node.useState('showTokens', false)
+  { value as tokens, setState as setTokens } = node.useState('tokens', null)
+  
+  def handleCodeChange(e) {
+    setCode(e.target.value)
+  }
+  
+  def parseCode() {
+    setError(null)
+    setAst(null)
+    setTokens(null)
+    
+    stream = tokenize(code)
+    tree = parse(stream)
+    
+    if tree.success {
+      setAst(tree)
+      setTokens(stream)
+    } else {
+      errorMsg = 'Parse error: Check console for details'
+      if tree.primary_failure {
+        errorMsg := 'Parse failed at position 'tree.primary_failure.offset''
+      }
+      setError(errorMsg)
+    }
+  }
+  
+  node.mount(() => {
+    parseCode()
+  })
+  
+  containerStyle = { padding: '20px', maxWidth: '1400px', margin: '0 auto' }
+  headerStyle = { marginBottom: '20px' }
+  splitStyle = { display: 'flex', gap: '20px', marginTop: '20px' }
+  editorStyle = { flex: '1', minWidth: '400px' }
+  treeStyle = { flex: '1', minWidth: '400px', maxHeight: '600px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '15px', borderRadius: '5px', border: '1px solid #ddd' }
+  textareaStyle = { width: '100%', height: '300px', fontFamily: 'monospace', fontSize: '14px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }
+  
+  <div style=containerStyle>
+    <div style=headerStyle>
+      <h2>'🌳 AST Explorer'</h2>
+      <p>'Parse Blop code and explore its Abstract Syntax Tree structure'</p>
+    </div>
+    
+    <div style=splitStyle>
+      <div style=editorStyle>
+        <h4>'Code Input'</h4>
+        <textarea style=textareaStyle value=code on={ input: handleCodeChange } placeholder="Enter Blop code here..."></textarea>
+        
+        <div style={ marginTop: '10px' }>
+          <button class="btn btn-primary" on={ click: parseCode }>'Parse Code'</button>
+          <label style={ marginLeft: '15px' }>
+            <input type="checkbox" checked=showTokens on={ change: (e) => setShowTokens(e.target.checked) } />
+            = ' Show Tokens'
+          </label>
+        </div>
+        
+        if error {
+          <div class="alert alert-danger" style={ marginTop: '15px' }>
+            = error
+          </div>
+        }
+        
+        if showTokens && tokens {
+          <div style={ marginTop: '20px' }>
+            <h4>'Tokens ('tokens.length')'</h4>
+            <div style={ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '10px', borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
+              for token in tokens {
+                <div style={ marginBottom: '5px' }>
+                  <span style={ color: '#881391', fontWeight: 'bold' }>token.name</span>
+                  = ': '
+                  <span style={ color: '#1c00cf' }>'\"'token.text'\"'</span>
+                  = ' (pos: 'token.offset')'
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      
+      <div style=editorStyle>
+        <h4>'Abstract Syntax Tree'</h4>
+        if ast {
+          <div style=treeStyle>
+            <div style={ marginBottom: '10px', padding: '10px', backgroundColor: '#e8f5e9', borderRadius: '5px' }>
+              <strong>'✓ Parse successful'</strong>
+            </div>
+            <TreeNode astNode=ast depth=0 path="root" />
+          </div>
+        } elseif error {
+          errorDivStyle = { color: '#d32f2f', padding: '10px' }
+          <div style=treeStyle>
+            <div style=errorDivStyle>
+              = 'Parser failed. Fix the code and try again.'
+            </div>
+          </div>
+        } else {
+          emptyDivStyle = { color: '#666', padding: '10px' }
+          <div style=treeStyle>
+            <div style=emptyDivStyle>
+              = 'Click "Parse Code" to see the AST...'
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <div style={ marginTop: '30px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px' }>
+      <h4>'About the AST'</h4>
+      <p>'The Abstract Syntax Tree (AST) is the internal representation of your code used by the compiler. Each node represents a language construct:'</p>
+      listStyle = { fontSize: '14px' }
+      <ul style=listStyle>
+        <li>
+          <strong>'Nodes'</strong>
+          = ' show the structure and type of language elements'
+        </li>
+        <li>
+          <strong>'Properties'</strong>
+          = ' like name, value, and type provide details about each element'
+        </li>
+        <li>
+          <strong>'Click ▶/▼'</strong>
+          = ' to expand or collapse nodes and explore the tree'
+        </li>
+        <li>
+          <strong>'Token view'</strong>
+          = ' shows the lexer output before parsing'
+        </li>
+      </ul>
+    </div>
+  </div>
+}

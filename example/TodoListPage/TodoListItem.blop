@@ -4,9 +4,10 @@ TodoListItem = (attributes: object, _children: array): VNode => {
     changeItem as change,
     removeItem,
     editItem,
-    editMode
+    editMode,
+    completed,
+    toggleComplete
   } = attributes
-
 
   hooks = {
     insert: (vnode) => {
@@ -14,23 +15,64 @@ TodoListItem = (attributes: object, _children: array): VNode => {
       vnode.elm.select()
     }
   }
+  
+  // Styling based on completion status
+  textDecoration = 'none'
+  textOpacity = '1'
+  if completed {
+    textDecoration := 'line-through'
+    textOpacity := '0.6'
+  }
+  
+  textStyle = {
+    padding: '10px',
+    textDecoration,
+    opacity: textOpacity,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
+  }
+  
+  borderColor = '#dee2e6'
+  bgColor = 'white'
+  if completed {
+    borderColor := '#28a745'
+    bgColor := '#d4edda'
+  }
+  
+  borderStyle = '1px solid 'borderColor''
+  
+  cardStyle = {
+    marginBottom: '10px',
+    border: borderStyle,
+    borderRadius: '5px',
+    backgroundColor: bgColor,
+    transition: 'all 0.2s ease'
+  }
 
-  <li style={ marginBottom: '5px' }>
-    <div class="form-row">
-      <div class="col">
-        if editMode {
-          <input hooks class="form-control" type="text" value on={ change } />
-        } else {
-          <div on={ click: editItem } style={ padding: '10px' }>
-            = value
-            <span class="badge badge-secondary" style={ marginLeft: '10px' }>'click to edit'</span>
-          </div>
-        }
-      </div>
-      <div class="col">
-        <button class="btn btn-secondary" on={ click: removeItem }>'delete'</button>
+  <div class="card" style=cardStyle>
+    <div class="card-body" style={ padding: '10px' }>
+      <div class="form-row align-items-center">
+        <div class="col-auto">
+          <input type="checkbox" checked=completed on={ change: toggleComplete } style={ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#28a745' } />
+        </div>
+        <div class="col">
+          if editMode {
+            <input hooks class="form-control" type="text" value on={ change } />
+          } else {
+            <div on={ click: editItem } style=textStyle>
+              if completed {
+                <span class="badge badge-success" style={ marginRight: '10px' }>'✓'</span>
+              }
+              = value
+              <span class="badge badge-secondary" style={ marginLeft: '10px', opacity: '0.7' }>'click to edit'</span>
+            </div>
+          }
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-danger btn-sm" on={ click: removeItem }>'🗑️'</button>
+        </div>
       </div>
     </div>
-  </li>
+  </div>
 }
 
