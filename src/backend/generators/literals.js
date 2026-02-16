@@ -13,18 +13,45 @@ function createLiteralGenerators(context) {
       return [`'${str}'`];
     },
     'str_expression': (node) => {
-      const output = ['`', node.named.str.value.slice(1, -1)];
-      output.push(...generateCode(node.named.str_exp));
+      // Handle simplified syntax with name and empty string - just return the name
+      if (node.named.name && node.named.str && node.named.str.value === "''" && !node.named.str_exp) {
+        shouldBeDefined(node.named.name.value, node.named.name);
+        return [node.named.name.value];
+      }
+      
+      const output = ['`'];
+      // If there's a leading name (simplified syntax), add it as interpolation first
+      if (node.named.name) {
+        shouldBeDefined(node.named.name.value, node.named.name);
+        output.push('${', node.named.name.value, '}');
+      }
+      // Then add the string after the name
+      if (node.named.str) {
+        output.push(node.named.str.value.slice(1, -1));
+      }
+      // Add the rest of the interpolation
+      if (node.named.str_exp) {
+        output.push(...generateCode(node.named.str_exp));
+      } else {
+        output.push('`');
+      }
       return output;
     },
     'inner_str_expression': (node) => {
       const output = ['${'];
       output.push(...generateCode(node.named.exp));
       output.push('}');
-      output.push(node.named.str.value.slice(1, -1));
-      if (node.named.str_exp) {
-        output.push(...generateCode(node.named.str_exp));
+      
+      // If there's a trailing string, add it and continue
+      if (node.named.str) {
+        output.push(node.named.str.value.slice(1, -1));
+        if (node.named.str_exp) {
+          output.push(...generateCode(node.named.str_exp));
+        } else {
+          output.push('`');
+        }
       } else {
+        // No trailing string - close the template
         output.push('`');
       }
       return output;
@@ -77,6 +104,6 @@ function createLiteralGenerators(context) {
   };
 }
 
-module.exports = {
+export {
   createLiteralGenerators,
 };

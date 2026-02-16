@@ -27,17 +27,15 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-const tokensDefinition = require('./tokensDefinition').tokensDefinition;
-const parser = require('./parser');
-const displayError = require('./utils').displayError;
-const grammar = require('./grammar').grammar;
-const builtin = require('./builtin').all;
-const backend = require('./backend');
-const { inference } = require('./inference');
-const properties = require('./properties.js');
-const { enhanceErrorMessage, formatEnhancedError } = require('./errorMessages');
-const { tokenPosition } = require('./utils');
-const { selectBestFailure } = require('./selectBestFailure');
+import { tokensDefinition } from './tokensDefinition.js';
+import parser from './parser.js';
+import { grammar } from './grammar.js';
+import { all as builtin } from './builtin.js';
+import backend from './backend.js';
+import { inference } from './inference/index.js';
+import properties from './properties.js';
+import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
+import { selectBestFailure } from './selectBestFailure.js';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -233,7 +231,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		return;
 	}
 
-	const tree = parser.parse(stream, 0);
+	// @ts-expect-error - parser.parse signature issue
+	const tree: any = parser.parse(stream, 0);
 
 	if (!tree.success && settings.maxNumberOfProblems > 0) {
 		// Use statistics to select the best failure from the array
@@ -266,6 +265,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		// Store metadata for code actions including the quick fix edit instructions
 		const metadataKey = `${textDocument.uri}:${token.start}:${token.len}`;
 		diagnosticMetadata.set(metadataKey, {
+			// @ts-expect-error - patternName can be null
 			patternName: errorParts.patternName,
 			tokenStart: token.start,
 			tokenLen: token.len,
@@ -281,6 +281,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
 	if (tree.success && settings.maxNumberOfProblems > 0) {
 		// _backend(node, _stream, _input, _filename = false, rootSource, resolve = false)
+		// @ts-expect-error - backend types not properly defined
 		const result = backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1], undefined, true);
 
 		if (!result.perfect) {
@@ -426,9 +427,12 @@ connection.onCompletion(
 		const result = reg1.exec(text);
 		if (result) {
 			const name = result[2];
+			// @ts-expect-error - properties dynamic indexing
 			if (properties[name]) {
 				const array: any[] = [];
+				// @ts-expect-error - properties dynamic indexing
 				properties[name].forEach((item: String) => {
+					// @ts-expect-error - builtin dynamic indexing
 					const builtinForItem = (builtin[item.toString()] || { type: 'Function' });
 					const documentation = builtinForItem.documentation;
 					const detail = builtinForItem.detail;
@@ -448,7 +452,9 @@ connection.onCompletion(
 		const result2 = reg0.exec(text);
 		if (result2) {
 			const name = result2[2];
+			// @ts-expect-error - builtin dynamic indexing
 			if (builtin[name]) {
+				// @ts-expect-error - builtin dynamic indexing
 				const builtinForItem = builtin[name];
 				const documentation = builtinForItem.documentation;
 				const detail = builtinForItem.detail;

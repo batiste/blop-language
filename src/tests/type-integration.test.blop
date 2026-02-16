@@ -7,7 +7,7 @@ def fetchUserData(userId: number): object | null {
   if userId == 0 {
     return null
   }
-  return { id: userId, name: 'User 'userId'' }
+  return { id: userId, name: 'User 'userId }
 }
 
 // Using type narrowing + nullish coalescing

@@ -2,7 +2,7 @@
 // Type Checker - Validates type operations and assignments
 // ============================================================================
 
-const { 
+import { 
   isTypeCompatible, 
   resolveTypeAlias,
   parseObjectTypeString,
@@ -10,7 +10,7 @@ const {
   getBaseTypeOfLiteral,
   isNumberLiteral,
   isStringLiteral 
-} = require('./typeSystem');
+} from './typeSystem.js';
 
 const TypeChecker = {
   /**
@@ -125,4 +125,4 @@ const TypeChecker = {
   },
 };
 
-module.exports = TypeChecker;
+export default TypeChecker;

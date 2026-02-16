@@ -56,15 +56,15 @@ function compileSource(source, env = 'webpack', filename = false, useSourceMap =
 
 
   if (!result.success) {
-    utils.displayBackendError(stream, result.errors[0]);
+    displayBackendError(stream, result.errors[0]);
   }
   if (config.strictness === 'perfect' && !result.perfect) {
-    utils.displayBackendError(stream, result.warnings[0]);
+    displayBackendError(stream, result.warnings[0]);
   }
   if (config.inference) {
     const warnings = inference(tree, stream);
     if (warnings.length) {
-      utils.displayBackendError(stream, warnings[0]);
+      displayBackendError(stream, warnings[0]);
     }
   }
 

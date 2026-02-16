@@ -2,8 +2,8 @@
 // Literal Handlers - Type inference for literal values
 // ============================================================================
 
-const { visitChildren, resolveTypes } = require('../visitor');
-const { getBaseTypeOfLiteral, parseObjectTypeString } = require('../typeSystem');
+import { visitChildren, resolveTypes } from '../visitor.js';
+import { getBaseTypeOfLiteral, parseObjectTypeString } from '../typeSystem.js';
 
 /**
  * Infer the element type of an array literal from its AST node
@@ -245,4 +245,4 @@ function createLiteralHandlers(getState) {
   };
 }
 
-module.exports = createLiteralHandlers;
+export default createLiteralHandlers;

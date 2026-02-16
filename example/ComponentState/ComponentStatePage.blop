@@ -103,7 +103,7 @@ class ComponentWithClass extends Component {
   def render() {
     { text } = this.attributes
     <div>
-      <p>'hello 'text''</p>
+      <p>'hello 'text</p>
       <p>JSON.stringify(this.pos)</p>
     </div>
   }
@@ -157,8 +157,8 @@ CounterPage = (_attributes, _children, node) => {
     <p>'lifecycle gives you access to the snabbdom lifecycle hooks directly from a component.'</p>
     <ClickCounter />
     <h3>'Famous React hook useWindowWidth'</h3>
-    <p>'useWindowWidth:'width''</p>
-    <p>'useWindowWidth+10:'width2''</p>
+    <p>'useWindowWidth:'width</p>
+    <p>'useWindowWidth+10:'width2</p>
   </div>
 }
 

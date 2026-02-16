@@ -948,7 +948,7 @@ function instantiateGenericType(genericType, typeArgs, typeAliases) {
   return substituteType(type, substitutions);
 }
 
-module.exports = {
+export {
   resolveTypeAlias,
   isUnionType,
   parseUnionType,

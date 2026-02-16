@@ -1,5 +1,5 @@
 // ES module imports
-import { init, h as snabbdomh, toVNode, attributesModule, styleModule, classModule, eventListenersModule } from 'snabbdom';
+import { init, h as snabbdomh, toVNode, attributesModule, styleModule, classModule, eventListenersModule, propsModule } from 'snabbdom';
 
 // Inline pattern for class detection (avoiding constants.js dependency)
 const CLASS_DEFINITION_PATTERN = /^\s*class\s+/;
@@ -111,7 +111,7 @@ class Component {
   }
 
   useState(name, initialValue) {
-    this.state[name] = this.state[name] || initialValue;
+    this.state[name] = this.state[name] ?? initialValue;
     const value = this.state[name];
     const setState = (newState) => {
       this.state[name] = newState;
@@ -242,6 +242,7 @@ function h(name, attributes, children) {
   let sclass;
   let hook = { prepatch };
   let key;
+  let props;
   Object.entries(attributes).forEach((attr) => {
     const [index, value] = attr;
     if (index === 'on') {
@@ -258,6 +259,10 @@ function h(name, attributes, children) {
       } else {
         sclass = value;
       }
+    } else if (index === 'value' && (name === 'input' || name === 'textarea' || name === 'select')) {
+      // Use props module for form element values
+      if (!props) props = {};
+      props[index] = value;
     } else {
       attrs[index] = value;
     }
@@ -265,7 +270,7 @@ function h(name, attributes, children) {
   return snabbdomh(
     name,
     {
-      on, style, attrs, hook, class: sclass, key,
+      on, style, attrs, hook, class: sclass, key, props,
     },
     children,
   );
@@ -276,6 +281,7 @@ const patch = snabbdomInit([
   styleModule,
   eventListenersModule,
   classModule,
+  propsModule,
 ]);
 
 let renderPipeline = [];

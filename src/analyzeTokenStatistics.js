@@ -194,7 +194,7 @@ if (require.main === module) {
   console.log(`\nRun 'npm run linter' to copy statistics to VSCode extension`);
 }
 
-module.exports = {
+export {
   analyzeBlopFile,
   analyzeAllBlopFiles,
   generateStatisticsFile,

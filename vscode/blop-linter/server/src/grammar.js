@@ -246,10 +246,12 @@ const grammar = {
   ],
   'str_expression': [
     ['str:str', 'inner_str_expression:str_exp'],
+    ['name:name', 'str:str', 'inner_str_expression?:str_exp'],
   ],
   'inner_str_expression': [
     ['exp:exp', 'str:str', 'inner_str_expression:str_exp'],
     ['exp:exp', 'str:str'],
+    ['exp:exp'],
   ],
   'try_catch': [
     ['try:try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
@@ -290,6 +292,7 @@ const grammar = {
   ],
   'exp': [
     // ['optional_chaining'],
+    ['str_expression'],
     ['name_exp'],
     ['exp', 'access_or_operation'],
     ['func_def'],
@@ -299,7 +302,6 @@ const grammar = {
     ['undefined'],
     ['true'],
     ['false'],
-    ['str_expression'],
     ['str'],
     ['regexp'],
     ['(', 'exp', ')'],
@@ -317,6 +319,6 @@ const grammar = {
   ],
 };
 
-module.exports = {
+export {
   grammar,
 };

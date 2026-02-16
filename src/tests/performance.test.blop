@@ -11,7 +11,7 @@ class ComponentWithClass"n" extends Component {
   def render() {
     { text } = this.attributes
     <div>
-      <p>'hello 'text''</p>
+      <p>'hello 'text</p>
       <p>JSON.stringify(this.pos)</p>
     </div>
   }

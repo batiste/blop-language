@@ -54,7 +54,7 @@ def Page(attributes) {
 def Counter(attributes) {
   { count, onIncrement } = attributes
   <div class="counter">
-    <span>'Count: 'count''</span>
+    <span>'Count: 'count</span>
     <button on={ click: onIncrement }>'Increment'</button>
   </div>
 }

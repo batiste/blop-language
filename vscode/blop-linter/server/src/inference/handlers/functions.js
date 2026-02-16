@@ -2,16 +2,16 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-const { visitChildren, pushToParent } = require('../visitor');
-const { 
+import { visitChildren, pushToParent } from '../visitor.js';
+import { 
   getAnnotationType, 
   createUnionType, 
   isTypeCompatible,
   parseGenericParams,
   inferGenericArguments,
   substituteType,
-} = require('../typeSystem');
-const TypeChecker = require('../typeChecker');
+} from '../typeSystem.js';
+import TypeChecker from '../typeChecker.js';
 
 function createFunctionHandlers(getState) {
   return {
@@ -215,4 +215,4 @@ function createFunctionHandlers(getState) {
   };
 }
 
-module.exports = createFunctionHandlers;
+export default createFunctionHandlers;

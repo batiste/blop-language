@@ -124,7 +124,7 @@ def UpdateTracker(attributes) {
     }
   }
   
-  <div hooks count=attributes.count>'Count: 'attributes.count''</div>
+  <div hooks count=attributes.count>'Count: 'attributes.count</div>
 }
 
 test('insert hook structure', () => {
@@ -146,7 +146,7 @@ test('auto-focus input with hook', () => {
   vnode = AutoFocusInput({ value: 'test' })
   expect(vnode.sel).toBe('input')
   expect(typeof vnode.data.hook.insert).toBe('function')
-  expect(vnode.data.attrs.value).toBe('test')
+  expect(vnode.data.props.value).toBe('test')
 })
 
 test('container with hooks and children', () => {

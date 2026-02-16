@@ -2,11 +2,11 @@
 // Type Inference Module - Public API
 // ============================================================================
 
-const { visit, initVisitor, getVisitorState, setHandlers } = require('./visitor');
-const createLiteralHandlers = require('./handlers/literals');
-const createExpressionHandlers = require('./handlers/expressions');
-const createFunctionHandlers = require('./handlers/functions');
-const createStatementHandlers = require('./handlers/statements');
+import { visit, initVisitor, getVisitorState, setHandlers } from './visitor.js';
+import createLiteralHandlers from './handlers/literals.js';
+import createExpressionHandlers from './handlers/expressions.js';
+import createFunctionHandlers from './handlers/functions.js';
+import createStatementHandlers from './handlers/statements.js';
 
 // Combine all handlers
 function createNodeHandlers() {
@@ -48,8 +48,8 @@ function getHandlers() {
   return createNodeHandlers();
 }
 
-module.exports = {
-  check: visit,
+export {
+  visit as check,
   inference,
   getHandlers,
 };

@@ -2,8 +2,8 @@
 // Visitor - AST traversal, scope management, and type resolution
 // ============================================================================
 
-const TypeChecker = require('./typeChecker');
-const { getAnnotationType, removeNullish, createUnionType } = require('./typeSystem');
+import TypeChecker from './typeChecker.js';
+import { getAnnotationType, removeNullish, createUnionType } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -254,7 +254,7 @@ function setHandlers(handlers) {
   nodeHandlers = handlers;
 }
 
-module.exports = {
+export {
   visit,
   visitChildren,
   pushToParent,

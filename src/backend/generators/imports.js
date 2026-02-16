@@ -1,4 +1,4 @@
-const path = require('path');
+import path from 'path';
 
 function createImportGenerators(context) {
   const { generateCode, validators, dependencies, imports } = context;
@@ -159,6 +159,6 @@ function collectDestructuredNames(node, exportKeys, registerName) {
   return names;
 }
 
-module.exports = {
+export {
   createImportGenerators,
 };

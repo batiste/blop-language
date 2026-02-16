@@ -9,10 +9,16 @@
  * }
  */
 
-const { compileSource } = require('./compile');
+import { compileSource } from './compile.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function blopPlugin(options = {}) {
   const { debug = false, inference = true } = options;
+  const runtimePath = path.resolve(__dirname, 'runtime.js');
 
   return {
     name: 'vite-plugin-blop',
@@ -24,18 +30,22 @@ function blopPlugin(options = {}) {
       }
 
       try {
-        const result = compileSource.call(
-          { resourcePath: id },
-          code,
-          'vite', // Use vite mode for ES modules
-          id,
-          true, // Enable source maps
-          false  // No resolve
-        );
+        const result = compileSource(code, id, inference);
+
+        if (!result.success) {
+          const errorMsg = result.errors.length > 0 
+            ? result.errors[0].message || 'Compilation failed'
+            : 'Compilation failed';
+          this.error(errorMsg);
+          return null;
+        }
+
+        // Add runtime import at the top
+        const finalCode = `import * as blop from '${runtimePath}';\n${result.code}`;
 
         return {
-          code: result.code,
-          map: result.map || null, // Pass source map to Vite
+          code: finalCode,
+          map: null,
         };
       } catch (error) {
         this.error(error.message);
@@ -55,6 +65,6 @@ function blopPlugin(options = {}) {
   };
 }
 
-module.exports = {
+export {
   blopPlugin,
 };

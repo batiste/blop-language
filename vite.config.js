@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 import { blopPlugin } from './src/vite.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -17,6 +20,13 @@ export default defineConfig({
     alias: {
       'blop': path.resolve(__dirname, 'src/index.js'),
       '@': path.resolve(__dirname, 'src'),
+      // Provide empty modules for Node.js built-ins when used in browser
+      'module': path.resolve(__dirname, 'src/browser-stubs/module.js'),
+      'fs': path.resolve(__dirname, 'src/browser-stubs/fs.js'),
+      'path': path.resolve(__dirname, 'src/browser-stubs/path.js'),
+      'chalk': path.resolve(__dirname, 'src/browser-stubs/chalk.js'),
+      'perf_hooks': path.resolve(__dirname, 'src/browser-stubs/perf_hooks.js'),
+      'url': path.resolve(__dirname, 'src/browser-stubs/url.js'),
     },
   },
   

@@ -11,4 +11,7 @@
  * - backend/index.js - Main orchestrator
  */
 
-module.exports = require('./backend/index');
+import { generateCode } from './backend/index.js';
+
+export { generateCode };
+export default { generateCode };

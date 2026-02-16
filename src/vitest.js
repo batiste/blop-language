@@ -1,5 +1,9 @@
-const { compileSource } = require('./compile');
-const path = require('path');
+import { compileSource } from './compile.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Vite plugin for transforming .blop files
@@ -18,43 +22,29 @@ function blopPlugin() {
       }
       
       try {
-        // Create a fake webpack loader context for compileSource
-        const fakeContext = {
-          resourcePath: id,
-          context: path.dirname(id),
-        };
+        const result = compileSource(source, id, true);
         
-        const result = compileSource.call(fakeContext, source, 'jest', id, true);
+        if (!result.success) {
+          const errorMsg = result.errors.length > 0 
+            ? result.errors[0].message || 'Compilation failed'
+            : 'Compilation failed';
+          throw new Error(errorMsg);
+        }
         
         let code = result.code;
         
-        // The compiler now generates ESM natively!
-        // We just need to ensure the runtime import uses the correct absolute path
-        code = code.replace(
-          /import \* as blop from ['"](.+?)['"];/,
-          `import * as blop from '${runtimePath}';`
-        );
-        
-        const { sourceMap } = result;
-        if (sourceMap) {
-          sourceMap.sourcesContent = [source];
-          sourceMap.file = id;
-          sourceMap.sources = [id];
-        }
+        // Add runtime import at the top
+        code = `import * as blop from '${runtimePath}';\n${code}`;
         
         return {
           code,
-          map: sourceMap,
+          map: null,
         };
       } catch (error) {
-        // Let Vite handle the error reporting
-        this.error({
-          message: error.message,
-          id,
-        });
+        throw error;
       }
     },
   };
 }
 
-module.exports = { blopPlugin };
+export { blopPlugin };

@@ -2,9 +2,9 @@
 // Statement Handlers - Type inference for statements
 // ============================================================================
 
-const { resolveTypes, pushToParent, visitChildren, visit } = require('../visitor');
-const { getAnnotationType, parseTypeExpression, parseGenericParams } = require('../typeSystem');
-const { detectTypeofCheck, applyNarrowing, applyExclusion } = require('../typeGuards');
+import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
+import { detectTypeofCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
 
 function createStatementHandlers(getState) {
   return {
@@ -176,7 +176,78 @@ function createStatementHandlers(getState) {
       
       pushToParent(node, parent);
     },
+    
+    for_loop: (node, parent) => {
+      const { pushScope, popScope, pushWarning } = getState();
+      const scope = pushScope();
+      
+      // Get variable names
+      const key = (node.named.key && node.named.key.value) || null;
+      const value = node.named.value ? node.named.value.value : null;
+      
+      // Check for :array annotation
+      const objAnnotationType = node.named.objectannotation 
+        ? getAnnotationType(node.named.objectannotation) 
+        : null;
+      const isArray = objAnnotationType === 'array';
+      
+      // Key type: number with :array, string without (Object.keys returns strings)
+      const keyType = isArray ? 'number' : 'string';
+      
+      // Add variables to scope with their types
+      if (key) {
+        scope[key] = { type: keyType, node: node.named.key };
+      }
+      
+      // Visit the expression being iterated
+      if (node.named.exp) {
+        visit(node.named.exp, node);
+        
+        // Check if we're iterating an array without :array annotation
+        const expType = node.named.exp.inference?.[0];
+        if (expType && key && !isArray) {
+          // Check if expression type looks like an array
+          const isArrayType = expType.endsWith('[]') || 
+                             expType === 'array' || 
+                             expType.startsWith('Array<');
+          
+          if (isArrayType) {
+            pushWarning(
+              node.named.exp,
+              `Iterating array without ':array' annotation - variable '${key}' will be string ("0", "1", ...) instead of number. Add ': array' after the expression to fix this.`
+            );
+          }
+        }
+      }
+      
+      // Infer value type if possible
+      if (value && node.named.exp && node.named.exp.inference) {
+        const expType = node.named.exp.inference[0];
+        let valueType = 'any';
+        
+        // Try to infer element type from array type
+        if (expType) {
+          if (expType.endsWith('[]')) {
+            // Extract element type: string[] -> string
+            valueType = expType.slice(0, -2);
+          } else if (expType.startsWith('Array<') && expType.endsWith('>')) {
+            // Extract element type: Array<number> -> number
+            valueType = expType.slice(6, -1);
+          }
+        }
+        
+        scope[value] = { type: valueType, node: node.named.value };
+      }
+      
+      // Visit loop body statements
+      if (node.named.stats) {
+        node.named.stats.forEach(stat => visit(stat, node));
+      }
+      
+      popScope();
+      pushToParent(node, parent);
+    },
   };
 }
 
-module.exports = createStatementHandlers;
+export default createStatementHandlers;

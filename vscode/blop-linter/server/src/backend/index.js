@@ -1,9 +1,9 @@
-const sourceMap = require('source-map');
-const utils = require('../utils');
-const { SCOPE_TYPES } = require('../constants');
-const { ScopesStack } = require('./scopes');
-const { createValidators } = require('./validators');
-const { createBackendHandlers } = require('./generators');
+import sourceMap from 'source-map';
+import utils from '../utils.js';
+import { SCOPE_TYPES } from '../constants.js';
+import { ScopesStack } from './scopes.js';
+import { createValidators } from './validators.js';
+import { createBackendHandlers } from './generators/index.js';
 
 function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack') {
   let uid_i = 0;
@@ -119,35 +119,17 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         return acc;
       }, exportObjects);
       
-      // Generate imports at the top (format depends on environment)
+      // Generate imports at the top in ESM format
       imports.forEach(imp => {
-        if (context.env === 'webpack') {
-          // CommonJS for webpack
-          if (imp.type === 'default') {
-            final.push(`let ${imp.as} = require('${imp.path}');\n`);
-          } else if (imp.type === 'destructured') {
-            const specifiers = imp.names.map(n => 
-              n.source !== n.local ? `${n.source}: ${n.local}` : n.source
-            ).join(', ');
-            final.push(`let { ${specifiers} } = require('${imp.path}');\n`);
-          } else if (imp.type === 'named') {
-            // For named imports in CJS, access properties
-            imp.names.forEach(name => {
-              final.push(`let ${name} = require('${imp.path}').${name};\n`);
-            });
-          }
-        } else {
-          // ESM for other environments
-          if (imp.type === 'default') {
-            final.push(`import * as ${imp.as} from '${imp.path}';\n`);
-          } else if (imp.type === 'destructured') {
-            const specifiers = imp.names.map(n => 
-              n.source !== n.local ? `${n.source} as ${n.local}` : n.source
-            ).join(', ');
-            final.push(`import { ${specifiers} } from '${imp.path}';\n`);
-          } else if (imp.type === 'named') {
-            final.push(`import { ${imp.names.join(', ')} } from '${imp.path}';\n`);
-          }
+        if (imp.type === 'default') {
+          final.push(`import * as ${imp.as} from '${imp.path}';\n`);
+        } else if (imp.type === 'destructured') {
+          const specifiers = imp.names.map(n => 
+            n.source !== n.local ? `${n.source} as ${n.local}` : n.source
+          ).join(', ');
+          final.push(`import { ${specifiers} } from '${imp.path}';\n`);
+        } else if (imp.type === 'named') {
+          final.push(`import { ${imp.names.join(', ')} } from '${imp.path}';\n`);
         }
       });
       
@@ -157,19 +139,10 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       }
       final.push(module.join(''));
       
-      // Generate exports based on environment
-      // Webpack needs CommonJS, Vitest needs ESM
-      if (context.env === 'webpack') {
-        // CommonJS for webpack
-        final.push('\nmodule.exports = { ');
-        final.push(exportKeys.join(', '));
-        final.push(' };\n');
-      } else {
-        // ESM for everything else (Vitest, CLI)
-        final.push('\nexport { ');
-        final.push(exportKeys.join(', '));
-        final.push(' };\n');
-      }
+      // Generate exports in ESM format
+      final.push('\nexport { ');
+      final.push(exportKeys.join(', '));
+      final.push(' };\n');
       return final;
     },
   };
@@ -187,6 +160,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   };
 }
 
-module.exports = {
-  generateCode: _backend,
+export {
+  _backend as generateCode,
 };

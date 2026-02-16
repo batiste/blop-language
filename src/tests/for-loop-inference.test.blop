@@ -1,0 +1,52 @@
+// Test for loop type inference
+
+// Using :array annotation - correct way for arrays
+def testWithArray() {
+  items: string[] = ['a', 'b', 'c']
+  result = ''
+  
+  for _index, item in items: array {
+    // index will be number 0, 1, 2 with :array
+    result := result + item
+  }
+  
+  return result
+}
+
+// Object iteration - no warning expected
+def testObject() {
+  obj = { a: 1, b: 2, c: 3 }
+  result = 0
+  
+  for _key, value in obj {
+    // key is expected to be string for objects
+    result := result + value
+  }
+  
+  return result
+}
+
+// Single value iteration - no index so no warning
+def testSingleValue() {
+  items: number[] = [1, 2, 3]
+  result = 0
+  
+  for item in items {
+    // No index, so no warning needed
+    result := result + item
+  }
+  
+  return result
+}
+
+test('for loop with :array uses numeric indices', () => {
+  expect(testWithArray()).toBe('abc')
+})
+
+test('object iteration uses string keys', () => {
+  expect(testObject()).toBe(6)
+})
+
+test('single value iteration works', () => {
+  expect(testSingleValue()).toBe(6)
+})

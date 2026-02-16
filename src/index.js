@@ -1,13 +1,15 @@
-const { grammar } = require('./grammar');
-const { tokensDefinition } = require('./tokensDefinition');
-const backend = require('./backend');
-const utils = require('./utils');
-const parser = require('./parser');
-const loader = require('./loader');
-const vite = require('./vite');
-const vitest = require('./vitest');
+import { grammar } from './grammar.js';
+import { tokensDefinition } from './tokensDefinition.js';
+import backend from './backend.js';
+import utils from './utils.js';
+import parser from './parser.js';
+import loader from './loader.js';
+import vite from './vite.js';
+import vitest from './vitest.js';
+import { compileSource } from './compile.js';
+import { compile as compileBrowser } from './compile-browser.js';
 
-module.exports = {
+export {
   grammar,
   tokensDefinition,
   backend,
@@ -16,4 +18,6 @@ module.exports = {
   loader,
   vite,
   vitest,
+  compileSource,
+  compileBrowser,
 };
