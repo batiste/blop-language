@@ -1,8 +1,8 @@
 import path from 'path';
 
 function createImportGenerators(context) {
-  const { generateCode, validators, dependencies, imports } = context;
-  const { registerName, resolveImport } = validators;
+  const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename } = context;
+  const { registerName, resolveImport, getExports } = validators;
 
   function destructuringValues(node, exportKeys) {
     const output = [];
@@ -112,6 +112,12 @@ function createImportGenerators(context) {
       
       if (importedFilename) {
         resolveImport(importedFilename, fileNode, importedKeys, context.resolve);
+        
+        // If importing from a .blop file, mark that we have blop imports
+        // This allows type validation to be more lenient
+        if (checkFilename && importedFilename.startsWith('.') && importedFilename.endsWith('.blop')){
+          hasBlopImports.value = true;
+        }
       }
       
       // Return empty output - imports will be generated at the top of the file

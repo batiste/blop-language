@@ -48,7 +48,7 @@ function compileSource(source, filename = false, enableInference = false) {
     displayBackendError(stream, result.warnings[0]);
   }
   if (shouldRunInference) {
-    const warnings = inference(tree, stream);
+    const warnings = inference(tree, stream, filename);
     if (warnings.length) {
       displayBackendError(stream, warnings[0]);
     }

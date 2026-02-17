@@ -10,6 +10,7 @@ let warnings;
 let stream;
 let functionScopes;
 let typeAliases;
+let currentFilename;
 let currentFunctionCall; // Track function name for call validation
 
 // Scope management
@@ -212,11 +213,12 @@ function visitChildren(node) {
 /**
  * Initialize visitor state for a new file
  */
-function initVisitor(_warnings, _stream, _functionScopes, _typeAliases) {
+function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename) {
   warnings = _warnings;
   stream = _stream;
   functionScopes = _functionScopes;
   typeAliases = _typeAliases;
+  currentFilename = _filename;
 }
 
 /**
@@ -228,6 +230,7 @@ function getVisitorState() {
     stream,
     functionScopes,
     typeAliases,
+    currentFilename,
     getCurrentScope,
     pushScope,
     popScope,

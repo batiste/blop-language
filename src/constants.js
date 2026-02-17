@@ -81,6 +81,10 @@ const ERROR_MESSAGES = {
   AWAIT_OUTSIDE_ASYNC: () => 
     `Await keyword can only be used inside an async function.`,
   
+  // Type annotation errors
+  UNDEFINED_TYPE: (typeName) =>
+    `Type "${typeName}" is not defined. Use a built-in type, define it with 'type', or import it.`,
+  
   // Source map errors
   SOURCEMAP_WITHOUT_FILENAME: () => 
     `Cannot generate a source map without a filename.`
@@ -170,6 +174,31 @@ const ANNOTATION_TYPES = {
 };
 
 /**
+ * Built-in type names that are always available
+ * These don't need to be imported or defined
+ */
+const BUILTIN_TYPES = new Set([
+  // Primitive types
+  'string',
+  'number',
+  'boolean',
+  'null',
+  'undefined',
+  'void',
+  'any',
+  'never',
+  
+  // Special types
+  'object',
+  'array',
+  'function',
+  'VNode',
+  
+  // Legacy/alias types
+  'int',
+]);
+
+/**
  * File and path constants
  */
 const PATHS = {
@@ -221,6 +250,7 @@ export {
   TOKEN_TYPES,
   NODE_TYPES,
   ANNOTATION_TYPES,
+  BUILTIN_TYPES,
   PATHS,
   PATTERNS,
   COLORS,

@@ -24,6 +24,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
 
   const exportObjects = {};
   let exportKeys = [];
+  const typeAliases = {}; // Track type aliases for export
+  const hasBlopImports = { value: false }; // Track if file has .blop imports
+  const genericTypeParams = []; // Stack of generic type parameter scopes
   const dependencies = [];
   const imports = [];
 
@@ -47,6 +50,9 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     warnings,
     dependencies,
     imports,
+    typeAliases,
+    hasBlopImports,
+    genericTypeParams,
     uid,
     resolve,
     env, // Track environment for import/export generation
@@ -140,9 +146,14 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       final.push(module.join(''));
       
       // Generate exports in ESM format
-      final.push('\nexport { ');
-      final.push(exportKeys.join(', '));
-      final.push(' };\n');
+      // NOTE: Types are tracked in exportObjects but not exported at runtime (yet)
+      // When types become first-class citizens, remove the isType filter
+      const runtimeExportKeys = exportKeys.filter(key => !scope.names[key].isType);
+      if (runtimeExportKeys.length > 0) {
+        final.push('\nexport { ');
+        final.push(runtimeExportKeys.join(', '));
+        final.push(' };\n');
+      }
       return final;
     },
   };
@@ -155,6 +166,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     dependencies,
     exportKeys,
     exportObjects,
+    typeAliases,
     warnings,
     errors,
   };

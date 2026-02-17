@@ -106,11 +106,12 @@ function createValidators(context) {
       keysCache[filename] = {
         keys: result.exportKeys,
         objects: result.exportObjects,
+        typeAliases: result.typeAliases || {}, // Include type definitions
         mtime: stats.mtime,
       };
       return keysCache[filename];
     }
-    return [];
+    return { keys: [], objects: {}, typeAliases: {} };
   }
 
   function checkImportKeys(filename, importedKeys) {

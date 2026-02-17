@@ -2,9 +2,36 @@
 // Statement Handlers - Type inference for statements
 // ============================================================================
 
+import fs from 'fs';
+import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
+
+/**
+ * Extract import names from destructuring_values node
+ * @param {Object} node - destructuring_values AST node  
+ * @returns {Array<string>} Array of imported names
+ */
+function extractImportNames(node) {
+  const names = [];
+  
+  function traverse(n) {
+    if (!n) return;
+    
+    if (n.type === 'destructuring_values') {
+      if (n.named.name) {
+        names.push(n.named.name.value);
+      }
+      if (n.named.more) {
+        traverse(n.named.more);
+      }
+    }
+  }
+  
+  traverse(node);
+  return names;
+}
 
 function createStatementHandlers(getState) {
   return {
@@ -68,6 +95,89 @@ function createStatementHandlers(getState) {
       }
       
       // Type aliases don't produce values, so don't push to parent
+    },
+
+    import_statement: (node) => {
+      const { typeAliases, currentFilename } = getState();
+      
+      // If we don't have a filename context, we can't resolve imports
+      if (!currentFilename) {
+        return;
+      }
+      
+      // Extract the file being imported
+      const fileNode = node.named.file || node.named.module;
+      if (!fileNode) {
+        return;
+      }
+      
+      const importPath = fileNode.value.slice(1, -1); // Remove quotes
+      
+      // Only process .blop file imports (skip node_modules, etc.)
+      if (!importPath.startsWith('.')) {
+        return;
+      }
+      
+      try {
+        // Resolve the import path relative to current file
+        const resolvedPath = path.resolve(path.dirname(currentFilename), importPath);
+        
+        // Check if it's a .blop file
+        if (!resolvedPath.endsWith('.blop')) {
+          return;
+        }
+        
+        // Check if file exists
+        if (!fs.existsSync(resolvedPath)) {
+          return;
+        }
+        
+        // Load and parse the imported file to extract its type definitions
+        const importedSource = fs.readFileSync(resolvedPath, 'utf8');
+        
+        // Import parser and backend (using require for synchronous loading)
+        const parser = require('../../parser.js');
+        const { tokensDefinition } = require('../../tokensDefinition.js');
+        const backend = require('../../backend.js');
+        
+        const tokenStream = parser.default.tokenize(tokensDefinition, importedSource);
+        const tree = parser.default.parse(tokenStream);
+        
+        if (tree.success) {
+          // Generate backend to extract type definitions
+          const result = backend.default.generateCode(tree, tokenStream, importedSource, resolvedPath);
+          
+          if (result.typeAliases) {
+            // Check what's being imported
+            if (node.named.dest_values) {
+              // import { User, Post } from './types.blop'
+              // Only import specific types
+              const importNames = extractImportNames(node.named.dest_values);
+              importNames.forEach(name => {
+                if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
+                  // Parse the type definition for use in inference
+                  const typeString = parseTypeExpression(result.typeAliases[name].typeNode);
+                  typeAliases[name] = typeString;
+                }
+              });
+            } else if (node.named.name && !node.named.module) {
+              // import User from './types.blop'
+              const name = node.named.name.value;
+              if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
+                const typeString = parseTypeExpression(result.typeAliases[name].typeNode);
+                typeAliases[name] = typeString;
+              }
+            } else {
+              // import './types.blop' - import all types
+              // or import './types.blop' as types - can't use types directly
+              // For now, skip these cases
+            }
+          }
+        }
+      } catch (error) {
+        // Silently ignore errors in import resolution for inference
+        // The backend will report actual import errors
+      }
     },
     
     assign: (node, parent) => {

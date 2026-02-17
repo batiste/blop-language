@@ -1,18 +1,65 @@
 import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES } from '../../constants.js';
 
 function createFunctionGenerators(context) {
-  const { generateCode, validators, scopes } = context;
+  const { generateCode, validators, scopes, genericTypeParams } = context;
   const { checkRedefinition, popScopeBlock, registerName, shouldBeDefined, generateError } = validators;
 
   const currentScopeFCT = () => scopes.type(SCOPE_TYPES.FUNCTION);
   const addScopeFCT = () => scopes.add(SCOPE_TYPES.FUNCTION);
   const popScopeFCT = () => popScopeBlock(SCOPE_TYPES.FUNCTION);
+  
+  /**
+   * Extract generic parameter names from a generic_params node
+   * @param {Object} node - The generic_params AST node
+   * @returns {Array<string>} Array of generic parameter names
+   */
+  function extractGenericParams(node) {
+    const params = [];
+    if (!node) return params;
+    
+    function traverse(n) {
+      if (!n) return;
+      if (n.type === 'generic_params' || n.type === 'generic_param_list') {
+        if (n.named && n.named.param) {
+          // It's a name token
+          if (n.named.param.value) {
+            params.push(n.named.param.value);
+          }
+        }
+        // Traverse children for comma-separated lists
+        if (n.children) {
+          n.children.forEach(child => traverse(child));
+        }
+        // Check for more params
+        if (n.named && n.named.more) {
+          traverse(n.named.more);
+        }
+      } else if (n.type === 'name') {
+        // Direct name token
+        if (n.value) {
+          params.push(n.value);
+        }
+      }
+    }
+    
+    traverse(node);
+    return params;
+  }
 
   return {
     'func_def': (node) => {
       const output = [];
       const parentScope = currentScopeFCT();
       const scope = addScopeFCT();
+      
+      // Track generic type parameters
+      const genericParams = node.named.generic_params 
+        ? extractGenericParams(node.named.generic_params)
+        : [];
+      if (genericParams.length > 0) {
+        genericTypeParams.push(new Set(genericParams));
+      }
+      
       if (node.named['async']) {
         output.push('async ');
       }
@@ -57,6 +104,12 @@ function createFunctionGenerators(context) {
           output.push(')');
         }
       }
+      
+      // Pop generic type parameters
+      if (genericParams.length > 0) {
+        genericTypeParams.pop();
+      }
+      
       popScopeFCT();
       return output;
     },

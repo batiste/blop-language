@@ -24,15 +24,16 @@ function createNodeHandlers() {
  * Run type inference on an AST and return any type warnings
  * @param {Object} node - Root AST node
  * @param {Array} _stream - Token stream for error reporting
+ * @param {String} filename - Optional filename for import resolution
  * @returns {Array} Array of type warning errors
  */
-function inference(node, _stream) {
+function inference(node, _stream, filename) {
   const warnings = [];
   const functionScopes = [{}];
   const typeAliases = {}; // Reset type aliases for each file
   
   // Initialize visitor state
-  initVisitor(warnings, _stream, functionScopes, typeAliases);
+  initVisitor(warnings, _stream, functionScopes, typeAliases, filename);
   
   // Create and set handlers
   const nodeHandlers = createNodeHandlers();

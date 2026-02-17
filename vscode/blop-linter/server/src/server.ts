@@ -296,7 +296,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 				);
 			});
 		}
-		inference(tree, stream).forEach((warning: any) => {
+		inference(tree, stream, textDocument.uri).forEach((warning: any) => {
 			diagnostics.push(
 				generateDiagnosis(warning, textDocument, DiagnosticSeverity.Warning)
 			);
