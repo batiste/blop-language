@@ -1,0 +1,24 @@
+// Object shorthand property inference test
+
+a = 1
+b = 2
+c = 3
+obj = { a, b, c }
+
+test('infers multiple shorthand properties', () => {
+  expect(obj.a).toBe(1)
+  expect(obj.b).toBe(2)
+  expect(obj.c).toBe(3)
+})
+
+d = 4
+e = 5
+obj2 = { a, b, c, d, e }
+
+test('infers five shorthand properties', () => {
+  expect(obj2.a).toBe(1)
+  expect(obj2.b).toBe(2)
+  expect(obj2.c).toBe(3)
+  expect(obj2.d).toBe(4)
+  expect(obj2.e).toBe(5)
+})

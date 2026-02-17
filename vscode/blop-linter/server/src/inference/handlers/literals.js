@@ -140,36 +140,40 @@ function inferObjectLiteralStructure(node) {
       }
     }
     
-    // Check if this node contains a regular property
+    // Check for shorthand property (directly on bodyNode.named)
+    if (bodyNode.named?.key) {
+      const keyNode = bodyNode.named.key;
+      const key = keyNode.value || (keyNode.children && keyNode.children[0] && keyNode.children[0].value);
+      if (key) {
+        // Shorthand property - we don't have enough type info, use 'any'
+        propertiesMap[key] = 'any';
+      }
+    }
+    
+    // Check if this node contains a regular key-value property
     let key = null;
     let exp = null;
     
     for (const child of bodyNode.children) {
       if (child.type === 'object_literal_key') {
         key = child.value || (child.children && child.children[0] && child.children[0].value);
-      } else if (bodyNode.named?.key) {
-        // Shorthand property
-        key = bodyNode.named.key.value;
-      }
-      
-      if (child.type === 'exp' && !bodyNode.named?.spread_exp) {
+      } else if (child.type === 'exp' && !bodyNode.named?.spread_exp) {
         // This is the value expression for a property (not a spread)
         exp = child;
-      } else if (bodyNode.named?.exp && !bodyNode.named?.spread_exp) {
-        // Named exp that's not a spread
-        exp = bodyNode.named.exp;
       }
     }
     
-    if (key) {
+    // Also check named exp (for properties with explicit values)
+    if (!exp && bodyNode.named?.exp && !bodyNode.named?.spread_exp) {
+      exp = bodyNode.named.exp;
+    }
+    
+    if (key && exp) {
       // Determine the type of the value
       let valueType = 'any';
       
-      if (exp && exp.inference && exp.inference.length > 0) {
+      if (exp.inference && exp.inference.length > 0) {
         valueType = exp.inference[0];
-      } else if (!exp) {
-        // Shorthand property - we don't have enough info, use 'any'
-        valueType = 'any';
       }
       
       propertiesMap[key] = valueType;
