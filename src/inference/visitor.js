@@ -377,6 +377,20 @@ function resolveTypes(node) {
         i = handleObjectAccess(types, i);
       }
     }
+
+    if (inferencePhase === 'inference') {
+      for (let i = types.length - 1; i >= 0; i--) {
+        const value = types[i];
+        if (typeof value === 'string') {
+          node.inferredType = value;
+          break;
+        }
+        if (value && typeof value.toString === 'function' && value.type === undefined) {
+          node.inferredType = value.toString();
+          break;
+        }
+      }
+    }
   }
 }
 

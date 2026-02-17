@@ -16,7 +16,7 @@ import TypeChecker from '../typeChecker.js';
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
-      const { getCurrentScope } = getState();
+      const { getCurrentScope, inferencePhase } = getState();
       const scope = getCurrentScope();
       
       if (!scope.__currentFctParams) {
@@ -30,11 +30,20 @@ function createFunctionHandlers(getState) {
             type: annotation,
           };
           scope.__currentFctParams.push(annotation);
+          if (inferencePhase === 'inference' && node.named.name) {
+            node.named.name.inferredType = annotation;
+          }
         } else {
           scope.__currentFctParams.push('any');
+          if (inferencePhase === 'inference' && node.named.name) {
+            node.named.name.inferredType = 'any';
+          }
         }
       } else {
         scope.__currentFctParams.push('any');
+        if (inferencePhase === 'inference' && node.named.name) {
+          node.named.name.inferredType = 'any';
+        }
       }
       visitChildren(node);
     },

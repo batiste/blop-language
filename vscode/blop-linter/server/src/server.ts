@@ -929,285 +929,16 @@ function findMoreSpecificChild(node: any, offset: number, stream: any[]): any {
 	return bestChild;
 }
 
-/**
- * Widen literal types to their base types for hover display
- * @param type - Type string (might be a literal type)
- * @returns Widened type string
- */
-function widenLiteralType(type: string): string {
-	// Check if it's a number literal (0, 42, -5, 3.14)
-	if (/^-?\d+(\.\d+)?$/.test(type)) {
-		return 'number';
-	}
-	
-	// Check if it's a string literal ("hello", 'world')
-	if ((type.startsWith('"') && type.endsWith('"')) || 
-	    (type.startsWith("'") && type.endsWith("'"))) {
-		return 'string';
-	}
-	
-	// Check if it's a boolean literal
-	if (type === 'true' || type === 'false') {
-		return 'boolean';
-	}
-	
-	return type;
-}
-
-/**
- * Find a parent node of a specific type
- * @param node - Starting node
- * @param stream - Token stream
- * @param tree - Root tree to search from
- * @param targetType - Type of parent to find
- * @returns Parent node or null
- */
-function findParentNode(node: any, stream: any[], tree: any, targetType: string): any {
-	if (!node || !tree) return null;
-	
-	// Search the entire tree to find which node contains this node as a child
-	function searchForParent(currentNode: any): any {
-		if (!currentNode) return null;
-		
-		// Check if this node is the parent we're looking for and contains our target node
-		if (currentNode.type === targetType) {
-			// Check if node is a descendant of currentNode
-			if (isDescendant(currentNode, node)) {
-				return currentNode;
-			}
-		}
-		
-		// Search children
-		if (currentNode.children) {
-			for (const child of currentNode.children) {
-				const result = searchForParent(child);
-				if (result) return result;
-			}
-		}
-		
-		// Search named properties
-		if (currentNode.named) {
-			for (const key in currentNode.named) {
-				const child = currentNode.named[key];
-				if (child && typeof child === 'object') {
-					const result = searchForParent(child);
-					if (result) return result;
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	function isDescendant(parent: any, target: any): boolean {
-		if (!parent) return false;
-		if (parent === target) return true;
-		
-		// Check children
-		if (parent.children) {
-			for (const child of parent.children) {
-				if (isDescendant(child, target)) return true;
-			}
-		}
-		
-		// Check named properties
-		if (parent.named) {
-			for (const key in parent.named) {
-				const child = parent.named[key];
-				if (child && typeof child === 'object') {
-					if (isDescendant(child, target)) return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
-	return searchForParent(tree);
-}
-
-/**
- * Check if a node is inside a type annotation and get the type name
- */
-function getTypeFromAnnotationContext(node: any, tree: any): string | null {
-	if (!node || !tree) return null;
-	
-	// First, try to extract a simple type name from the node itself
-	const extractedName = extractTypeNameFromExpression(node);
-	if (extractedName && extractedName !== 'any') {
-		return extractedName;
-	}
-	
-	// Search from root to find what assign/func_def this node belongs to
-	function searchForAnnotationContext(currentNode: any): string | null {
-		if (!currentNode) return null;
-		
-		// Check if this is an assign and node is inside its annotation
-		if (currentNode.type === 'assign' && currentNode.named?.annotation) {
-			if (isDescendantOf(currentNode.named.annotation, node)) {
-				// Try to extract name from annotation first
-				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
-				if (typeName) return typeName;
-				// Fallback to parseTypeExpression
-				return parseTypeExpression(currentNode.named.annotation).toString();
-			}
-		}
-		
-		// Check if this is a func_def and node is inside its annotation
-		if (currentNode.type === 'func_def' && currentNode.named?.annotation) {
-			if (isDescendantOf(currentNode.named.annotation, node)) {
-				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
-				if (typeName) return typeName;
-				return parseTypeExpression(currentNode.named.annotation).toString();
-			}
-		}
-		
-		// Check params
-		if (currentNode.type === 'func_def_param' && currentNode.named?.annotation) {
-			if (isDescendantOf(currentNode.named.annotation, node)) {
-				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
-				if (typeName) return typeName;
-				return parseTypeExpression(currentNode.named.annotation).toString();
-			}
-		}
-		
-		// Search children
-		if (currentNode.children) {
-			for (const child of currentNode.children) {
-				const result = searchForAnnotationContext(child);
-				if (result) return result;
-			}
-		}
-		
-		// Search named properties
-		if (currentNode.named) {
-			for (const key in currentNode.named) {
-				const child = currentNode.named[key];
-				if (child && typeof child === 'object') {
-					const result = searchForAnnotationContext(child);
-					if (result) return result;
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	function isDescendantOf(parent: any, target: any): boolean {
-		if (!parent) return false;
-		if (parent === target) return true;
-		
-		// Check children
-		if (parent.children) {
-			for (const child of parent.children) {
-				if (isDescendantOf(child, target)) return true;
-			}
-		}
-		
-		// Check named properties
-		if (parent.named) {
-			for (const key in parent.named) {
-				const child = parent.named[key];
-				if (child && typeof child === 'object') {
-					if (isDescendantOf(child, target)) return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
-	return searchForAnnotationContext(tree);
-}
-
-/**
- * Get the final inferred type from a node
- * @param node - AST node with potential type inference
- * @param stream - Token stream for context
- * @param tree - Root tree for finding parent nodes
- * @returns The inferred type string, or null
- */
-function getInferredType(node: any, stream: any[], tree: any): string | null {
-	if (!node) return null;
-	
-	// Special case: if this is a name node in a function definition, show function signature
-	if (node.type === 'name') {
-		const funcDefParent = findParentNode(node, stream, tree, 'func_def');
-		if (funcDefParent && funcDefParent.named?.name === node) {
-			// This is a function name - build signature
-			const params = funcDefParent.named.params;
-			const annotation = funcDefParent.named.annotation;
-			
-			// Build parameter list
-			let paramStr = '()';
-			if (params && params.children) {
-				const paramNames: string[] = [];
-				function collectParams(n: any): void {
-					if (n.type === 'func_def_params' && n.named?.name) {
-						const paramName = n.named.name.value;
-						const paramType = n.named.annotation ? parseTypeExpression(n.named.annotation) : 'any';
-						paramNames.push(`${paramName}: ${paramType}`);
-					}
-					if (n.children) {
-						n.children.forEach(collectParams);
-					}
-				}
-				collectParams(params);
-				paramStr = `(${paramNames.join(', ')})`;
-			}
-			
-			// Get return type
-			const returnType = annotation ? parseTypeExpression(annotation) : 'void';
-			
-			return `${paramStr} => ${returnType}`;
-		}
-	}
-	
-	// Check if this node has inferred types (annotated by the inference system)
-	if (node.inference && Array.isArray(node.inference) && node.inference.length > 0) {
-		// Get the last inference (after type resolution)
-		const lastInference = node.inference[node.inference.length - 1];
-		
-		// If it's a string, it's the type
-		if (typeof lastInference === 'string') {
-			// Widen literal types for better display
-			return widenLiteralType(lastInference);
-		}
-		
-		// If it's a node (like math_operator), look for the resolved type
-		if (typeof lastInference === 'object' && lastInference.type) {
-			// This might be an operator or similar, skip it and look for previous types
-			for (let i = node.inference.length - 1; i >= 0; i--) {
-				if (typeof node.inference[i] === 'string') {
-					return widenLiteralType(node.inference[i]);
-				}
-			}
-		}
-	}
-	
-	// Fallback: provide basic type information based on node type
-	if (node.type === 'number') return 'number';
-	if (node.type === 'str') return 'string';
-	if (node.type === 'true' || node.type === 'false') return 'boolean';
-	if (node.type === 'null') return 'null';
-	if (node.type === 'undefined') return 'undefined';
-	
-	return null;
-}
-
-// Hover handler - show inferred types
 // Hover handler - show inferred types
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	const document = documents.get(params.textDocument.uri);
 	if (!document) {
-		connection.console.log('Hover: No document found');
 		return null;
 	}
 	
 	// Get the AST for this document
 	const astInfo = documentASTs.get(params.textDocument.uri);
 	if (!astInfo) {
-		connection.console.log('Hover: No AST info found for document');
 		return null;
 	}
 	
@@ -1215,12 +946,10 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	
 	// Convert position to character offset
 	const offset = document.offsetAt(params.position);
-	connection.console.log(`Hover: Looking for node at offset ${offset}`);
 	
 	// Find the node at this position
 	let node = findNodeAtPosition(tree, offset, stream);
 	if (!node) {
-		connection.console.log('Hover: No node found at position');
 		return null;
 	}
 	
@@ -1228,89 +957,25 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	if (node.type === 'object_literal_body') {
 		const moreSpecific = findMoreSpecificChild(node, offset, stream);
 		if (moreSpecific && moreSpecific.type !== 'object_literal_body') {
-			connection.console.log(`Hover: Found more specific child: ${moreSpecific.type}`);
 			node = moreSpecific;
 		}
 	}
-	
-	connection.console.log(`Hover: Found node type: ${node.type}, has inference: ${!!node.inference}`);
-	if (node.inference) {
-		connection.console.log(`Hover: Inference array: ${JSON.stringify(node.inference)}`);
+
+	let inferredType = node.inferredType;
+	if (!inferredType && node.type === 'name' && node.value && typeAliases.has(node.value)) {
+		const aliasDefinition = typeAliases.get(node.value);
+		inferredType = aliasDefinition ? `${node.value} = ${aliasDefinition}` : node.value;
 	}
-	
-	// PRIORITY 1: Check if node has explicit inference from analysis phase
-	// This handles property keys, function parameters, etc. that were annotated during inference
-	if (node.inference && Array.isArray(node.inference) && node.inference.length > 0) {
-		const inferredType = getInferredType(node, stream, tree);
-		if (inferredType) {
-			connection.console.log(`Hover: Using explicit inference: ${inferredType}`);
-			const hoverContent = `**Type**: \`${inferredType}\``;
-			const token = stream[node.stream_index];
-			if (token) {
-				return {
-					contents: {
-						kind: MarkupKind.Markdown,
-						value: hoverContent
-					},
-					range: {
-						start: document.positionAt(token.start),
-						end: document.positionAt(token.start + token.len)
-					}
-				};
-			}
-		}
-	}
-	
-	// PRIORITY 2: Check if this is a type annotation context (hovering on a type name in annotation)
-	const typeAnnotation = getTypeFromAnnotationContext(node, tree);
-	if (typeAnnotation) {
-		connection.console.log(`Hover: Found type annotation: ${typeAnnotation}`);
-		// Check if this type is an alias - if so, resolve it
-		if (typeAliases.has(typeAnnotation)) {
-			const resolvedType = typeAliases.get(typeAnnotation);
-			connection.console.log(`Hover: Resolved type alias ${typeAnnotation} -> ${resolvedType}`);
-			
-			const hoverContent = `**Type**: \`${typeAnnotation}\`\n\n**Definition**: \`${resolvedType}\``;
-			const token = stream[node.stream_index];
-			if (token) {
-				return {
-					contents: {
-						kind: MarkupKind.Markdown,
-						value: hoverContent
-					},
-					range: {
-						start: document.positionAt(token.start),
-						end: document.positionAt(token.start + token.len)
-					}
-				};
-			}
-		} else {
-			// Just show the annotation
-			const hoverContent = `**Type**: \`${typeAnnotation}\``;
-			const token = stream[node.stream_index];
-			if (token) {
-				return {
-					contents: {
-						kind: MarkupKind.Markdown,
-						value: hoverContent
-					},
-					range: {
-						start: document.positionAt(token.start),
-						end: document.positionAt(token.start + token.len)
-					}
-				};
-			}
-		}
-	}
-	
-	// PRIORITY 3: Get inferred type as fallback for properties and expressions
-	const inferredType = getInferredType(node, stream, tree);
 	if (!inferredType) {
-		connection.console.log('Hover: No inferred type found');
+		if (node.type === 'number') inferredType = 'number';
+		if (node.type === 'str') inferredType = 'string';
+		if (node.type === 'true' || node.type === 'false') inferredType = 'boolean';
+		if (node.type === 'null') inferredType = 'null';
+		if (node.type === 'undefined') inferredType = 'undefined';
+	}
+	if (!inferredType) {
 		return null;
 	}
-	
-	connection.console.log(`Hover: Returning inferred type: ${inferredType}`);
 	
 	// Format the hover content
 	const hoverContent = `**Type**: \`${inferredType}\``;
