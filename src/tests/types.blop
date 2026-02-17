@@ -1,7 +1,8 @@
 
 type User = {
     name: string,
-    id: number
+    id: number,
+    bigAss: boolean
 }
 
 type Post = {

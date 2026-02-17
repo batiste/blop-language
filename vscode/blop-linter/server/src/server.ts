@@ -36,6 +36,7 @@ import { inference } from './inference/index.js';
 import properties from './properties.js';
 import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
 import { selectBestFailure } from './selectBestFailure.js';
+import { parseTypeExpression } from './inference/typeSystem.js';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -58,6 +59,84 @@ interface DiagnosticMetadata {
 	quickFix?: any; // Structured edit from errorMessages.js
 }
 const diagnosticMetadata = new Map<string, DiagnosticMetadata>();
+
+// Cache imported/defined types per document for autocompletion
+const documentTypes = new Map<string, string[]>();
+
+// Cache variable types and type definitions per document
+interface TypeInfo {
+	structure: string; // e.g., "{name: string, id: number}"
+}
+const documentTypeDefinitions = new Map<string, Map<string, TypeInfo>>(); // uri -> type name -> type info
+const documentVariables = new Map<string, Map<string, string>>(); // uri -> variable name -> type name
+
+/**
+ * Extract property names from an object type string
+ * e.g., "{name: string, id: number}" -> ["name", "id"]
+ */
+function extractPropertyNames(objectTypeString: string): string[] {
+	if (!objectTypeString || !objectTypeString.startsWith('{') || !objectTypeString.endsWith('}')) {
+		return [];
+	}
+	
+	const content = objectTypeString.slice(1, -1).trim();
+	if (!content) {
+		return [];
+	}
+	
+	const properties: string[] = [];
+	const parts = content.split(',');
+	
+	for (const part of parts) {
+		const colonIndex = part.indexOf(':');
+		if (colonIndex > 0) {
+			let key = part.slice(0, colonIndex).trim();
+			// Remove optional marker if present
+			if (key.endsWith('?')) {
+				key = key.slice(0, -1).trim();
+			}
+			if (key) {
+				properties.push(key);
+			}
+		}
+	}
+	
+	return properties;
+}
+
+/**
+ * Walk AST to extract variable declarations with type annotations
+ */
+function extractVariableTypes(node: any, variableMap: Map<string, string>): void {
+	if (!node) return;
+	
+	// Check if this is an assignment with type annotation
+	if (node.type === 'assign' && node.named) {
+		if (node.named.name && node.named.annotation) {
+			const varName = node.named.name.value;
+			const typeAnnotation = parseTypeExpression(node.named.annotation);
+			if (varName && typeAnnotation) {
+				variableMap.set(varName, typeAnnotation);
+			}
+		}
+	}
+	
+	// Recursively walk children
+	if (node.children && Array.isArray(node.children)) {
+		for (const child of node.children) {
+			extractVariableTypes(child, variableMap);
+		}
+	}
+	
+	// Walk named properties
+	if (node.named && typeof node.named === 'object') {
+		for (const key in node.named) {
+			if (node.named[key] && typeof node.named[key] === 'object') {
+				extractVariableTypes(node.named[key], variableMap);
+			}
+		}
+	}
+}
 
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
@@ -157,6 +236,9 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
 // Only keep settings for open documents
 documents.onDidClose((e) => {
 	documentSettings.delete(e.document.uri);
+	documentTypes.delete(e.document.uri);
+	documentTypeDefinitions.delete(e.document.uri);
+	documentVariables.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -283,6 +365,27 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		// _backend(node, _stream, _input, _filename = false, rootSource, resolve = false)
 		// @ts-expect-error - backend types not properly defined
 		const result = backend.generateCode(tree, stream, text, textDocument.uri.split(':')[1], undefined, true);
+
+		// Cache type definitions and variable types for autocompletion
+		if (result.typeAliases) {
+			const typeNames = Object.keys(result.typeAliases);
+			documentTypes.set(textDocument.uri, typeNames);
+			
+			// Store type structures
+			const typeDefMap = new Map<string, TypeInfo>();
+			for (const [typeName, typeInfo] of Object.entries(result.typeAliases)) {
+				if (typeInfo && typeof typeInfo === 'object' && (typeInfo as any).typeNode) {
+					const structure = parseTypeExpression((typeInfo as any).typeNode);
+					typeDefMap.set(typeName, { structure });
+				}
+			}
+			documentTypeDefinitions.set(textDocument.uri, typeDefMap);
+			
+			// Extract variable types from AST
+			const variableMap = new Map<string, string>();
+			extractVariableTypes(tree, variableMap);
+			documentVariables.set(textDocument.uri, variableMap);
+		}
 
 		if (!result.perfect) {
 			result.errors.forEach((error: any) => {
@@ -422,6 +525,67 @@ connection.onCompletion(
 		const kindMap:any = {
 			'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12
 		};
+		
+		// Property completion: after 'varName.'
+		const propertyReg = /(\w+)\.(\w*)$/;
+		const propertyMatch = propertyReg.exec(text);
+		if (propertyMatch) {
+			const varName = propertyMatch[1];
+			const partial = propertyMatch[2].toLowerCase();
+			
+			// Look up the variable's type
+			const variables = documentVariables.get(_textDocumentPosition.textDocument.uri);
+			if (variables && variables.has(varName)) {
+				const varType = variables.get(varName);
+				
+				// Resolve the type to its structure
+				const typeDefs = documentTypeDefinitions.get(_textDocumentPosition.textDocument.uri);
+				let typeStructure = varType;
+				
+				// If it's a type alias, resolve it
+				if (typeDefs && typeDefs.has(varType!)) {
+					const typeInfo = typeDefs.get(varType!);
+					if (typeInfo) {
+						typeStructure = typeInfo.structure;
+					}
+				}
+				
+				// Extract property names from the type structure
+				if (typeStructure) {
+					const properties = extractPropertyNames(typeStructure);
+					return properties
+						.filter(prop => prop.toLowerCase().startsWith(partial))
+						.map(prop => ({
+							label: prop,
+							kind: CompletionItemKind.Property,
+							detail: `Property of ${varType}`,
+							documentation: `${varName}.${prop}`
+						}));
+				}
+			}
+		}
+		
+		// Type annotation completion: after ': '
+		const typeAnnotationReg = /:\s*(\w*)$/;
+		const typeMatch = typeAnnotationReg.exec(text);
+		if (typeMatch) {
+			const partial = typeMatch[1].toLowerCase();
+			const availableTypes = documentTypes.get(_textDocumentPosition.textDocument.uri) || [];
+			const builtinTypes = ['string', 'number', 'boolean', 'any', 'void', 'never', 'object', 'array'];
+			const allTypes = [...new Set([...availableTypes, ...builtinTypes])];
+			
+			return allTypes
+				.filter(typeName => typeName.toLowerCase().startsWith(partial))
+				.map(typeName => ({
+					label: typeName,
+					kind: CompletionItemKind.Class,
+					detail: builtinTypes.includes(typeName) ? 'Built-in type' : 'Imported/defined type',
+					documentation: builtinTypes.includes(typeName) 
+						? `Built-in ${typeName} type`
+						: `Type defined or imported in this file`
+				}));
+		}
+		
 		// Object.<something completion>
 		const reg1 = /(\s|^)([\w]+)\./;
 		const result = reg1.exec(text);
