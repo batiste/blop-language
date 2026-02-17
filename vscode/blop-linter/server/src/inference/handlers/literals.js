@@ -118,27 +118,46 @@ function inferObjectLiteralStructure(node) {
     return '{}';
   }
   
-  const properties = [];
+  // Use an object to track properties (for proper override behavior)
+  const propertiesMap = {};
   
-  // Recursively collect properties from object_literal_body
-  function collectProperties(current) {
-    if (!current || !current.children) return;
+  // Process object_literal_body nodes in order
+  // The grammar is right-recursive, so we need to process from left to right
+  function processBodyNode(bodyNode) {
+    if (!bodyNode || !bodyNode.children) return;
     
-    // Look for key-value pairs
+    // Check if this node contains a spread
+    const spreadNode = bodyNode.named?.spread_exp;
+    if (spreadNode && spreadNode.inference && spreadNode.inference.length > 0) {
+      const spreadType = spreadNode.inference[0];
+      const spreadStructure = parseObjectTypeString(spreadType);
+      if (spreadStructure) {
+        // Merge spread properties into our properties map
+        for (const [propKey, propValue] of Object.entries(spreadStructure)) {
+          const propType = typeof propValue === 'string' ? propValue : propValue.type;
+          propertiesMap[propKey] = propType;
+        }
+      }
+    }
+    
+    // Check if this node contains a regular property
     let key = null;
     let exp = null;
     
-    for (const child of current.children) {
+    for (const child of bodyNode.children) {
       if (child.type === 'object_literal_key') {
         key = child.value || (child.children && child.children[0] && child.children[0].value);
-      } else if (child.named && child.named.key) {
+      } else if (bodyNode.named?.key) {
         // Shorthand property
-        key = child.named.key.value;
-      } else if (child.type === 'exp' || (child.named && child.named.exp)) {
+        key = bodyNode.named.key.value;
+      }
+      
+      if (child.type === 'exp' && !bodyNode.named?.spread_exp) {
+        // This is the value expression for a property (not a spread)
         exp = child;
-      } else if (child.type === 'object_literal_body') {
-        // Recursive body
-        collectProperties(child);
+      } else if (bodyNode.named?.exp && !bodyNode.named?.spread_exp) {
+        // Named exp that's not a spread
+        exp = bodyNode.named.exp;
       }
     }
     
@@ -153,17 +172,25 @@ function inferObjectLiteralStructure(node) {
         valueType = 'any';
       }
       
-      properties.push(`${key}: ${valueType}`);
+      propertiesMap[key] = valueType;
+    }
+    
+    // Process the next body node in the recursion
+    const nextBodyNode = bodyNode.children.find(c => c.type === 'object_literal_body');
+    if (nextBodyNode) {
+      processBodyNode(nextBodyNode);
     }
   }
   
-  collectProperties(bodyNode);
+  processBodyNode(bodyNode);
   
-  if (properties.length === 0) {
+  if (Object.keys(propertiesMap).length === 0) {
     return '{}';
   }
   
-  return `{${properties.join(', ')}}`;
+  // Convert properties map to array of strings
+  const propertyStrings = Object.entries(propertiesMap).map(([k, v]) => `${k}: ${v}`);
+  return `{${propertyStrings.join(', ')}}`;
 }
 
 function createLiteralHandlers(getState) {

@@ -77,16 +77,12 @@ test('Object spread should merge properties', () => {
 })
 
 test('Object spread should override properties', () => {
-  // Note: obj4's type is inferred as {b: 3} because spread operator type inference
-  // doesn't yet merge types. This is a known limitation.
-  // expect(obj4.a).toBe(1)
+  expect(obj4.a).toBe(1)
   expect(obj4.b).toBe(3)
 })
 
 test('Object spread should work with mixed properties', () => {
-  // Note: obj6's type is inferred as {c: 3, b: 2} because spread operator type inference
-  // doesn't yet merge types. This is a known limitation.
-  // expect(obj6.a).toBe(1)
+  expect(obj6.a).toBe(1)
   expect(obj6.b).toBe(2)
   expect(obj6.c).toBe(3)
 })
