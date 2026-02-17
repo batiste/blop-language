@@ -977,6 +977,30 @@ function getPropertyType(objectType, propertyPath, typeAliases = {}) {
   
   // Walk through each property in the chain
   for (const propName of properties) {
+    // If current type is 'any', allow any property access
+    if (currentType === 'any') {
+      return 'any';
+    }
+    
+    // Special handling for VNode type (from snabbdom)
+    if (currentType === 'VNode') {
+      // VNode has these common properties
+      const vnodeProperties = {
+        'elm': 'any',        // The DOM element
+        'data': 'any',       // VNode data
+        'children': 'any',   // Child VNodes
+        'text': 'string | undefined',
+        'key': 'any',
+        'sel': 'string | undefined'
+      };
+      
+      if (vnodeProperties[propName]) {
+        currentType = vnodeProperties[propName];
+        continue;
+      }
+      return null; // Property doesn't exist on VNode
+    }
+    
     // Check if current type is an object type
     if (!currentType.startsWith('{')) {
       return null; // Can't access properties on non-object types
