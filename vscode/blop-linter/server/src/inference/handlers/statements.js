@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -179,10 +179,78 @@ function createStatementHandlers(getState) {
     },
     
     assign: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, lookupVariable, typeAliases, pushWarning } = getState();
       
-      if (node.named.name) {
+      if (node.named.name || node.named.path) {
         visit(node.named.exp, node);
+        
+        // Check if this is a property assignment (e.g., u.name = 1 or u.user.name = "x")
+        if (node.named.path && node.named.access) {
+          // Property assignment - extract the full property chain
+          const objectName = node.named.path.value;
+          const accessNode = node.named.access;
+          
+          // Extract all property names from the access chain (handles nested like user.userType)
+          const propertyChain = [];
+          const extractProperties = (node) => {
+            if (!node) return;
+            
+            if (node.type === 'object_access' && node.children) {
+              for (const child of node.children) {
+                if (child.type === 'name') {
+                  propertyChain.push(child.value);
+                } else if (child.type === 'object_access') {
+                  extractProperties(child);
+                }
+              }
+            }
+          };
+          extractProperties(accessNode);
+          
+          if (objectName && propertyChain.length > 0) {
+            // Get the type of the value being assigned
+            const expNode = node.named.exp;
+            const valueType = expNode && expNode.inference && expNode.inference[0];
+            
+            if (valueType && valueType !== 'any') {
+              // Look up the object's type and walk through the property chain
+              const objectDef = lookupVariable(objectName);
+              if (objectDef && objectDef.type) {
+                let currentType = resolveTypeAlias(objectDef.type, typeAliases);
+                let currentProperties = parseObjectTypeString(currentType);
+                
+                // Walk through all properties except the last one
+                for (let i = 0; i < propertyChain.length - 1; i++) {
+                  const propName = propertyChain[i];
+                  if (currentProperties && currentProperties[propName]) {
+                    currentType = resolveTypeAlias(currentProperties[propName].type, typeAliases);
+                    currentProperties = parseObjectTypeString(currentType);
+                  } else {
+                    // Property doesn't exist in the chain
+                    currentProperties = null;
+                    break;
+                  }
+                }
+                
+                // Check the final property
+                const finalProperty = propertyChain[propertyChain.length - 1];
+                if (currentProperties && currentProperties[finalProperty]) {
+                  const expectedType = currentProperties[finalProperty].type;
+                  const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                  
+                  if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                    const fullPropertyPath = propertyChain.join('.');
+                    pushWarning(
+                      node,
+                      `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+        
         pushToParent(node, parent);
         pushInference(parent, node);
       }

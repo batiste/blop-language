@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -138,14 +138,62 @@ function handleAssignment(types, i, assignNode) {
   }
   
   if (valueType && name && valueType !== 'any') {
+    // Check if this is a property assignment (e.g., u.name = 1)
+    if (name.type === 'name_exp' && name.named && name.named.access) {
+      // Extract object and property names
+      const objectName = name.named.name?.value;
+      const accessNode = name.named.access;
+      
+      // Find the property name from the access node
+      let propertyName = null;
+      const findPropertyName = (node) => {
+        if (!node) return;
+        if (node.type === 'name' && !propertyName) {
+          propertyName = node.value;
+          return;
+        }
+        if (node.children) {
+          node.children.forEach(findPropertyName);
+        }
+        if (node.named) {
+          Object.values(node.named).forEach(child => {
+            if (child && typeof child === 'object') {
+              findPropertyName(child);
+            }
+          });
+        }
+      };
+      findPropertyName(accessNode);
+      
+      if (objectName && propertyName) {
+        // Look up the object's type
+        const objectDef = lookupVariable(objectName);
+        if (objectDef && objectDef.type) {
+          const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+          const properties = parseObjectTypeString(resolvedObjectType);
+          
+          if (properties && properties[propertyName]) {
+            const expectedType = properties[propertyName].type;
+            const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+            
+            if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+              pushWarning(
+                assignNode,
+                `Cannot assign ${valueType} to property '${propertyName}' of type ${expectedType}`
+              );
+            }
+          }
+        }
+      }
+    }
     // If explicit_assign (:=), always create new variable in current scope
-    if (explicit_assign) {
+    else if (explicit_assign && name.value) {
       const scope = getCurrentScope();
       scope[name.value] = {
         type: valueType,
         node: assignNode,
       };
-    } else {
+    } else if (name.value) {
       // Regular assignment (=), check if reassigning existing variable
       const result = TypeChecker.checkVariableReassignment(valueType, name.value, lookupVariable, typeAliases);
       if (!result.valid) {

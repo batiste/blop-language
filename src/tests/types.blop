@@ -18,3 +18,7 @@ type Profile = {
 }
 
 type choices = "option1" | "option2" | "option3"
+
+// def hello(u: Profile) {
+//     u.user.userType = "Admin"
+// }
