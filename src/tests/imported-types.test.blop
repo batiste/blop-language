@@ -1,5 +1,5 @@
 import User from "./types.blop"
-import { Post, Profile } from "./types.blop"
+import { Post, Profile, choices } from "./types.blop"
 
 
 user: User = {

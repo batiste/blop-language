@@ -2,7 +2,6 @@
 type User = {
     name: string,
     id: number,
-    bigAss: boolean
 }
 
 type Post = {
@@ -16,3 +15,5 @@ type Profile = {
     bio?: string,
     verified: boolean
 }
+
+type choices = "option1" | "option2" | "option3"

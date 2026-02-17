@@ -2,7 +2,7 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-import { narrowType, excludeType } from './typeSystem.js';
+import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias } from './typeSystem.js';
 
 /**
  * Detect typeof checks in expressions
@@ -102,8 +102,107 @@ function applyExclusion(scope, variable, excludedType, lookupVariable) {
   }
 }
 
+/**
+ * Detect impossible literal comparisons in expressions
+ * Returns warning message if comparison is impossible, null otherwise
+ * @param {Object} expNode - Expression node to analyze
+ * @param {Function} lookupVariable - Function to lookup variables in scope chain
+ * @param {Object} typeAliases - Type aliases map
+ * @returns {Object|null} { variable, comparedValue, varType } if impossible, null otherwise
+ */
+function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
+  if (!expNode) {
+    return null;
+  }
+  
+  // Look for pattern: variable == "literal" where literal is not in variable's type union
+  let varName = null;
+  let literalValue = null;
+  let hasEqualityCheck = false;
+  
+  const checkNode = (node) => {
+    if (!node) return;
+    
+    // Check for variable name
+    if (node.type === 'name' && !varName) {
+      varName = node.value;
+    }
+    
+    // Check for string literal
+    if (node.type === 'str' && !literalValue) {
+      literalValue = node.value; // Keep quotes for now
+    }
+    
+    // Check for number literal
+    if (node.type === 'number' && !literalValue) {
+      literalValue = node.value;
+    }
+    
+    // Check for equality operator
+    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '===')) {
+      hasEqualityCheck = true;
+    }
+    
+    // Recurse into children
+    if (node.children) {
+      node.children.forEach(checkNode);
+    }
+    
+    // Check named properties
+    if (node.named) {
+      Object.values(node.named).forEach(child => {
+        if (child && typeof child === 'object') {
+          checkNode(child);
+        }
+      });
+    }
+  };
+  
+  checkNode(expNode);
+  
+  if (hasEqualityCheck && varName && literalValue) {
+    // Look up the variable's type
+    const varDef = lookupVariable(varName);
+    if (varDef && varDef.type) {
+      let varType = varDef.type;
+      
+      // Resolve type alias
+      const resolvedType = resolveTypeAlias(varType, typeAliases);
+      
+      // Check if it's a union of string literals
+      if (isUnionType(resolvedType)) {
+        const unionTypes = parseUnionType(resolvedType);
+        
+        // Check if all union members are string literals (quoted values)
+        const allLiterals = unionTypes.every(t => 
+          (t.startsWith('"') && t.endsWith('"')) || 
+          (t.startsWith("'") && t.endsWith("'")) ||
+          /^\d+$/.test(t) // number literal
+        );
+        
+        if (allLiterals) {
+          // Check if the compared value is in the union
+          const isInUnion = unionTypes.some(t => t === literalValue);
+          
+          if (!isInUnion) {
+            return {
+              variable: varName,
+              comparedValue: literalValue,
+              varType: resolvedType,
+              possibleValues: unionTypes
+            };
+          }
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
 export {
   detectTypeofCheck,
   applyNarrowing,
   applyExclusion,
+  detectImpossibleComparison,
 };

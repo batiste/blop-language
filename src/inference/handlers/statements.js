@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
-import { detectTypeofCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
+import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
@@ -189,9 +189,20 @@ function createStatementHandlers(getState) {
     },
     
     condition: (node, parent) => {
-      const { pushScope, popScope, lookupVariable, getFunctionScope } = getState();
+      const { pushScope, popScope, lookupVariable, getFunctionScope, pushWarning, typeAliases } = getState();
       
       const functionScope = getFunctionScope();
+      
+      // Check for impossible comparisons
+      const impossibleComparison = detectImpossibleComparison(node.named.exp, lookupVariable, typeAliases);
+      if (impossibleComparison) {
+        const { variable, comparedValue, possibleValues } = impossibleComparison;
+        const formattedValues = possibleValues.join(' | ');
+        pushWarning(
+          node.named.exp,
+          `This condition will always be false: '${variable}' has type ${formattedValues} and can never equal ${comparedValue}`
+        );
+      }
       
       // Check if this is a typeof check that enables type narrowing
       const typeGuard = detectTypeofCheck(node.named.exp);
