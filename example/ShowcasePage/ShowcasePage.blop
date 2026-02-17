@@ -615,11 +615,13 @@ for key, value in myObject {
   
   classes = if done 'todo-item' else 'todo-item completed'
   
-  <li class=classes on={ click: () => setState(!done) }>
-    <span>todo.title</span>
-    if done {
-      <span class=\"check\">'✓'</span>
-    }
+  <li 
+    class=classes 
+    on={ click: () => setState(!done) }>
+      <span>todo.title</span>
+      if done {
+        <span class=\"check\">'✓'</span>
+      }
   </li>
 }
 

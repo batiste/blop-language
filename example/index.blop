@@ -3,7 +3,7 @@ import { ASTExplorer } from './ASTExplorer/ASTExplorer.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
-import { saveState } from './services.blop'
+// import { saveState } from './services.blop'
 import './style.css' as style
 
 def navigationLinks(state) {
@@ -61,10 +61,10 @@ def navigationLinks(state) {
 def navigation(state): VNode {
   links = navigationLinks(state)
 
-  def saveStateEvent(e) {
-    saveState(state)
-    e.preventDefault()
-  }
+  // def saveStateEvent(e) {
+  //   saveState(state)
+  //   e.preventDefault()
+  // }
 
   def navItem(pageType, go, name) {
     classes = "nav-item"
@@ -107,12 +107,9 @@ def navigation(state): VNode {
         <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "style.btn"">
           = 'Fork on github'
         </a>
-        <a href="https://github.com/batiste/blop-language/wiki" class="btn btn-secondary "style.btn"">
+        <a href="https://github.com/batiste/blop-language/blob/master/docs/README.md" class="btn btn-secondary "style.btn"">
           = 'Docs'
         </a>
-        <button on={ click: saveStateEvent } class="btn btn-secondary "style.btn"">
-          = 'Save locale state on server'
-        </button>
       </div>
     </div>
   </nav>
