@@ -13,6 +13,7 @@ let typeAliases;
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
 let expectedObjectType; // Track expected type for object literals
+let inferencePhase = 'inference'; // 'inference' or 'checking' - controls warning suppression
 
 // Scope management
 const getCurrentScope = () => functionScopes[functionScopes.length - 1];
@@ -321,13 +322,20 @@ function visitChildren(node) {
 
 /**
  * Initialize visitor state for a new file
+ * @param {Array} _warnings - Array to collect warnings
+ * @param {Array} _stream - Token stream for error reporting
+ * @param {Array} _functionScopes - Function scope stack
+ * @param {Object} _typeAliases - Type aliases map
+ * @param {String} _filename - Current filename being processed
+ * @param {String} _phase - 'inference' or 'checking' - controls warning suppression
  */
-function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename) {
+function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference') {
   warnings = _warnings;
   stream = _stream;
   functionScopes = _functionScopes;
   typeAliases = _typeAliases;
   currentFilename = _filename;
+  inferencePhase = _phase;
 }
 
 /**
@@ -340,6 +348,7 @@ function getVisitorState() {
     functionScopes,
     typeAliases,
     currentFilename,
+    inferencePhase,
     getCurrentScope,
     pushScope,
     popScope,
