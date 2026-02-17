@@ -1,0 +1,15 @@
+type User = {
+    name: string,
+    id: number,
+    userType?: "Admin" | "User"
+}
+
+type Profile = {
+    user: User,
+    bio?: string,
+    verified: boolean
+}
+
+def profile(prof: Profile) {
+    prof.user
+}

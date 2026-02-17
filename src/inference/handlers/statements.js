@@ -36,6 +36,29 @@ function extractImportNames(node) {
   return names;
 }
 
+/**
+ * Extract property name nodes from an access chain
+ * Returns array of {name: string, node: astNode} for each step in the chain
+ */
+function extractPropertyNodesFromAccess(accessNode) {
+  const properties = [];
+  
+  function traverse(node) {
+    if (!node || !node.children) return;
+    
+    for (const child of node.children) {
+      if (child.type === 'name') {
+        properties.push({ name: child.value, node: child });
+      } else if (child.type === 'object_access') {
+        traverse(child);
+      }
+    }
+  }
+  
+  traverse(accessNode);
+  return properties;
+}
+
 function createStatementHandlers(getState) {
   return {
     GLOBAL_STATEMENT: resolveTypes,
@@ -216,21 +239,8 @@ function createStatementHandlers(getState) {
           const accessNode = node.named.access;
           
           // Extract all property names from the access chain (handles nested like user.userType)
-          const propertyChain = [];
-          const extractProperties = (node) => {
-            if (!node) return;
-            
-            if (node.type === 'object_access' && node.children) {
-              for (const child of node.children) {
-                if (child.type === 'name') {
-                  propertyChain.push(child.value);
-                } else if (child.type === 'object_access') {
-                  extractProperties(child);
-                }
-              }
-            }
-          };
-          extractProperties(accessNode);
+          const propertyNodes = extractPropertyNodesFromAccess(accessNode);
+          const propertyChain = propertyNodes.map(prop => prop.name);
           
           if (objectName && propertyChain.length > 0) {
             // Get the type of the value being assigned
@@ -241,6 +251,17 @@ function createStatementHandlers(getState) {
               // Look up the object's type
               const objectDef = lookupVariable(objectName);
               if (objectDef && objectDef.type) {
+                // Stamp property name nodes with their resolved types for hover support
+                let currentType = objectDef.type;
+                for (const prop of propertyNodes) {
+                  const nextType = getPropertyType(currentType, prop.name, typeAliases);
+                  if (!nextType) {
+                    break;
+                  }
+                  prop.node.inferredType = resolveTypeAlias(nextType, typeAliases);
+                  currentType = nextType;
+                }
+
                 // Use getPropertyType to validate and get the final property type
                 const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                 

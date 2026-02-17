@@ -961,6 +961,29 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 		}
 	}
 
+	// If we found a func_call_params or func_def_params (parameter wrapper), look for the name node inside
+	if (node.type === 'func_call_params' || node.type === 'func_def_params') {
+		const moreSpecific = findMoreSpecificChild(node, offset, stream);
+		if (moreSpecific && moreSpecific.type === 'name') {
+			node = moreSpecific;
+		}	
+	}
+
+	// If we found a property_assignment or name_exp wrapper, look for the name node inside
+	if (node.type === 'property_assignment' || node.type === 'name_exp') {
+		const moreSpecific = findMoreSpecificChild(node, offset, stream);
+		if (moreSpecific && moreSpecific.type === 'name') {
+			node = moreSpecific;
+		}
+	}
+
+	connection.console.log(
+		`hover-precheck: pos=${params.position.line}:${params.position.character} ` +
+		`nodeType=${node.type} nodeValue=${node.value ?? ''} ` +
+		`hasInferredType=${!!node.inferredType} hasInference=${!!node.inference} ` +
+		`namedKeys=${node.named ? Object.keys(node.named).join(',') : 'none'}`
+	);
+
 	let inferredType = node.inferredType;
 	if (!inferredType && node.type === 'name' && node.value && typeAliases.has(node.value)) {
 		const aliasDefinition = typeAliases.get(node.value);
@@ -985,6 +1008,12 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	if (!token) {
 		return null;
 	}
+
+	connection.console.log(
+		`hover: uri=${params.textDocument.uri} pos=${params.position.line}:${params.position.character} ` +
+		`nodeType=${node.type} nodeValue=${node.value ?? ''} inferredType=${inferredType} ` +
+		`range=${token.start}-${token.start + token.len}`
+	);
 	
 	return {
 		contents: {
