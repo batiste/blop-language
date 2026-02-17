@@ -7,6 +7,9 @@ import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { getAnnotationType, parseTypeExpression, parseGenericParams } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
+import parser from '../../parser.js';
+import { tokensDefinition } from '../../tokensDefinition.js';
+import backend from '../../backend.js';
 
 /**
  * Extract import names from destructuring_values node
@@ -135,17 +138,12 @@ function createStatementHandlers(getState) {
         // Load and parse the imported file to extract its type definitions
         const importedSource = fs.readFileSync(resolvedPath, 'utf8');
         
-        // Import parser and backend (using require for synchronous loading)
-        const parser = require('../../parser.js');
-        const { tokensDefinition } = require('../../tokensDefinition.js');
-        const backend = require('../../backend.js');
-        
-        const tokenStream = parser.default.tokenize(tokensDefinition, importedSource);
-        const tree = parser.default.parse(tokenStream);
+        const tokenStream = parser.tokenize(tokensDefinition, importedSource);
+        const tree = parser.parse(tokenStream);
         
         if (tree.success) {
           // Generate backend to extract type definitions
-          const result = backend.default.generateCode(tree, tokenStream, importedSource, resolvedPath);
+          const result = backend.generateCode(tree, tokenStream, importedSource, resolvedPath);
           
           if (result.typeAliases) {
             // Check what's being imported

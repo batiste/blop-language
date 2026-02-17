@@ -1,0 +1,43 @@
+import User from "./types.blop"
+import { Post, Profile } from "./types.blop"
+
+
+user: User = {
+    name: "Alice",
+    id: 1
+}
+
+test('User object properties', () => {
+    expect(user.name).toBe("Alice")
+    expect(user.id).toBe(1)
+})
+
+test('Multiple type imports', () => {
+    post: Post = {
+        title: "Hello World",
+        author: "Bob",
+        views: 42
+    }
+    
+    expect(post.title).toBe("Hello World")
+    expect(post.views).toBe(42)
+})
+
+test('Nested type with optional property', () => {
+    profile: Profile = {
+        user: { name: "Charlie", id: 3 },
+        verified: true
+    }
+    
+    expect(profile.user.name).toBe("Charlie")
+    expect(profile.verified).toBe(true)
+    
+    // With optional bio
+    profileWithBio: Profile = {
+        user: { name: "Dave", id: 4 },
+        bio: "Software developer",
+        verified: false
+    }
+    
+    expect(profileWithBio.bio).toBe("Software developer")
+})

@@ -1,0 +1,17 @@
+
+type User = {
+    name: string,
+    id: number
+}
+
+type Post = {
+    title: string,
+    author: string,
+    views: number
+}
+
+type Profile = {
+    user: User,
+    bio?: string,
+    verified: boolean
+}
