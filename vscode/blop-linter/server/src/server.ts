@@ -20,7 +20,9 @@ import {
 	Location,
 	CodeAction,
 	CodeActionKind,
-	CodeActionParams
+	CodeActionParams,
+	Hover,
+	MarkupKind
 } from 'vscode-languageserver';
 
 import {
@@ -69,6 +71,13 @@ interface TypeInfo {
 }
 const documentTypeDefinitions = new Map<string, Map<string, TypeInfo>>(); // uri -> type name -> type info
 const documentVariables = new Map<string, Map<string, string>>(); // uri -> variable name -> type name
+
+// Cache AST and token stream per document for hover support
+interface DocumentASTInfo {
+	tree: any;
+	stream: any[];
+}
+const documentASTs = new Map<string, DocumentASTInfo>(); // uri -> {tree, stream}
 
 /**
  * Extract property names from an object type string
@@ -165,7 +174,9 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that the server supports code actions (quick fixes)
 			codeActionProvider: {
 				codeActionKinds: [CodeActionKind.QuickFix]
-			}
+			},
+			// Tell the client that the server supports hover
+			hoverProvider: true
 		}
 	};
 	if (hasWorkspaceFolderCapability) {
@@ -239,6 +250,7 @@ documents.onDidClose((e) => {
 	documentTypes.delete(e.document.uri);
 	documentTypeDefinitions.delete(e.document.uri);
 	documentVariables.delete(e.document.uri);
+	documentASTs.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -399,11 +411,16 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 				);
 			});
 		}
+		
+		// Run type inference - this mutates the tree by adding .inference arrays to nodes
 		inference(tree, stream, textDocument.uri.split(':')[1]).forEach((warning: any) => {
 			diagnostics.push(
 				generateDiagnosis(warning, textDocument, DiagnosticSeverity.Warning)
 			);
 		});
+		
+		// Store AST and stream for hover support AFTER inference has decorated the tree
+		documentASTs.set(textDocument.uri, { tree, stream });
 	}
 
 	// Send the computed diagnostics to VSCode.
@@ -640,6 +657,300 @@ connection.onCompletion(
 connection.onCompletionResolve(
 	(item: CompletionItem): CompletionItem => item
 );
+
+/**
+ * Find the AST node at a specific character offset
+ * @param node - Current AST node to search
+ * @param offset - Character offset in the document
+ * @param stream - Token stream
+ * @returns The most specific node at that position, or null
+ */
+function findNodeAtPosition(node: any, offset: number, stream: any[]): any {
+	if (!node) return null;
+	
+	let bestMatch: any = null;
+	
+	// Recursively search for the most specific node containing this offset
+	function search(n: any): void {
+		if (!n || n.stream_index === undefined) return;
+		
+		const token = stream[n.stream_index];
+		if (!token) return;
+		
+		const tokenStart = token.start;
+		const tokenEnd = token.start + token.len;
+		
+		// Check if offset is within this token's range
+		if (offset >= tokenStart && offset <= tokenEnd) {
+			// This node contains the offset
+			// Keep it if we don't have a match or if it's more specific (smaller range)
+			if (!bestMatch) {
+				bestMatch = n;
+			} else {
+				const bestToken = stream[bestMatch.stream_index];
+				if (token.len < bestToken.len) {
+					bestMatch = n;
+				}
+			}
+		}
+		
+		// Search children regardless of whether parent matches
+		// (children might be outside parent's token range)
+		if (n.children && Array.isArray(n.children)) {
+			for (const child of n.children) {
+				search(child);
+			}
+		}
+		
+		// Search named properties
+		if (n.named && typeof n.named === 'object') {
+			for (const key in n.named) {
+				const child = n.named[key];
+				if (child && typeof child === 'object') {
+					search(child);
+				}
+			}
+		}
+	}
+	
+	search(node);
+	return bestMatch;
+}
+
+/**
+ * Widen literal types to their base types for hover display
+ * @param type - Type string (might be a literal type)
+ * @returns Widened type string
+ */
+function widenLiteralType(type: string): string {
+	// Check if it's a number literal (0, 42, -5, 3.14)
+	if (/^-?\d+(\.\d+)?$/.test(type)) {
+		return 'number';
+	}
+	
+	// Check if it's a string literal ("hello", 'world')
+	if ((type.startsWith('"') && type.endsWith('"')) || 
+	    (type.startsWith("'") && type.endsWith("'"))) {
+		return 'string';
+	}
+	
+	// Check if it's a boolean literal
+	if (type === 'true' || type === 'false') {
+		return 'boolean';
+	}
+	
+	return type;
+}
+
+/**
+ * Find a parent node of a specific type
+ * @param node - Starting node
+ * @param stream - Token stream
+ * @param tree - Root tree to search from
+ * @param targetType - Type of parent to find
+ * @returns Parent node or null
+ */
+function findParentNode(node: any, stream: any[], tree: any, targetType: string): any {
+	if (!node || !tree) return null;
+	
+	// Search the entire tree to find which node contains this node as a child
+	function searchForParent(currentNode: any): any {
+		if (!currentNode) return null;
+		
+		// Check if this node is the parent we're looking for and contains our target node
+		if (currentNode.type === targetType) {
+			// Check if node is a descendant of currentNode
+			if (isDescendant(currentNode, node)) {
+				return currentNode;
+			}
+		}
+		
+		// Search children
+		if (currentNode.children) {
+			for (const child of currentNode.children) {
+				const result = searchForParent(child);
+				if (result) return result;
+			}
+		}
+		
+		// Search named properties
+		if (currentNode.named) {
+			for (const key in currentNode.named) {
+				const child = currentNode.named[key];
+				if (child && typeof child === 'object') {
+					const result = searchForParent(child);
+					if (result) return result;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	function isDescendant(parent: any, target: any): boolean {
+		if (!parent) return false;
+		if (parent === target) return true;
+		
+		// Check children
+		if (parent.children) {
+			for (const child of parent.children) {
+				if (isDescendant(child, target)) return true;
+			}
+		}
+		
+		// Check named properties
+		if (parent.named) {
+			for (const key in parent.named) {
+				const child = parent.named[key];
+				if (child && typeof child === 'object') {
+					if (isDescendant(child, target)) return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	return searchForParent(tree);
+}
+
+/**
+ * Get the final inferred type from a node, with enhancements
+ * @param node - AST node with potential type inference
+ * @param stream - Token stream for context
+ * @param tree - Root tree for finding parent nodes
+ * @returns The inferred type string, or null
+ */
+function getInferredType(node: any, stream: any[], tree: any): string | null {
+	if (!node) return null;
+	
+	// Special case: if this is a name node in a function definition, show function signature
+	if (node.type === 'name') {
+		const funcDefParent = findParentNode(node, stream, tree, 'func_def');
+		if (funcDefParent && funcDefParent.named?.name === node) {
+			// This is a function name - build signature
+			const params = funcDefParent.named.params;
+			const annotation = funcDefParent.named.annotation;
+			
+			// Build parameter list
+			let paramStr = '()';
+			if (params && params.children) {
+				const paramNames: string[] = [];
+				function collectParams(n: any): void {
+					if (n.type === 'func_def_params' && n.named?.name) {
+						const paramName = n.named.name.value;
+						const paramType = n.named.annotation ? parseTypeExpression(n.named.annotation) : 'any';
+						paramNames.push(`${paramName}: ${paramType}`);
+					}
+					if (n.children) {
+						n.children.forEach(collectParams);
+					}
+				}
+				collectParams(params);
+				paramStr = `(${paramNames.join(', ')})`;
+			}
+			
+			// Get return type
+			const returnType = annotation ? parseTypeExpression(annotation) : 'void';
+			
+			return `${paramStr} => ${returnType}`;
+		}
+	}
+	
+	// Check if this node has inferred types (now properly annotated by the inference system)
+	if (node.inference && Array.isArray(node.inference) && node.inference.length > 0) {
+		// Get the last inference (after type resolution)
+		const lastInference = node.inference[node.inference.length - 1];
+		
+		// If it's a string, it's the type
+		if (typeof lastInference === 'string') {
+			// Widen literal types for better display
+			return widenLiteralType(lastInference);
+		}
+		
+		// If it's a node (like math_operator), look for the resolved type
+		if (typeof lastInference === 'object' && lastInference.type) {
+			// This might be an operator or similar, skip it and look for previous types
+			for (let i = node.inference.length - 1; i >= 0; i--) {
+				if (typeof node.inference[i] === 'string') {
+					return widenLiteralType(node.inference[i]);
+				}
+			}
+		}
+	}
+	
+	// Fallback: provide basic type information based on node type
+	if (node.type === 'number') return 'number';
+	if (node.type === 'str') return 'string';
+	if (node.type === 'true' || node.type === 'false') return 'boolean';
+	if (node.type === 'null') return 'null';
+	if (node.type === 'undefined') return 'undefined';
+	
+	return null;
+}
+
+// Hover handler - show inferred types
+connection.onHover((params: TextDocumentPositionParams): Hover | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) {
+		connection.console.log('Hover: No document found');
+		return null;
+	}
+	
+	// Get the AST for this document
+	const astInfo = documentASTs.get(params.textDocument.uri);
+	if (!astInfo) {
+		connection.console.log('Hover: No AST info found for document');
+		return null;
+	}
+	
+	const { tree, stream } = astInfo;
+	
+	// Convert position to character offset
+	const offset = document.offsetAt(params.position);
+	connection.console.log(`Hover: Looking for node at offset ${offset}`);
+	
+	// Find the node at this position
+	const node = findNodeAtPosition(tree, offset, stream);
+	if (!node) {
+		connection.console.log('Hover: No node found at position');
+		return null;
+	}
+	
+	connection.console.log(`Hover: Found node type: ${node.type}, has inference: ${!!node.inference}`);
+	if (node.inference) {
+		connection.console.log(`Hover: Inference array: ${JSON.stringify(node.inference)}`);
+	}
+	
+	// Get the inferred type (with enhanced logic)
+	const inferredType = getInferredType(node, stream, tree);
+	if (!inferredType) {
+		connection.console.log('Hover: No inferred type found');
+		return null;
+	}
+	
+	connection.console.log(`Hover: Returning type: ${inferredType}`);
+	
+	// Format the hover content
+	const hoverContent = `**Type**: \`${inferredType}\``;
+	
+	// Get the token range for highlighting
+	const token = stream[node.stream_index];
+	if (!token) {
+		return null;
+	}
+	
+	return {
+		contents: {
+			kind: MarkupKind.Markdown,
+			value: hoverContent
+		},
+		range: {
+			start: document.positionAt(token.start),
+			end: document.positionAt(token.start + token.len)
+		}
+	};
+});
 
 /*
 connection.onDidOpenTextDocument((params) => {
