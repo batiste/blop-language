@@ -2,7 +2,7 @@
 // Type Inference Module - Public API
 // ============================================================================
 
-import { visit, initVisitor, getVisitorState, setHandlers } from './visitor.js';
+import { visit, initVisitor, getVisitorState, setHandlers, stampInferredTypes } from './visitor.js';
 import createLiteralHandlers from './handlers/literals.js';
 import createExpressionHandlers from './handlers/expressions.js';
 import createFunctionHandlers from './handlers/functions.js';
@@ -60,6 +60,9 @@ function inference(node, _stream, filename) {
   const inferenceScopes = [symbolTable.getAllSymbols()];
   initVisitor(inferenceWarnings, _stream, inferenceScopes, typeAliases, filename, 'inference');
   visit(node);
+
+  // Phase 2.5: Stamp inferred types for hover support
+  stampInferredTypes(node);
 
   // Phase 3: Type Checking - validate types and report warnings
   const checkingWarnings = [];

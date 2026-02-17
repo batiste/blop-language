@@ -191,6 +191,9 @@ function createExpressionHandlers(getState) {
             const properties = extractPropertyNodesFromAccess(access);
             
             if (properties.length > 0) {
+              // Stamp the object name with its resolved type for hover
+              name.inferredType = resolveTypeAlias(def.type, typeAliases);
+              
               // For nested property chains, validate and annotate properties
               let currentType = def.type;
               let validatedPath = [];
@@ -221,6 +224,8 @@ function createExpressionHandlers(getState) {
                 
                 // Annotate property name node with its resolved type
                 pushInference(propNode, nextType);
+                // Stamp property node with its resolved type for hover support
+                propNode.inferredType = resolveTypeAlias(nextType, typeAliases);
                 
                 validatedPath.push(propName);
                 currentType = nextType;
@@ -237,6 +242,10 @@ function createExpressionHandlers(getState) {
                 pushInference(parent, 'any');
                 return;
               }
+              
+              // Successfully validated property chain - push the final type
+              pushInference(parent, currentType);
+              return;
             }
           }
         }
@@ -260,10 +269,10 @@ function createExpressionHandlers(getState) {
           }
         } else {
           pushInference(parent, def.type);
-          // Stamp the name node with its type for hover
-          const { inferencePhase } = getState();
+          // Stamp the name node with its resolved type for hover
+          const { inferencePhase, typeAliases } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = def.type;
+            name.inferredType = resolveTypeAlias(def.type, typeAliases);
           }
         }
       } else {

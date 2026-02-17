@@ -555,6 +555,33 @@ function visitChildren(node) {
 }
 
 /**
+ * Phase 2.5: Stamp inferred types onto AST nodes for hover support
+ * Walks the entire AST and copies node.inference[0] to node.inferredType
+ */
+function stampInferredTypes(node) {
+  if (!node) return;
+  
+  // Stamp this node if it has inferred type (but preserve existing stamps)
+  if (node.inference && node.inference.length > 0 && !node.inferredType) {
+    node.inferredType = node.inference[0];
+  }
+  
+  // Recursively stamp all children
+  if (node.children) {
+    for (const child of node.children) {
+      stampInferredTypes(child);
+    }
+  }
+  
+  // Recursively stamp all named properties
+  if (node.named) {
+    for (const key in node.named) {
+      stampInferredTypes(node.named[key]);
+    }
+  }
+}
+
+/**
  * Initialize visitor state for a new file
  * @param {Array} _warnings - Array to collect warnings
  * @param {Array} _stream - Token stream for error reporting
@@ -621,4 +648,5 @@ export {
   getVisitorState,
   setHandlers,
   stampTypeAnnotation,
+  stampInferredTypes,
 };

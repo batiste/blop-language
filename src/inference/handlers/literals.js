@@ -206,32 +206,50 @@ function inferObjectLiteralStructure(node, lookupVariable) {
 function createLiteralHandlers(getState) {
   return {
     number: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       // Infer literal types for numbers
       pushInference(parent, node.value);
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = node.value;
+      }
     },
     str: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       // Strip quotes from node.value and infer as literal type
       // node.value includes quotes like 'hello' or "hello", so we strip them
       const rawValue = node.value.slice(1, -1);
       pushInference(parent, `"${rawValue}"`);
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = `"${rawValue}"`;
+      }
     },
     null: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'null');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'null';
+      }
     },
     undefined: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'undefined');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'undefined';
+      }
     },
     true: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'true');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'true';
+      }
     },
     false: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'false');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'false';
+      }
     },
     array_literal: (node, parent) => {
       const { pushInference } = getState();

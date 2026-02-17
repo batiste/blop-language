@@ -8,6 +8,7 @@ import {
   createUnionType, 
   isTypeCompatible,
   parseGenericParams,
+  resolveTypeAlias,
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
@@ -16,7 +17,7 @@ import TypeChecker from '../typeChecker.js';
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
-      const { getCurrentScope, inferencePhase, stampTypeAnnotation } = getState();
+      const { getCurrentScope, inferencePhase, stampTypeAnnotation, typeAliases } = getState();
       const scope = getCurrentScope();
       
       if (!scope.__currentFctParams) {
@@ -34,7 +35,7 @@ function createFunctionHandlers(getState) {
           };
           scope.__currentFctParams.push(annotation);
           if (inferencePhase === 'inference' && node.named.name) {
-            node.named.name.inferredType = annotation;
+            node.named.name.inferredType = resolveTypeAlias(annotation, typeAliases);
           }
         } else {
           scope.__currentFctParams.push('any');
