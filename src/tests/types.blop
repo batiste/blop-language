@@ -2,6 +2,7 @@
 type User = {
     name: string,
     id: number,
+    userType?: "Admin" | "User"
 }
 
 type Post = {

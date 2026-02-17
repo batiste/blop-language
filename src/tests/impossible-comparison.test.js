@@ -101,4 +101,24 @@ def move(dir: Direction) {
     expect(warnings.length).toBe(1);
     expect(warnings[0].message).toContain('"up"');
   });
+
+  it('should warn for property access with literal union type', () => {
+    const code = `import User from "./types.blop"
+
+def hello(u: User) {
+  if u.userType == "Blop" {
+    return "User type does not exist"
+  }
+  return "Valid user"
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    const warnings = inference(tree, stream, 'src/tests/test.blop');
+    
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0].message).toContain('will always be false');
+    expect(warnings[0].message).toContain('u.userType');
+    expect(warnings[0].message).toContain('"Blop"');
+  });
 });

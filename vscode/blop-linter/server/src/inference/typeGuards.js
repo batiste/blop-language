@@ -2,7 +2,7 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias } from './typeSystem.js';
+import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, parseObjectTypeString } from './typeSystem.js';
 
 /**
  * Detect typeof checks in expressions
@@ -115,17 +115,18 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
     return null;
   }
   
-  // Look for pattern: variable == "literal" where literal is not in variable's type union
-  let varName = null;
+  // Look for pattern: variable == "literal" OR object.property == "literal"
+  // where literal is not in variable's/property's type union
+  let names = [];
   let literalValue = null;
   let hasEqualityCheck = false;
   
   const checkNode = (node) => {
     if (!node) return;
     
-    // Check for variable name
-    if (node.type === 'name' && !varName) {
-      varName = node.value;
+    // Collect all variable names (for property access detection)
+    if (node.type === 'name') {
+      names.push(node.value);
     }
     
     // Check for string literal
@@ -160,13 +161,49 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
   
   checkNode(expNode);
   
-  if (hasEqualityCheck && varName && literalValue) {
-    // Look up the variable's type
-    const varDef = lookupVariable(varName);
-    if (varDef && varDef.type) {
-      let varType = varDef.type;
+  if (hasEqualityCheck && names.length > 0 && literalValue) {
+    // Deduplicate names while preserving order
+    const uniqueNames = [];
+    const seen = new Set();
+    for (const name of names) {
+      if (!seen.has(name)) {
+        seen.add(name);
+        uniqueNames.push(name);
+      }
+    }
+    
+    let varType = null;
+    let displayName = null;
+    
+    if (uniqueNames.length === 1) {
+      // Simple variable comparison: variable == "literal"
+      const varName = uniqueNames[0];
+      const varDef = lookupVariable(varName);
+      if (varDef && varDef.type) {
+        varType = varDef.type;
+        displayName = varName;
+      }
+    } else if (uniqueNames.length === 2) {
+      // Property access: object.property == "literal"
+      const [objectName, propertyName] = uniqueNames;
+      const objectDef = lookupVariable(objectName);
       
-      // Resolve type alias
+      if (objectDef && objectDef.type) {
+        // Resolve the object's type alias
+        const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+        
+        // Parse the object type to get property types
+        const properties = parseObjectTypeString(resolvedObjectType);
+        
+        if (properties && properties[propertyName]) {
+          varType = properties[propertyName].type;
+          displayName = `${objectName}.${propertyName}`;
+        }
+      }
+    }
+    
+    if (varType) {
+      // Resolve type alias (in case the property type is also an alias)
       const resolvedType = resolveTypeAlias(varType, typeAliases);
       
       // Check if it's a union of string literals
@@ -186,7 +223,7 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
           
           if (!isInUnion) {
             return {
-              variable: varName,
+              variable: displayName,
               comparedValue: literalValue,
               varType: resolvedType,
               possibleValues: unionTypes
