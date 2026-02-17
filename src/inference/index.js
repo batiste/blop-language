@@ -7,6 +7,7 @@ import createLiteralHandlers from './handlers/literals.js';
 import createExpressionHandlers from './handlers/expressions.js';
 import createFunctionHandlers from './handlers/functions.js';
 import createStatementHandlers from './handlers/statements.js';
+import { runBindingPhase } from './symbolTable.js';
 
 // Combine all handlers
 function createNodeHandlers() {
@@ -29,17 +30,22 @@ function createNodeHandlers() {
  */
 function inference(node, _stream, filename) {
   const warnings = [];
-  const functionScopes = [{}];
-  const typeAliases = {}; // Reset type aliases for each file
   
-  // Initialize visitor state
+  // Phase 1: Binding - collect all definitions without type checking
+  const symbolTable = runBindingPhase(node);
+  
+  // Phase 2: Type inference - infer types for expressions and check assignments
+  const functionScopes = [symbolTable.getAllSymbols()];
+  const typeAliases = symbolTable.getAllSymbols().typeAliases;
+  
+  // Initialize visitor state with pre-collected symbols
   initVisitor(warnings, _stream, functionScopes, typeAliases, filename);
   
   // Create and set handlers
   const nodeHandlers = createNodeHandlers();
   setHandlers(nodeHandlers);
   
-  // Visit the AST
+  // Visit the AST for type inference
   visit(node);
   
   return warnings;
