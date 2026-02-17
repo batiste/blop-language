@@ -1,0 +1,61 @@
+// Test built-in object type property access
+
+// Math object
+randomValue = Math.random()
+piValue = Math.PI
+floorValue = Math.floor(3.7)
+sqrtValue = Math.sqrt(16)
+
+test('Math object properties work', () => {
+  expect(typeof randomValue).toBe('number')
+  expect(piValue).toBe(Math.PI)
+  expect(floorValue).toBe(3)
+  expect(sqrtValue).toBe(4)
+})
+
+// console object (tested via side effects)
+console.log('Testing console')
+console.warn('Testing warn')
+console.error('Testing error')
+
+// JSON object
+jsonString = JSON.stringify({ key: 'value' })
+jsonObj = JSON.parse('{"test": 123}')
+
+test('JSON object properties work', () => {
+  expect(jsonString).toBe('{"key":"value"}')
+  expect(jsonObj.test).toBe(123)
+})
+
+// Object constructor
+keys = Object.keys({ a: 1, b: 2 })
+values = Object.values({ a: 1, b: 2 })
+entries = Object.entries({ a: 1, b: 2 })
+
+test('Object static methods work', () => {
+  expect(keys.length).toBe(2)
+  expect(values.length).toBe(2)
+  expect(entries.length).toBe(2)
+})
+
+// Array constructor
+isArrayResult = Array.isArray([1, 2, 3])
+isArrayFalse = Array.isArray('not an array')
+arrayFrom = Array.from('abc')
+
+test('Array static methods work', () => {
+  expect(isArrayResult).toBe(true)
+  expect(isArrayFalse).toBe(false)
+  expect(arrayFrom.length).toBe(3)
+})
+
+// Number constructor
+isNaNResult = Number.isNaN(NaN)
+isNaNFalse = Number.isNaN(42)
+maxValue = Number.MAX_VALUE
+
+test('Number static methods work', () => {
+  expect(isNaNResult).toBe(true)
+  expect(isNaNFalse).toBe(false)
+  expect(typeof maxValue).toBe('number')
+})
