@@ -12,6 +12,7 @@ let functionScopes;
 let typeAliases;
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
+let expectedObjectType; // Track expected type for object literals
 
 // Scope management
 const getCurrentScope = () => functionScopes[functionScopes.length - 1];
@@ -346,6 +347,8 @@ function getVisitorState() {
     getFunctionScope,
     pushInference,
     pushWarning,
+    getExpectedObjectType: () => expectedObjectType,
+    setExpectedObjectType: (type) => { expectedObjectType = type; },
   };
 }
 

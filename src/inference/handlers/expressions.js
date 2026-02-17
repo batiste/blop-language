@@ -41,6 +41,29 @@ function extractExplicitTypeArguments(typeArgsNode) {
   return args.length > 0 ? args : null;
 }
 
+/**
+ * Extract property name nodes from an access chain
+ * Returns array of {name: string, node: astNode} for each step in the chain
+ */
+function extractPropertyNodesFromAccess(accessNode) {
+  const properties = [];
+  
+  function traverse(node) {
+    if (!node || !node.children) return;
+    
+    for (const child of node.children) {
+      if (child.type === 'name') {
+        properties.push({ name: child.value, node: child });
+      } else if (child.type === 'object_access') {
+        traverse(child);
+      }
+    }
+  }
+  
+  traverse(accessNode);
+  return properties;
+}
+
 function createExpressionHandlers(getState) {
   return {
     math: (node, parent) => {
@@ -164,30 +187,17 @@ function createExpressionHandlers(getState) {
           
           // Only validate property access for object types (start with { but not array types)
           if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
-            // Extract property names from the access chain
-            const propertyChain = [];
-            const extractProperties = (node) => {
-              if (!node || !node.children) return;
-              
-              for (const child of node.children) {
-                if (child.type === 'name') {
-                  propertyChain.push(child.value);
-                } else if (child.type === 'object_access') {
-                  extractProperties(child);
-                }
-              }
-            };
-            extractProperties(access);
+            // Extract property name nodes and their names
+            const properties = extractPropertyNodesFromAccess(access);
             
-            if (propertyChain.length > 0) {
-              // For nested property chains, validate only the first property on the object type
-              // If subsequent properties exist, their types may not be object types (arrays, primitives, etc.)
-              // so we validate only what we can and skip the rest
+            if (properties.length > 0) {
+              // For nested property chains, validate and annotate properties
               let currentType = def.type;
               let validatedPath = [];
               let invalidProperty = null;
               
-              for (const propName of propertyChain) {
+              for (let i = 0; i < properties.length; i++) {
+                const { name: propName, node: propNode } = properties[i];
                 const resolvedCurrent = resolveTypeAlias(currentType, typeAliases);
                 
                 // Skip empty objects
@@ -209,6 +219,9 @@ function createExpressionHandlers(getState) {
                   break;
                 }
                 
+                // Annotate property name node with its resolved type
+                pushInference(propNode, nextType);
+                
                 validatedPath.push(propName);
                 currentType = nextType;
               }
@@ -220,6 +233,7 @@ function createExpressionHandlers(getState) {
                   access,
                   `Property '${fullPropertyPath}' does not exist on type ${def.type}`
                 );
+                visitChildren(access);
                 pushInference(parent, 'any');
                 return;
               }

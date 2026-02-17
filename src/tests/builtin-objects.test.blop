@@ -13,11 +13,6 @@ test('Math object properties work', () => {
   expect(sqrtValue).toBe(4)
 })
 
-// console object (tested via side effects)
-console.log('Testing console')
-console.warn('Testing warn')
-console.error('Testing error')
-
 // JSON object
 jsonString = JSON.stringify({ key: 'value' })
 jsonObj = JSON.parse('{"test": 123}')

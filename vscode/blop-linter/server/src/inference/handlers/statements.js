@@ -179,10 +179,32 @@ function createStatementHandlers(getState) {
     },
     
     assign: (node, parent) => {
-      const { pushInference, lookupVariable, typeAliases, pushWarning } = getState();
+      const { pushInference, lookupVariable, typeAliases, pushWarning, setExpectedObjectType } = getState();
       
       if (node.named.name || node.named.path) {
+        // If there's a type annotation and the expression is an object literal, set expected type
+        let expectedType = null;
+        if (node.named.annotation) {
+          expectedType = getAnnotationType(node.named.annotation);
+          
+          // Check if exp is a wrapper (type 'exp') around object_literal
+          let expNode = node.named.exp;
+          let isObjectLiteral = expNode?.type === 'object_literal';
+          if (!isObjectLiteral && expNode?.type === 'exp' && expNode.children?.[0]?.type === 'object_literal') {
+            isObjectLiteral = true;
+          }
+          
+          if (expectedType && isObjectLiteral) {
+            setExpectedObjectType(expectedType);
+          }
+        }
+        
         visit(node.named.exp, node);
+        
+        // Clear expected type after visiting
+        if (expectedType) {
+          setExpectedObjectType(null);
+        }
         
         // Check if this is a property assignment (e.g., u.name = 1 or u.user.name = "x")
         if (node.named.path && node.named.access) {

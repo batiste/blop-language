@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes } from '../visitor.js';
-import { getBaseTypeOfLiteral, parseObjectTypeString } from '../typeSystem.js';
+import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias } from '../typeSystem.js';
 
 /**
  * Infer the element type of an array literal from its AST node
@@ -240,7 +240,7 @@ function createLiteralHandlers(getState) {
       }
     },
     object_literal: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, getExpectedObjectType, typeAliases } = getState();
       resolveTypes(node);
       
       // Try to infer the structure of the object literal
@@ -249,6 +249,51 @@ function createLiteralHandlers(getState) {
         pushInference(parent, structure);
       } else {
         pushInference(parent, 'object');
+      }
+      
+      // If we have an expected type from context (e.g., from an assignment annotation),
+      // use it to annotate the property keys with their expected types
+      const expectedType = getExpectedObjectType();
+      
+      if (expectedType) {
+        // Resolve type aliases to get the actual object structure
+        const resolvedType = resolveTypeAlias(expectedType, typeAliases);
+        
+        if (resolvedType && resolvedType.startsWith('{') && resolvedType.endsWith('}')) {
+          // Parse the expected type to get property names and types
+          const expectedProps = parseObjectTypeString(resolvedType);
+          
+          if (expectedProps) {
+            // Recursively find and annotate object_literal_key nodes
+            function annotatePropertyKeys(n) {
+              if (!n || !n.children) return;
+              
+              for (const child of n.children) {
+                // If this is an object_literal_key wrapper, get its inner name/str node
+                if (child.type === 'object_literal_key' && child.children && child.children[0]) {
+                  const keyChild = child.children[0];  // This is the str or name node
+                  let keyName = keyChild.value;
+                  
+                  // Remove quotes from string keys
+                  if (keyName && (keyName.startsWith('"') || keyName.startsWith("'"))) {
+                    keyName = keyName.slice(1, -1);
+                  }
+                  
+                  // Annotate THE KEY CHILD (not the wrapper) with its expected property type
+                  if (keyName && expectedProps[keyName]) {
+                    const propType = expectedProps[keyName].type || expectedProps[keyName];
+                    pushInference(keyChild, propType);
+                  }
+                }
+                
+                // Recursively process all children
+                annotatePropertyKeys(child);
+              }
+            }
+            
+            annotatePropertyKeys(node);
+          }
+        }
       }
     },
     virtual_node: (node, parent) => {
