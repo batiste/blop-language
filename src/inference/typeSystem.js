@@ -2,6 +2,8 @@
 // Type System - Type aliases, unions, narrowing, and compatibility checking
 // ============================================================================
 
+import { getBuiltinObjectType, isBuiltinObjectType } from './builtinTypes.js';
+
 /**
  * Resolve a type alias to its underlying type
  * @param {string} type - Type name that might be an alias
@@ -982,23 +984,14 @@ function getPropertyType(objectType, propertyPath, typeAliases = {}) {
       return 'any';
     }
     
-    // Special handling for VNode type (from snabbdom)
-    if (currentType === 'VNode') {
-      // VNode has these common properties
-      const vnodeProperties = {
-        'elm': 'any',        // The DOM element
-        'data': 'any',       // VNode data
-        'children': 'any',   // Child VNodes
-        'text': 'string | undefined',
-        'key': 'any',
-        'sel': 'string | undefined'
-      };
-      
-      if (vnodeProperties[propName]) {
-        currentType = vnodeProperties[propName];
+    // Check for built-in object types (VNode, Math, console, etc.)
+    if (isBuiltinObjectType(currentType)) {
+      const builtinType = getBuiltinObjectType(currentType);
+      if (builtinType && builtinType[propName]) {
+        currentType = builtinType[propName];
         continue;
       }
-      return null; // Property doesn't exist on VNode
+      return null; // Property doesn't exist on this built-in type
     }
     
     // Check if current type is an object type
