@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -210,7 +210,67 @@ function handleAssignment(types, i, assignNode) {
 }
 
 function handleObjectAccess(types, i) {
-  types[i - 1] = 'any';
+  const objectType = types[i - 1];
+  const accessNode = types[i];
+  
+  // Check if this is optional chaining
+  const isOptionalChain = accessNode && accessNode.children && 
+    accessNode.children.some(child => child.type === 'optional_chain');
+  
+  // Extract property name from the object_access node
+  let propertyName = null;
+  if (accessNode && accessNode.children) {
+    for (const child of accessNode.children) {
+      if (child.type === 'name') {
+        propertyName = child.value;
+        break;
+      }
+    }
+  }
+  
+  // Skip validation for optional chaining - it's designed to safely access potentially non-existent properties
+  if (isOptionalChain) {
+    types[i - 1] = 'any';
+    types.splice(i, 1);
+    return i - 1;
+  }
+  
+  // Only validate property access for object types (types that resolve to {...})
+  if (objectType && objectType !== 'any' && propertyName) {
+    // Resolve type alias to check if it's an object type
+    const resolvedType = resolveTypeAlias(objectType, typeAliases);
+    
+    // Skip validation for empty object type {} as it's often used when type inference fails
+    if (resolvedType === '{}') {
+      types[i - 1] = 'any';
+      types.splice(i, 1);
+      return i - 1;
+    }
+    
+    // Skip validation for non-object types and array types
+    if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+      // This is an object type - validate property access
+      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
+      
+      if (propertyType === null) {
+        // Property doesn't exist on this type
+        pushWarning(
+          accessNode,
+          `Property '${propertyName}' does not exist on type ${objectType}`
+        );
+        types[i - 1] = 'any';
+      } else {
+        // Update to the property's type
+        types[i - 1] = propertyType;
+      }
+    } else {
+      // Not an object type (array, string, etc.) - don't validate
+      types[i - 1] = 'any';
+    }
+  } else {
+    types[i - 1] = 'any';
+  }
+  
   types.splice(i, 1);
   return i - 1;
 }

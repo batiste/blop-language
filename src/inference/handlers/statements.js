@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -213,29 +213,21 @@ function createStatementHandlers(getState) {
             const valueType = expNode && expNode.inference && expNode.inference[0];
             
             if (valueType && valueType !== 'any') {
-              // Look up the object's type and walk through the property chain
+              // Look up the object's type
               const objectDef = lookupVariable(objectName);
               if (objectDef && objectDef.type) {
-                let currentType = resolveTypeAlias(objectDef.type, typeAliases);
-                let currentProperties = parseObjectTypeString(currentType);
+                // Use getPropertyType to validate and get the final property type
+                const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                 
-                // Walk through all properties except the last one
-                for (let i = 0; i < propertyChain.length - 1; i++) {
-                  const propName = propertyChain[i];
-                  if (currentProperties && currentProperties[propName]) {
-                    currentType = resolveTypeAlias(currentProperties[propName].type, typeAliases);
-                    currentProperties = parseObjectTypeString(currentType);
-                  } else {
-                    // Property doesn't exist in the chain
-                    currentProperties = null;
-                    break;
-                  }
-                }
-                
-                // Check the final property
-                const finalProperty = propertyChain[propertyChain.length - 1];
-                if (currentProperties && currentProperties[finalProperty]) {
-                  const expectedType = currentProperties[finalProperty].type;
+                if (expectedType === null) {
+                  // Property doesn't exist
+                  const fullPropertyPath = propertyChain.join('.');
+                  pushWarning(
+                    node,
+                    `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
+                  );
+                } else {
+                  // Property exists, check type compatibility
                   const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
                   
                   if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {

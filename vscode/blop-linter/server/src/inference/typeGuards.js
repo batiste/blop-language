@@ -2,7 +2,7 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, parseObjectTypeString } from './typeSystem.js';
+import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, parseObjectTypeString, getPropertyType } from './typeSystem.js';
 
 /**
  * Detect typeof checks in expressions
@@ -189,16 +189,9 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
       const objectDef = lookupVariable(objectName);
       
       if (objectDef && objectDef.type) {
-        // Resolve the object's type alias
-        const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
-        
-        // Parse the object type to get property types
-        const properties = parseObjectTypeString(resolvedObjectType);
-        
-        if (properties && properties[propertyName]) {
-          varType = properties[propertyName].type;
-          displayName = `${objectName}.${propertyName}`;
-        }
+        // Use getPropertyType to resolve the property type
+        varType = getPropertyType(objectDef.type, propertyName, typeAliases);
+        displayName = `${objectName}.${propertyName}`;
       }
     }
     

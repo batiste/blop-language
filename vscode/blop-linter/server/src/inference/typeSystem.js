@@ -948,6 +948,60 @@ function instantiateGenericType(genericType, typeArgs, typeAliases) {
   return substituteType(type, substitutions);
 }
 
+/**
+ * Get the type of a property from an object type
+ * Handles nested property chains like ['user', 'name']
+ * Handles union types by checking the non-nullish parts
+ * @param {string} objectType - The object type to check
+ * @param {string|string[]} propertyPath - Property name or array of property names for nested access
+ * @param {Object} typeAliases - Type aliases map
+ * @returns {string|null} The property type if it exists, null otherwise
+ */
+function getPropertyType(objectType, propertyPath, typeAliases = {}) {
+  if (!objectType || objectType === 'any') {
+    return 'any';
+  }
+  
+  // Convert single property to array for uniform handling
+  const properties = Array.isArray(propertyPath) ? propertyPath : [propertyPath];
+  
+  let currentType = resolveTypeAlias(objectType, typeAliases);
+  
+  // For union types, try to get property from non-nullish parts
+  if (isUnionType(currentType)) {
+    const nonNullish = removeNullish(currentType);
+    if (nonNullish && nonNullish !== 'never') {
+      currentType = nonNullish;
+    }
+  }
+  
+  // Walk through each property in the chain
+  for (const propName of properties) {
+    // Check if current type is an object type
+    if (!currentType.startsWith('{')) {
+      return null; // Can't access properties on non-object types
+    }
+    
+    const parsedProperties = parseObjectTypeString(currentType);
+    if (!parsedProperties || !parsedProperties[propName]) {
+      return null; // Property doesn't exist
+    }
+    
+    // Move to the next level
+    currentType = resolveTypeAlias(parsedProperties[propName].type, typeAliases);
+    
+    // Handle union types at each level
+    if (isUnionType(currentType)) {
+      const nonNullish = removeNullish(currentType);
+      if (nonNullish && nonNullish !== 'never') {
+        currentType = nonNullish;
+      }
+    }
+  }
+  
+  return currentType;
+}
+
 export {
   resolveTypeAlias,
   isUnionType,
@@ -967,6 +1021,7 @@ export {
   isNumberLiteral,
   isBooleanLiteral,
   getBaseTypeOfLiteral,
+  getPropertyType,
   // Generic type system
   parseGenericParams,
   parseGenericArguments,

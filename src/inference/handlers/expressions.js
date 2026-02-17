@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
-import { inferGenericArguments, substituteType, parseTypeExpression } from '../typeSystem.js';
+import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
 import TypeChecker from '../typeChecker.js';
 
 /**
@@ -135,7 +135,99 @@ function createExpressionHandlers(getState) {
           }
         }
         
-        // Not a function call or unknown function
+        // Not a function call - validate property access for object types only
+        const def = lookupVariable(name.value);
+        if (def && def.type && def.type !== 'any') {
+          // Check if this is optional chaining
+          const hasOptionalChain = access && access.children &&
+            access.children.some(child => 
+              child.type === 'object_access' && child.children &&
+              child.children.some(c => c.type === 'optional_chain')
+            );
+          
+          // Skip validation for optional chaining
+          if (hasOptionalChain) {
+            visitChildren(access);
+            pushInference(parent, 'any');
+            return;
+          }
+          
+          // Resolve type alias to see if it's an object type
+          const resolvedType = resolveTypeAlias(def.type, typeAliases);
+          
+          // Skip validation for empty object type {} as it's often used when type inference fails
+          if (resolvedType === '{}') {
+            visitChildren(access);
+            pushInference(parent, 'any');
+            return;
+          }
+          
+          // Only validate property access for object types (start with { but not array types)
+          if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+            // Extract property names from the access chain
+            const propertyChain = [];
+            const extractProperties = (node) => {
+              if (!node || !node.children) return;
+              
+              for (const child of node.children) {
+                if (child.type === 'name') {
+                  propertyChain.push(child.value);
+                } else if (child.type === 'object_access') {
+                  extractProperties(child);
+                }
+              }
+            };
+            extractProperties(access);
+            
+            if (propertyChain.length > 0) {
+              // For nested property chains, validate only the first property on the object type
+              // If subsequent properties exist, their types may not be object types (arrays, primitives, etc.)
+              // so we validate only what we can and skip the rest
+              let currentType = def.type;
+              let validatedPath = [];
+              let invalidProperty = null;
+              
+              for (const propName of propertyChain) {
+                const resolvedCurrent = resolveTypeAlias(currentType, typeAliases);
+                
+                // Skip empty objects
+                if (resolvedCurrent === '{}') {
+                  break;
+                }
+                
+                // Can only validate properties on object types (not arrays)
+                if (!resolvedCurrent || !resolvedCurrent.startsWith('{') || resolvedCurrent.endsWith('[]')) {
+                  // Reached a non-object type (array, primitive), stop validation
+                  break;
+                }
+                
+                const nextType = getPropertyType(currentType, propName, typeAliases);
+                if (nextType === null) {
+                  // Property doesn't exist
+                  invalidProperty = propName;
+                  validatedPath.push(propName);
+                  break;
+                }
+                
+                validatedPath.push(propName);
+                currentType = nextType;
+              }
+              
+              if (invalidProperty) {
+                // Found an invalid property - show error
+                const fullPropertyPath = validatedPath.join('.');
+                pushWarning(
+                  access,
+                  `Property '${fullPropertyPath}' does not exist on type ${def.type}`
+                );
+                pushInference(parent, 'any');
+                return;
+              }
+            }
+          }
+        }
+        
+        // Unknown variable or couldn't validate (non-object type, built-in type, etc.)
         visitChildren(access);
         pushInference(parent, 'any');
         return;
