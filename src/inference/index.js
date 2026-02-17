@@ -49,23 +49,25 @@ function inference(node, _stream, filename) {
   // Phase 1: Binding - collect all definitions without type checking
   const symbolTable = runBindingPhase(node);
   
-  // Phase 2: Type Inference - compute types for expressions
-  const warnings = [];
-  const functionScopes = [symbolTable.getAllSymbols()];
   const typeAliases = symbolTable.getAllSymbols().typeAliases;
-  
-  // Initialize visitor state with pre-collected symbols
-  initVisitor(warnings, _stream, functionScopes, typeAliases, filename);
   
   // Create and set handlers
   const nodeHandlers = createNodeHandlers();
   setHandlers(nodeHandlers);
   
-  // Visit the AST for type inference and checking
-  // (Note: Phase 3 checking is currently integrated - future refactoring will separate)
+  // Phase 2: Type Inference - compute types for expressions (no warnings)
+  const inferenceWarnings = [];
+  const inferenceScopes = [symbolTable.getAllSymbols()];
+  initVisitor(inferenceWarnings, _stream, inferenceScopes, typeAliases, filename, 'inference');
   visit(node);
-  
-  return warnings;
+
+  // Phase 3: Type Checking - validate types and report warnings
+  const checkingWarnings = [];
+  const checkingScopes = [symbolTable.getAllSymbols()];
+  initVisitor(checkingWarnings, _stream, checkingScopes, typeAliases, filename, 'checking');
+  visit(node);
+
+  return checkingWarnings;
 }
 
 function getHandlers() {

@@ -49,6 +49,9 @@ function getFunctionScope() {
 }
 
 function pushInference(node, inference) {
+  if (inferencePhase === 'checking') {
+    return;
+  }
   if (!node.inference) {
     node.inference = [];
   }
@@ -56,6 +59,9 @@ function pushInference(node, inference) {
 }
 
 function pushWarning(node, message) {
+  if (inferencePhase === 'inference') {
+    return;
+  }
   const error = new Error(message);
   const token = stream[node.stream_index];
   error.token = token;
@@ -83,6 +89,25 @@ function handleMathOperator(types, i, operatorNode) {
   types[i - 2] = result.resultType;
   types.splice(i - 1, 2);
   return i - 2;
+}
+
+function checkMathOperator(types, i, operatorNode) {
+  const leftType = types[i - 1];
+  const rightType = types[i - 2];
+  const operator = operatorNode.value;
+
+  if (!leftType || !rightType) {
+    return;
+  }
+
+  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
+
+  if (result.warning) {
+    pushWarning(operatorNode, result.warning);
+  }
+  if (result.warnings) {
+    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
+  }
 }
 
 function handleBooleanOperator(types, i) {
@@ -277,6 +302,47 @@ function handleObjectAccess(types, i) {
   return i - 1;
 }
 
+function checkObjectAccess(types, i) {
+  const objectType = types[i - 1];
+  const accessNode = types[i];
+
+  const isOptionalChain = accessNode && accessNode.children &&
+    accessNode.children.some(child => child.type === 'optional_chain');
+
+  if (isOptionalChain) {
+    return;
+  }
+
+  let propertyName = null;
+  if (accessNode && accessNode.children) {
+    for (const child of accessNode.children) {
+      if (child.type === 'name') {
+        propertyName = child.value;
+        break;
+      }
+    }
+  }
+
+  if (objectType && objectType !== 'any' && propertyName) {
+    const resolvedType = resolveTypeAlias(objectType, typeAliases);
+
+    if (resolvedType === '{}') {
+      return;
+    }
+
+    if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
+
+      if (propertyType === null) {
+        pushWarning(
+          accessNode,
+          `Property '${propertyName}' does not exist on type ${objectType}`
+        );
+      }
+    }
+  }
+}
+
 /**
  * Resolves types in an inference stack and checks for type errors
  * @param {Object} node - AST node with inference array
@@ -287,6 +353,17 @@ function resolveTypes(node) {
     const types = node.inference;
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
+
+      if (inferencePhase === 'checking') {
+        if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
+          checkMathOperator(types, i, t);
+        } else if (t && t.type === 'assign') {
+          handleAssignment(types, i, t);
+        } else if (t && t.type === 'object_access' && types[i - 1]) {
+          checkObjectAccess(types, i);
+        }
+        continue;
+      }
       
       if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
         i = handleMathOperator(types, i, t);

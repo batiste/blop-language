@@ -125,7 +125,7 @@ function extractTypeAliases(node: any, typeAliases: Map<string, string>): void {
 		const typeName = node.named.name.value;
 		const typeExpression = parseTypeExpression(node.named.type);
 		if (typeName && typeExpression) {
-			typeAliases.set(typeName, typeExpression);
+			typeAliases.set(typeName, typeExpression.toString());
 		}
 	}
 	
@@ -158,7 +158,7 @@ function extractVariableTypes(node: any, variableMap: Map<string, string>): void
 			const varName = node.named.name.value;
 			const typeAnnotation = parseTypeExpression(node.named.annotation);
 			if (varName && typeAnnotation) {
-				variableMap.set(varName, typeAnnotation);
+				variableMap.set(varName, typeAnnotation.toString());
 			}
 		}
 	}
@@ -421,7 +421,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 			for (const [typeName, typeInfo] of Object.entries(result.typeAliases)) {
 				if (typeInfo && typeof typeInfo === 'object' && (typeInfo as any).typeNode) {
 					const structure = parseTypeExpression((typeInfo as any).typeNode);
-					typeDefMap.set(typeName, { structure });
+					typeDefMap.set(typeName, { structure: structure.toString() });
 				}
 			}
 			documentTypeDefinitions.set(textDocument.uri, typeDefMap);
@@ -1049,7 +1049,7 @@ function getTypeFromAnnotationContext(node: any, tree: any): string | null {
 				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
 				if (typeName) return typeName;
 				// Fallback to parseTypeExpression
-				return parseTypeExpression(currentNode.named.annotation);
+				return parseTypeExpression(currentNode.named.annotation).toString();
 			}
 		}
 		
@@ -1058,7 +1058,7 @@ function getTypeFromAnnotationContext(node: any, tree: any): string | null {
 			if (isDescendantOf(currentNode.named.annotation, node)) {
 				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
 				if (typeName) return typeName;
-				return parseTypeExpression(currentNode.named.annotation);
+				return parseTypeExpression(currentNode.named.annotation).toString();
 			}
 		}
 		
@@ -1067,7 +1067,7 @@ function getTypeFromAnnotationContext(node: any, tree: any): string | null {
 			if (isDescendantOf(currentNode.named.annotation, node)) {
 				const typeName = extractTypeNameFromExpression(currentNode.named.annotation);
 				if (typeName) return typeName;
-				return parseTypeExpression(currentNode.named.annotation);
+				return parseTypeExpression(currentNode.named.annotation).toString();
 			}
 		}
 		

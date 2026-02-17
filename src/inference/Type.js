@@ -2,8 +2,6 @@
 // Type - Structured type representation
 // ============================================================================
 // This module defines a structured, object-oriented type system to replace
-// the previous string-based approach. This improves performance, maintainability,
-// and enables more sophisticated type operations.
 // ============================================================================
 
 /**
