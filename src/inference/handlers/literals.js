@@ -106,7 +106,7 @@ function inferArrayElementType(node) {
  * @param {Object} node - The object_literal AST node
  * @returns {string|null} Object type string like "{name: string, id: number}" or null
  */
-function inferObjectLiteralStructure(node) {
+function inferObjectLiteralStructure(node, lookupVariable) {
   if (!node || !node.children) {
     return null;
   }
@@ -145,8 +145,14 @@ function inferObjectLiteralStructure(node) {
       const keyNode = bodyNode.named.key;
       const key = keyNode.value || (keyNode.children && keyNode.children[0] && keyNode.children[0].value);
       if (key) {
-        // Shorthand property - we don't have enough type info, use 'any'
-        propertiesMap[key] = 'any';
+        let valueType = 'any';
+        if (lookupVariable) {
+          const def = lookupVariable(key);
+          if (def && def.type) {
+            valueType = def.type;
+          }
+        }
+        propertiesMap[key] = valueType;
       }
     }
     
@@ -240,11 +246,11 @@ function createLiteralHandlers(getState) {
       }
     },
     object_literal: (node, parent) => {
-      const { pushInference, getExpectedObjectType, typeAliases } = getState();
+      const { pushInference, getExpectedObjectType, typeAliases, lookupVariable } = getState();
       resolveTypes(node);
       
       // Try to infer the structure of the object literal
-      const structure = inferObjectLiteralStructure(node);
+      const structure = inferObjectLiteralStructure(node, lookupVariable);
       if (structure) {
         pushInference(parent, structure);
       } else {
