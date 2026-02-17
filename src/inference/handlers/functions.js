@@ -16,7 +16,7 @@ import TypeChecker from '../typeChecker.js';
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
-      const { getCurrentScope, inferencePhase } = getState();
+      const { getCurrentScope, inferencePhase, stampTypeAnnotation } = getState();
       const scope = getCurrentScope();
       
       if (!scope.__currentFctParams) {
@@ -24,6 +24,9 @@ function createFunctionHandlers(getState) {
       }
       
       if (node.named.annotation) {
+        // Stamp the type annotation for hover support
+        stampTypeAnnotation(node.named.annotation);
+        
         const annotation = getAnnotationType(node.named.annotation);
         if (annotation) {
           scope[node.named.name.value] = {
@@ -127,7 +130,7 @@ function createFunctionHandlers(getState) {
     },
     
     func_def: (node, parent) => {
-      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning } = getState();
+      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation } = getState();
       const parentScope = getCurrentScope();
       const scope = pushScope();
       scope.__currentFctParams = [];
@@ -153,6 +156,12 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
       
       const { annotation } = node.named;
+      
+      // Stamp the return type annotation for hover support
+      if (annotation) {
+        stampTypeAnnotation(annotation);
+      }
+      
       const declaredType = annotation ? getAnnotationType(annotation) : null;
       
       // Infer return type from actual returns
@@ -207,6 +216,12 @@ function createFunctionHandlers(getState) {
               `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
             );
           }
+        }
+        
+        // Stamp the function name with its type for hover
+        const { inferencePhase } = getState();
+        if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
+          node.named.name.inferredType = finalType;
         }
         
         parentScope[node.named.name.value] = {

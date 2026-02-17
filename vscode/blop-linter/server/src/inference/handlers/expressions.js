@@ -253,8 +253,18 @@ function createExpressionHandlers(getState) {
       if (def) {
         if (def.source === 'func_def') {
           pushInference(parent, 'function');
+          // Stamp the name node with the function's inferred type for hover
+          const { inferencePhase } = getState();
+          if (inferencePhase === 'inference' && name.inferredType === undefined) {
+            name.inferredType = def.type || 'function';
+          }
         } else {
           pushInference(parent, def.type);
+          // Stamp the name node with its type for hover
+          const { inferencePhase } = getState();
+          if (inferencePhase === 'inference' && name.inferredType === undefined) {
+            name.inferredType = def.type;
+          }
         }
       } else {
         // Unknown identifier - could be undefined or from outer scope

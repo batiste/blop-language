@@ -179,13 +179,16 @@ function createStatementHandlers(getState) {
     },
     
     assign: (node, parent) => {
-      const { pushInference, lookupVariable, typeAliases, pushWarning, setExpectedObjectType } = getState();
+      const { pushInference, lookupVariable, typeAliases, pushWarning, setExpectedObjectType, stampTypeAnnotation } = getState();
       
       if (node.named.name || node.named.path) {
         // If there's a type annotation and the expression is an object literal, set expected type
         let expectedType = null;
         if (node.named.annotation) {
           expectedType = getAnnotationType(node.named.annotation);
+          
+          // Stamp the type annotation for hover support
+          stampTypeAnnotation(node.named.annotation);
           
           // Check if exp is a wrapper (type 'exp') around object_literal
           let expNode = node.named.exp;
