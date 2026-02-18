@@ -3,6 +3,7 @@
 // ============================================================================
 
 import { getAnnotationType, parseGenericParams, parseTypeExpression } from './typeSystem.js';
+import { AnyType } from './Type.js';
 
 /**
  * Symbol table for storing all bindings in the first pass
@@ -148,9 +149,9 @@ function createBindingHandlers() {
       while (paramNode) {
         if (paramNode.named?.annotation) {
           const annotation = getAnnotationType(paramNode.named.annotation);
-          paramTypes.push(annotation || 'any');
+          paramTypes.push(annotation ?? AnyType);
         } else {
-          paramTypes.push('any');
+          paramTypes.push(AnyType);
         }
         paramNode = paramNode.named?.more;
       }
@@ -166,7 +167,7 @@ function createBindingHandlers() {
         : [];
 
       symbolTable.addFunction(functionName, {
-        type: returnTypeAnnotation || 'any', // Will be refined by inference phase
+        type: returnTypeAnnotation ?? AnyType, // Will be refined by inference phase
         params: paramTypes,
         genericParams: genericParams.length > 0 ? genericParams : undefined,
         node,
