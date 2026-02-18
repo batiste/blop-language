@@ -14,64 +14,8 @@ import {
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
 } from './Type.js';
-import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
+import { parseAnnotation, getBaseType } from './typeParser.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
-
-// ============================================================================
-// Backward-Compatibility String Parsing Layer
-// ============================================================================
-// These functions handle edge cases where string types still appear in the
-// system during the gradual migration to structured Type objects. In a fully
-// migrated system, all types should be Type objects from the grammar parser.
-// These act as a safety net for robustness.
-// ============================================================================
-
-function splitTopLevel(typeString, delimiter) {
-  const parts = [];
-  let current = '';
-  let depthParen = 0;
-  let depthBrace = 0;
-  let depthBracket = 0;
-  let depthAngle = 0;
-  let inString = false;
-  
-  for (let i = 0; i < typeString.length; i++) {
-    const char = typeString[i];
-    
-    if (char === '"') {
-      inString = !inString;
-      current += char;
-      continue;
-    }
-    
-    if (!inString) {
-      if (char === '(') depthParen++;
-      else if (char === ')') depthParen--;
-      else if (char === '{') depthBrace++;
-      else if (char === '}') depthBrace--;
-      else if (char === '[') depthBracket++;
-      else if (char === ']') depthBracket--;
-      else if (char === '<') depthAngle++;
-      else if (char === '>') depthAngle--;
-    }
-    
-    if (!inString && depthParen === 0 && depthBrace === 0 && depthBracket === 0 && depthAngle === 0 && char === delimiter) {
-      if (current.trim()) {
-        parts.push(current.trim());
-      }
-      current = '';
-      continue;
-    }
-    
-    current += char;
-  }
-  
-  if (current.trim()) {
-    parts.push(current.trim());
-  }
-  
-  return parts;
-}
 
 function stripOuterParens(typeString) {
   if (!typeString.startsWith('(') || !typeString.endsWith(')')) {
@@ -143,15 +87,14 @@ export function isTypeCompatible(valueType, targetType, aliases) {
  * @returns {Type|string} Resolved type (matches input format)
  */
 export function resolveTypeAlias(type, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  
   if (typeof type === 'string') {
-    throw new Error(
-      'resolveTypeAlias expects Type objects, not strings. ' +
-      'Use parseAnnotation() or parseTypeExpression() to convert strings to Type objects. ' +
-      `Received string: "${type}"`
-    );
+    const typeObj = stringToType(type);
+    const resolved = aliasMap.resolve(typeObj);
+    return typeToString(resolved);
   }
   
-  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
   return aliasMap.resolve(type);
 }
 
@@ -697,100 +640,8 @@ export function stringToType(typeString) {
   // Boolean literal
   if (typeString === 'true') return Types.literal(true, BooleanType);
   if (typeString === 'false') return Types.literal(false, BooleanType);
-  
-  // Array type
-  if (typeString.endsWith('[]')) {
-    let elementStr = typeString.slice(0, -2);
-    if (elementStr.startsWith('(') && elementStr.endsWith(')')) {
-      elementStr = elementStr.slice(1, -1);
-    }
-    return Types.array(stringToType(elementStr));
-  }
-  
-  // Union type
-  const unionParts = splitTopLevel(typeString, '|');
-  if (unionParts.length > 1) {
-    const types = unionParts.map(t => stringToType(t.trim()));
-    return Types.union(types);
-  }
-  
-  // Intersection type
-  const intersectionParts = splitTopLevel(typeString, '&');
-  if (intersectionParts.length > 1) {
-    const types = intersectionParts.map(t => stringToType(t.trim()));
-    return Types.intersection(types);
-  }
-  
-  // Object type
-  if (typeString.startsWith('{') && typeString.endsWith('}')) {
-    return parseObjectTypeFromString(typeString);
-  }
-  
-  // Generic type
-  const genericMatch = typeString.match(/^(\w+)<(.+)>$/);
-  if (genericMatch) {
-    const [, baseName, argsStr] = genericMatch;
-    const typeArgs = argsStr.split(',').map(arg => stringToType(arg.trim()));
-    return Types.generic(new TypeAlias(baseName), typeArgs);
-  }
-  
-  // Unknown - treat as type alias
-  return new TypeAlias(typeString);
-}
 
-/**
- * Parse object type from string
- * @param {string} objStr
- * @returns {ObjectType}
- */
-function parseObjectTypeFromString(objStr) {
-  if (objStr === '{}') return Types.object(new Map());
-  
-  const content = objStr.slice(1, -1).trim();
-  if (!content) return Types.object(new Map());
-  
-  const properties = new Map();
-  
-  // Simple comma split (doesn't handle all nested cases)
-  const parts = [];
-  let current = '';
-  let depth = 0;
-  
-  for (let i = 0; i < content.length; i++) {
-    const char = content[i];
-    
-    if (char === '{') depth++;
-    else if (char === '}') depth--;
-    else if (char === ',' && depth === 0) {
-      parts.push(current.trim());
-      current = '';
-      continue;
-    }
-    
-    current += char;
-  }
-  
-  if (current.trim()) parts.push(current.trim());
-  
-  for (const part of parts) {
-    const colonIndex = part.indexOf(':');
-    if (colonIndex === -1) continue;
-    
-    let key = part.slice(0, colonIndex).trim();
-    const typeStr = part.slice(colonIndex + 1).trim();
-    
-    const isOptional = key.endsWith('?');
-    if (isOptional) key = key.slice(0, -1).trim();
-    
-    if (key && typeStr) {
-      properties.set(key, {
-        type: stringToType(typeStr),
-        optional: isOptional
-      });
-    }
-  }
-  
-  return Types.object(properties);
+  throw new Error(`Complex type strings should be parsed by the grammar parser into structured Type objects. Got: ${typeString}`);
 }
 
 /**
