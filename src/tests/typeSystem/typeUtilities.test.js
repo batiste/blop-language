@@ -18,7 +18,7 @@ import {
   LiteralType, ArrayType,
   AnyType, NeverType, StringType, NumberType, BooleanType,
   NullType, UndefinedType, AnyFunctionType, Types,
-} from '../inference/Type.js';
+} from '../../inference/Type.js';
 
 import {
   removeNullish,
@@ -33,7 +33,7 @@ import {
   resolveTypeAlias,
   parseObjectTypeString,
   stringToType,
-} from '../inference/typeSystem.js';
+} from '../../inference/typeSystem.js';
 
 const NO_ALIASES = {};
 

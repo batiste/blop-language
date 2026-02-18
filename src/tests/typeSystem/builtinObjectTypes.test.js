@@ -1,4 +1,4 @@
-import { expectCompilationError, expectCompiles } from './testHelpers.js';
+import { expectCompilationError, expectCompiles } from '../testHelpers.js';
 import { describe, test } from 'vitest';
 
 describe('Built-in object type properties', () => {

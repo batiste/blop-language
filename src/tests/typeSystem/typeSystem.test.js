@@ -23,7 +23,7 @@ import {
   BooleanType,
   NullType,
   Types,
-} from '../inference/Type.js';
+} from '../../inference/Type.js';
 
 import {
   isTypeCompatible,
@@ -31,9 +31,9 @@ import {
   narrowType,
   excludeType,
   createUnionType,
-} from '../inference/typeSystem.js';
+} from '../../inference/typeSystem.js';
 
-import { parseTypePrimary } from '../inference/typeParser.js';
+import { parseTypePrimary } from '../../inference/typeParser.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

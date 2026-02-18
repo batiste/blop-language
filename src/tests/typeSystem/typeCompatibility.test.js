@@ -11,9 +11,9 @@ import {
   IntersectionType, FunctionType, TypeAlias, TypeAliasMap,
   AnyType, NeverType, StringType, NumberType, BooleanType, NullType,
   UndefinedType, AnyFunctionType, Types,
-} from '../inference/Type.js';
+} from '../../inference/Type.js';
 
-import { isTypeCompatible } from '../inference/typeSystem.js';
+import { isTypeCompatible } from '../../inference/typeSystem.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

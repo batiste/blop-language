@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('./testHelpers');
+const { expectCompilationError, expectCompiles } = require('../testHelpers');
 
 describe('VNode type validation - negative tests', () => {
   test('rejects arrow function returning number instead of VNode', () => {

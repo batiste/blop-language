@@ -12,13 +12,13 @@ import {
   TypeAlias, TypeAliasMap, ArrayType, FunctionType,
   AnyType, StringType, NumberType, BooleanType,
   AnyFunctionType, Types, substituteTypeParams,
-} from '../inference/Type.js';
+} from '../../inference/Type.js';
 
 import {
   inferGenericArguments,
   substituteType,
   instantiateGenericType,
-} from '../inference/typeSystem.js';
+} from '../../inference/typeSystem.js';
 
 const NO_ALIASES = {};
 

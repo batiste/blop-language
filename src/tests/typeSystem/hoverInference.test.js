@@ -3,10 +3,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import parser from '../parser.js';
-import { tokensDefinition } from '../tokensDefinition.js';
-import { inference } from '../inference/index.js';
-import { findNodesWithValue, findFunctionDefs } from './testHelpers.js';
+import parser from '../../parser.js';
+import { tokensDefinition } from '../../tokensDefinition.js';
+import { inference } from '../../inference/index.js';
+import { findNodesWithValue, findFunctionDefs } from '../testHelpers.js';
 
 describe('AST Hover Information (inferredType)', () => {
   

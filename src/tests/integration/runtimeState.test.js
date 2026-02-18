@@ -5,7 +5,7 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { Component } from '../runtime.js';
+import { Component } from '../../runtime.js';
 
 describe('Component.useState', () => {
   let component;

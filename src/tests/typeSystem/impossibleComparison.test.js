@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import parser from '../parser.js';
-import { tokensDefinition } from '../tokensDefinition.js';
-import { inference } from '../inference/index.js';
+import parser from '../../parser.js';
+import { tokensDefinition } from '../../tokensDefinition.js';
+import { inference } from '../../inference/index.js';
 
 describe('Impossible Comparison Detection', () => {
   it('should warn when comparing string literal type to non-member value', () => {
@@ -74,7 +74,7 @@ def testChoice(c: choices) {
     
     const stream = parser.tokenize(tokensDefinition, code);
     const tree = parser.parse(stream);
-    const warnings = inference(tree, stream, 'src/tests/test.blop');
+    const warnings = inference(tree, stream, 'src/tests/typeSystem/test.blop');
     
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings[0].message).toContain('will always be false');
@@ -114,7 +114,7 @@ def hello(u: User) {
     
     const stream = parser.tokenize(tokensDefinition, code);
     const tree = parser.parse(stream);
-    const warnings = inference(tree, stream, 'src/tests/test.blop');
+    const warnings = inference(tree, stream, 'src/tests/typeSystem/test.blop');
     
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings[0].message).toContain('will always be false');
