@@ -34,6 +34,15 @@ export class Type {
    * @returns {boolean}
    */
   isCompatibleWith(target, aliases) {
+    // When the target is an intersection, the value must be compatible with the
+    // merged type (for all-object intersections) or with every constituent.
+    if (target instanceof IntersectionType) {
+      const merged = target.merge(aliases);
+      if (merged) {
+        return this.isCompatibleWith(merged, aliases);
+      }
+      return target.types.every(t => this.isCompatibleWith(t, aliases));
+    }
     // Default: check equality
     return this.equals(target) || (target instanceof PrimitiveType && target.name === 'any');
   }
@@ -238,6 +247,15 @@ export class ObjectType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
+    // When target is an intersection, delegate to merged type or check all constituents
+    if (target instanceof IntersectionType) {
+      const merged = target.merge(aliases);
+      if (merged) {
+        return this.isCompatibleWith(merged, aliases);
+      }
+      return target.types.every(t => this.isCompatibleWith(t, aliases));
+    }
+
     // Allow object types to match the generic object alias
     if (target instanceof TypeAlias && target.name === 'object') {
       return true;
@@ -435,47 +453,90 @@ export class UnionType extends Type {
 }
 
 /**
- * Intersection types: A & B (currently basic support)
+ * Intersection types: A & B
+ *
+ * Semantics: a value of intersection type A & B satisfies *both* A and B.
+ * For object types this means the merged set of all properties from every
+ * constituent type.  For non-object types it means the value must satisfy
+ * every constituent independently.
  */
 export class IntersectionType extends Type {
   constructor(types) {
     super();
     this.kind = 'intersection';
     this.types = types;
+    // Cache the merged object type so it is computed once per instance.
+    this._merged = null;
   }
-  
+
+  /**
+   * If every constituent is an ObjectType (or resolves to one via aliases),
+   * return a single ObjectType whose properties are the union of all
+   * constituent properties.  Later properties override earlier ones when
+   * names collide (matching TypeScript's intersection merge semantics for
+   * same-named primitive properties – keep both for object-typed ones in a
+   * real implementation; here we keep the last declaration for simplicity).
+   *
+   * @param {TypeAliasMap|null} aliases
+   * @returns {ObjectType|null}  null when any constituent is not an ObjectType
+   */
+  merge(aliases) {
+    if (this._merged) return this._merged;
+
+    const merged = new Map();
+    for (const t of this.types) {
+      const resolved = aliases ? aliases.resolve(t) : t;
+      if (!(resolved instanceof ObjectType)) {
+        return null; // Can't merge – at least one constituent is non-object
+      }
+      for (const [key, prop] of resolved.properties) {
+        merged.set(key, prop);
+      }
+    }
+
+    this._merged = new ObjectType(merged);
+    return this._merged;
+  }
+
   toString() {
     return this.types.map(t => t.toString()).join(' & ');
   }
-  
+
   equals(other) {
     if (!(other instanceof IntersectionType)) return false;
     if (this.types.length !== other.types.length) return false;
-    
-    // Check if all types are present (order independent)
+
+    // Order-independent comparison
     const thisStrs = new Set(this.types.map(t => t.toString()));
     const otherStrs = new Set(other.types.map(t => t.toString()));
-    
+
     for (const str of thisStrs) {
       if (!otherStrs.has(str)) return false;
     }
-    
+
     return true;
   }
-  
+
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
-    
-    // Resolve aliases
+
+    // Resolve aliases on the target side
     if (target instanceof TypeAlias) {
       const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
+      if (resolved === target) return false; // Unresolvable alias
       return this.isCompatibleWith(resolved, aliases);
     }
-    
-    // Intersection is compatible if any constituent type is compatible
-    // (simplified - proper intersection checking is more complex)
+
+    // For all-object intersections delegate to the merged ObjectType so that
+    // property presence and types are checked correctly (structural subtyping).
+    const merged = this.merge(aliases);
+    if (merged) {
+      return merged.isCompatibleWith(target, aliases);
+    }
+
+    // For mixed/non-object intersections: the value satisfies *all* constituents,
+    // so it is compatible with target if at least one constituent is compatible.
+    // This covers cases like `string & Serializable` being compatible with `string`.
     return this.types.some(t => t.isCompatibleWith(target, aliases));
   }
 }
