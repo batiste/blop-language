@@ -36,9 +36,7 @@ function stripOuterParens(typeString) {
 function resolveGenericType(type, aliasMap) {
   if (type instanceof GenericType) {
     let baseName = null;
-    if (typeof type.baseType === 'string') {
-      baseName = type.baseType;
-    } else if (type.baseType instanceof TypeAlias) {
+    if (type.baseType instanceof TypeAlias) {
       baseName = type.baseType.name;
     } else {
       baseName = type.baseType.toString();
@@ -220,8 +218,7 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
     if (currentType instanceof TypeAlias && isBuiltinObjectType(currentType.name)) {
       const builtinType = getBuiltinObjectType(currentType.name);
       if (builtinType && builtinType[propName]) {
-        const propType = builtinType[propName];
-        currentType = stringToType(propType);
+        currentType = builtinType[propName];
         continue;
       }
       return null;
@@ -463,10 +460,6 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
  * @returns {boolean}
  */
 export function isGenericTypeParameter(type, genericParams = []) {
-  if (typeof type === 'string') {
-    return genericParams.includes(type) || /^[A-Z]$/.test(type);
-  }
-  
   if (type instanceof TypeAlias) {
     return genericParams.includes(type.name) || /^[A-Z]$/.test(type.name);
   }
@@ -477,21 +470,13 @@ export function isGenericTypeParameter(type, genericParams = []) {
 /**
  * Instantiate a generic type with type arguments
  * @param {string} genericTypeName - Generic type name
- * @param {Array<Type|string>} typeArgs - Type arguments
+ * @param {Array<Type>} typeArgs - Type arguments (Type objects only)
  * @param {TypeAliasMap|Object} aliases - Type aliases
- * @returns {Type|string} Instantiated type
+ * @returns {Type} Instantiated type
  */
 export function instantiateGenericType(genericTypeName, typeArgs, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
-  
-  // Convert strings to Type objects
-  const args = typeArgs.map(t => stringToType(t));
-  
-  const result = aliasMap.instantiate(genericTypeName, args);
-  
-  // Return in same format as input
-  const shouldReturnString = typeArgs.some(t => typeof t === 'string');
-  return shouldReturnString ? typeToString(result) : result;
+  return aliasMap.instantiate(genericTypeName, typeArgs);
 }
 
 /**
@@ -664,13 +649,11 @@ function stringMapToTypeAliasMap(obj) {
   
   for (const [name, value] of Object.entries(obj)) {
     if (typeof value === 'object' && value.genericParams && value.genericParams.length > 0) {
-      // Generic alias
-      const type = stringToType(value.type);
-      aliasMap.define(name, type, value.genericParams);
+      // Generic alias - type should be a Type object
+      aliasMap.define(name, value.type, value.genericParams);
     } else {
-      // Regular alias
-      const type = stringToType(value.type);
-      aliasMap.define(name, type);
+      // Regular alias - value should be a Type object
+      aliasMap.define(name, value);
     }
   }
   
@@ -687,7 +670,7 @@ function objectToMap(obj) {
   
   const map = new Map();
   for (const [key, value] of Object.entries(obj)) {
-    map.set(key, stringToType(value));
+    map.set(key, value);
   }
   return map;
 }

@@ -176,12 +176,6 @@ describe('literal type guards', () => {
     expect(isBooleanLiteral(litStr)).toBe(false);
     expect(isBooleanLiteral(BooleanType)).toBe(false);
   });
-
-  test('isBooleanLiteral accepts "true"/"false" strings', () => {
-    expect(isBooleanLiteral('true')).toBe(true);
-    expect(isBooleanLiteral('false')).toBe(true);
-    expect(isBooleanLiteral('string')).toBe(false);
-  });
 });
 
 // ---------------------------------------------------------------------------
