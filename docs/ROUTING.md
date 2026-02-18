@@ -40,38 +40,41 @@ import { Router } from './lib/router.blop'
 import { Router } from './lib/router.blop'
 import { createState } from './lib/state.blop'
 
-// Create state
+// State includes a route slice that the router keeps up to date
 state = createState({
-  page: 'home',
+  route: { name: '', params: {} },
   user: null
 })
 
 // Create router
 router = new Router(null, state, window)
+
+// Expose router via $ so components can call router.go()
+state.$.router = router
 ```
+
+> The router writes `state.route = { name, params }` on every navigation. Components read
+> `state.route.name` to decide what to render — no handler needs to set a `page` property.
 
 ### 2. Define Route Handlers
 
-Route handlers are functions that update your application state:
+Route handlers are functions responsible for loading data. They no longer need to set a `page`
+property — the router sets `state.route.name` automatically before calling the handler.
+
+`loading` is also managed by the router: it is set to `true` before the handler runs and `false`
+after it resolves.
 
 ```typescript
-// Simple handler
-def indexHandler(params, state) {
-  state.page := 'index'
-  console.log('Index page loaded')
+// Minimal handler — nothing to load
+def indexHandler(_params, _state) {
 }
 
-// Async handler
+// Data-loading handler
 async def userHandler(params, state) {
-  state.page := 'user'
-  state.loading := true
-  
-  try {
-    response = await fetch(`/api/users/`params.id``)
-    state.currentUser := await response.json()
-  } finally {
-    state.loading := false
-  }
+  // state.loading is already true here
+  response = await fetch(`/api/users/`params.id``)  
+  state.currentUser = await response.json()
+  // state.loading will be set to false by the router
 }
 ```
 
@@ -116,8 +119,9 @@ import { createState } from './lib/state.blop'
 import { createRouter } from './routing.blop'
 import { App } from './App.blop'
 
-state = createState({ page: 'home' })
+state = createState({ route: { name: '', params: {} } })
 router = createRouter(state, window)
+state.$.router = router  // expose for navigation calls in components
 
 render = () => {
   state.$.flush()
@@ -127,8 +131,14 @@ render = () => {
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
-state.$.listen((path) => {
-  refresh()
+pending = false
+state.$.listen(() => {
+  if pending { return }
+  pending := true
+  Promise.resolve().then(() => {
+    pending := false
+    refresh()
+  })
 })
 ```
 
@@ -181,15 +191,21 @@ router.add({
 
 Handlers receive two arguments:
 
-1. **`params`** - Object containing URL parameters
+1. **`params`** - Object containing URL parameters parsed from the URL
 2. **`state`** - Application state object
 
-### Synchronous Handler
+The router sets the following automatically **before** calling the handler:
+- `state.route.name` — the `name` field of the matched route
+- `state.route.params` — same as `params`
+- `state.loading = true` — cleared to `false` after the handler resolves
+
+Handlers should therefore only do data-loading work:
+
+### Synchronous Handler (no data to load)
 
 ```typescript
-def aboutHandler(params, state) {
-  state.page := 'about'
-  state.title := 'About Us'
+def aboutHandler(_params, _state) {
+  // nothing to do
 }
 ```
 
@@ -197,37 +213,26 @@ def aboutHandler(params, state) {
 
 ```typescript
 async def productHandler(params, state) {
-  state.page := 'product'
-  state.loading := true
-  
-  try {
-    response = await fetch(`/api/products/`params.id``)
-    state.product := await response.json()
-  } catch error {
-    state.error := error.message
-  } finally {
-    state.loading := false
-  }
+  // state.loading is already true
+  response = await fetch(`/api/products/`params.id``)
+  state.product = await response.json()
+  // state.loading is set to false automatically
 }
 ```
 
-### Handler with Logic
+### Error Handling
+
+The router does not catch handler errors, so wrap async work if needed:
 
 ```typescript
-def dogBreedHandler(params, state) {
-  state.page := 'dog'
-  
-  // Parse parameters
-  breed = params.breed
-  image = params.image
-  
-  // Update state
-  state.dogPage.choice := { breed, image }
-  
-  // Log navigation
-  console.log(`Navigated to dog breed: `breed``)
+async def productHandler(params, state) {
+  try {
+    response = await fetch(`/api/products/`params.id``)
+    state.product = await response.json()
+  } catch error {
+    state.error = error.message
+  }
 }
-```
 
 ## Navigation
 
@@ -326,25 +331,21 @@ def UserProfile(state) {
 
 ## Integration with State
 
-The router integrates seamlessly with state management:
+The router integrates seamlessly with state management. After each navigation `state.route` is updated
+before the handler runs, so a single `state.route.name` check is enough to pick the right component:
 
 ```typescript
 // routing.blop
-def indexHandler(params, state) {
-  state.page := 'index'
+def indexHandler(_params, _state) {
+  // no data to load for the index
 }
 
-async def dogsHandler(params, state) {
-  state.page := 'dogs'
-  state.dogs.loading := true
-  
-  try {
-    response = await fetch('https://dog.ceo/api/breeds/image/random')
-    data = await response.json()
-    state.dogs.current := data
-  } finally {
-    state.dogs.loading := false
-  }
+async def dogsHandler(_params, state) {
+  // state.loading is already true
+  response = await fetch('https://dog.ceo/api/breeds/image/random')
+  data = await response.json()
+  state.dogs.current = data
+  // state.loading set to false by router
 }
 
 def createRouter(state, global) {
@@ -365,17 +366,25 @@ import { createState } from './lib/state.blop'
 import { createRouter } from './routing.blop'
 
 state = createState({
-  page: 'index',
-  dogs: {
-    loading: false,
-    current: null
-  }
+  route: { name: '', params: {} },
+  dogs: { loading: false, current: null }
 })
 
-// Router is attached to state
 router = createRouter(state, window)
+state.$.router = router  // assign after creation so components can navigate
+```
 
-// Now state.$.router is available in all components
+```typescript
+// App.blop — derive active page from state.route.name
+App = (state) => {
+  <main>
+    if state.route.name == 'dogs' || state.route.name == 'dogDetail' {
+      <DogsPage state=state />
+    } else {
+      <HomePage state=state />
+    }
+  </main>
+}
 ```
 
 ## Full Example
@@ -384,45 +393,29 @@ router = createRouter(state, window)
 // routing.blop
 import { Router } from './lib/router.blop'
 
-// Route handlers
-def homeHandler(params, state) {
-  state.page := 'home'
-  state.title := 'Home'
+// Route handlers only do data loading — no state.page mutations needed
+def homeHandler(_params, _state) {
 }
 
-def aboutHandler(params, state) {
-  state.page := 'about'
-  state.title := 'About Us'
+def aboutHandler(_params, _state) {
 }
 
 async def blogPostHandler(params, state) {
-  state.page := 'blogPost'
-  state.loading := true
-  
+  // state.loading is already true; state.route is already set
   try {
     response = await fetch(`/api/posts/`params.postId``)
-    state.currentPost := await response.json()
-    state.title := state.currentPost.title
+    state.currentPost = await response.json()
   } catch error {
-    state.error := 'Failed to load post'
-  } finally {
-    state.loading := false
+    state.error = 'Failed to load post'
   }
 }
 
-def notFoundHandler(params, state) {
-  state.page := '404'
-  state.title := 'Page Not Found'
-}
-
-// Create router
 export def createRouter(state, global) {
   router = new Router(null, state, global)
   
   router.add({ path: '/', name: 'home', handler: homeHandler })
   router.add({ path: '/about', name: 'about', handler: aboutHandler })
   router.add({ path: '/blog/:postId', name: 'blogPost', handler: blogPostHandler })
-  router.add({ path: '/404', name: 'notFound', handler: notFoundHandler })
   
   router.init()
   return router
@@ -430,11 +423,10 @@ export def createRouter(state, global) {
 ```
 
 ```typescript
-// App.blop
+// App.blop — use state.route.name to pick the active component
 import { HomePage } from './pages/HomePage.blop'
 import { AboutPage } from './pages/AboutPage.blop'
 import { BlogPostPage } from './pages/BlogPostPage.blop'
-import { NotFoundPage } from './pages/NotFoundPage.blop'
 import { Navigation } from './components/Navigation.blop'
 
 export def App(state) {
@@ -442,14 +434,14 @@ export def App(state) {
     <Navigation state=state />
     
     <main>
-      if state.page == 'home' {
+      if state.route.name == 'home' {
         <HomePage state=state />
-      } elseif state.page == 'about' {
+      } elseif state.route.name == 'about' {
         <AboutPage state=state />
-      } elseif state.page == 'blogPost' {
+      } elseif state.route.name == 'blogPost' {
         <BlogPostPage state=state />
       } else {
-        <NotFoundPage state=state />
+        <HomePage state=state />
       }
     </main>
   </div>
@@ -466,7 +458,7 @@ export def Navigation(state) {
     }
   }
   
-  isActive = (page) => state.page == page ? 'active' : ''
+  isActive = (name) => state.route.name == name ? 'active' : ''
   
   <nav>
     <ul>
@@ -491,32 +483,33 @@ import { createState } from './lib/state.blop'
 import { createRouter } from './routing.blop'
 import { App } from './App.blop'
 
-// Initialize state
+// route slice is required — the router writes into it on every navigation
 state = createState({
-  page: 'home',
-  title: 'Home',
+  route: { name: '', params: {} },
   loading: false,
   currentPost: null,
   error: null
 })
 
-// Initialize router
 router = createRouter(state, window)
+state.$.router = router  // expose for navigation calls in components
 
-// Render function
 render = () => {
   state.$.flush()
   return App(state)
 }
 
-// Mount app
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
-// Listen to state changes
-state.$.listen((path) => {
-  refresh()
-  document.title = state.title || 'My App'
+pending = false
+state.$.listen(() => {
+  if pending { return }
+  pending := true
+  Promise.resolve().then(() => {
+    pending := false
+    refresh()
+  })
 })
 ```
 
@@ -553,16 +546,16 @@ router.add({ path: '/users/:id', name: 'userProfile', handler: userHandler })
 
 ### 3. Handle Loading States
 
-Show loading indicators during async navigation:
+The router automatically sets `state.loading = true` before calling an async handler and
+`state.loading = false` after it resolves. Simply include `loading` in your state and check it
+in your component — no extra boilerplate needed:
 
 ```typescript
-async def pageHandler(params, state) {
-  state.loading := true
-  try {
-    // Fetch data
-  } finally {
-    state.loading := false
-  }
+// In your app component
+if state.loading {
+  <Spinner />
+} else {
+  // render active page
 }
 ```
 

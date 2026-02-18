@@ -69,7 +69,7 @@ def navigation(state): VNode {
 
   def navItem(pageType, go, name) {
     classes = "nav-item"
-    if state.page == pageType {
+    if state.route.name == pageType {
       classes := ""classes" active"
     }
     <li class=classes>
@@ -124,15 +124,15 @@ Index = (state): VNode => {
   <div>
     = navigation(state)
     <div class=''style.container' container'>
-      if state.page == 'showcase' {
+      if state.route.name == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
-      } elseif state.page == 'playground' {
+      } elseif state.route.name == 'playground' {
         <PlaygroundPage state=state></PlaygroundPage>
-      } elseif state.page == 'dog' {
+      } elseif state.route.name == 'doggy' || state.route.name == 'dog' {
         <DogPage state=state></DogPage>
-      } elseif state.page == 'todo' {
+      } elseif state.route.name == 'todo' {
         <TodoListPage todo=state></TodoListPage>
-      } elseif state.page == 'ast' {
+      } elseif state.route.name == 'ast' {
         <ASTExplorer state=state></ASTExplorer>
       } else {
         <ShowcasePage state=state></ShowcasePage>

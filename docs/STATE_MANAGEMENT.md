@@ -45,9 +45,12 @@ state = createState({
   user: null,
   posts: [],
   loading: false,
-  currentPage: 'home'
+  route: { name: '', params: {} }  // current route, populated by the router
 })
 ```
+
+> The `route` slice is a convention: the router writes `state.route.name` and `state.route.params` on every
+> navigation so components can derive the active page without any extra handler boilerplate.
 
 ## Reading State
 
@@ -102,7 +105,9 @@ def LoginForm(state) {
 
 ## Listening to Changes
 
-Set up a listener to react to any state changes:
+Set up a listener to react to any state changes. Multiple mutations that happen synchronously
+(e.g. inside an async route handler) are automatically coalesced into a single render via a
+`Promise.resolve()` microtask:
 
 ```typescript
 import { mount } from 'blop'
@@ -111,24 +116,39 @@ import { createState } from './lib/state.blop'
 state = createState({ count: 0 })
 
 render = () => {
-  state.$.flush()  // Clear change tracking
+  state.$.flush()  // Clear change tracking before each render
   tree = App(state)
   return tree
 }
 
 { refresh, init } = mount(document.getElementById('app'), render)
+init()
 
-// Listen to state changes
-state.$.listen((path) => {
-  console.log('State changed at:', path)
-  refresh((time) => {
-    if time > 50 {
-      console.log(`Slow render: `time`ms triggered by `path``)
-    }
+pending = false
+
+// Batch rapid mutations into one render via microtask
+state.$.listen(() => {
+  if pending { return }
+  pending := true
+  Promise.resolve().then(() => {
+    pending := false
+    refresh((time) => {
+      if time > 50 { console.warn(`Slow render: `time`ms`) }
+    })
   })
 })
+```
 
-init()
+### Tracking specific paths
+
+`hasChanged` accepts an optional dot-separated path. Paths use the same format as `modifications` entries
+(no leading dot):
+
+```typescript
+// re-render only if the route or loading flag changed
+if state.hasChanged('route') || state.hasChanged('loading') {
+  // ...
+}
 ```
 
 ## Full Application Example
@@ -142,22 +162,22 @@ import { createState } from './lib/state.blop'
 import { Index } from './index.blop'
 import { createRouter } from './routing.blop'
 
-// Create state with initial data
+// Create state with initial data — route is populated by the router automatically
 state = createState({
-  page: 'home',
+  route: { name: '', params: {} },
   todos: [],
   user: null,
   loading: false
 })
 
-// Set up router
+// Set up router, then expose it via $ for navigation calls in components
 router = createRouter(state, window)
+state.$.router = router
 
 // Render function
 render = () => {
-  state.$.flush()  // Clear tracked changes
+  state.$.flush()  // Clear tracked changes before each render
   tree = Index(state)
-  console.log('Rendered')
   return tree
 }
 
@@ -165,32 +185,17 @@ render = () => {
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
-// Listen for state changes
-lastRenderTime = Date.now()
-renderCount = 0
+pending = false
 
-state.$.listen((path) => {
-  now = Date.now()
-  timeSinceLastRender = now - lastRenderTime
-  
-  // Prevent infinite render loops
-  if timeSinceLastRender < 10 {
-    renderCount := renderCount + 1
-    if renderCount > 10 {
-      console.error('Infinite render loop detected! Path:', path)
-      return
-    }
-  } else {
-    renderCount := 0
-  }
-  
-  lastRenderTime := now
-  
-  // Trigger re-render
-  refresh((time) => {
-    if time > 50 {
-      console.warn(`Slow render: `time`ms (triggered by `path`)`)
-    }
+// Batch rapid mutations into one render
+state.$.listen(() => {
+  if pending { return }
+  pending := true
+  Promise.resolve().then(() => {
+    pending := false
+    refresh((time) => {
+      if time > 50 { console.warn(`Slow render: `time`ms`) }
+    })
   })
 })
 ```
@@ -206,9 +211,9 @@ Index = (state) => {
     
     if state.loading {
       <div class='spinner'>'Loading...'</div>
-    } elseif state.page == 'todos' {
+    } elseif state.route.name == 'todos' {
       <TodoList state=state />
-    } elseif state.page == 'profile' {
+    } elseif state.route.name == 'profile' {
       <UserProfile state=state />
     } else {
       <div>'Home Page'</div>
@@ -216,6 +221,9 @@ Index = (state) => {
   </div>
 }
 ```
+
+Note that `state.route.name` matches the `name` field given when registering a route. Handlers only need
+to perform data loading — they no longer need to set a `page` property.
 
 ## Advanced Patterns
 
@@ -410,30 +418,9 @@ render = () => {
 
 ### 3. Prevent Infinite Loops
 
-Implement loop detection as shown in the full example above:
-
-```typescript
-renderCount = 0
-lastRenderTime = Date.now()
-
-state.$.listen((path) => {
-  now = Date.now()
-  timeSinceLastRender = now - lastRenderTime
-  
-  if timeSinceLastRender < 10 {
-    renderCount := renderCount + 1
-    if renderCount > 10 {
-      console.error('Infinite render loop detected!')
-      return  // Stop rendering
-    }
-  } else {
-    renderCount := 0
-  }
-  
-  lastRenderTime := now
-  refresh()
-})
-```
+Never mutate state inside the render function. The microtask batching in `$.listen` naturally prevents
+cascade loops — if state is mutated during rendering, the next microtask will fire one additional render,
+but it cannot stack infinitely because the flush at the start of each render clears `modifications`.
 
 ### 4. Group Related State
 
@@ -484,10 +471,22 @@ state.user.name := 'Alice'
 The proxied state object includes a special `$` property with utilities:
 
 ```typescript
-state.$.listen(callback)  // Listen to state changes
-state.$.flush()           // Clear change tracking
-state.$.router            // Access router (if set up)
+state.$.listen(callback)     // Subscribe to any state change
+state.$.flush()              // Clear recorded modifications (call before each render)
+state.$.modifications        // Array of { path, action, value } since last flush
+state.$.raw                  // The underlying plain object (unproxied)
+state.$.router               // The router instance (assigned externally after creation)
 ```
+
+`hasChanged` is available on every (nested) proxy node:
+
+```typescript
+state.hasChanged()            // true if anything changed since last flush
+state.hasChanged('route')     // true if route or any sub-path changed
+state.user.hasChanged('name') // true if user.name changed
+```
+
+Paths are dot-separated with no leading dot, matching the keys as written in state.
 
 ## See Also
 

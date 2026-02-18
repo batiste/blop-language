@@ -1,39 +1,25 @@
 import { Router } from './lib/router.blop'
 
-async def indexHandler(_params, state) {
-  state.page = 'index'
-  console.log('indexHandler called')
+async def indexHandler(_params, _state) {
 }
 
-async def dogPageIndexHandler(params, state) {
-  state.page = 'dog'
-  console.log('doggyIndexHandler called with', params)
+async def dogPageIndexHandler(_params, _state) {
 }
 
 def dogPageHandler(params, state) {
-  state.page = 'dog'
-  console.log('doggyHanlder called with', params)
   state.dogPage.choice = { breed: params.breed, image: params.image }
 }
 
-def todoPageHandler(params, state) {
-  state.page = 'todo'
-  console.log('todoIndexHandler called with', params)
+def todoPageHandler(_params, _state) {
 }
 
-async def astExplorerPageHandler(params, state) {
-  state.page = 'ast'
-  console.log('astExplorerPageHandler called with', params)
+async def astExplorerPageHandler(_params, _state) {
 }
 
-def showcasePageHandler(params, state) {
-  state.page = 'showcase'
-  console.log('showcasePageHandler called with', params)
+def showcasePageHandler(_params, _state) {
 }
 
-def playgroundPageHandler(params, state) {
-  state.page = 'playground'
-  console.log('playgroundPageHandler called with', params)
+def playgroundPageHandler(_params, _state) {
 }
 
 def createRouter(state, global) {

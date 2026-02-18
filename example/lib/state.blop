@@ -1,8 +1,17 @@
+PROXY_TAG = Symbol('blop.proxy')
+
 def isObject(value) {
   if value == null || value == undefined {
     return false
   }
   return value.constructor == Object || typeof value == 'object'
+}
+
+def joinPath(base, prop) {
+  if base == '' {
+    return prop
+  }
+  return base'.'prop
 }
 
 def create(state, options={ readOnly: false }) {
@@ -33,24 +42,27 @@ def create(state, options={ readOnly: false }) {
       if !hasBeenFlushed {
         return true
       }
-      completePath = path''extrapath
+      completePath = joinPath(path, extrapath)
       return !!modifications.find(
         (modification) => modification.path.startsWith(completePath))
     }
     return {
       get: def (obj, prop) {
+        if prop == PROXY_TAG {
+          return true
+        }
         if prop == '$' {
           return root
         }
         if prop == 'hasChanged' {
           return hasChanged
         }
-        // be sure to not double wrap a Proxy
-        if isObject(obj[prop]) && !obj[prop].$ {
+        // be sure to not double wrap a Proxy — use Symbol to avoid false positives
+        if isObject(obj[prop]) && !obj[prop][PROXY_TAG] {
           return new Proxy(
             currentState[prop],
             handler(currentState[prop],
-            path'.'prop, currentState))
+            joinPath(path, prop), currentState))
         }
         return obj[prop]
       },
@@ -62,9 +74,10 @@ def create(state, options={ readOnly: false }) {
           throw new Error(`You cannot redefine the $ property in a proxied state`)
         }
 
-        modifications.push({ path: path'.'prop, action: 'set', value })
+        fullPath = joinPath(path, prop)
+        modifications.push({ path: fullPath, action: 'set', value })
         obj[prop] = value
-        trigger(path'.'prop)
+        trigger(fullPath)
         return true
       },
       deleteProperty: def (target, prop) {
@@ -73,12 +86,13 @@ def create(state, options={ readOnly: false }) {
         }
 
         if target.hasOwnProperty(prop) {
-          modifications.push({ path: path'.'prop, action: 'delete' })
+          fullPath = joinPath(path, prop)
+          modifications.push({ path: fullPath, action: 'delete' })
           delete target[prop]
+          trigger(fullPath)
         } else {
           return false
         }
-        trigger(path'.'prop)
         return true
       }
     }

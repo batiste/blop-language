@@ -5,12 +5,12 @@ import { Index } from './index.blop'
 
 proxiedState = createState(window.INITIAL_STATE)
 router = createRouter(proxiedState, window)
+proxiedState.$.router = router // expose router via $ for navigation calls in components
 
 // The render function for this application
 render = () => {
   proxiedState.$.flush() // full re-render: we can flush all recorded state changes
   tree = Index(proxiedState)
-  console.log('Client renderer executed')
   return tree
 }
 
@@ -18,35 +18,20 @@ render = () => {
 { refresh, init } = mount(document.getElementById('app'), render)
 init()
 
-refreshCount = 0
-maxRefreshCount = 10
+pending = false
 
-// Called after Blop has finished rendering
-def refreshCallback(time, path) {
-  if time > 50 => console.log(`Slow rendering time `time`ms triggered by `path``)
-
-  // security to avoid crashing when the state is accidentally modified
-  // whithin the render function of a Component
-  if (proxiedState.hasChanged()) {
-    refreshCount := refreshCount + 1
-    if (refreshCount >= maxRefreshCount) {
-      modifications = proxiedState.$.modifications[0]
-      console.error('It looks like the path "'modifications.path'" is being modified inside the renderer of one of your components. 
-Refresh runtime has stopped in order to avoid an infinite loop. Refresh has been executed 'maxRefreshCount' times.')
-      refreshCount := 0
-      return
-    }
-    refresh((t) => {
-      refreshCallback(t, proxiedState.$.modifications[0])
-    })
-  } else {
-    refreshCount := 0
+// Listen to any state change, batch multiple rapid mutations into one render
+proxiedState.$.listen(() => {
+  if pending {
+    return
   }
-}
-
-// Listen to any state change, and refresh when that happens
-proxiedState.$.listen((path) => {
-  refresh((time) => {
-    refreshCallback(time, path)
+  pending := true
+  Promise.resolve().then(() => {
+    pending := false
+    refresh((time) => {
+      if time > 50 {
+        console.warn(`Slow render: `time`ms`)
+      }
+    })
   })
 })

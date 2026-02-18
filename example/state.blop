@@ -8,7 +8,7 @@ state: object = {
   ],
   dogPage: { score: 0, attempt: 0, success: 0 },
   petStore: { pets: [], pageIndex: 0 },
-  page: 'index',
+  route: { name: '', params: {} },
   memes: [],
   loading: false
 }
