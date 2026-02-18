@@ -415,7 +415,7 @@ def ShowcasePage(attributes, _children, node): VNode {
     </button>
     
     <ul class=\"list-group\">
-      for index, item in items {
+      for index, item of items {
         itemNumber = index + 1
         <li class=\"list-group-item\">
           <strong>'#'itemNumber</strong>
@@ -508,7 +508,7 @@ def ShowcasePage(attributes, _children, node): VNode {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Natural For Loops'</h5>
                 <CodeBlock code="<ul>
-  for index, item in items {
+  for index, item of items {
     <li>
       <strong>'#'index</strong>
       ' 'item.name

@@ -136,7 +136,7 @@ const ERROR_PATTERNS = [
     message: () => 'Missing `in` or `of` keyword in for loop',
     suggestion: () => 'For loop syntax:\n' +
       '  for item in items { ... }\n' +
-      '  for index, item in items { ... }',
+      '  for index, item of items { ... }',
   },
   {
     name: 'virtual_node_unclosed',
