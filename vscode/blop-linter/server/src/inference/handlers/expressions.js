@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, NumberType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -49,7 +49,7 @@ function createExpressionHandlers(getState) {
     math: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      pushInference(parent, 'number');
+      pushInference(parent, NumberType);
     },
     name_exp: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
@@ -200,7 +200,7 @@ function createExpressionHandlers(getState) {
           // Skip validation for optional chaining
           if (hasOptionalChain) {
             visitChildren(access);
-            pushInference(parent, 'any');
+            pushInference(parent, AnyType);
             return;
           }
           
@@ -210,7 +210,7 @@ function createExpressionHandlers(getState) {
           // Skip validation for empty object type {} as it's often used when type inference fails
           if (resolvedType.toString() === '{}') {
             visitChildren(access);
-            pushInference(parent, 'any');
+            pushInference(parent, AnyType);
             return;
           }
 

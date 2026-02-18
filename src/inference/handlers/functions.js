@@ -197,7 +197,7 @@ function createFunctionHandlers(getState) {
       
       // Anonymous functions as expressions should infer as 'function'
       if (parent && !node.named.name) {
-        pushInference(parent, 'function');
+        pushInference(parent, 'function'); // using FunctionType trigger many error here
         
         // Validate anonymous function return types if they have type annotations
         if (declaredType && inferredType !== AnyType) {

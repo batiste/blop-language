@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -49,7 +49,7 @@ function createExpressionHandlers(getState) {
     math: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      pushInference(parent, 'number');
+      pushInference(parent, PrimitiveType.Number);
     },
     name_exp: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
@@ -164,7 +164,7 @@ function createExpressionHandlers(getState) {
                 }
               }
               // step3 done: pushInference normalizes Type objects
-              const retType = def.type ?? 'any';
+              const retType = def.type ?? AnyType;
               pushInference(parent, retType);
               return;
             }
@@ -178,7 +178,7 @@ function createExpressionHandlers(getState) {
           if (propName) {
             const builtinType = getBuiltinObjectType(name.value);
             const rawProp = builtinType?.[propName];
-            const propType = rawProp ?? 'any';
+            const propType = rawProp ?? AnyType;
             pushInference(parent, propType);
             return;
           }
@@ -200,7 +200,7 @@ function createExpressionHandlers(getState) {
           // Skip validation for optional chaining
           if (hasOptionalChain) {
             visitChildren(access);
-            pushInference(parent, 'any');
+            pushInference(parent, AnyType);
             return;
           }
           
@@ -210,7 +210,7 @@ function createExpressionHandlers(getState) {
           // Skip validation for empty object type {} as it's often used when type inference fails
           if (resolvedType.toString() === '{}') {
             visitChildren(access);
-            pushInference(parent, 'any');
+            pushInference(parent, AnyType);
             return;
           }
 
@@ -290,7 +290,7 @@ function createExpressionHandlers(getState) {
                   `Property '${fullPropertyPath}' does not exist on type ${def.type}`
                 );
                 visitChildren(access);
-                pushInference(parent, 'any');
+                pushInference(parent, AnyType);
                 return;
               }
               
@@ -303,7 +303,7 @@ function createExpressionHandlers(getState) {
         
         // Unknown variable or couldn't validate (non-object type, built-in type, etc.)
         visitChildren(access);
-        pushInference(parent, 'any');
+        pushInference(parent, AnyType);
         return;
       }
       
@@ -312,11 +312,11 @@ function createExpressionHandlers(getState) {
       // Check if it's a variable definition
       if (def) {
         if (def.source === 'func_def') {
-          pushInference(parent, 'function');
+          pushInference(parent, FunctionType);
           // Stamp the name node with the function's inferred type for hover
           const { inferencePhase } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = def.type ?? 'function';
+            name.inferredType = def.type ?? FunctionType;
           }
         } else {
           pushInference(parent, def.type);
@@ -328,7 +328,7 @@ function createExpressionHandlers(getState) {
         }
       } else {
         // Unknown identifier - could be undefined or from outer scope
-        pushInference(parent, 'any');
+        pushInference(parent, AnyType);
       }
       
       if (op) {
@@ -359,7 +359,7 @@ function createExpressionHandlers(getState) {
     new: (node, parent) => {
       const { pushInference } = getState();
       resolveTypes(node);
-      pushInference(parent, 'object');
+      pushInference(parent, ObjectType);
     },
   };
 }
