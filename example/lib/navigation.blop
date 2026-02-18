@@ -1,0 +1,12 @@
+_go = null
+
+def register(fn) {
+  _go := fn
+}
+
+def go(path) {
+  if !_go {
+    throw new Error('No router registered. Make sure a Router instance is created before navigating.')
+  }
+  return _go(path)
+}
