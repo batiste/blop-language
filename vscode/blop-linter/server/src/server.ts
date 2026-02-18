@@ -1036,7 +1036,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 			'null': 'null',
 			'undefined': 'undefined'
 		};
-		inferredType = literalTypes[node.type];
+		inferredType = literalTypes[node.type] || node.type || node.value;
 	}
 	
 	if (!inferredType) {
