@@ -868,16 +868,16 @@ function resolveObjectPropertyKeyType(node: any, tree: any, typeAliases: Map<str
 }
 
 /**
-/**
- * Find a more specific child node at position when parent is generic (specifically for object literals)
+ * Find the most specific child node at position - drill down to the leaf with a value
  */
 function findMoreSpecificChild(node: any, offset: number, stream: any[]): any {
-	if (!node || !node.children) return null;
+	if (!node) return null;
 	
 	let bestChild: any = null;
 	let bestLen = Infinity;
+	let hasValue = false;
 	
-	// For object_literal_body, prioritize name/str nodes that look like property keys
+	// Recursively search for the most specific node with a value
 	function search(n: any): void {
 		if (!n || n.stream_index === undefined) return;
 		
@@ -889,27 +889,29 @@ function findMoreSpecificChild(node: any, offset: number, stream: any[]): any {
 		
 		// Check if offset is within this token's range
 		if (offset >= tokenStart && offset <= tokenEnd) {
-			// Prioritize name and str nodes (likely property keys) over wrapper nodes
-			const isKeyNode = n.type === 'name' || n.type === 'str';
-			const currentIsKeyNode = bestChild && (bestChild.type === 'name' || bestChild.type === 'str');
+			const nodeHasValue = !!n.value;
 			
 			if (!bestChild) {
 				bestChild = n;
 				bestLen = token.len;
-			} else if (isKeyNode && !currentIsKeyNode) {
-				// Prefer key nodes over non-key nodes
-				bestChild = n;
-				bestLen = token.len;
-			} else if ((isKeyNode && currentIsKeyNode) || (!isKeyNode && !currentIsKeyNode)) {
-				// Both are same priority; pick the smaller one
-				if (token.len < bestLen) {
+				hasValue = nodeHasValue;
+			} else {
+				// Prefer nodes with a value
+				if (nodeHasValue && !hasValue) {
 					bestChild = n;
 					bestLen = token.len;
+					hasValue = true;
+				} else if (nodeHasValue === hasValue) {
+					// Both have/don't have values; pick the smaller one (more specific)
+					if (token.len < bestLen) {
+						bestChild = n;
+						bestLen = token.len;
+					}
 				}
 			}
 		}
 		
-		// Recurse into children
+		// Always recurse into children to find the most specific
 		if (n.children && Array.isArray(n.children)) {
 			for (const child of n.children) {
 				search(child);
@@ -928,6 +930,53 @@ function findMoreSpecificChild(node: any, offset: number, stream: any[]): any {
 	search(node);
 	return bestChild;
 }
+
+/**
+ * Find the parent chain (ancestors) of a node by traversing from the root
+ */
+function findParentChain(root: any, targetNode: any): any[] {
+	const chain: any[] = [];
+	let currentParent: any = null;
+	
+	function traverse(node: any, parent: any): boolean {
+		if (!node) return false;
+		
+		currentParent = parent;
+		
+		// If we found the target, we're done
+		if (node === targetNode) {
+			if (parent) chain.push(parent);
+			return true;
+		}
+		
+		// Check children
+		if (node.children && Array.isArray(node.children)) {
+			for (const child of node.children) {
+				if (traverse(child, node)) {
+					return true;
+				}
+			}
+		}
+		
+		// Check named properties
+		if (node.named && typeof node.named === 'object') {
+			for (const key in node.named) {
+				const child = node.named[key];
+				if (child && typeof child === 'object') {
+					if (traverse(child, node)) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	traverse(root, null);
+	return chain;
+}
+
 
 // Hover handler - show inferred types
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
@@ -953,72 +1002,59 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 		return null;
 	}
 	
-	// If we found an object_literal_body (generic parent), search for more specific child
-	if (node.type === 'object_literal_body') {
-		const moreSpecific = findMoreSpecificChild(node, offset, stream);
-		if (moreSpecific && moreSpecific.type !== 'object_literal_body') {
-			node = moreSpecific;
-		}
-	}
-
-	// If we found a func_call_params or func_def_params (parameter wrapper), look for the name node inside
-	if (node.type === 'func_call_params' || node.type === 'func_def_params') {
-		const moreSpecific = findMoreSpecificChild(node, offset, stream);
-		if (moreSpecific && moreSpecific.type === 'name') {
-			node = moreSpecific;
-		}	
-	}
-
-	// If we found a property_assignment or name_exp wrapper, look for the name node inside
-	if (node.type === 'property_assignment' || node.type === 'name_exp') {
-		const moreSpecific = findMoreSpecificChild(node, offset, stream);
-		if (moreSpecific && moreSpecific.type === 'name') {
-			node = moreSpecific;
-		}
+	const moreSpecific = findMoreSpecificChild(node, offset, stream);
+	if (moreSpecific) {
+		node = moreSpecific;
 	}
 
 	connection.console.log(
-		`hover-precheck: pos=${params.position.line}:${params.position.character} ` +
-		`nodeType=${node.type} nodeValue=${node.value ?? ''} ` +
-		`hasInferredType=${!!node.inferredType} hasInference=${!!node.inference} ` +
-		`namedKeys=${node.named ? Object.keys(node.named).join(',') : 'none'}`
-	);
+		`Hover requested at offset ${offset} on node type ${node.type}, node value ${node.value} (inferred type: ${node.inferredType})`);
 
+	// Walk up the parent chain to find the first node with an inferred type
 	let inferredType = node.inferredType;
-	if (!inferredType && node.type === 'name' && node.value && typeAliases.has(node.value)) {
-		const aliasDefinition = typeAliases.get(node.value);
-		inferredType = aliasDefinition ? `${node.value} = ${aliasDefinition}` : node.value;
-	}
+	
 	if (!inferredType) {
-		if (node.type === 'number') inferredType = 'number';
-		if (node.type === 'str') inferredType = 'string';
-		if (node.type === 'true' || node.type === 'false') inferredType = 'boolean';
-		if (node.type === 'null') inferredType = 'null';
-		if (node.type === 'undefined') inferredType = 'undefined';
+		const parentChain = findParentChain(tree, node);
+		for (const ancestor of parentChain) {
+			if (ancestor.inferredType) {
+				inferredType = ancestor.inferredType;
+				break;
+			}
+		}
 	}
+	
+	// Fallback: if it's a type alias name, show the alias
+	if (!inferredType && node.type === 'name' && node.value && typeAliases.has(node.value)) {
+		inferredType = node.value;
+	}
+	
+	// Fallback: literal types
+	if (!inferredType) {
+		const literalTypes: Record<string, string> = {
+			'number': 'number',
+			'str': 'string',
+			'true': 'boolean',
+			'false': 'boolean',
+			'null': 'null',
+			'undefined': 'undefined'
+		};
+		inferredType = literalTypes[node.type];
+	}
+	
 	if (!inferredType) {
 		return null;
 	}
-	
-	// Format the hover content
-	const hoverContent = `**Type**: \`${inferredType}\``;
 	
 	// Get the token range for highlighting
 	const token = stream[node.stream_index];
 	if (!token) {
 		return null;
 	}
-
-	connection.console.log(
-		`hover: uri=${params.textDocument.uri} pos=${params.position.line}:${params.position.character} ` +
-		`nodeType=${node.type} nodeValue=${node.value ?? ''} inferredType=${inferredType} ` +
-		`range=${token.start}-${token.start + token.len}`
-	);
 	
 	return {
 		contents: {
 			kind: MarkupKind.Markdown,
-			value: hoverContent
+			value: `\`${inferredType}\``
 		},
 		range: {
 			start: document.positionAt(token.start),

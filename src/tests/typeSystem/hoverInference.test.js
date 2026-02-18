@@ -69,6 +69,7 @@ def profile(prof: Profile) {
     
     // Find "prof" - should show the full Profile type definition
     const profNodes = findNodesWithValue(tree, ['prof']);
+    expect(profNodes.length).toBe(2);
     const profInReturn = profNodes.find(n => 
       n.inferredType && 
       n.inferredType.toString().includes('user') && 

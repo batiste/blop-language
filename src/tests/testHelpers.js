@@ -111,7 +111,9 @@ function findNodesWithValue(node, values, results = []) {
   if (!node) return results;
   
   if (node.type === 'name' && values.includes(node.value)) {
-    results.push(node);
+    if (!results.includes(node)) {
+      results.push(node);
+    }
   }
   
   if (node.children) {
