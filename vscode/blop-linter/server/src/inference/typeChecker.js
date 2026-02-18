@@ -11,6 +11,7 @@ import {
   isNumberLiteral,
   isStringLiteral 
 } from './typeSystem.js';
+import { AnyType, PrimitiveType } from './Type.js';
 
 const TypeChecker = {
   /**
@@ -106,7 +107,13 @@ const TypeChecker = {
    * Check if function return types match declaration
    */
   checkReturnTypes(returnTypes, declaredType, functionName, typeAliases) {
-    if (!declaredType || declaredType === 'any') {
+    // AnyType object or 'any' string both mean "no constraint"
+    const isAny = !declaredType || 
+                  declaredType === 'any' || 
+                  declaredType === AnyType ||
+                  (declaredType instanceof PrimitiveType && declaredType.name === 'any') ||
+                  (typeof declaredType === 'object' && declaredType.toString() === 'any');
+    if (isAny) {
       return { valid: true };
     }
     

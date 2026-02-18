@@ -221,7 +221,8 @@ function createStatementHandlers(getState) {
           }
           
           if (expectedType && isObjectLiteral) {
-            setExpectedObjectType(expectedType);
+            // TODO(step3): pass Type object directly once literals.js is migrated
+            setExpectedObjectType(expectedType.toString());
           }
         }
         
@@ -414,7 +415,8 @@ function createStatementHandlers(getState) {
       const objAnnotationType = node.named.objectannotation 
         ? getAnnotationType(node.named.objectannotation) 
         : null;
-      const isArray = objAnnotationType === 'array';
+      // Use .toString() since getAnnotationType now returns Type objects
+      const isArray = objAnnotationType?.toString() === 'array';
       
       // Key type: number with :array, string without (Object.keys returns strings)
       const keyType = isArray ? 'number' : 'string';

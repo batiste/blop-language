@@ -165,7 +165,8 @@ function stampObjectType(objectTypeNode) {
         if (node.named.valueType && keyNode.inferredType === undefined) {
           const valueType = getAnnotationType(node.named);
           if (valueType) {
-            keyNode.inferredType = valueType;
+            // inferredType is used for hover display - normalize to string
+            keyNode.inferredType = valueType.toString();
           }
         }
       }
@@ -339,7 +340,11 @@ function handleAssignment(types, i, assignNode) {
         // Look up the object's type
         const objectDef = lookupVariable(objectName);
         if (objectDef && objectDef.type) {
-          const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+          const _resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+          // parseObjectTypeString expects a string; normalize Type objects
+          const resolvedObjectType = typeof _resolvedObjectType === 'string'
+            ? _resolvedObjectType
+            : _resolvedObjectType.toString();
           const properties = parseObjectTypeString(resolvedObjectType);
           
           if (properties && properties[propertyName]) {
