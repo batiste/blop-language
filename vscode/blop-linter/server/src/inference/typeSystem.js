@@ -143,14 +143,15 @@ export function isTypeCompatible(valueType, targetType, aliases) {
  * @returns {Type|string} Resolved type (matches input format)
  */
 export function resolveTypeAlias(type, aliases) {
-  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
-  
   if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const resolved = aliasMap.resolve(typeObj);
-    return typeToString(resolved);
+    throw new Error(
+      'resolveTypeAlias expects Type objects, not strings. ' +
+      'Use parseAnnotation() or parseTypeExpression() to convert strings to Type objects. ' +
+      `Received string: "${type}"`
+    );
   }
   
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
   return aliasMap.resolve(type);
 }
 

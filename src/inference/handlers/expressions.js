@@ -57,7 +57,7 @@ function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { push
     if (methodName) {
       const returnType = getArrayMemberType(resolvedDefType, methodName);
       const methodNode = objectAccess?.children?.find(child => child.type === 'name');
-      if (methodNode) methodNode.inferredType = returnType.toString();
+      if (methodNode) methodNode.inferredType = returnType;
       pushInference(parent, returnType);
       return true;
     }
@@ -216,7 +216,7 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
     }
     
     pushInference(propNode, nextType);
-    propNode.inferredType = resolveTypeAlias(nextType, typeAliases).toString();
+    propNode.inferredType = resolveTypeAlias(nextType, typeAliases);
     validatedPath.push(propName);
     currentType = nextType;
   }
@@ -229,7 +229,6 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
  */
 function handleObjectPropertyAccess(name, access, parent, definition, { pushInference, pushWarning, typeAliases }) {
   const resolvedType = resolveTypeAlias(definition.type, typeAliases);
-  const resolvedStr = resolvedType.toString();
   
   // Check for optional chaining
   const hasOptionalChain = access.children?.some(child => 
@@ -243,7 +242,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
   }
   
   // Skip validation for empty object type
-  if (resolvedStr === '{}') {
+  if (resolvedType instanceof ObjectType && resolvedType.properties.size === 0) {
     visitChildren(access);
     pushInference(parent, AnyType);
     return true;
@@ -256,8 +255,8 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     if (propName) {
       const memberType = getArrayMemberType(resolvedType, propName);
       const propNode = objectAccess?.children?.find(child => child.type === 'name');
-      if (propNode) propNode.inferredType = memberType.toString();
-      name.inferredType = resolvedStr;
+      if (propNode) propNode.inferredType = memberType;
+      name.inferredType = resolvedType;
       pushInference(parent, memberType);
       return true;
     }
@@ -272,7 +271,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     const properties = extractPropertyNodesFromAccess(access);
     
     if (properties.length > 0) {
-      name.inferredType = resolvedStr;
+      name.inferredType = resolvedType;
       
       const { currentType, validatedPath, invalidProperty } = validatePropertyChain(
         properties,
@@ -331,13 +330,13 @@ function handleSimpleVariable(name, parent, definition, getState) {
     pushInference(parent, AnyFunctionType);
     const { inferencePhase } = getState();
     if (inferencePhase === 'inference' && name.inferredType === undefined) {
-      name.inferredType = definition.type?.toString() || 'function';
+      name.inferredType = definition.type ?? AnyFunctionType;
     }
   } else {
     pushInference(parent, definition.type);
     const { inferencePhase, typeAliases } = getState();
     if (inferencePhase === 'inference' && name.inferredType === undefined) {
-      name.inferredType = resolveTypeAlias(definition.type, typeAliases).toString();
+      name.inferredType = resolveTypeAlias(definition.type, typeAliases);
     }
   }
 }
