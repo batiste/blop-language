@@ -17,7 +17,7 @@ export const builtinObjectTypes = {
     sel: 'string | undefined',     // Selector
   },
 
-  // JavaScript Math object
+  // JavaScript Math object – all methods return number
   Math: {
     E: 'number',
     LN10: 'number',
@@ -27,109 +27,109 @@ export const builtinObjectTypes = {
     PI: 'number',
     SQRT1_2: 'number',
     SQRT2: 'number',
-    abs: 'function',
-    acos: 'function',
-    acosh: 'function',
-    asin: 'function',
-    asinh: 'function',
-    atan: 'function',
-    atan2: 'function',
-    atanh: 'function',
-    cbrt: 'function',
-    ceil: 'function',
-    clz32: 'function',
-    cos: 'function',
-    cosh: 'function',
-    exp: 'function',
-    expm1: 'function',
-    floor: 'function',
-    fround: 'function',
-    hypot: 'function',
-    imul: 'function',
-    log: 'function',
-    log10: 'function',
-    log1p: 'function',
-    log2: 'function',
-    max: 'function',
-    min: 'function',
-    pow: 'function',
-    random: 'function',
-    round: 'function',
-    sign: 'function',
-    sin: 'function',
-    sinh: 'function',
-    sqrt: 'function',
-    tan: 'function',
-    tanh: 'function',
-    trunc: 'function',
+    abs: 'number',
+    acos: 'number',
+    acosh: 'number',
+    asin: 'number',
+    asinh: 'number',
+    atan: 'number',
+    atan2: 'number',
+    atanh: 'number',
+    cbrt: 'number',
+    ceil: 'number',
+    clz32: 'number',
+    cos: 'number',
+    cosh: 'number',
+    exp: 'number',
+    expm1: 'number',
+    floor: 'number',
+    fround: 'number',
+    hypot: 'number',
+    imul: 'number',
+    log: 'number',
+    log10: 'number',
+    log1p: 'number',
+    log2: 'number',
+    max: 'number',
+    min: 'number',
+    pow: 'number',
+    random: 'number',
+    round: 'number',
+    sign: 'number',
+    sin: 'number',
+    sinh: 'number',
+    sqrt: 'number',
+    tan: 'number',
+    tanh: 'number',
+    trunc: 'number',
   },
 
-  // JavaScript console object
+  // JavaScript console object – all methods return undefined
   console: {
-    log: 'function',
-    info: 'function',
-    warn: 'function',
-    error: 'function',
-    debug: 'function',
-    trace: 'function',
-    dir: 'function',
-    dirxml: 'function',
-    table: 'function',
-    group: 'function',
-    groupCollapsed: 'function',
-    groupEnd: 'function',
-    clear: 'function',
-    count: 'function',
-    countReset: 'function',
-    assert: 'function',
-    time: 'function',
-    timeLog: 'function',
-    timeEnd: 'function',
+    log: 'undefined',
+    info: 'undefined',
+    warn: 'undefined',
+    error: 'undefined',
+    debug: 'undefined',
+    trace: 'undefined',
+    dir: 'undefined',
+    dirxml: 'undefined',
+    table: 'undefined',
+    group: 'undefined',
+    groupCollapsed: 'undefined',
+    groupEnd: 'undefined',
+    clear: 'undefined',
+    count: 'number',
+    countReset: 'undefined',
+    assert: 'undefined',
+    time: 'undefined',
+    timeLog: 'undefined',
+    timeEnd: 'undefined',
   },
 
   // JavaScript JSON object
   JSON: {
-    parse: 'function',
-    stringify: 'function',
+    parse: 'any',
+    stringify: 'string | undefined',
   },
 
   // JavaScript Object constructor
   Object: {
-    assign: 'function',
-    create: 'function',
-    defineProperty: 'function',
-    defineProperties: 'function',
-    entries: 'function',
-    freeze: 'function',
-    fromEntries: 'function',
-    getOwnPropertyDescriptor: 'function',
-    getOwnPropertyDescriptors: 'function',
-    getOwnPropertyNames: 'function',
-    getOwnPropertySymbols: 'function',
-    getPrototypeOf: 'function',
-    is: 'function',
-    isExtensible: 'function',
-    isFrozen: 'function',
-    isSealed: 'function',
-    keys: 'function',
-    preventExtensions: 'function',
-    seal: 'function',
-    setPrototypeOf: 'function',
-    values: 'function',
+    assign: 'any',
+    create: 'any',
+    defineProperty: 'any',
+    defineProperties: 'any',
+    entries: 'any[]',
+    freeze: 'any',
+    fromEntries: 'any',
+    getOwnPropertyDescriptor: 'any',
+    getOwnPropertyDescriptors: 'any',
+    getOwnPropertyNames: 'string[]',
+    getOwnPropertySymbols: 'any[]',
+    getPrototypeOf: 'any',
+    is: 'boolean',
+    isExtensible: 'boolean',
+    isFrozen: 'boolean',
+    isSealed: 'boolean',
+    keys: 'string[]',
+    preventExtensions: 'any',
+    seal: 'any',
+    setPrototypeOf: 'any',
+    values: 'any[]',
   },
 
   // JavaScript Array constructor
   Array: {
-    from: 'function',
-    isArray: 'function',
-    of: 'function',
+    from: 'any[]',
+    isArray: 'boolean',
+    of: 'any[]',
   },
 
   // JavaScript Date constructor
   Date: {
-    now: 'function',
-    parse: 'function',
-    UTC: 'function',
+    now: 'number',
+    parse: 'number',
+    UTC: 'number',
   },
 
   // JavaScript Number constructor
@@ -142,63 +142,63 @@ export const builtinObjectTypes = {
     NEGATIVE_INFINITY: 'number',
     NaN: 'number',
     POSITIVE_INFINITY: 'number',
-    isFinite: 'function',
-    isInteger: 'function',
-    isNaN: 'function',
-    isSafeInteger: 'function',
-    parseFloat: 'function',
-    parseInt: 'function',
+    isFinite: 'boolean',
+    isInteger: 'boolean',
+    isNaN: 'boolean',
+    isSafeInteger: 'boolean',
+    parseFloat: 'number',
+    parseInt: 'number',
   },
 
   // JavaScript String constructor
   String: {
-    fromCharCode: 'function',
-    fromCodePoint: 'function',
-    raw: 'function',
+    fromCharCode: 'string',
+    fromCodePoint: 'string',
+    raw: 'string',
   },
 
-  // JavaScript Promise constructor
+  // JavaScript Promise constructor – returns are opaque without generics
   Promise: {
-    all: 'function',
-    allSettled: 'function',
-    any: 'function',
-    race: 'function',
-    reject: 'function',
-    resolve: 'function',
+    all: 'any',
+    allSettled: 'any',
+    any: 'any',
+    race: 'any',
+    reject: 'any',
+    resolve: 'any',
   },
 
   // Browser window object (common properties)
   window: {
     document: 'any',
     console: 'any',
-    alert: 'function',
-    confirm: 'function',
-    prompt: 'function',
-    setTimeout: 'function',
-    setInterval: 'function',
-    clearTimeout: 'function',
-    clearInterval: 'function',
-    fetch: 'function',
+    alert: 'undefined',
+    confirm: 'boolean',
+    prompt: 'string | null',
+    setTimeout: 'number',           // returns a timer id
+    setInterval: 'number',          // returns a timer id
+    clearTimeout: 'undefined',
+    clearInterval: 'undefined',
+    fetch: 'any',                   // returns Promise<Response>; typed as any until generics
     location: 'any',
     history: 'any',
     navigator: 'any',
     screen: 'any',
     localStorage: 'any',
     sessionStorage: 'any',
-    requestAnimationFrame: 'function',
-    cancelAnimationFrame: 'function',
+    requestAnimationFrame: 'number', // returns a request id
+    cancelAnimationFrame: 'undefined',
   },
 
   // Browser document object (common properties)
   document: {
-    getElementById: 'function',
-    getElementsByClassName: 'function',
-    getElementsByTagName: 'function',
-    querySelector: 'function',
-    querySelectorAll: 'function',
-    createElement: 'function',
-    createTextNode: 'function',
-    createDocumentFragment: 'function',
+    getElementById: 'any',          // returns HTMLElement | null
+    getElementsByClassName: 'any',  // returns HTMLCollectionOf<Element>
+    getElementsByTagName: 'any',    // returns HTMLCollectionOf<Element>
+    querySelector: 'any',           // returns Element | null
+    querySelectorAll: 'any',        // returns NodeListOf<Element>
+    createElement: 'any',           // returns HTMLElement
+    createTextNode: 'any',          // returns Text
+    createDocumentFragment: 'any',  // returns DocumentFragment
     body: 'any',
     head: 'any',
     title: 'string',
@@ -207,10 +207,151 @@ export const builtinObjectTypes = {
     URL: 'string',
     domain: 'string',
     referrer: 'string',
-    addEventListener: 'function',
-    removeEventListener: 'function',
+    addEventListener: 'undefined',
+    removeEventListener: 'undefined',
   },
 };
+
+/**
+ * Built-in method/property types for primitive types (string, number, boolean, array).
+ * Each entry maps a method or property name to its return type when called/accessed.
+ *
+ * Return types use the same string notation as the rest of the type system.
+ * Methods that vary by argument (e.g. Array.map) use 'any' as a conservative
+ * fallback – they can be tightened later with generic support.
+ */
+export const builtinPrimitiveTypes = {
+  // ---------------------------------------------------------------------------
+  // String prototype
+  // ---------------------------------------------------------------------------
+  string: {
+    // Properties
+    length: 'number',
+    // Methods returning string
+    charAt: 'string',
+    charCodeAt: 'number',
+    codePointAt: 'number | undefined',
+    concat: 'string',
+    endsWith: 'boolean',
+    includes: 'boolean',
+    indexOf: 'number',
+    lastIndexOf: 'number',
+    localeCompare: 'number',
+    match: 'any',
+    matchAll: 'any',
+    normalize: 'string',
+    padEnd: 'string',
+    padStart: 'string',
+    repeat: 'string',
+    replace: 'string',
+    replaceAll: 'string',
+    search: 'number',
+    slice: 'string',
+    split: 'string[]',
+    startsWith: 'boolean',
+    substring: 'string',
+    toLocaleLowerCase: 'string',
+    toLocaleUpperCase: 'string',
+    toLowerCase: 'string',
+    toString: 'string',
+    toUpperCase: 'string',
+    trim: 'string',
+    trimEnd: 'string',
+    trimStart: 'string',
+    valueOf: 'string',
+    at: 'string | undefined',
+  },
+
+  // ---------------------------------------------------------------------------
+  // Number prototype
+  // ---------------------------------------------------------------------------
+  number: {
+    toExponential: 'string',
+    toFixed: 'string',
+    toLocaleString: 'string',
+    toPrecision: 'string',
+    toString: 'string',
+    valueOf: 'number',
+  },
+
+  // ---------------------------------------------------------------------------
+  // Boolean prototype
+  // ---------------------------------------------------------------------------
+  boolean: {
+    toString: 'string',
+    valueOf: 'boolean',
+  },
+
+  // ---------------------------------------------------------------------------
+  // Array prototype  (element type is unknown here, so we use 'any' or 'T[]')
+  // ---------------------------------------------------------------------------
+  array: {
+    // Properties
+    length: 'number',
+    // Mutating methods
+    push: 'number',
+    pop: 'any',
+    shift: 'any',
+    unshift: 'number',
+    splice: 'any[]',
+    reverse: 'any[]',
+    sort: 'any[]',
+    fill: 'any[]',
+    copyWithin: 'any[]',
+    // Non-mutating methods
+    concat: 'any[]',
+    join: 'string',
+    slice: 'any[]',
+    indexOf: 'number',
+    lastIndexOf: 'number',
+    includes: 'boolean',
+    find: 'any',
+    findIndex: 'number',
+    findLast: 'any',
+    findLastIndex: 'number',
+    every: 'boolean',
+    some: 'boolean',
+    forEach: 'undefined',
+    map: 'any[]',
+    filter: 'any[]',
+    reduce: 'any',
+    reduceRight: 'any',
+    flat: 'any[]',
+    flatMap: 'any[]',
+    keys: 'any',
+    values: 'any',
+    entries: 'any',
+    at: 'any',
+    toString: 'string',
+    toLocaleString: 'string',
+    toReversed: 'any[]',
+    toSorted: 'any[]',
+    toSpliced: 'any[]',
+    with: 'any[]',
+  },
+};
+
+/**
+ * Get the return type of a method/property on a primitive type.
+ * @param {string} primitiveType - 'string' | 'number' | 'boolean' | 'array'
+ * @param {string} memberName - The method or property name
+ * @returns {string|null} Return type string, or null if unknown
+ */
+export function getPrimitiveMemberType(primitiveType, memberName) {
+  const members = builtinPrimitiveTypes[primitiveType];
+  if (!members) return null;
+  return members[memberName] ?? null;
+}
+
+/**
+ * Check if a given member name exists on a primitive type.
+ * @param {string} primitiveType
+ * @param {string} memberName
+ * @returns {boolean}
+ */
+export function isPrimitiveMember(primitiveType, memberName) {
+  return getPrimitiveMemberType(primitiveType, memberName) !== null;
+}
 
 /**
  * Get the type definition for a built-in object

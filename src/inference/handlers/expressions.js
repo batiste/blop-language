@@ -5,6 +5,7 @@
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
 import TypeChecker from '../typeChecker.js';
+import { getBuiltinObjectType, isBuiltinObjectType } from '../builtinTypes.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -87,6 +88,19 @@ function createExpressionHandlers(getState) {
           visitChildren(access);
           
           const def = lookupVariable(name.value);
+
+          // Built-in object method call (e.g. Math.cos, Object.keys, Array.isArray)
+          if (!def && isBuiltinObjectType(name.value)) {
+            const objectAccess = access.children?.find(child => child.type === 'object_access');
+            const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+            if (methodName) {
+              const builtinType = getBuiltinObjectType(name.value);
+              const returnType = builtinType?.[methodName] ?? 'any';
+              pushInference(parent, returnType);
+              return;
+            }
+          }
+
           if (def && def.params) {
             // Extract argument types from the func_call node
             const objectAccess = access.children?.find(child => child.type === 'object_access');
@@ -158,6 +172,18 @@ function createExpressionHandlers(getState) {
           }
         }
         
+        // Not a function call - check built-in object property access (e.g. Math.PI, Number.MAX_VALUE)
+        if (isBuiltinObjectType(name.value)) {
+          const objectAccess = access.children?.find(child => child.type === 'object_access');
+          const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+          if (propName) {
+            const builtinType = getBuiltinObjectType(name.value);
+            const propType = builtinType?.[propName] ?? 'any';
+            pushInference(parent, propType);
+            return;
+          }
+        }
+
         // Not a function call - validate property access for object types only
         const def = lookupVariable(name.value);
         if (def && def.type && def.type !== 'any') {
@@ -185,8 +211,12 @@ function createExpressionHandlers(getState) {
             return;
           }
           
-          // Only validate property access for object types (start with { but not array types)
-          if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+          // Validate property access for object types and primitive scalar types.
+          // Array types are intentionally excluded here: subscript element types
+          // are not tracked at this stage, so we fall through to 'any' for arrays.
+          const isPrimitiveType = resolvedType === 'string' || resolvedType === 'number' || resolvedType === 'boolean';
+          const isObjectType = resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]');
+          if (isPrimitiveType || isObjectType) {
             // Extract property name nodes and their names
             const properties = extractPropertyNodesFromAccess(access);
             
@@ -208,9 +238,12 @@ function createExpressionHandlers(getState) {
                   break;
                 }
                 
-                // Can only validate properties on object types (not arrays)
-                if (!resolvedCurrent || !resolvedCurrent.startsWith('{') || resolvedCurrent.endsWith('[]')) {
-                  // Reached a non-object type (array, primitive), stop validation
+                // Can only continue validating on object types or scalar primitives.
+                // Arrays are not followed (subscript element types are not tracked).
+                const isCurrentPrimitive = resolvedCurrent === 'string' || resolvedCurrent === 'number' || resolvedCurrent === 'boolean';
+                const isCurrentObject = resolvedCurrent && resolvedCurrent.startsWith('{') && !resolvedCurrent.endsWith('[]');
+                if (!isCurrentPrimitive && !isCurrentObject) {
+                  // Reached an array, unknown, or other type – stop validation
                   break;
                 }
                 

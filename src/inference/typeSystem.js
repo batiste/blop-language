@@ -15,7 +15,7 @@ import {
   AnyType, NeverType
 } from './Type.js';
 import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
-import { getBuiltinObjectType, isBuiltinObjectType } from './builtinTypes.js';
+import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 function splitTopLevel(typeString, delimiter) {
   const parts = [];
@@ -315,6 +315,26 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
       return AnyType;
     }
     
+    // Check primitive types (string, number, boolean)
+    if (currentType instanceof PrimitiveType) {
+      const memberType = getPrimitiveMemberType(currentType.name, propName);
+      if (memberType !== null) {
+        currentType = stringToType(memberType);
+        continue;
+      }
+      return null;
+    }
+
+    // Check array types (T[])
+    if (currentType instanceof ArrayType) {
+      const memberType = getPrimitiveMemberType('array', propName);
+      if (memberType !== null) {
+        currentType = stringToType(memberType);
+        continue;
+      }
+      return null;
+    }
+
     // Check built-in objects
     if (currentType instanceof TypeAlias && isBuiltinObjectType(currentType.name)) {
       const builtinType = getBuiltinObjectType(currentType.name);
