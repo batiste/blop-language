@@ -2,7 +2,7 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-import { visitChildren, pushToParent } from '../visitor.js';
+import { visitChildren } from '../visitor.js';
 import { 
   getAnnotationType, 
   createUnionType, 

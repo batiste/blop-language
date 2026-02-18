@@ -4,6 +4,7 @@
 
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType } from './typeSystem.js';
+import { ObjectType, ArrayType } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -417,18 +418,17 @@ function handleObjectAccess(types, i) {
   // Only validate property access for object types (types that resolve to {...})
   if (objectType && objectType !== 'any' && propertyName) {
     // Resolve type alias to check if it's an object type
-    const resolvedTypeRaw = resolveTypeAlias(objectType, typeAliases);
-    const resolvedType = typeof resolvedTypeRaw === 'string' ? resolvedTypeRaw : resolvedTypeRaw.toString();
+    const resolvedType = resolveTypeAlias(objectType, typeAliases);
     
     // Skip validation for empty object type {} as it's often used when type inference fails
-    if (resolvedType === '{}') {
+    if (resolvedType.toString() === '{}') {
       types[i - 1] = 'any';
       types.splice(i, 1);
       return i - 1;
     }
     
     // Skip validation for non-object types and array types
-    if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+    if (resolvedType instanceof ObjectType) {
       // This is an object type - validate property access
       const propertyType = getPropertyType(objectType, propertyName, typeAliases);
       
@@ -477,14 +477,13 @@ function checkObjectAccess(types, i) {
   }
 
   if (objectType && objectType !== 'any' && propertyName) {
-    const resolvedTypeRaw = resolveTypeAlias(objectType, typeAliases);
-    const resolvedType = typeof resolvedTypeRaw === 'string' ? resolvedTypeRaw : resolvedTypeRaw.toString();
+    const resolvedType = resolveTypeAlias(objectType, typeAliases);
 
-    if (resolvedType === '{}') {
+    if (resolvedType.toString() === '{}') {
       return;
     }
 
-    if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+    if (resolvedType instanceof ObjectType) {
       const propertyType = getPropertyType(objectType, propertyName, typeAliases);
 
       if (propertyType === null) {

@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, ArrayType, PrimitiveType, AnyType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType } from '../builtinTypes.js';
 
@@ -97,8 +97,7 @@ function createExpressionHandlers(getState) {
             if (methodName) {
               const builtinType = getBuiltinObjectType(name.value);
               const rawReturn = builtinType?.[methodName];
-              // TODO(step3): remove .toString() once pushInference accepts Type objects
-              const returnType = rawReturn != null ? rawReturn.toString() : 'any';
+              const returnType = rawReturn ?? 'any';
               pushInference(parent, returnType);
               return;
             }
@@ -159,8 +158,7 @@ function createExpressionHandlers(getState) {
               // Substitute type parameters in return type
               let returnType = def.type ?? AnyType;
               returnType = substituteType(returnType, substitutions);
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
-              pushInference(parent, typeof returnType === 'string' ? returnType : returnType.toString());
+              pushInference(parent, returnType);
               return;
             } else {
               // Non-generic function - validate parameters
@@ -170,9 +168,9 @@ function createExpressionHandlers(getState) {
                   result.warnings.forEach(warning => pushWarning(name, warning));
                 }
               }
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
+              // step3 done: pushInference normalizes Type objects
               const retType = def.type ?? 'any';
-              pushInference(parent, typeof retType === 'string' ? retType : retType.toString());
+              pushInference(parent, retType);
               return;
             }
           }
@@ -185,8 +183,7 @@ function createExpressionHandlers(getState) {
           if (propName) {
             const builtinType = getBuiltinObjectType(name.value);
             const rawProp = builtinType?.[propName];
-            // TODO(step3): remove .toString() once pushInference accepts Type objects
-            const propType = rawProp != null ? rawProp.toString() : 'any';
+            const propType = rawProp ?? 'any';
             pushInference(parent, propType);
             return;
           }
@@ -212,10 +209,9 @@ function createExpressionHandlers(getState) {
             return;
           }
           
-          // Resolve type alias to see if it's an object type (result may be Type or string)
+          // Resolve type alias to see if it's an object type
           const resolvedType = resolveTypeAlias(def.type, typeAliases);
-          // Normalize helpers so we can handle both Type objects and legacy strings
-          const resolvedStr = typeof resolvedType === 'string' ? resolvedType : resolvedType.toString();
+          const resolvedStr = resolvedType.toString();
           
           // Skip validation for empty object type {} as it's often used when type inference fails
           if (resolvedStr === '{}') {
@@ -227,12 +223,9 @@ function createExpressionHandlers(getState) {
           // Validate property access for object types and primitive scalar types.
           // Array types are intentionally excluded here: subscript element types
           // are not tracked at this stage, so we fall through to 'any' for arrays.
-          const isPrimitiveType = (resolvedType instanceof PrimitiveType && 
-                                   (resolvedStr === 'string' || resolvedStr === 'number' || resolvedStr === 'boolean')) ||
-                                  (typeof resolvedType === 'string' && 
-                                   (resolvedStr === 'string' || resolvedStr === 'number' || resolvedStr === 'boolean'));
-          const isObjectType = (resolvedType instanceof ObjectType) ||
-                               (typeof resolvedType === 'string' && resolvedStr.startsWith('{') && !resolvedStr.endsWith('[]'));
+          const isPrimitiveType = resolvedType instanceof PrimitiveType &&
+                                  (resolvedType.name === 'string' || resolvedType.name === 'number' || resolvedType.name === 'boolean');
+          const isObjectType = resolvedType instanceof ObjectType;
           if (isPrimitiveType || isObjectType) {
             // Extract property name nodes and their names
             const properties = extractPropertyNodesFromAccess(access);
@@ -249,21 +242,17 @@ function createExpressionHandlers(getState) {
               for (let i = 0; i < properties.length; i++) {
                 const { name: propName, node: propNode } = properties[i];
                 const resolvedCurrent = resolveTypeAlias(currentType, typeAliases);
-                const resolvedCurrentStr = typeof resolvedCurrent === 'string' ? resolvedCurrent : resolvedCurrent.toString();
                 
                 // Skip empty objects
-                if (resolvedCurrentStr === '{}') {
+                if (resolvedCurrent.toString() === '{}') {
                   break;
                 }
                 
                 // Can only continue validating on object types or scalar primitives.
                 // Arrays are not followed (subscript element types are not tracked).
-                const isCurrentPrimitive = (resolvedCurrent instanceof PrimitiveType &&
-                                            (resolvedCurrentStr === 'string' || resolvedCurrentStr === 'number' || resolvedCurrentStr === 'boolean')) ||
-                                           (typeof resolvedCurrent === 'string' &&
-                                            (resolvedCurrentStr === 'string' || resolvedCurrentStr === 'number' || resolvedCurrentStr === 'boolean'));
-                const isCurrentObject = (resolvedCurrent instanceof ObjectType) ||
-                                        (typeof resolvedCurrent === 'string' && resolvedCurrentStr.startsWith('{') && !resolvedCurrentStr.endsWith('[]'));
+                const isCurrentPrimitive = resolvedCurrent instanceof PrimitiveType &&
+                                           (resolvedCurrent.name === 'string' || resolvedCurrent.name === 'number' || resolvedCurrent.name === 'boolean');
+                const isCurrentObject = resolvedCurrent instanceof ObjectType;
                 if (!isCurrentPrimitive && !isCurrentObject) {
                   // Reached an array, unknown, or other type – stop validation
                   break;
@@ -278,10 +267,9 @@ function createExpressionHandlers(getState) {
                 }
                 
                 // Annotate property name node with its resolved type
-                pushInference(propNode, typeof nextType === 'string' ? nextType : nextType.toString());
+                pushInference(propNode, nextType);
                 // Stamp property node with its resolved type for hover support
-                const nextResolved = resolveTypeAlias(nextType, typeAliases);
-                propNode.inferredType = typeof nextResolved === 'string' ? nextResolved : nextResolved.toString();
+                propNode.inferredType = resolveTypeAlias(nextType, typeAliases).toString();
                 
                 validatedPath.push(propName);
                 currentType = nextType;
@@ -300,9 +288,7 @@ function createExpressionHandlers(getState) {
               }
               
               // Successfully validated property chain - push the final type
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
-              const finalType = typeof currentType === 'string' ? currentType : currentType.toString();
-              pushInference(parent, finalType);
+              pushInference(parent, currentType);
               return;
             }
           }
@@ -323,18 +309,14 @@ function createExpressionHandlers(getState) {
           // Stamp the name node with the function's inferred type for hover
           const { inferencePhase } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            const defTypeStr = typeof def.type === 'string' ? def.type : def.type?.toString();
-            name.inferredType = defTypeStr || 'function';
+            name.inferredType = def.type?.toString() || 'function';
           }
         } else {
-          // TODO(step3): when inference stack accepts Type objects, remove .toString()
-          const defTypeStr = typeof def.type === 'string' ? def.type : def.type?.toString();
-          pushInference(parent, defTypeStr);
+          pushInference(parent, def.type);
           // Stamp the name node with its resolved type for hover
           const { inferencePhase, typeAliases } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            const resolved = resolveTypeAlias(def.type, typeAliases);
-            name.inferredType = typeof resolved === 'string' ? resolved : resolved.toString();
+            name.inferredType = resolveTypeAlias(def.type, typeAliases).toString();
           }
         }
       } else {

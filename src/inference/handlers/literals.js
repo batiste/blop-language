@@ -3,8 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes } from '../visitor.js';
-import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias, stringToType } from '../typeSystem.js';
-import { ArrayType, ObjectType } from '../typeSystem.js';
+import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias, stringToType, ObjectType } from '../typeSystem.js';
 
 /**
  * Infer the element type of an array literal from its AST node
@@ -45,13 +44,12 @@ function inferArrayElementType(node) {
     return null;
   }
   
-  // Normalize element types to strings for comparison
-  const elementTypeStrings = elementTypes.map(t => (typeof t === 'string') ? t : t.toString());
-
   // Check if all elements are object types
-  const allObjectTypes = elementTypeStrings.every(t => t.startsWith('{') && t.endsWith('}'));
+  const allObjectTypes = elementTypes.every(t => t instanceof ObjectType);
   
-  if (allObjectTypes && elementTypeStrings.length > 1) {
+  if (allObjectTypes && elementTypes.length > 1) {
+    // Convert to strings for parseObjectTypeString (which works on string format)
+    const elementTypeStrings = elementTypes.map(t => t.toString());
     // Parse all object structures
     const structures = elementTypeStrings.map(t => parseObjectTypeString(t)).filter(s => s !== null);
     
@@ -88,10 +86,7 @@ function inferArrayElementType(node) {
   }
   
   // Unify all element types to a common base type
-  // If all elements are literals of the same base type (e.g., 1, 2, 3 -> number)
-  // or all the same type, return that type
-  
-  const baseTypes = elementTypeStrings.map(t => getBaseTypeOfLiteral(t));
+  const baseTypes = elementTypes.map(t => getBaseTypeOfLiteral(t.toString()));
   const uniqueBaseTypes = [...new Set(baseTypes)];
   
   if (uniqueBaseTypes.length === 1) {
@@ -134,7 +129,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
     const spreadNode = bodyNode.named?.spread_exp;
     if (spreadNode && spreadNode.inference && spreadNode.inference.length > 0) {
       const spreadTypeRaw = spreadNode.inference[0];
-      const spreadType = (typeof spreadTypeRaw === 'string') ? spreadTypeRaw : spreadTypeRaw.toString();
+      const spreadType = spreadTypeRaw.toString();
       const spreadStructure = parseObjectTypeString(spreadType);
       if (spreadStructure) {
         // Merge spread properties into our properties map
@@ -154,7 +149,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
         if (lookupVariable) {
           const def = lookupVariable(key);
           if (def && def.type) {
-            valueType = (typeof def.type === 'string') ? def.type : def.type.toString();
+            valueType = def.type.toString();
           }
         }
         propertiesMap[key] = valueType;
@@ -184,8 +179,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
       let valueType = 'any';
       
       if (exp.inference && exp.inference.length > 0) {
-        const rawType = exp.inference[0];
-        valueType = (typeof rawType === 'string') ? rawType : rawType.toString();
+        valueType = exp.inference[0].toString();
       }
       
       propertiesMap[key] = valueType;
@@ -205,7 +199,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
   }
   
   // Convert properties map to array of strings
-  const propertyStrings = Object.entries(propertiesMap).map(([k, v]) => `${k}: ${(typeof v === 'string') ? v : v.toString()}`);
+  const propertyStrings = Object.entries(propertiesMap).map(([k, v]) => `${k}: ${v}`);
   return `{${propertyStrings.join(', ')}}`;
 }
 

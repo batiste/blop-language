@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType, TypeAlias } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -221,7 +221,6 @@ function createStatementHandlers(getState) {
           }
           
           if (expectedType && isObjectLiteral) {
-            // TODO(step3): pass Type object directly once literals.js is migrated
             setExpectedObjectType(expectedType.toString());
           }
         }
@@ -415,8 +414,8 @@ function createStatementHandlers(getState) {
       const objAnnotationType = node.named.objectannotation 
         ? getAnnotationType(node.named.objectannotation) 
         : null;
-      // Use .toString() since getAnnotationType now returns Type objects
-      const isArray = objAnnotationType?.toString() === 'array';
+      // Use instanceof since getAnnotationType returns Type objects
+      const isArray = objAnnotationType instanceof TypeAlias && objAnnotationType.name === 'array';
       
       // Key type: number with :array, string without (Object.keys returns strings)
       const keyType = isArray ? 'number' : 'string';
@@ -433,10 +432,7 @@ function createStatementHandlers(getState) {
         // Check if we're iterating an array without :array annotation
         const expType = node.named.exp.inference?.[0];
         if (expType && key && !isArray) {
-          // Check if expression type looks like an array
-          const isArrayType = expType.endsWith('[]') || 
-                             expType === 'array' || 
-                             expType.startsWith('Array<');
+          const isArrayType = expType instanceof ArrayType;
           
           if (isArrayType) {
             pushWarning(
@@ -452,15 +448,8 @@ function createStatementHandlers(getState) {
         const expType = node.named.exp.inference[0];
         let valueType = 'any';
         
-        // Try to infer element type from array type
-        if (expType) {
-          if (expType.endsWith('[]')) {
-            // Extract element type: string[] -> string
-            valueType = expType.slice(0, -2);
-          } else if (expType.startsWith('Array<') && expType.endsWith('>')) {
-            // Extract element type: Array<number> -> number
-            valueType = expType.slice(6, -1);
-          }
+        if (expType instanceof ArrayType) {
+          valueType = expType.elementType.toString();
         }
         
         scope[value] = { type: valueType, node: node.named.value };

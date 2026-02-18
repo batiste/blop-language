@@ -2,7 +2,7 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-import { visitChildren, pushToParent } from '../visitor.js';
+import { visitChildren } from '../visitor.js';
 import { 
   getAnnotationType, 
   createUnionType, 
@@ -105,8 +105,7 @@ function createFunctionHandlers(getState) {
           let returnType = def.type;
           if (returnType) {
             returnType = substituteType(returnType, substitutions);
-            // TODO(step3): when inference stack accepts Type objects, remove .toString()
-            pushInference(parent, typeof returnType === 'string' ? returnType : returnType.toString());
+            pushInference(parent, returnType);
           }
           
          // Also check parameter types with substituted generics
@@ -126,8 +125,7 @@ function createFunctionHandlers(getState) {
             }
           }
           if (def.type) {
-            // TODO(step3): when inference stack accepts Type objects, remove .toString()
-            pushInference(parent, typeof def.type === 'string' ? def.type : def.type.toString());
+            pushInference(parent, def.type);
           }
         }
       }

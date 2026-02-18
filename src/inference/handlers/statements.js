@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType, TypeAlias } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -414,8 +414,8 @@ function createStatementHandlers(getState) {
       const objAnnotationType = node.named.objectannotation 
         ? getAnnotationType(node.named.objectannotation) 
         : null;
-      // Use .toString() since getAnnotationType now returns Type objects
-      const isArray = objAnnotationType?.toString() === 'array';
+      // Use instanceof since getAnnotationType returns Type objects
+      const isArray = objAnnotationType instanceof TypeAlias && objAnnotationType.name === 'array';
       
       // Key type: number with :array, string without (Object.keys returns strings)
       const keyType = isArray ? 'number' : 'string';
