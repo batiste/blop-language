@@ -233,7 +233,7 @@ def PlaygroundPage(_attributes, _children, node): VNode {
                   },
                   {
                     name: 'List with For Loop',
-                    code: 'def ItemList(attributes, _children): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items: array {\n      <li>item</li>\n    }\n  </ul>\n}'
+                    code: 'def ItemList(attributes, _children): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
                   },
                   {
                     name: 'Conditional Rendering',
@@ -241,7 +241,7 @@ def PlaygroundPage(_attributes, _children, node): VNode {
                   }
                 ]
                 
-                for example in examples: array {
+                for example in examples {
                   <button
                     class="btn btn-outline-primary"
                     on={ click: () => {

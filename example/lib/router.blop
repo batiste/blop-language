@@ -51,7 +51,7 @@ class Router {
       m := path.match(route.reg)
       if m {
         if route.params {
-          for index, value in route.params: array {
+          for index, value in route.params {
             params[value] = m[1 + index]
           }
         }

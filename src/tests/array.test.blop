@@ -19,7 +19,7 @@ test('array access', () => {
 
 def arrayScope() {
   numbers = [1, 2, 3]
-  for n in numbers: array {
+  for n in numbers {
     n := n + 1
     // <p></p>
   }

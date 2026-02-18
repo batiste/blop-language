@@ -50,8 +50,7 @@ function createLoopGenerators(context) {
       };
       
       const keyAnnotationType = getAnnotationType(node.named.keyannotation);
-      const objAnnotationType = getAnnotationType(node.named.objectannotation);
-      const isArray = (keyAnnotationType === 'int') || (objAnnotationType === 'array');
+      const isArray = (keyAnnotationType === 'int') || !!node.named.of;
       
       // an proper array is expected
       if (isArray) {

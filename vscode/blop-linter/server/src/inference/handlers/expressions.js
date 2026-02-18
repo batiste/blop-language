@@ -45,7 +45,7 @@ function extractExplicitTypeArguments(typeArgsNode) {
 
 /**
  * Extract property name nodes from an access chain
- * Returns array of {name: string, node: astNode} for each step in the chain
+ * Returns array {name: string, node: astNode} for each step in the chain
  */
 function extractPropertyNodesFromAccess(accessNode) {
   const properties = [];

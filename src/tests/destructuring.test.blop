@@ -26,7 +26,7 @@ def configure(attributes) {
 
 url = configure({ host: 'example.com', port: 443, secure: true })
 
-def createPoint(pos, size) {
+def createPoint(pos: { x: number, y: number }, size: { width: number, height: number }) {
   { x, y } = pos
   { width, height } = size
   return { x, y, width, height, area: width * height }
@@ -49,7 +49,7 @@ data = [
 
 keys = []
 values = []
-for item in data: array {
+for item in data {
   keys.push(item.key)
   values.push(item.value)
 }

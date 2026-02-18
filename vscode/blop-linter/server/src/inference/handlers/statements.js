@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType, TypeAlias } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -38,7 +38,7 @@ function extractImportNames(node) {
 
 /**
  * Extract property name nodes from an access chain
- * Returns array of {name: string, node: astNode} for each step in the chain
+ * Returns array {name: string, node: astNode} for each step in the chain
  */
 function extractPropertyNodesFromAccess(accessNode) {
   const properties = [];
@@ -410,12 +410,8 @@ function createStatementHandlers(getState) {
       const key = (node.named.key && node.named.key.value) || null;
       const value = node.named.value ? node.named.value.value : null;
       
-      // Check for :array annotation
-      const objAnnotationType = node.named.objectannotation 
-        ? getAnnotationType(node.named.objectannotation) 
-        : null;
-      // Use instanceof since getAnnotationType returns Type objects
-      const isArray = objAnnotationType instanceof TypeAlias && objAnnotationType.name === 'array';
+      // Check for 'of' keyword (array iteration mode)
+      const isArray = !!(node.named.of)
       
       // Key type: number with :array, string without (Object.keys returns strings)
       const keyType = isArray ? 'number' : 'string';
@@ -437,7 +433,7 @@ function createStatementHandlers(getState) {
           if (isArrayType) {
             pushWarning(
               node.named.exp,
-              `Iterating array without ':array' annotation - variable '${key}' will be string ("0", "1", ...) instead of number. Add ': array' after the expression to fix this.`
+              `Iterating array without 'of' keyword - variable '${key}' will be string ("0", "1", ...) instead of number. Add 'of' after the expression to fix this.`
             );
           }
         }

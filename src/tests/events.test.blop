@@ -50,7 +50,7 @@ def ClickableItem(attributes) {
 def ButtonList(attributes) {
   { items } = attributes
   <div>
-    for item in items: array {
+    for item in items {
       <button key=item.id on={ click: () => item.handler() }>item.label</button>
     }
   </div>

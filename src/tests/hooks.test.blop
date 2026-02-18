@@ -102,7 +102,7 @@ def HookedButton(attributes) {
 def HookedList(attributes) {
   { items } = attributes
   <ul>
-    for item in items: array {
+    for item in items {
       hooks = {
         insert: (vnode) => {
           vnode.elm.setAttribute('data-id', item.id)

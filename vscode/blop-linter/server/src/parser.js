@@ -1611,18 +1611,12 @@ let for_loop_0 = (stream, index) => {
   named['exp'] = _rule_4;
   children.push(_rule_4);
   i = _rule_4.last_index;
-  const _rule_5 = annotation(stream, i);
-  if (_rule_5) {
-    children.push(_rule_5);
-    named['objectannotation'] = _rule_5;
-    i = _rule_5.last_index;
-  }
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1636,7 +1630,7 @@ let for_loop_0 = (stream, index) => {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1645,20 +1639,20 @@ let for_loop_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_8 = SCOPED_STATEMENTS(stream, i);
-  while (_rule_8) {
+  let _rule_7 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_7) {
     named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_8);
-    children.push(_rule_8);
-    i = _rule_8.last_index;
-    _rule_8 = SCOPED_STATEMENTS(stream, i);
+    named['stats'].push(_rule_7);
+    children.push(_rule_7);
+    i = _rule_7.last_index;
+    _rule_7 = SCOPED_STATEMENTS(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 9,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 8,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1708,16 +1702,24 @@ let for_loop_1 = (stream, index) => {
     return false;
   }
 
-  named['key'] = stream[i];
+  named['value'] = stream[i];
   children.push(stream[i]); i++;
-  const _rule_2 = annotation(stream, i);
-  if (_rule_2) {
-    children.push(_rule_2);
-    named['keyannotation'] = _rule_2;
-    i = _rule_2.last_index;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
   }
 
-  if (stream[i].type !== ',') {
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'of') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 1,
@@ -1729,81 +1731,19 @@ let for_loop_1 = (stream, index) => {
     return false;
   }
 
+  named['of'] = stream[i];
   children.push(stream[i]); i++;
+  const _rule_4 = exp(stream, i);
+  if (!_rule_4) return false;
+  named['exp'] = _rule_4;
+  children.push(_rule_4);
+  i = _rule_4.last_index;
 
   if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'name') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 5,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['value'] = stream[i];
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'in') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_8 = exp(stream, i);
-  if (!_rule_8) return false;
-  named['exp'] = _rule_8;
-  children.push(_rule_8);
-  i = _rule_8.last_index;
-  const _rule_9 = annotation(stream, i);
-  if (_rule_9) {
-    children.push(_rule_9);
-    named['objectannotation'] = _rule_9;
-    i = _rule_9.last_index;
-  }
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 10,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1817,7 +1757,7 @@ let for_loop_1 = (stream, index) => {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 11,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1826,20 +1766,20 @@ let for_loop_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_12 = SCOPED_STATEMENTS(stream, i);
-  while (_rule_12) {
+  let _rule_7 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_7) {
     named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_12);
-    children.push(_rule_12);
-    i = _rule_12.last_index;
-    _rule_12 = SCOPED_STATEMENTS(stream, i);
+    named['stats'].push(_rule_7);
+    children.push(_rule_7);
+    i = _rule_7.last_index;
+    _rule_7 = SCOPED_STATEMENTS(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'for_loop', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 13,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 8,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -1854,9 +1794,362 @@ let for_loop_1 = (stream, index) => {
 for_loop_1 = memoize('for_loop_1', for_loop_1);
 
 
+let for_loop_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'for_loop',
+    sub_rule_index: 2, type: 'for_loop', named,
+  };
+
+  if (stream[i].type !== 'for') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['key'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_2 = annotation(stream, i);
+  if (_rule_2) {
+    children.push(_rule_2);
+    named['keyannotation'] = _rule_2;
+    i = _rule_2.last_index;
+  }
+
+  if (stream[i].type !== ',') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['value'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'in') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_8 = exp(stream, i);
+  if (!_rule_8) return false;
+  named['exp'] = _rule_8;
+  children.push(_rule_8);
+  i = _rule_8.last_index;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 9,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '{') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 10,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  let _rule_11 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_11) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_11);
+    children.push(_rule_11);
+    i = _rule_11.last_index;
+    _rule_11 = SCOPED_STATEMENTS(stream, i);
+  }
+
+  if (stream[i].type !== '}') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 12,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+for_loop_2 = memoize('for_loop_2', for_loop_2);
+
+
+let for_loop_3 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'for_loop',
+    sub_rule_index: 3, type: 'for_loop', named,
+  };
+
+  if (stream[i].type !== 'for') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['key'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_2 = annotation(stream, i);
+  if (_rule_2) {
+    children.push(_rule_2);
+    named['keyannotation'] = _rule_2;
+    i = _rule_2.last_index;
+  }
+
+  if (stream[i].type !== ',') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['value'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'of') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['of'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_8 = exp(stream, i);
+  if (!_rule_8) return false;
+  named['exp'] = _rule_8;
+  children.push(_rule_8);
+  i = _rule_8.last_index;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 9,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '{') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 10,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  let _rule_11 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_11) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_11);
+    children.push(_rule_11);
+    i = _rule_11.last_index;
+    _rule_11 = SCOPED_STATEMENTS(stream, i);
+  }
+
+  if (stream[i].type !== '}') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'for_loop', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 12,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+for_loop_3 = memoize('for_loop_3', for_loop_3);
+
+
 function for_loop(stream, index) {
   return for_loop_0(stream, index)
-    || for_loop_1(stream, index);
+    || for_loop_1(stream, index)
+    || for_loop_2(stream, index)
+    || for_loop_3(stream, index);
 }
 let func_def_0 = (stream, index) => {
   let i = index;
@@ -9332,6 +9625,9 @@ function _tokenize(tokenDef, input, char, stream) {
   }
   if (input.substr(char, 3) === 'in ') {
     return ['in ', 'in'];
+  }
+  if (input.substr(char, 3) === 'of ') {
+    return ['of ', 'of'];
   }
   if (input.substr(char, 6) === 'await ') {
     return ['await ', 'await'];

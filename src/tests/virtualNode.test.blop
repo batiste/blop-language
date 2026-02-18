@@ -37,7 +37,7 @@ def testConditions() {
 
 def loop1(array) {
   <div>
-    for item in array: array {
+    for item in array {
       = item
     }
   </div>
