@@ -5,6 +5,7 @@
 import {
   Types,
   AnyType, StringType, NumberType, BooleanType, NullType, UndefinedType,
+  ArrayType, UnionType,
 } from './Type.js';
 
 /**
@@ -335,6 +336,64 @@ export const builtinPrimitiveTypes = {
     with: Types.array(AnyType),
   },
 };
+
+/**
+ * Get the element-type-aware return type for an array member access or call.
+ *
+ * Some array methods have return types that depend on the element type T of the
+ * array (e.g. `pop()` returns `T | undefined`, `map()` returns `T[]`).
+ * This function resolves those instead of falling back to the generic `AnyType`
+ * entries in `builtinPrimitiveTypes.array`.
+ *
+ * @param {ArrayType} arrayType  - The concrete array type (e.g. `number[]`)
+ * @param {string}   memberName - The method or property name
+ * @returns {import('./Type.js').Type}  The resolved return type
+ */
+export function getArrayMemberType(arrayType, memberName) {
+  if (!(arrayType instanceof ArrayType)) {
+    return builtinPrimitiveTypes.array[memberName] ?? AnyType;
+  }
+
+  const T = arrayType.elementType;
+
+  // Methods / properties whose return type depends on T
+  switch (memberName) {
+    // Returns T | undefined
+    case 'pop':
+    case 'shift':
+    case 'find':
+    case 'findLast':
+    case 'at':
+      return new UnionType([T, UndefinedType]);
+
+    // Returns T[]  (new array of same element type)
+    case 'reverse':
+    case 'sort':
+    case 'fill':
+    case 'copyWithin':
+    case 'filter':
+    case 'slice':
+    case 'flat':
+    case 'toReversed':
+    case 'toSorted':
+    case 'toSpliced':
+    case 'with':
+      return new ArrayType(T);
+
+    // map / flatMap return a different element type (unknown at this stage → any[])
+    // but concat merges arrays of the same type
+    case 'concat':
+      return new ArrayType(T);
+
+    // Returns T (safe – splice returns the removed elements)
+    case 'splice':
+      return new ArrayType(T);
+
+    default:
+      // Fall back to the static table in builtinPrimitiveTypes
+      return builtinPrimitiveTypes.array[memberName] ?? AnyType;
+  }
+}
 
 /**
  * Get the Type of a method/property on a primitive type.
