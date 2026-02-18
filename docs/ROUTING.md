@@ -28,7 +28,7 @@ Blop includes a lightweight client-side router in the example project. The route
 
 The router is located at `example/lib/router.blop`. Copy it to your project:
 
-```blop
+```typescript
 import { Router } from './lib/router.blop'
 ```
 
@@ -36,7 +36,7 @@ import { Router } from './lib/router.blop'
 
 ### 1. Create Router Instance
 
-```blop
+```typescript
 import { Router } from './lib/router.blop'
 import { createState } from './lib/state.blop'
 
@@ -54,7 +54,7 @@ router = new Router(null, state, window)
 
 Route handlers are functions that update your application state:
 
-```blop
+```typescript
 // Simple handler
 def indexHandler(params, state) {
   state.page := 'index'
@@ -77,7 +77,7 @@ async def userHandler(params, state) {
 
 ### 3. Register Routes
 
-```blop
+```typescript
 def createRouter(state, window) {
   router = new Router(null, state, window)
   
@@ -109,7 +109,7 @@ def createRouter(state, window) {
 
 ### 4. Integrate with App
 
-```blop
+```typescript
 // client.blop
 import { mount } from 'blop'
 import { createState } from './lib/state.blop'
@@ -136,7 +136,7 @@ state.$.listen((path) => {
 
 ### Route Configuration
 
-```blop
+```typescript
 router.add({
   path: '/path/to/route',      // URL pattern
   name: 'routeName',            // Unique identifier
@@ -146,7 +146,7 @@ router.add({
 
 ### Static Routes
 
-```blop
+```typescript
 router.add({ path: '/', name: 'home', handler: homeHandler })
 router.add({ path: '/about', name: 'about', handler: aboutHandler })
 router.add({ path: '/contact', name: 'contact', handler: contactHandler })
@@ -156,7 +156,7 @@ router.add({ path: '/contact', name: 'contact', handler: contactHandler })
 
 Use `:paramName` for dynamic segments:
 
-```blop
+```typescript
 // Single parameter
 router.add({
   path: '/users/:id',
@@ -186,7 +186,7 @@ Handlers receive two arguments:
 
 ### Synchronous Handler
 
-```blop
+```typescript
 def aboutHandler(params, state) {
   state.page := 'about'
   state.title := 'About Us'
@@ -195,7 +195,7 @@ def aboutHandler(params, state) {
 
 ### Asynchronous Handler
 
-```blop
+```typescript
 async def productHandler(params, state) {
   state.page := 'product'
   state.loading := true
@@ -213,7 +213,7 @@ async def productHandler(params, state) {
 
 ### Handler with Logic
 
-```blop
+```typescript
 def dogBreedHandler(params, state) {
   state.page := 'dog'
   
@@ -235,7 +235,7 @@ def dogBreedHandler(params, state) {
 
 Access the router through state:
 
-```blop
+```typescript
 def NavigationMenu(state) {
   goHome = (e) => {
     e.preventDefault()
@@ -258,7 +258,7 @@ def NavigationMenu(state) {
 
 For proper handling with `preventDefault`:
 
-```blop
+```typescript
 def Links(state) {
   def navigateTo(path) {
     return (e) => {
@@ -277,7 +277,7 @@ def Links(state) {
 
 ### Router Methods
 
-```blop
+```typescript
 state.$.router.go(path)           // Navigate to path
 state.$.router.back()             // Go back in history
 state.$.router.forward()          // Go forward in history
@@ -290,7 +290,7 @@ state.$.router.init()             // Initialize router
 
 Parameters are automatically parsed and passed to handlers:
 
-```blop
+```typescript
 router.add({
   path: '/users/:userId/posts/:postId',
   name: 'userPost',
@@ -306,7 +306,7 @@ router.add({
 
 ### Using Parameters in Components
 
-```blop
+```typescript
 def UserProfile(state) {
   userId = state.userId  // Set by route handler
   user = state.users.find(u => u.id == userId)
@@ -328,7 +328,7 @@ def UserProfile(state) {
 
 The router integrates seamlessly with state management:
 
-```blop
+```typescript
 // routing.blop
 def indexHandler(params, state) {
   state.page := 'index'
@@ -359,7 +359,7 @@ def createRouter(state, global) {
 }
 ```
 
-```blop
+```typescript
 // client.blop
 import { createState } from './lib/state.blop'
 import { createRouter } from './routing.blop'
@@ -380,7 +380,7 @@ router = createRouter(state, window)
 
 ## Full Example
 
-```blop
+```typescript
 // routing.blop
 import { Router } from './lib/router.blop'
 
@@ -429,7 +429,7 @@ export def createRouter(state, global) {
 }
 ```
 
-```blop
+```typescript
 // App.blop
 import { HomePage } from './pages/HomePage.blop'
 import { AboutPage } from './pages/AboutPage.blop'
@@ -456,7 +456,7 @@ export def App(state) {
 }
 ```
 
-```blop
+```typescript
 // components/Navigation.blop
 export def Navigation(state) {
   def navigate(path) {
@@ -484,7 +484,7 @@ export def Navigation(state) {
 }
 ```
 
-```blop
+```typescript
 // client.blop
 import { mount } from 'blop'
 import { createState } from './lib/state.blop'
@@ -526,7 +526,7 @@ state.$.listen((path) => {
 
 Keep all routes in one place for easy maintenance:
 
-```blop
+```typescript
 // routes.blop
 export routes = [
   { path: '/', name: 'home', handler: homeHandler },
@@ -545,7 +545,7 @@ export def setupRoutes(router) {
 
 Give routes meaningful names for easier refactoring:
 
-```blop
+```typescript
 router.add({ path: '/users/:id', name: 'userProfile', handler: userHandler })
 
 // Later, you can reference by name if needed
@@ -555,7 +555,7 @@ router.add({ path: '/users/:id', name: 'userProfile', handler: userHandler })
 
 Show loading indicators during async navigation:
 
-```blop
+```typescript
 async def pageHandler(params, state) {
   state.loading := true
   try {
@@ -570,7 +570,7 @@ async def pageHandler(params, state) {
 
 Prevent full page reloads by calling `preventDefault`:
 
-```blop
+```typescript
 handleClick = (e) => {
   e.preventDefault()  // Important!
   state.$.router.go('/path')

@@ -15,7 +15,7 @@ import {
   AnyType, NeverType
 } from './Type.js';
 import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
-import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
+import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
 
 function splitTopLevel(typeString, delimiter) {
   const parts = [];
@@ -331,7 +331,7 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
 
     // Check array types (T[])
     if (currentType instanceof ArrayType) {
-      const memberType = getPrimitiveMemberType('array', propName);
+      const memberType = getArrayMemberType(currentType, propName);
       if (memberType !== null) {
         currentType = memberType;
         continue;
@@ -732,8 +732,16 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   }
   const targetType = new ObjectType(targetProps);
   
-  // Check compatibility
+  // Check compatibility (structural subtyping - ignores excess properties)
   if (valueType.isCompatibleWith(targetType, aliasMap)) {
+    // Even if structurally compatible, report excess properties at assignment sites
+    const excessKeys = valueType.excessPropertiesAgainst(targetType);
+    if (excessKeys.length > 0) {
+      for (const key of excessKeys) {
+        errors.push(`Excess property '${key}' not in type definition`);
+      }
+      return { compatible: false, errors };
+    }
     return { compatible: true, errors: [] };
   }
   
@@ -751,10 +759,8 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
     }
   }
   
-  for (const key of valueType.properties.keys()) {
-    if (!targetType.properties.has(key)) {
-      errors.push(`Excess property '${key}' not in type definition`);
-    }
+  for (const key of valueType.excessPropertiesAgainst(targetType)) {
+    errors.push(`Excess property '${key}' not in type definition`);
   }
   
   return { compatible: false, errors };

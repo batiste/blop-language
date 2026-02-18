@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType, isUnionType, parseUnionType } from './typeSystem.js';
 import { ObjectType, ArrayType } from './typeSystem.js';
 
 // Module state
@@ -11,6 +11,7 @@ let warnings;
 let stream;
 let functionScopes;
 let typeAliases;
+let symbolTable; // Live SymbolTable from binding phase (for functionLocals lookup)
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
 let expectedObjectType; // Track expected type for object literals
@@ -272,7 +273,6 @@ function handleNullishOperator(types, i) {
   const rightType = types[i - 2];
   
   // If left can never be nullish, result is left type
-  const { isUnionType, parseUnionType } = require('./typeSystem');
   if (leftType !== 'null' && leftType !== 'undefined' && 
       !isUnionType(leftType) || 
       (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === 'null' || t === 'undefined'))) {
@@ -602,11 +602,12 @@ function stampInferredTypes(node) {
  * @param {String} _filename - Current filename being processed
  * @param {String} _phase - 'inference' or 'checking' - controls warning suppression
  */
-function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference') {
+function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference', _symbolTable = null) {
   warnings = _warnings;
   stream = _stream;
   functionScopes = _functionScopes;
   typeAliases = _typeAliases;
+  symbolTable = _symbolTable;
   currentFilename = _filename;
   inferencePhase = _phase;
 }
@@ -620,6 +621,7 @@ function getVisitorState() {
     stream,
     functionScopes,
     typeAliases,
+    symbolTable,
     currentFilename,
     inferencePhase,
     getCurrentScope,

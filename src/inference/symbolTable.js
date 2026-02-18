@@ -14,6 +14,7 @@ class SymbolTable {
     this.typeAliases = {};
     this.globalFunctions = {};
     this.globalVariables = {};
+    this.functionLocals = new Map(); // funcName → { varName → { type, node } }
   }
 
   /**
@@ -52,6 +53,19 @@ class SymbolTable {
   }
 
   /**
+   * Add a local variable (annotated) inside a function body to the symbol table
+   * @param {string} funcName - The enclosing function name
+   * @param {string} varName - Variable name
+   * @param {Object} info - Variable info { type, node }
+   */
+  addFunctionLocal(funcName, varName, info) {
+    if (!this.functionLocals.has(funcName)) {
+      this.functionLocals.set(funcName, {});
+    }
+    this.functionLocals.get(funcName)[varName] = info;
+  }
+
+  /**
    * Get all symbols for use in type checking phase
    */
   getAllSymbols() {
@@ -59,6 +73,7 @@ class SymbolTable {
       typeAliases: this.typeAliases,
       functions: this.globalFunctions,
       variables: this.globalVariables,
+      functionLocals: this.functionLocals,
     };
   }
 }
@@ -172,6 +187,51 @@ function createBindingHandlers() {
         genericParams: genericParams.length > 0 ? genericParams : undefined,
         node,
       });
+
+      // Pre-collect annotated local variables inside this function body
+      if (node.named?.body) {
+        this.collectFunctionLocals(functionName, node.named.body);
+      }
+    },
+
+    /**
+     * Recursively collect type-annotated local variable declarations inside a
+     * function body. Stops at nested func_def boundaries so inner-function
+     * locals are not folded into the outer function's map.
+     *
+     * Only annotated locals (`x: Type = …`) are collected; unannotated ones
+     * require RHS evaluation and are skipped (handled by Phase 2 as before).
+     */
+    collectFunctionLocals(funcName, node) {
+      if (!node) return;
+
+      if (node.type === 'assign' && node.named?.annotation && node.named?.name?.value) {
+        const type = getAnnotationType(node.named.annotation);
+        symbolTable.addFunctionLocal(funcName, node.named.name.value, {
+          type: type ?? AnyType,
+          node,
+        });
+      }
+
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          const child = node.children[i];
+          // Don't descend into nested function definitions
+          if (child.type !== 'func_def') {
+            this.collectFunctionLocals(funcName, child);
+          }
+        }
+      }
+
+      // Also traverse named children (not just the children array)
+      if (node.named) {
+        for (const key of Object.keys(node.named)) {
+          const child = node.named[key];
+          if (child && typeof child === 'object' && child.type && child.type !== 'func_def') {
+            this.collectFunctionLocals(funcName, child);
+          }
+        }
+      }
     },
   };
 }

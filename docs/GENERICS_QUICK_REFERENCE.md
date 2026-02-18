@@ -4,7 +4,7 @@
 
 ### Generic Functions
 
-```blop
+```typescript
 // Single type parameter
 def functionName<T>(param: T): T {
   // implementation
@@ -23,7 +23,7 @@ def functionName<T>(items: T[]): T[] {
 
 ### Generic Type Aliases
 
-```blop
+```typescript
 // Single type parameter
 type TypeName<T> = {
   property: T
@@ -49,7 +49,7 @@ type TypeName<T> = {
 
 ### Type Instantiation
 
-```blop
+```typescript
 // In annotations
 value: Box<number> = { value: 42 }
 pair: Pair<string, boolean> = { first: 'yes', second: true }
@@ -61,7 +61,7 @@ boxes: Box<number>[] = [{ value: 1 }, { value: 2 }]
 ## Common Patterns
 
 ### Identity Function
-```blop
+```typescript
 def identity<T>(value: T): T {
   return value
 }
@@ -71,7 +71,7 @@ s = identity('hello')   // string
 ```
 
 ### Array Operations
-```blop
+```typescript
 def first<T>(arr: T[]): T | undefined {
   if arr.length > 0 {
     return arr[0]
@@ -88,7 +88,7 @@ def last<T>(arr: T[]): T | undefined {
 ```
 
 ### Container Types
-```blop
+```typescript
 type Box<T> = {
   value: T,
   isEmpty: boolean
@@ -105,7 +105,7 @@ def emptyBox<T>(): Box<T> {
 ```
 
 ### Pair/Tuple Pattern
-```blop
+```typescript
 type Pair<T, U> = {
   first: T,
   second: U
@@ -120,7 +120,7 @@ keyValue: Pair<string, any> = makePair('name', 'Alice')
 ```
 
 ### Result/Either Pattern
-```blop
+```typescript
 type Result<T> = {
   success: boolean,
   value?: T,
@@ -137,7 +137,7 @@ def failure<T>(error: string): object {
 ```
 
 ### Nullable Wrappers
-```blop
+```typescript
 def orDefault<T>(value: T | null, defaultVal: T): T {
   return value ?? defaultVal
 }
@@ -151,7 +151,7 @@ def wrapIfNotNull<T>(value: T | null): T[] {
 ```
 
 ### Map/Transform Operations
-```blop
+```typescript
 def map<T, U>(arr: T[], fn: object): U[] {
   result: U[] = []
   for item in arr {
@@ -165,7 +165,7 @@ strings = map(numbers, (n) => n.toString())
 ```
 
 ### Filter Operations
-```blop
+```typescript
 def filter<T>(arr: T[], predicate: object): T[] {
   result: T[] = []
   for item in arr {
@@ -193,7 +193,7 @@ evens = filter(numbers, (n) => n % 2 == 0)
 
 ### ✅ Do This
 
-```blop
+```typescript
 // Use descriptive function names
 def firstElement<T>(arr: T[]): T | undefined { ... }
 
@@ -206,7 +206,7 @@ def orNull<T>(value: T | undefined): T | null { ... }
 
 ### ❌ Avoid This
 
-```blop
+```typescript
 // Don't use generics when concrete types work fine
 def addNumbers<T>(a: T, b: T): T {  // ❌ Should be: (a: number, b: number): number
   return a + b

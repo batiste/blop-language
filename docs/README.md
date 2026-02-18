@@ -7,7 +7,6 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 ### Getting Started
 - [Quick Start](./QUICK_START.md) - Get up and running in 5 minutes
 - [Installation](./INSTALLATION.md) - Detailed installation guide
-- [Your First Blop App](./FIRST_APP.md) - Build your first application
 
 ### Core Concepts
 - [Language Syntax Reference](./SYNTAX_REFERENCE.md) - Complete syntax guide
@@ -17,7 +16,6 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 ### Advanced Features
 - [Modern JavaScript Features](./MODERN_FEATURES.md) - Object spread, optional chaining, nullish coalescing
 - [Generics](./GENERICS_QUICK_REFERENCE.md) - Type system and generics
-- [Type System](./TYPE_SYSTEM.md) - Type annotations and inference
 
 ### Application Architecture
 - [State Management](./STATE_MANAGEMENT.md) - Managing application state with Proxies
@@ -26,8 +24,6 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 
 ### Tools & Development
 - [CLI Usage](./CLI_USAGE.md) - Command-line interface reference
-- [Vite Integration](./VITE_INTEGRATION.md) - Using Blop with Vite
-- [VSCode Extensions](./VSCODE_EXTENSIONS.md) - Editor support and tooling
 
 ### Help & Reference
 - [FAQ](./FAQ.md) - Frequently asked questions
@@ -36,7 +32,6 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 ### Contributing
 - [Style Guide](./STYLE_GUIDE.md) - Code style and best practices
 - [Statistical Error Prioritization](./STATISTICAL_ERROR_PRIORITIZATION.md) - Error message system
-- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute
 
 ## 🔗 Quick Links
 

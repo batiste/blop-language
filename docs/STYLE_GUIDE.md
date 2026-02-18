@@ -418,7 +418,7 @@ const x = 5;
 
 ### Test File Naming
 
-```
+```text
 source-file.js       →  source-file.test.js
 ComponentName.blop   →  ComponentName.test.blop
 ```
@@ -514,7 +514,7 @@ const { SCOPE_TYPES } = require('./constants');
 
 Each module should have a clear, single responsibility:
 
-```
+```text
 backend/
   ├── index.js              # Main entry point
   ├── scope-manager.js      # Scope tracking logic
@@ -550,7 +550,7 @@ The project uses ESLint with the following key rules:
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 feat: add support for async/await syntax
 fix: correct scope tracking in nested functions
 docs: update API documentation for code generator

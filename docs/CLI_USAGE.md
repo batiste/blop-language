@@ -137,7 +137,7 @@ The `--inference` flag enables the Phase 1 & Phase 2 type inference system, whic
 
 ### Example Type Errors
 
-```blop
+```typescript
 // Error: returns number but declared as VNode
 def Test(): VNode {
   return 1

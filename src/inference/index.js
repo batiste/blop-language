@@ -58,7 +58,7 @@ function inference(node, _stream, filename) {
   // Phase 2: Type Inference - compute types for expressions (no warnings)
   const inferenceWarnings = [];
   const inferenceScopes = [symbolTable.getAllSymbols()];
-  initVisitor(inferenceWarnings, _stream, inferenceScopes, typeAliases, filename, 'inference');
+  initVisitor(inferenceWarnings, _stream, inferenceScopes, typeAliases, filename, 'inference', symbolTable);
   visit(node);
 
   // Phase 2.5: Stamp inferred types for hover support
@@ -67,7 +67,7 @@ function inference(node, _stream, filename) {
   // Phase 3: Type Checking - validate types and report warnings
   const checkingWarnings = [];
   const checkingScopes = [symbolTable.getAllSymbols()];
-  initVisitor(checkingWarnings, _stream, checkingScopes, typeAliases, filename, 'checking');
+  initVisitor(checkingWarnings, _stream, checkingScopes, typeAliases, filename, 'checking', symbolTable);
   visit(node);
 
   return checkingWarnings;

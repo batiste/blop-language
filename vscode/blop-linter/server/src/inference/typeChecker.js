@@ -73,6 +73,26 @@ const TypeChecker = {
         
         return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
       }
+
+      // Even when structurally compatible, check for excess properties at assignment sites
+      // (matches TypeScript's excess property checking on object literals)
+      const _resolvedValueType = resolveTypeAlias(valueType, typeAliases);
+      const _resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
+      const resolvedValueType = typeof _resolvedValueType === 'string' ? _resolvedValueType : _resolvedValueType.toString();
+      const resolvedTargetType = typeof _resolvedTargetType === 'string' ? _resolvedTargetType : _resolvedTargetType.toString();
+
+      if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
+        const valueStructure = parseObjectTypeString(resolvedValueType);
+        const targetStructure = parseObjectTypeString(resolvedTargetType);
+
+        if (valueStructure && targetStructure) {
+          const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
+          if (!result.compatible && result.errors.length > 0) {
+            const detailedError = `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}`;
+            return { valid: false, warning: detailedError };
+          }
+        }
+      }
     }
     return { valid: true };
   },

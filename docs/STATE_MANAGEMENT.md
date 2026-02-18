@@ -29,7 +29,7 @@ The state management library is located in the example project at `example/lib/s
 
 ### Installation
 
-```blop
+```typescript
 import { createState } from './lib/state.blop'
 ```
 
@@ -37,7 +37,7 @@ import { createState } from './lib/state.blop'
 
 Create a proxied state object with initial data:
 
-```blop
+```typescript
 import { createState } from './lib/state.blop'
 
 // Create state with initial values
@@ -53,7 +53,7 @@ state = createState({
 
 Read from state like a normal object - no side effects:
 
-```blop
+```typescript
 def Header(state) {
   // Reading state is transparent
   username = state.user?.name || 'Guest'
@@ -70,7 +70,7 @@ def Header(state) {
 
 Updating state is also transparent, but triggers change listeners:
 
-```blop
+```typescript
 def LoginForm(state) {
   handleLogin = async (e) => {
     e.preventDefault()
@@ -104,7 +104,7 @@ def LoginForm(state) {
 
 Set up a listener to react to any state changes:
 
-```blop
+```typescript
 import { mount } from 'blop'
 import { createState } from './lib/state.blop'
 
@@ -135,7 +135,7 @@ init()
 
 Here's a complete example of a Blop application with state management:
 
-```blop
+```typescript
 // client.blop
 import { mount } from 'blop'
 import { createState } from './lib/state.blop'
@@ -195,7 +195,7 @@ state.$.listen((path) => {
 })
 ```
 
-```blop
+```typescript
 // index.blop
 import { TodoList } from './TodoList.blop'
 import { UserProfile } from './UserProfile.blop'
@@ -221,7 +221,7 @@ Index = (state) => {
 
 ### Nested State Updates
 
-```blop
+```typescript
 // Initialize nested state
 state = createState({
   user: {
@@ -251,7 +251,7 @@ def updateSettings(state, settings) {
 
 ### Array Operations
 
-```blop
+```typescript
 state = createState({
   items: [1, 2, 3]
 })
@@ -281,7 +281,7 @@ def clearItems(state) {
 
 ### Computed Values
 
-```blop
+```typescript
 state = createState({
   todos: [
     { id: 1, text: 'Learn Blop', done: false },
@@ -308,7 +308,7 @@ TodoStats = (state) => {
 
 Organize state updates into action functions:
 
-```blop
+```typescript
 // actions.blop
 export def loadPosts(state) {
   state.loading := true
@@ -347,7 +347,7 @@ export def deletePost(state, postId) {
 }
 ```
 
-```blop
+```typescript
 // Usage in components
 import { loadPosts, createPost } from './actions.blop'
 
@@ -377,7 +377,7 @@ PostList = (state) => {
 
 ### 1. Don't Update State During Render
 
-```blop
+```typescript
 // ❌ BAD - Creates infinite loop
 BadComponent = (state) => {
   state.count := state.count + 1  // ❌ Don't do this!
@@ -399,7 +399,7 @@ GoodComponent = (state) => {
 
 ### 2. Use flush() in Render Function
 
-```blop
+```typescript
 render = () => {
   // Clear change tracking for clean renders
   state.$.flush()
@@ -412,7 +412,7 @@ render = () => {
 
 Implement loop detection as shown in the full example above:
 
-```blop
+```typescript
 renderCount = 0
 lastRenderTime = Date.now()
 
@@ -437,7 +437,7 @@ state.$.listen((path) => {
 
 ### 4. Group Related State
 
-```blop
+```typescript
 // ❌ Flat structure
 state = createState({
   userName: '',
@@ -465,7 +465,7 @@ state = createState({
 
 ### 5. Use Immutable Updates for Arrays/Objects
 
-```blop
+```typescript
 // ❌ Mutating - may not trigger updates correctly
 state.items.push(newItem)
 
@@ -483,7 +483,7 @@ state.user.name := 'Alice'
 
 The proxied state object includes a special `$` property with utilities:
 
-```blop
+```typescript
 state.$.listen(callback)  // Listen to state changes
 state.$.flush()           // Clear change tracking
 state.$.router            // Access router (if set up)

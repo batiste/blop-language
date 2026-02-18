@@ -57,7 +57,7 @@ In `package.json`:
 
 Create a file ending with `.test.blop`:
 
-```blop
+```typescript
 // math.test.blop
 import { describe, it, expect } from 'vitest'
 
@@ -102,7 +102,7 @@ npm run test:ui
 
 ### Component Test Example
 
-```blop
+```typescript
 // Counter.test.blop
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from 'blop'
@@ -173,7 +173,7 @@ describe('Counter component', () => {
 
 ### Testing with State
 
-```blop
+```typescript
 // TodoList.test.blop
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from 'blop'
@@ -238,7 +238,7 @@ describe('TodoList', () => {
 
 ### Mocking Functions
 
-```blop
+```typescript
 import { describe, it, expect, vi } from 'vitest'
 
 describe('API calls', () => {
@@ -265,7 +265,7 @@ describe('API calls', () => {
 
 ### Mocking Modules
 
-```blop
+```typescript
 import { describe, it, expect, vi } from 'vitest'
 
 // Mock a module
@@ -324,7 +324,7 @@ View HTML report in `coverage/index.html`.
 
 ### 1. Use data-testid Attributes
 
-```blop
+```typescript
 // ✅ Good - testable
 <button data-testid="submit-button">'Submit'</button>
 
@@ -334,7 +334,7 @@ View HTML report in `coverage/index.html`.
 
 ### 2. Test User Behavior
 
-```blop
+```typescript
 // ✅ Good - tests what users do
 it('submits form on button click', () => {
   button = container.querySelector('[data-testid="submit"]')
@@ -351,7 +351,7 @@ it('calls submitForm when state.submit is true', () => {
 
 ### 3. Keep Tests Independent
 
-```blop
+```typescript
 // ✅ Good - each test is independent
 describe('Counter', () => {
   beforeEach(() => {
@@ -388,7 +388,7 @@ describe('Counter', () => {
 
 ### 4. Test Edge Cases
 
-```blop
+```typescript
 describe('divide', () => {
   it('divides positive numbers', () => {
     expect(divide(10, 2)).toBe(5)
@@ -410,7 +410,7 @@ describe('divide', () => {
 
 ### 5. Use Descriptive Test Names
 
-```blop
+```typescript
 // ✅ Good - clear what's being tested
 it('shows error message when login fails', () => { ... })
 it('disables submit button when form is invalid', () => { ... })
@@ -424,7 +424,7 @@ it('test login', () => { ... })
 
 ### Testing Async Components
 
-```blop
+```typescript
 import { describe, it, expect, waitFor } from 'vitest'
 
 DataLoader = (attributes) => {
@@ -468,7 +468,7 @@ it('loads and displays data', async () => {
 
 ### Snapshot Testing
 
-```blop
+```typescript
 import { expect } from 'vitest'
 
 it('matches snapshot', () => {

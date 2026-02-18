@@ -144,13 +144,13 @@ npm run linter
 ## Example Improvements
 
 ### Before (without statistics):
-```
+```text
 Error: Expected '}' at line 10
 ```
 
 ### After (with statistics):
 When multiple tokens are possible at a position, the error shows the most common one:
-```
+```text
 Error: Expected ')' at line 10
 ```
 (because function calls are more common than object literals in your codebase)

@@ -98,7 +98,7 @@ Create `index.html`:
 
 Create `src/main.blop`:
 
-```blop
+```typescript
 import { mount } from 'blop'
 
 def App() {
@@ -216,7 +216,7 @@ Update `package.json`:
 
 Create `src/App.test.blop`:
 
-```blop
+```typescript
 import { describe, it, expect } from 'vitest'
 
 def add(a, b) {
@@ -314,7 +314,7 @@ Then reload VSCode.
 
 ### Project Structure
 
-```
+```text
 blop-language/
 ├── src/                    # Core language source
 │   ├── compile.js         # Compiler
@@ -335,7 +335,7 @@ blop-language/
 
 **Solution:** Make sure `blopPlugin()` is in your `vite.config.js`:
 
-```javascript
+```typescript
 import { blopPlugin } from 'blop-language/src/vite';
 
 export default defineConfig({
@@ -356,7 +356,7 @@ export default defineConfig({
 
 **Solution:** Blop uses ES6 module syntax. Make sure files have proper import/export statements:
 
-```blop
+```typescript
 // Export
 export def myFunction() { ... }
 

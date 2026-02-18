@@ -10,7 +10,7 @@ Blop uses the [snabbdom](https://github.com/snabbdom/snabbdom/) library for Virt
 
 <img src="/img/carbon.png" width="700">
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install Blop
@@ -23,11 +23,11 @@ npm install
 npm start
 ```
 
-**[📖 Quick Start Guide](docs/QUICK_START.md)** · **[🎮 Live Demo](https://batiste.github.io/blop/example/)**
+**[Quick Start Guide](docs/QUICK_START.md)** · **[Live Demo](https://batiste.github.io/blop/example/)**
 
-## ✨ Example
+## Example
 
-```blop
+```typescript
 import { mount, Component } from 'blop'
 
 // A simple counter component
@@ -46,7 +46,7 @@ Counter = (attributes, children, node) => {
 init()
 ```
 
-## 📚 Documentation
+## Documentation
 
 ### Getting Started
 - **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions
@@ -67,9 +67,9 @@ init()
 - **[Style Guide](docs/STYLE_GUIDE.md)** - Code standards and best practices
 - **[Error Prioritization](docs/STATISTICAL_ERROR_PRIORITIZATION.md)** - Error message system
 
-**[📂 Browse All Documentation](docs/README.md)**
+**[Browse All Documentation](docs/README.md)**
 
-## ✨ Key Features
+## Key Features
 
 ### Language Features
 - **Native Virtual DOM** - HTML-like syntax built into the language
@@ -93,7 +93,7 @@ init()
 - Server-Side Rendering (SSR) - Removed in v1.1.0 with migration to Vite
 - Still in beta - API may change
 
-## 🛠️ Setup
+## Setup
 
 #### Installation
 
@@ -101,7 +101,7 @@ init()
 npm install blop-language
 ```
 
-**[📖 Full Installation Guide](docs/INSTALLATION.md)**
+**[Full Installation Guide](docs/INSTALLATION.md)**
 
 ### Vite Configuration
 
@@ -116,11 +116,13 @@ export default defineConfig({
 });
 ```
 
-**[📖 More Vite Configuration Options](docs/INSTALLATION.md#setting-up-vite)**
+**[More Vite Configuration Options](docs/INSTALLATION.md#setting-up-vite)**
 
 ### Vitest Configuration
 
 Create `vitest.config.js`:
+
+```javascript
 import { defineConfig } from 'vitest/config';
 import { blopPlugin } from 'blop-language/src/vitest';
 
@@ -131,11 +133,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
-  },
 });
 ```
 
-**[📖 Testing Guide](docs/INSTALLATION.md#setting-up-vitest)**
+**[Testing Guide](docs/INSTALLATION.md#setting-up-vitest)**
 
 ### VSCode Extensions
 
@@ -152,9 +153,9 @@ Search for "Blop" in VSCode Extensions for:
 
 <img src="/img/extensions.png" width="600">
 
-**[📖 Extension Setup Guide](docs/INSTALLATION.md#vscode-extensions)**
+**[Extension Setup Guide](docs/INSTALLATION.md#vscode-extensions)**
 
-## 💻 CLI Usage
+## CLI Usage
 
 Compile a single file:
 
@@ -162,9 +163,9 @@ Compile a single file:
 npx blop -i input.blop -o output.js
 ```
 
-**[📖 Complete CLI Reference](docs/CLI_USAGE.md)**
+**[Complete CLI Reference](docs/CLI_USAGE.md)**
 
-## 🏃 Development
+## Development
 
 ### Running the Example App
 
@@ -188,11 +189,11 @@ npm run parser
 npm run linter
 ```
 
-**[📖 Contributing Guide](docs/STYLE_GUIDE.md)**
+**[Contributing Guide](docs/STYLE_GUIDE.md)**
 
-## 📦 Example Project Structure
+## Example Project Structure
 
-```
+```text
 my-blop-app/
 ├── src/
 │   ├── main.blop          # Entry point
@@ -206,7 +207,7 @@ my-blop-app/
 └── package.json
 ```
 
-## 🌟 Links
+## Links
 
 - **[Live Demo](https://batiste.github.io/blop/example/)** - See Blop in action
 - **[GitHub Repository](https://github.com/batiste/blop-language)** - Source code
@@ -214,17 +215,16 @@ my-blop-app/
 - **[Documentation](docs/README.md)** - Complete guides
 - **[Issues](https://github.com/batiste/blop-language/issues)** - Bug reports & features
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE.txt](LICENSE.txt)
 
 ---
 
-## 📝 Note on Documentation
+## Note on Documentation
 
 **The documentation has been migrated from the GitHub Wiki to the main repository** (in the `/docs` folder) for better version control, review process, and maintainability. All wiki content has been preserved and enhanced.
 
 If you're looking for older documentation, the wiki is still available but **no longer maintained**: https://github.com/batiste/blop-language/wiki
 
 **Please use the [documentation in the /docs folder](docs/README.md) instead.**
-- Compiles TypeScript code

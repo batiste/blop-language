@@ -17,7 +17,7 @@ npm install blop-language
 
 Create a file called `hello.blop`:
 
-```blop
+```typescript
 def Hello(attributes, children) {
   name = attributes.name || 'World'
   <div>
@@ -62,7 +62,7 @@ Create `index.html`:
 
 Update your `hello.blop` to mount the app:
 
-```blop
+```typescript
 import { mount } from 'blop'
 
 def Hello(attributes, children) {

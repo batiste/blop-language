@@ -132,7 +132,7 @@ function createFunctionHandlers(getState) {
     },
     
     func_def: (node, parent) => {
-      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation } = getState();
+      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation, symbolTable } = getState();
       const parentScope = getCurrentScope();
       const scope = pushScope();
       scope.__currentFctParams = [];
@@ -152,6 +152,15 @@ function createFunctionHandlers(getState) {
             type: param,
             isGenericParam: true,
           };
+        }
+      }
+
+      // Pre-populate scope with type-annotated locals from binding phase
+      const functionName = node.named?.name?.value;
+      if (functionName && symbolTable) {
+        const preLocals = symbolTable.functionLocals.get(functionName);
+        if (preLocals) {
+          Object.assign(scope, preLocals);
         }
       }
       

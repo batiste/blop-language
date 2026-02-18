@@ -4,9 +4,10 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
-import { getBuiltinObjectType, isBuiltinObjectType } from '../builtinTypes.js';
+import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
+import { extractPropertyNodesFromAccess } from './utils.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -43,29 +44,6 @@ function extractExplicitTypeArguments(typeArgsNode) {
   return args.length > 0 ? args : null;
 }
 
-/**
- * Extract property name nodes from an access chain
- * Returns array {name: string, node: astNode} for each step in the chain
- */
-function extractPropertyNodesFromAccess(accessNode) {
-  const properties = [];
-  
-  function traverse(node) {
-    if (!node || !node.children) return;
-    
-    for (const child of node.children) {
-      if (child.type === 'name') {
-        properties.push({ name: child.value, node: child });
-      } else if (child.type === 'object_access') {
-        traverse(child);
-      }
-    }
-  }
-  
-  traverse(accessNode);
-  return properties;
-}
-
 function createExpressionHandlers(getState) {
   return {
     math: (node, parent) => {
@@ -89,6 +67,23 @@ function createExpressionHandlers(getState) {
           visitChildren(access);
           
           const def = lookupVariable(name.value);
+
+          // Array instance method call (e.g. items.map(), nums.filter(), arr.pop())
+          if (def) {
+            const resolvedDefType = resolveTypeAlias(def.type, typeAliases);
+            if (resolvedDefType instanceof ArrayType) {
+              const objectAccess = access.children?.find(child => child.type === 'object_access');
+              const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+              if (methodName) {
+                const returnType = getArrayMemberType(resolvedDefType, methodName);
+                // Annotate the method name node for hover
+                const methodNode = objectAccess?.children?.find(child => child.type === 'name');
+                if (methodNode) methodNode.inferredType = returnType.toString();
+                pushInference(parent, returnType);
+                return;
+              }
+            }
+          }
 
           // Built-in object method call (e.g. Math.cos, Object.keys, Array.isArray)
           if (!def && isBuiltinObjectType(name.value)) {
@@ -219,10 +214,23 @@ function createExpressionHandlers(getState) {
             pushInference(parent, 'any');
             return;
           }
-          
+
+          // Array instance property access (e.g. arr.length)
+          if (resolvedType instanceof ArrayType) {
+            const objectAccess = access.children?.find(child => child.type === 'object_access');
+            const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+            if (propName) {
+              const memberType = getArrayMemberType(resolvedType, propName);
+              // Annotate the property name node for hover
+              const propNode = objectAccess?.children?.find(child => child.type === 'name');
+              if (propNode) propNode.inferredType = memberType.toString();
+              name.inferredType = resolvedStr;
+              pushInference(parent, memberType);
+              return;
+            }
+          }
+
           // Validate property access for object types and primitive scalar types.
-          // Array types are intentionally excluded here: subscript element types
-          // are not tracked at this stage, so we fall through to 'any' for arrays.
           const isPrimitiveType = resolvedType instanceof PrimitiveType &&
                                   (resolvedType.name === 'string' || resolvedType.name === 'number' || resolvedType.name === 'boolean');
           const isObjectType = resolvedType instanceof ObjectType;
@@ -248,13 +256,13 @@ function createExpressionHandlers(getState) {
                   break;
                 }
                 
-                // Can only continue validating on object types or scalar primitives.
-                // Arrays are not followed (subscript element types are not tracked).
+                // Can continue validating on object types, scalar primitives, and arrays.
                 const isCurrentPrimitive = resolvedCurrent instanceof PrimitiveType &&
                                            (resolvedCurrent.name === 'string' || resolvedCurrent.name === 'number' || resolvedCurrent.name === 'boolean');
                 const isCurrentObject = resolvedCurrent instanceof ObjectType;
-                if (!isCurrentPrimitive && !isCurrentObject) {
-                  // Reached an array, unknown, or other type – stop validation
+                const isCurrentArray = resolvedCurrent instanceof ArrayType;
+                if (!isCurrentPrimitive && !isCurrentObject && !isCurrentArray) {
+                  // Reached an unknown or other type – stop validation
                   break;
                 }
                 

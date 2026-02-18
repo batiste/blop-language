@@ -20,7 +20,7 @@ Components are reusable building blocks for your UI. In Blop, a component can be
 
 The simplest way to create a component:
 
-```blop
+```typescript
 Input = (attributes, children, node) => {
   <label>
     = attributes.label
@@ -52,7 +52,7 @@ Every component function receives 3 parameters:
 
 Components are used like HTML elements:
 
-```blop
+```typescript
 <Input label='Email' name='email' type='email' />
 
 // With children
@@ -68,7 +68,7 @@ Components are used like HTML elements:
 
 Function components are the simplest form:
 
-```blop
+```typescript
 // Simple component
 Greeting = (attributes) => {
   <h1>'Hello 'attributes.name'!'</h1>
@@ -100,7 +100,7 @@ Counter = (attributes, children, node) => {
 
 For more complex components, extend the `Component` class:
 
-```blop
+```typescript
 import { Component } from 'blop'
 
 class MouseTracker extends Component {
@@ -132,7 +132,7 @@ class MouseTracker extends Component {
 
 ### Using Class Components
 
-```blop
+```typescript
 <MouseTracker text="world" />
 ```
 
@@ -140,7 +140,7 @@ class MouseTracker extends Component {
 
 The `Component` class provides these methods:
 
-```blop
+```typescript
 class MyComponent extends Component {
   // Required: render the component
   render(attributes, children, this) { ... }
@@ -167,7 +167,7 @@ class MyComponent extends Component {
 
 Use `useState` to maintain component-local state:
 
-```blop
+```typescript
 Counter = (attributes, children, node) => {
   // Initialize state with name and initial value
   { value as counter, setState } = node.useState('counter', 0)
@@ -194,7 +194,7 @@ Counter = (attributes, children, node) => {
 
 ### Multiple State Values
 
-```blop
+```typescript
 TodoList = (attributes, children, node) => {
   { value as items, setState as setItems } = node.useState('items', [])
   { value as input, setState as setInput } = node.useState('input', '')
@@ -225,7 +225,7 @@ Context allows parent components to pass data to deeply nested children without 
 
 **Signature:** `node.useContext(name: string, initial: any): { value: any, setContext: Function }`
 
-```blop
+```typescript
 // Child component - consumes context
 ContextConsumer = (attributes, children, node) => {
   { value } = node.useContext('specialNumber')
@@ -253,7 +253,7 @@ ContextHolder = (attributes, children, node) => {
 
 ### Example: Theme Context
 
-```blop
+```typescript
 ThemeButton = (attributes, children, node) => {
   { value as theme } = node.useContext('theme')
   className = theme == 'dark' ? 'btn-dark' : 'btn-light'
@@ -285,7 +285,7 @@ Components have mount and unmount hooks for side effects.
 - `node.mount(callback: Function)`
 - `node.unmount(callback: Function)`
 
-```blop
+```typescript
 // Custom hook pattern
 def useWindowWidth(node) {
   { value as width, setState as setWidth } = node.useState('width', window.innerWidth)
@@ -316,7 +316,7 @@ WidthReactive = (attributes, children, node) => {
 
 #### Interval/Timer
 
-```blop
+```typescript
 Timer = (attributes, children, node) => {
   { value as seconds, setState as setSeconds } = node.useState('seconds', 0)
   
@@ -335,7 +335,7 @@ Timer = (attributes, children, node) => {
 
 #### Fetch on Mount
 
-```blop
+```typescript
 DataLoader = (attributes, children, node) => {
   { value as data, setState as setData } = node.useState('data', null)
   { value as loading, setState as setLoading } = node.useState('loading', true)
@@ -361,7 +361,7 @@ DataLoader = (attributes, children, node) => {
 
 When attributes change, the component re-renders, but lifecycle methods don't run again. Use `onChange` to react to attribute changes:
 
-```blop
+```typescript
 class FetchOnURLChange extends Component {
   def render() {
     <div>
@@ -417,7 +417,7 @@ DataDisplay = (attributes, children, node) => {
 
 ### 1. Keep Components Small
 
-```blop
+```typescript
 // ❌ Too large
 BigComponent = (attributes) => {
   // 300 lines of code...
@@ -439,7 +439,7 @@ Page = (attributes) => {
 
 ### 2. Use Custom Hooks
 
-```blop
+```typescript
 // Reusable hook
 def useFetch(node, url) {
   { value as data, setState as setData } = node.useState('data', null)
@@ -475,7 +475,7 @@ UserProfile = (attributes, children, node) => {
 
 ### 3. Avoid State in Render
 
-```blop
+```typescript
 // ❌ Don't do this - creates infinite loop
 BadCounter = (attributes, children, node) => {
   { value, setState } = node.useState('count', 0)

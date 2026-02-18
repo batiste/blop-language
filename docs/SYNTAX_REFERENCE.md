@@ -19,7 +19,7 @@ Complete reference for the Blop language syntax.
 
 ### Grammar
 
-```
+```typescript
 import %name% from %file%
 import { %name%[ as %rename%]?[, %name%[ as %rename%]?]* } from %file%
 import %file% as %name%
@@ -28,7 +28,7 @@ import %file%
 
 ### Examples
 
-```blop
+```typescript
 import Index from './index.blop'
 import { createRouter, createRoute as something } from './routing.blop'
 import 'webpack-dev-middleware' as middleware
@@ -39,7 +39,7 @@ import 'express'
 
 Variables are declared Python-style. Variables are hoisted to the top of the current block scope and compiled as `let` variables.
 
-```blop
+```typescript
 // Simple assignment
 index = 1
 name = 'Alice'
@@ -57,7 +57,7 @@ depth := index + 1  // CORRECT: use := for reassignment
 
 ### Grammar
 
-```
+```typescript
 async? def %name%? (%parameters%)[:%annotation%]? { %statements% }
 async? (%parameters%)[:%annotation%]? => { %statements% }
 async? (%parameters%)[:%annotation%]? => %expression%
@@ -65,7 +65,7 @@ async? (%parameters%)[:%annotation%]? => %expression%
 
 ### Examples
 
-```blop
+```typescript
 // Function declaration with type annotation
 def greet(name='John Doe'): string {
   return `Hello `name``
@@ -89,7 +89,7 @@ multiply = (a, b) => {
 
 ### Syntax
 
-```
+```typescript
 for %value% in %expression%[:%annotation%]? { %statements% }
 for %key%, %value% in %expression%[:%annotation%]? { %statements% }
 while %expression% { %statements% }
@@ -97,7 +97,7 @@ while %expression% { %statements% }
 
 ### Examples
 
-```blop
+```typescript
 // For-in loop
 petList = ['cat', 'dog', 'goldfish']
 
@@ -127,7 +127,7 @@ while count < 10 {
 
 ### Grammar
 
-```
+```typescript
 if %expression% { %statements% }
 if %expression% { %statements% } else { %statements% }
 if %expression% { %statements% } elseif %expression% { %statements% }
@@ -136,7 +136,7 @@ if %expression% { %statements% } elseif %expression% { %statements% } else { %st
 
 ### Examples
 
-```blop
+```typescript
 def renderPage(state) {
   if state.page == 'dog' {
     <DogPage state=state></DogPage>
@@ -157,7 +157,7 @@ Strings can be delimited with `"`, `'`, or `` ` `` and are all functionally equi
 
 String concatenation is achieved by placing strings and expressions adjacent to each other:
 
-```blop
+```typescript
 whitespace = " "
 greeting = 'hello'
 name = 'world'
@@ -175,7 +175,7 @@ message = 'The answer is 'count''  // "The answer is 42"
 
 Blop supports ES6-style objects and arrays:
 
-```blop
+```typescript
 // Object literal
 person = {
   name: 'Alice',
@@ -204,7 +204,7 @@ arr2 = [...arr1, 4, 5, 6]
 
 Similar to ES6 classes:
 
-```blop
+```typescript
 class ExampleClass {
   def constructor(something=false) {
     this.routes = [1, 2, 3]
@@ -235,21 +235,21 @@ instance = new ExampleClass(true)
 
 ### Basic Syntax
 
-```
+```typescript
 <name[%attributes%]*/>
 <name[%attributes%]*>%statements%</name>
 <name[%attributes%]*>%expression%</name>
 ```
 
 Attributes:
-```
+```typescript
 %whitespace% %name%=%expression%
 %whitespace% %name%  // boolean attribute
 ```
 
 ### Examples
 
-```blop
+```typescript
 // Simple element
 def Button(attributes) {
   <button class="btn">attributes.label</button>
@@ -280,7 +280,7 @@ def List(attributes) {
 2. **Single root per branch** - Each conditional branch should have one root element
 3. **Code after root is unreachable** - The root generates a return statement
 
-```blop
+```typescript
 def Example(state) {
   // This is OK - single root with conditionals
   if state.loading {
@@ -298,7 +298,7 @@ def Example(state) {
 
 Events are attached using the `on` attribute with an object:
 
-```blop
+```typescript
 def ClickableButton(attributes) {
   handleClick = (event) => {
     console.log('Button clicked!', event)
@@ -328,7 +328,7 @@ def Input(attributes) {
 
 Blop uses [Snabbdom hooks](https://github.com/snabbdom/snabbdom#hooks) for lifecycle management:
 
-```blop
+```typescript
 def FocusedInput(attributes) {
   hooks = {
     insert: (vnode) => {
@@ -364,7 +364,7 @@ Available hooks:
 
 ### Optional Chaining
 
-```blop
+```typescript
 // Safely access nested properties
 name = user?.profile?.name
 age = user?.profile?.age
@@ -376,7 +376,7 @@ item = obj?.['property']
 
 ### Nullish Coalescing
 
-```blop
+```typescript
 // Use default only for null/undefined (not for 0, '', false)
 count = value ?? 0
 text = message ?? 'No message'
@@ -387,7 +387,7 @@ result = value1 ?? value2 ?? value3 ?? 'default'
 
 ### Object Spread
 
-```blop
+```typescript
 // Clone and merge objects
 defaults = { timeout: 5000, retries: 3 }
 config = { ...defaults, timeout: 10000 }

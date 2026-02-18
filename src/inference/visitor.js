@@ -11,6 +11,7 @@ let warnings;
 let stream;
 let functionScopes;
 let typeAliases;
+let symbolTable; // Live SymbolTable from binding phase (for functionLocals lookup)
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
 let expectedObjectType; // Track expected type for object literals
@@ -601,11 +602,12 @@ function stampInferredTypes(node) {
  * @param {String} _filename - Current filename being processed
  * @param {String} _phase - 'inference' or 'checking' - controls warning suppression
  */
-function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference') {
+function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference', _symbolTable = null) {
   warnings = _warnings;
   stream = _stream;
   functionScopes = _functionScopes;
   typeAliases = _typeAliases;
+  symbolTable = _symbolTable;
   currentFilename = _filename;
   inferencePhase = _phase;
 }
@@ -619,6 +621,7 @@ function getVisitorState() {
     stream,
     functionScopes,
     typeAliases,
+    symbolTable,
     currentFilename,
     inferencePhase,
     getCurrentScope,

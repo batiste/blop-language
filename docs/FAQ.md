@@ -32,7 +32,7 @@ Blop was created by [Batiste Bieler](https://github.com/batiste) and is open sou
 
 Blop uses Python-inspired syntax where `def` defines functions. It's shorter and more concise:
 
-```blop
+```typescript
 def greet(name) {
   return 'Hello ' name
 }
@@ -42,7 +42,7 @@ def greet(name) {
 
 Blop requires explicit reassignment to catch accidental overwrites:
 
-```blop
+```typescript
 count = 0       // Declaration
 count = 1       // ERROR: attempting to redefine
 count := 1      // OK: explicit reassignment
@@ -54,7 +54,7 @@ This helps prevent bugs from accidental variable shadowing.
 
 In Blop, strings are concatenated by placing them next to each other:
 
-```blop
+```typescript
 name = 'Alice'
 greeting = 'Hello ' name  // "Hello Alice"
 
@@ -66,7 +66,7 @@ message = 'The answer is ' count ''  // "The answer is 42"
 
 Blop's string concatenation is more flexible than template literals. Any quote type works:
 
-```blop
+```typescript
 name = 'Alice'
 message1 = 'Hello 'name''
 message2 = "Hello "name""
@@ -81,7 +81,7 @@ All three are equivalent.
 
 **Function components** are simpler:
 
-```blop
+```typescript
 Counter = (attributes, children, node) => {
   <button>attributes.label</button>
 }
@@ -89,7 +89,7 @@ Counter = (attributes, children, node) => {
 
 **Class components** give more control:
 
-```blop
+```typescript
 class Counter extends Component {
   def render() {
     <button>this.attributes.label</button>
@@ -107,13 +107,13 @@ Use function components for most cases. Use class components when you need more 
 
 **Props (Attributes):**
 
-```blop
+```typescript
 <ChildComponent message="Hello" count=42 />
 ```
 
 **Component Context:**
 
-```blop
+```typescript
 ParentComponent = (attributes, children, node) => {
   { setContext } = node.useContext('theme', 'dark')
   <ChildComponent />
@@ -127,7 +127,7 @@ ChildComponent = (attributes, children, node) => {
 
 **Global State:**
 
-```blop
+```typescript
 state = createState({ count: 0 })
 <Component state=state />
 ```
@@ -150,7 +150,7 @@ state = createState({ count: 0 })
 
 Yes! Unlike JSX, Blop supports full statements:
 
-```blop
+```typescript
 def List(attributes) {
   <ul>
     for item in attributes.items {
@@ -166,7 +166,7 @@ def List(attributes) {
 
 Use loops or the assignment operator (`=`):
 
-```blop
+```typescript
 // Using loops
 <ul>
   for item in items {
@@ -184,7 +184,7 @@ Use loops or the assignment operator (`=`):
 
 The assignment operator (`=`) inserts content into Virtual DOM:
 
-```blop
+```typescript
 <div>
   = "Some text"
   = myVariable
@@ -206,7 +206,7 @@ No! The state management library is optional. You can use:
 
 **Don't update state during render:**
 
-```blop
+```typescript
 // ❌ BAD
 BadComponent = (state) => {
   state.count := state.count + 1  // Causes infinite loop!
@@ -252,7 +252,7 @@ Blop generates source maps automatically. In browser DevTools, you'll see the or
 
 Blop has its own type annotation system (similar to TypeScript):
 
-```blop
+```typescript
 def add(a: number, b: number): number {
   return a + b
 }
@@ -289,7 +289,7 @@ Blop works well for medium-sized apps. For very large apps, consider:
 
 Blop prevents accidental variable redeclaration. Use `:=` for reassignment:
 
-```blop
+```typescript
 count = 0
 count := count + 1  // Use := not =
 ```
@@ -324,7 +324,7 @@ But mixing Blop and React/Vue isn't recommended.
 
 Yes! Import any ES6 module:
 
-```blop
+```typescript
 import axios from 'axios'
 import { format } from 'date-fns'
 

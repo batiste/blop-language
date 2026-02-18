@@ -7,6 +7,7 @@ import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
+import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
@@ -34,29 +35,6 @@ function extractImportNames(node) {
   
   traverse(node);
   return names;
-}
-
-/**
- * Extract property name nodes from an access chain
- * Returns array {name: string, node: astNode} for each step in the chain
- */
-function extractPropertyNodesFromAccess(accessNode) {
-  const properties = [];
-  
-  function traverse(node) {
-    if (!node || !node.children) return;
-    
-    for (const child of node.children) {
-      if (child.type === 'name') {
-        properties.push({ name: child.value, node: child });
-      } else if (child.type === 'object_access') {
-        traverse(child);
-      }
-    }
-  }
-  
-  traverse(accessNode);
-  return properties;
 }
 
 function createStatementHandlers(getState) {
@@ -403,7 +381,7 @@ function createStatementHandlers(getState) {
     },
     
     for_loop: (node, parent) => {
-      const { pushScope, popScope, pushWarning } = getState();
+      const { pushScope, popScope, pushWarning, typeAliases } = getState();
       const scope = pushScope();
       
       // Get variable names
@@ -428,7 +406,8 @@ function createStatementHandlers(getState) {
         // Check if we're iterating an array without :array annotation
         const expType = node.named.exp.inference?.[0];
         if (expType && key && !isArray) {
-          const isArrayType = expType instanceof ArrayType;
+          const resolvedExpType = resolveTypeAlias(expType, typeAliases);
+          const isArrayType = resolvedExpType instanceof ArrayType;
           
           if (isArrayType) {
             pushWarning(
@@ -444,8 +423,9 @@ function createStatementHandlers(getState) {
         const expType = node.named.exp.inference[0];
         let valueType = 'any';
         
-        if (expType instanceof ArrayType) {
-          valueType = expType.elementType.toString();
+        const resolvedExpType = resolveTypeAlias(expType, typeAliases);
+        if (resolvedExpType instanceof ArrayType) {
+          valueType = resolvedExpType.elementType.toString();
         }
         
         scope[value] = { type: valueType, node: node.named.value };

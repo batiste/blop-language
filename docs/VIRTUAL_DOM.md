@@ -18,7 +18,7 @@ Blop leverages [Snabbdom](https://github.com/snabbdom/snabbdom), a fast and modu
 
 ### Architecture
 
-```
+```text
 Blop Syntax → JavaScript Code → Virtual DOM Tree → Snabbdom Patch → Real DOM
 ```
 
@@ -61,7 +61,7 @@ Blop's Virtual DOM syntax is **compiled** into JavaScript function calls. The co
 #### Example: Simple Element
 
 **Blop code:**
-```blop
+```typescript
 def Greeting(attributes) {
   <div class="greeting">
     'Hello, ' attributes.name '!'
@@ -415,7 +415,7 @@ function destroyUnreferencedComponents() {
 Blop provides a special `needRender` attribute to skip rendering children:
 
 **Blop code:**
-```blop
+```typescript
 def ExpensiveComponent(attributes) {
   <div needRender=attributes.shouldUpdate>
     = computeExpensiveValue()
@@ -446,7 +446,7 @@ function prepatch(oldVnode, newNode) {
 
 Use `key` attributes to help Snabbdom efficiently update lists:
 
-```blop
+```typescript
 def TodoList(attributes) {
   <ul>
     for item in attributes.todos {
@@ -462,7 +462,7 @@ Without keys, Snabbdom uses index-based comparison. With keys, it matches elemen
 
 The `=` operator efficiently inserts content:
 
-```blop
+```typescript
 <div>
   = items.map(item => <span>item</span>)
 </div>
@@ -497,7 +497,7 @@ Blop exposes Snabbdom's lifecycle hooks for fine-grained control:
 
 ### Example Usage
 
-```blop
+```typescript
 def AutoFocusInput(attributes) {
   hooks = {
     insert: (vnode) => {
@@ -525,7 +525,7 @@ hook = { prepatch, ...userHooks };
 
 ### Basic Virtual DOM
 
-```blop
+```typescript
 def Greeting(attributes) {
   <div class="greeting">
     <h1>'Hello, ' attributes.name</h1>
@@ -536,7 +536,7 @@ def Greeting(attributes) {
 
 ### With Events
 
-```blop
+```typescript
 def Counter(attributes) {
   def increment() {
     attributes.count := attributes.count + 1
@@ -550,7 +550,7 @@ def Counter(attributes) {
 
 ### With Conditionals
 
-```blop
+```typescript
 def LoadingView(attributes) {
   if attributes.loading {
     <div class="spinner">'Loading...'</div>
@@ -564,7 +564,7 @@ def LoadingView(attributes) {
 
 ### With Loops
 
-```blop
+```typescript
 def TodoList(attributes) {
   <ul class="todo-list">
     for todo in attributes.todos {
@@ -578,7 +578,7 @@ def TodoList(attributes) {
 
 ### With Hooks
 
-```blop
+```typescript
 def ChartComponent(attributes) {
   hooks = {
     insert: (vnode) => {
@@ -601,7 +601,7 @@ def ChartComponent(attributes) {
 
 ### Component with State
 
-```blop
+```typescript
 class TodoApp extends blop.Component {
 
   def render(attributes, _children, component) {

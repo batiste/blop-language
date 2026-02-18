@@ -8,14 +8,14 @@ Spread syntax allows you to expand objects in places where multiple key-value pa
 
 ### Syntax
 
-```blop
+```typescript
 obj1 = { a: 1, b: 2 }
 obj2 = { c: 3, ...obj1 }  // { c: 3, a: 1, b: 2 }
 ```
 
 ### Merging Objects
 
-```blop
+```typescript
 defaults = { timeout: 5000, retries: 3 }
 options = { timeout: 10000 }
 config = { ...defaults, ...options }  // { timeout: 10000, retries: 3 }
@@ -34,7 +34,7 @@ Optional chaining allows you to safely access deeply nested properties without m
 
 ### Syntax
 
-```blop
+```typescript
 // Property access
 value = obj?.property?.nested?.deep
 
@@ -45,7 +45,7 @@ value = obj?.['property']
 
 ### Examples
 
-```blop
+```typescript
 user = { profile: { name: 'Alice' } }
 name = user?.profile?.name  // 'Alice'
 age = user?.profile?.age    // undefined (no error)
@@ -67,7 +67,7 @@ The nullish coalescing operator returns the right-hand value when the left-hand 
 
 ### Syntax
 
-```blop
+```typescript
 result = value ?? defaultValue
 ```
 
@@ -75,7 +75,7 @@ result = value ?? defaultValue
 
 Unlike `||`, the `??` operator only considers `null` and `undefined` as "nullish":
 
-```blop
+```typescript
 // With ?? operator
 count1 = 0 ?? 42        // 0 (not nullish)
 count2 = '' ?? 'text'   // '' (not nullish)
@@ -90,7 +90,7 @@ count2 = '' || 'text'   // 'text' ('' is falsy)
 
 ### Chaining
 
-```blop
+```typescript
 result = value1 ?? value2 ?? value3 ?? 'default'
 ```
 
@@ -109,7 +109,7 @@ Enhanced type annotation support for union (`|`) and intersection (`&`) types.
 
 Union types allow a value to be one of several types:
 
-```blop
+```typescript
 def processValue(val): string | number {
   if typeof val == 'string' => val.toUpperCase()
   else val * 2
@@ -120,7 +120,7 @@ def processValue(val): string | number {
 
 Intersection types combine multiple types:
 
-```blop
+```typescript
 def mergeObjects(obj1: object & {id: number}, obj2: object): object {
   return { ...obj1, ...obj2 }
 }
@@ -130,7 +130,7 @@ def mergeObjects(obj1: object & {id: number}, obj2: object): object {
 
 Specify array types using bracket notation:
 
-```blop
+```typescript
 def getNumbers(): number[] {
   return [1, 2, 3, 4, 5]
 }
@@ -144,7 +144,7 @@ def processStrings(items: string[]): number {
 
 ### API Data Fetching
 
-```blop
+```typescript
 async def fetchUserData(userId): object | null {
   response = await fetch(`/api/users/'userId'`)
   data = await response.json()
@@ -163,7 +163,7 @@ async def fetchUserData(userId): object | null {
 
 ### Configuration Merging
 
-```blop
+```typescript
 def createConfig(userConfig): object {
   defaultConfig = {
     timeout: 5000,
@@ -182,7 +182,7 @@ def createConfig(userConfig): object {
 
 ### Safe Navigation
 
-```blop
+```typescript
 def displayUserInfo(data): string {
   // Chain optional access with nullish coalescing
   name = data?.user?.profile?.name ?? 'Unknown'
@@ -197,7 +197,7 @@ def displayUserInfo(data): string {
 
 The type inference system understands the new operators:
 
-```blop
+```typescript
 // Nullish coalescing infers type from operands
 def getValue(input): number {
   value = input ?? 0  // Infers number
@@ -222,7 +222,7 @@ All modern features compile to ES2020+ JavaScript. Make sure your target environ
 
 Replace `||` with `??` when you want to distinguish between falsy and nullish:
 
-```blop
+```typescript
 // Before
 count = userInput || 0  // Problem: 0 becomes 0
 
@@ -232,7 +232,7 @@ count = userInput ?? 0  // Better: only null/undefined become 0
 
 ### From manual null checks to optional chaining
 
-```blop
+```typescript
 // Before
 name = null
 if data {
