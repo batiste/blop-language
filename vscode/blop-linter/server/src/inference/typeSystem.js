@@ -319,7 +319,7 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
     if (currentType instanceof PrimitiveType) {
       const memberType = getPrimitiveMemberType(currentType.name, propName);
       if (memberType !== null) {
-        currentType = stringToType(memberType);
+        currentType = memberType;
         continue;
       }
       return null;
@@ -329,7 +329,7 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
     if (currentType instanceof ArrayType) {
       const memberType = getPrimitiveMemberType('array', propName);
       if (memberType !== null) {
-        currentType = stringToType(memberType);
+        currentType = memberType;
         continue;
       }
       return null;

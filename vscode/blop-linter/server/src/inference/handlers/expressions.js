@@ -95,7 +95,9 @@ function createExpressionHandlers(getState) {
             const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
             if (methodName) {
               const builtinType = getBuiltinObjectType(name.value);
-              const returnType = builtinType?.[methodName] ?? 'any';
+              const rawReturn = builtinType?.[methodName];
+              // TODO(step2): remove .toString() once pushInference accepts Type objects
+              const returnType = rawReturn != null ? rawReturn.toString() : 'any';
               pushInference(parent, returnType);
               return;
             }
@@ -178,7 +180,9 @@ function createExpressionHandlers(getState) {
           const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
           if (propName) {
             const builtinType = getBuiltinObjectType(name.value);
-            const propType = builtinType?.[propName] ?? 'any';
+            const rawProp = builtinType?.[propName];
+            // TODO(step2): remove .toString() once pushInference accepts Type objects
+            const propType = rawProp != null ? rawProp.toString() : 'any';
             pushInference(parent, propType);
             return;
           }

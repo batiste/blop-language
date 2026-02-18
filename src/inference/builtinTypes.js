@@ -2,222 +2,227 @@
 // Built-in Types - Type definitions for native JavaScript objects
 // ============================================================================
 
+import {
+  Types,
+  AnyType, StringType, NumberType, BooleanType, NullType, UndefinedType,
+} from './Type.js';
+
 /**
- * Define built-in object types with their properties
- * This allows the type system to validate property access on native JS objects
+ * Define built-in object types with their properties.
+ * Values are structured Type objects (from Type.js).
+ * This allows the type system to validate property access on native JS objects.
  */
 export const builtinObjectTypes = {
   // Snabbdom VNode type
   VNode: {
-    elm: 'any',                    // The DOM element
-    data: 'any',                   // VNode data (props, style, etc)
-    children: 'any',               // Child VNodes
-    text: 'string | undefined',    // Text content
-    key: 'any',                    // VNode key
-    sel: 'string | undefined',     // Selector
+    elm: AnyType,                                         // The DOM element
+    data: AnyType,                                        // VNode data (props, style, etc)
+    children: AnyType,                                    // Child VNodes
+    text: Types.union([StringType, UndefinedType]),       // Text content
+    key: AnyType,                                         // VNode key
+    sel: Types.union([StringType, UndefinedType]),        // Selector
   },
 
   // JavaScript Math object – all methods return number
   Math: {
-    E: 'number',
-    LN10: 'number',
-    LN2: 'number',
-    LOG10E: 'number',
-    LOG2E: 'number',
-    PI: 'number',
-    SQRT1_2: 'number',
-    SQRT2: 'number',
-    abs: 'number',
-    acos: 'number',
-    acosh: 'number',
-    asin: 'number',
-    asinh: 'number',
-    atan: 'number',
-    atan2: 'number',
-    atanh: 'number',
-    cbrt: 'number',
-    ceil: 'number',
-    clz32: 'number',
-    cos: 'number',
-    cosh: 'number',
-    exp: 'number',
-    expm1: 'number',
-    floor: 'number',
-    fround: 'number',
-    hypot: 'number',
-    imul: 'number',
-    log: 'number',
-    log10: 'number',
-    log1p: 'number',
-    log2: 'number',
-    max: 'number',
-    min: 'number',
-    pow: 'number',
-    random: 'number',
-    round: 'number',
-    sign: 'number',
-    sin: 'number',
-    sinh: 'number',
-    sqrt: 'number',
-    tan: 'number',
-    tanh: 'number',
-    trunc: 'number',
+    E: NumberType,
+    LN10: NumberType,
+    LN2: NumberType,
+    LOG10E: NumberType,
+    LOG2E: NumberType,
+    PI: NumberType,
+    SQRT1_2: NumberType,
+    SQRT2: NumberType,
+    abs: NumberType,
+    acos: NumberType,
+    acosh: NumberType,
+    asin: NumberType,
+    asinh: NumberType,
+    atan: NumberType,
+    atan2: NumberType,
+    atanh: NumberType,
+    cbrt: NumberType,
+    ceil: NumberType,
+    clz32: NumberType,
+    cos: NumberType,
+    cosh: NumberType,
+    exp: NumberType,
+    expm1: NumberType,
+    floor: NumberType,
+    fround: NumberType,
+    hypot: NumberType,
+    imul: NumberType,
+    log: NumberType,
+    log10: NumberType,
+    log1p: NumberType,
+    log2: NumberType,
+    max: NumberType,
+    min: NumberType,
+    pow: NumberType,
+    random: NumberType,
+    round: NumberType,
+    sign: NumberType,
+    sin: NumberType,
+    sinh: NumberType,
+    sqrt: NumberType,
+    tan: NumberType,
+    tanh: NumberType,
+    trunc: NumberType,
   },
 
   // JavaScript console object – all methods return undefined
   console: {
-    log: 'undefined',
-    info: 'undefined',
-    warn: 'undefined',
-    error: 'undefined',
-    debug: 'undefined',
-    trace: 'undefined',
-    dir: 'undefined',
-    dirxml: 'undefined',
-    table: 'undefined',
-    group: 'undefined',
-    groupCollapsed: 'undefined',
-    groupEnd: 'undefined',
-    clear: 'undefined',
-    count: 'number',
-    countReset: 'undefined',
-    assert: 'undefined',
-    time: 'undefined',
-    timeLog: 'undefined',
-    timeEnd: 'undefined',
+    log: UndefinedType,
+    info: UndefinedType,
+    warn: UndefinedType,
+    error: UndefinedType,
+    debug: UndefinedType,
+    trace: UndefinedType,
+    dir: UndefinedType,
+    dirxml: UndefinedType,
+    table: UndefinedType,
+    group: UndefinedType,
+    groupCollapsed: UndefinedType,
+    groupEnd: UndefinedType,
+    clear: UndefinedType,
+    count: NumberType,
+    countReset: UndefinedType,
+    assert: UndefinedType,
+    time: UndefinedType,
+    timeLog: UndefinedType,
+    timeEnd: UndefinedType,
   },
 
   // JavaScript JSON object
   JSON: {
-    parse: 'any',
-    stringify: 'string | undefined',
+    parse: AnyType,
+    stringify: Types.union([StringType, UndefinedType]),
   },
 
   // JavaScript Object constructor
   Object: {
-    assign: 'any',
-    create: 'any',
-    defineProperty: 'any',
-    defineProperties: 'any',
-    entries: 'any[]',
-    freeze: 'any',
-    fromEntries: 'any',
-    getOwnPropertyDescriptor: 'any',
-    getOwnPropertyDescriptors: 'any',
-    getOwnPropertyNames: 'string[]',
-    getOwnPropertySymbols: 'any[]',
-    getPrototypeOf: 'any',
-    is: 'boolean',
-    isExtensible: 'boolean',
-    isFrozen: 'boolean',
-    isSealed: 'boolean',
-    keys: 'string[]',
-    preventExtensions: 'any',
-    seal: 'any',
-    setPrototypeOf: 'any',
-    values: 'any[]',
+    assign: AnyType,
+    create: AnyType,
+    defineProperty: AnyType,
+    defineProperties: AnyType,
+    entries: Types.array(AnyType),
+    freeze: AnyType,
+    fromEntries: AnyType,
+    getOwnPropertyDescriptor: AnyType,
+    getOwnPropertyDescriptors: AnyType,
+    getOwnPropertyNames: Types.array(StringType),
+    getOwnPropertySymbols: Types.array(AnyType),
+    getPrototypeOf: AnyType,
+    is: BooleanType,
+    isExtensible: BooleanType,
+    isFrozen: BooleanType,
+    isSealed: BooleanType,
+    keys: Types.array(StringType),
+    preventExtensions: AnyType,
+    seal: AnyType,
+    setPrototypeOf: AnyType,
+    values: Types.array(AnyType),
   },
 
   // JavaScript Array constructor
   Array: {
-    from: 'any[]',
-    isArray: 'boolean',
-    of: 'any[]',
+    from: Types.array(AnyType),
+    isArray: BooleanType,
+    of: Types.array(AnyType),
   },
 
   // JavaScript Date constructor
   Date: {
-    now: 'number',
-    parse: 'number',
-    UTC: 'number',
+    now: NumberType,
+    parse: NumberType,
+    UTC: NumberType,
   },
 
   // JavaScript Number constructor
   Number: {
-    EPSILON: 'number',
-    MAX_SAFE_INTEGER: 'number',
-    MAX_VALUE: 'number',
-    MIN_SAFE_INTEGER: 'number',
-    MIN_VALUE: 'number',
-    NEGATIVE_INFINITY: 'number',
-    NaN: 'number',
-    POSITIVE_INFINITY: 'number',
-    isFinite: 'boolean',
-    isInteger: 'boolean',
-    isNaN: 'boolean',
-    isSafeInteger: 'boolean',
-    parseFloat: 'number',
-    parseInt: 'number',
+    EPSILON: NumberType,
+    MAX_SAFE_INTEGER: NumberType,
+    MAX_VALUE: NumberType,
+    MIN_SAFE_INTEGER: NumberType,
+    MIN_VALUE: NumberType,
+    NEGATIVE_INFINITY: NumberType,
+    NaN: NumberType,
+    POSITIVE_INFINITY: NumberType,
+    isFinite: BooleanType,
+    isInteger: BooleanType,
+    isNaN: BooleanType,
+    isSafeInteger: BooleanType,
+    parseFloat: NumberType,
+    parseInt: NumberType,
   },
 
   // JavaScript String constructor
   String: {
-    fromCharCode: 'string',
-    fromCodePoint: 'string',
-    raw: 'string',
+    fromCharCode: StringType,
+    fromCodePoint: StringType,
+    raw: StringType,
   },
 
   // JavaScript Promise constructor – returns are opaque without generics
   Promise: {
-    all: 'any',
-    allSettled: 'any',
-    any: 'any',
-    race: 'any',
-    reject: 'any',
-    resolve: 'any',
+    all: AnyType,
+    allSettled: AnyType,
+    any: AnyType,
+    race: AnyType,
+    reject: AnyType,
+    resolve: AnyType,
   },
 
   // Browser window object (common properties)
   window: {
-    document: 'any',
-    console: 'any',
-    alert: 'undefined',
-    confirm: 'boolean',
-    prompt: 'string | null',
-    setTimeout: 'number',           // returns a timer id
-    setInterval: 'number',          // returns a timer id
-    clearTimeout: 'undefined',
-    clearInterval: 'undefined',
-    fetch: 'any',                   // returns Promise<Response>; typed as any until generics
-    location: 'any',
-    history: 'any',
-    navigator: 'any',
-    screen: 'any',
-    localStorage: 'any',
-    sessionStorage: 'any',
-    requestAnimationFrame: 'number', // returns a request id
-    cancelAnimationFrame: 'undefined',
+    document: AnyType,
+    console: AnyType,
+    alert: UndefinedType,
+    confirm: BooleanType,
+    prompt: Types.union([StringType, NullType]),
+    setTimeout: NumberType,             // returns a timer id
+    setInterval: NumberType,            // returns a timer id
+    clearTimeout: UndefinedType,
+    clearInterval: UndefinedType,
+    fetch: AnyType,                     // returns Promise<Response>; typed as any until generics
+    location: AnyType,
+    history: AnyType,
+    navigator: AnyType,
+    screen: AnyType,
+    localStorage: AnyType,
+    sessionStorage: AnyType,
+    requestAnimationFrame: NumberType,  // returns a request id
+    cancelAnimationFrame: UndefinedType,
   },
 
   // Browser document object (common properties)
   document: {
-    getElementById: 'any',          // returns HTMLElement | null
-    getElementsByClassName: 'any',  // returns HTMLCollectionOf<Element>
-    getElementsByTagName: 'any',    // returns HTMLCollectionOf<Element>
-    querySelector: 'any',           // returns Element | null
-    querySelectorAll: 'any',        // returns NodeListOf<Element>
-    createElement: 'any',           // returns HTMLElement
-    createTextNode: 'any',          // returns Text
-    createDocumentFragment: 'any',  // returns DocumentFragment
-    body: 'any',
-    head: 'any',
-    title: 'string',
-    cookie: 'string',
-    location: 'any',
-    URL: 'string',
-    domain: 'string',
-    referrer: 'string',
-    addEventListener: 'undefined',
-    removeEventListener: 'undefined',
+    getElementById: AnyType,            // returns HTMLElement | null
+    getElementsByClassName: AnyType,    // returns HTMLCollectionOf<Element>
+    getElementsByTagName: AnyType,      // returns HTMLCollectionOf<Element>
+    querySelector: AnyType,             // returns Element | null
+    querySelectorAll: AnyType,          // returns NodeListOf<Element>
+    createElement: AnyType,             // returns HTMLElement
+    createTextNode: AnyType,            // returns Text
+    createDocumentFragment: AnyType,    // returns DocumentFragment
+    body: AnyType,
+    head: AnyType,
+    title: StringType,
+    cookie: StringType,
+    location: AnyType,
+    URL: StringType,
+    domain: StringType,
+    referrer: StringType,
+    addEventListener: UndefinedType,
+    removeEventListener: UndefinedType,
   },
 };
 
 /**
  * Built-in method/property types for primitive types (string, number, boolean, array).
- * Each entry maps a method or property name to its return type when called/accessed.
+ * Each entry maps a method or property name to its Type.
  *
- * Return types use the same string notation as the rest of the type system.
- * Methods that vary by argument (e.g. Array.map) use 'any' as a conservative
+ * Methods that vary by argument (e.g. Array.map) use AnyType as a conservative
  * fallback – they can be tightened later with generic support.
  */
 export const builtinPrimitiveTypes = {
@@ -226,116 +231,116 @@ export const builtinPrimitiveTypes = {
   // ---------------------------------------------------------------------------
   string: {
     // Properties
-    length: 'number',
-    // Methods returning string
-    charAt: 'string',
-    charCodeAt: 'number',
-    codePointAt: 'number | undefined',
-    concat: 'string',
-    endsWith: 'boolean',
-    includes: 'boolean',
-    indexOf: 'number',
-    lastIndexOf: 'number',
-    localeCompare: 'number',
-    match: 'any',
-    matchAll: 'any',
-    normalize: 'string',
-    padEnd: 'string',
-    padStart: 'string',
-    repeat: 'string',
-    replace: 'string',
-    replaceAll: 'string',
-    search: 'number',
-    slice: 'string',
-    split: 'string[]',
-    startsWith: 'boolean',
-    substring: 'string',
-    toLocaleLowerCase: 'string',
-    toLocaleUpperCase: 'string',
-    toLowerCase: 'string',
-    toString: 'string',
-    toUpperCase: 'string',
-    trim: 'string',
-    trimEnd: 'string',
-    trimStart: 'string',
-    valueOf: 'string',
-    at: 'string | undefined',
+    length: NumberType,
+    // Methods
+    charAt: StringType,
+    charCodeAt: NumberType,
+    codePointAt: Types.union([NumberType, UndefinedType]),
+    concat: StringType,
+    endsWith: BooleanType,
+    includes: BooleanType,
+    indexOf: NumberType,
+    lastIndexOf: NumberType,
+    localeCompare: NumberType,
+    match: AnyType,
+    matchAll: AnyType,
+    normalize: StringType,
+    padEnd: StringType,
+    padStart: StringType,
+    repeat: StringType,
+    replace: StringType,
+    replaceAll: StringType,
+    search: NumberType,
+    slice: StringType,
+    split: Types.array(StringType),
+    startsWith: BooleanType,
+    substring: StringType,
+    toLocaleLowerCase: StringType,
+    toLocaleUpperCase: StringType,
+    toLowerCase: StringType,
+    toString: StringType,
+    toUpperCase: StringType,
+    trim: StringType,
+    trimEnd: StringType,
+    trimStart: StringType,
+    valueOf: StringType,
+    at: Types.union([StringType, UndefinedType]),
   },
 
   // ---------------------------------------------------------------------------
   // Number prototype
   // ---------------------------------------------------------------------------
   number: {
-    toExponential: 'string',
-    toFixed: 'string',
-    toLocaleString: 'string',
-    toPrecision: 'string',
-    toString: 'string',
-    valueOf: 'number',
+    toExponential: StringType,
+    toFixed: StringType,
+    toLocaleString: StringType,
+    toPrecision: StringType,
+    toString: StringType,
+    valueOf: NumberType,
   },
 
   // ---------------------------------------------------------------------------
   // Boolean prototype
   // ---------------------------------------------------------------------------
   boolean: {
-    toString: 'string',
-    valueOf: 'boolean',
+    toString: StringType,
+    valueOf: BooleanType,
   },
 
   // ---------------------------------------------------------------------------
-  // Array prototype  (element type is unknown here, so we use 'any' or 'T[]')
+  // Array prototype  (element type is unknown here, so we use AnyType or array(AnyType))
   // ---------------------------------------------------------------------------
   array: {
     // Properties
-    length: 'number',
+    length: NumberType,
     // Mutating methods
-    push: 'number',
-    pop: 'any',
-    shift: 'any',
-    unshift: 'number',
-    splice: 'any[]',
-    reverse: 'any[]',
-    sort: 'any[]',
-    fill: 'any[]',
-    copyWithin: 'any[]',
+    push: NumberType,
+    pop: AnyType,
+    shift: AnyType,
+    unshift: NumberType,
+    splice: Types.array(AnyType),
+    reverse: Types.array(AnyType),
+    sort: Types.array(AnyType),
+    fill: Types.array(AnyType),
+    copyWithin: Types.array(AnyType),
     // Non-mutating methods
-    concat: 'any[]',
-    join: 'string',
-    slice: 'any[]',
-    indexOf: 'number',
-    lastIndexOf: 'number',
-    includes: 'boolean',
-    find: 'any',
-    findIndex: 'number',
-    findLast: 'any',
-    findLastIndex: 'number',
-    every: 'boolean',
-    some: 'boolean',
-    forEach: 'undefined',
-    map: 'any[]',
-    filter: 'any[]',
-    reduce: 'any',
-    reduceRight: 'any',
-    flat: 'any[]',
-    flatMap: 'any[]',
-    keys: 'any',
-    values: 'any',
-    entries: 'any',
-    at: 'any',
-    toString: 'string',
-    toLocaleString: 'string',
-    toReversed: 'any[]',
-    toSorted: 'any[]',
-    toSpliced: 'any[]',
-    with: 'any[]',
+    concat: Types.array(AnyType),
+    join: StringType,
+    slice: Types.array(AnyType),
+    indexOf: NumberType,
+    lastIndexOf: NumberType,
+    includes: BooleanType,
+    find: AnyType,
+    findIndex: NumberType,
+    findLast: AnyType,
+    findLastIndex: NumberType,
+    every: BooleanType,
+    some: BooleanType,
+    forEach: UndefinedType,
+    map: Types.array(AnyType),
+    filter: Types.array(AnyType),
+    reduce: AnyType,
+    reduceRight: AnyType,
+    flat: Types.array(AnyType),
+    flatMap: Types.array(AnyType),
+    keys: AnyType,
+    values: AnyType,
+    entries: AnyType,
+    at: AnyType,
+    toString: StringType,
+    toLocaleString: StringType,
+    toReversed: Types.array(AnyType),
+    toSorted: Types.array(AnyType),
+    toSpliced: Types.array(AnyType),
+    with: Types.array(AnyType),
   },
 };
 
 /**
- * Get the return type of a method/property on a primitive type.
+ * Get the Type of a method/property on a primitive type.
  * @param {string} primitiveType - 'string' | 'number' | 'boolean' | 'array'
  * @param {string} memberName - The method or property name
- * @returns {string|null} Return type string, or null if unknown
+ * @returns {Type|null} The Type, or null if unknown
  */
 export function getPrimitiveMemberType(primitiveType, memberName) {
   const members = builtinPrimitiveTypes[primitiveType];
