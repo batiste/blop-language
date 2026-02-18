@@ -200,8 +200,6 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  // TODO: try to remove string literals from inference
-  // migrated yet don't break the type system invariants.
   if (inference === 'string') {
     throw new Error(`Inference should be a Type object, not a string literal ${inference}, at ${JSON.stringify(node)}`);
   }

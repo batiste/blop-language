@@ -265,41 +265,4 @@ function createCheckingHandlers(getState) {
   };
 }
 
-/**
- * Run checking phase on AST
- * Validates types that were inferred in Phase 2
- * Should be called after Phase 2 inference pass completes
- */
-function runCheckingPhase(node, stream, typeAliases, lookupVariable, getFunctionScope) {
-  const warnings = [];
-  const handlers = createCheckingHandlers(() => ({
-    pushWarning: (n, msg) => {
-      const error = new Error(msg);
-      error.token = stream[n.stream_index];
-      warnings.push(error);
-    },
-    typeAliases,
-    lookupVariable,
-    getFunctionScope,
-  }));
-
-  // Traverse AST and run checking handlers
-  function check(n) {
-    if (!n) return;
-    if (handlers[n.type]) {
-      handlers[n.type](n, n.parent);
-    }
-    if (n.children) {
-      n.children.forEach(c => {
-        c.parent = n;
-        check(c);
-      });
-    }
-  }
-
-  check(node);
-  return warnings;
-}
-
 export default createCheckingHandlers;
-export { runCheckingPhase };

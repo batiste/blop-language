@@ -408,16 +408,6 @@ export function getPrimitiveMemberType(primitiveType, memberName) {
 }
 
 /**
- * Check if a given member name exists on a primitive type.
- * @param {string} primitiveType
- * @param {string} memberName
- * @returns {boolean}
- */
-export function isPrimitiveMember(primitiveType, memberName) {
-  return getPrimitiveMemberType(primitiveType, memberName) !== null;
-}
-
-/**
  * Get the type definition for a built-in object
  * @param {string} typeName - The name of the built-in type
  * @returns {Object|null} The type definition or null if not found
