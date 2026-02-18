@@ -1002,13 +1002,11 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 		return null;
 	}
 	
+	// Refine to the most specific child node (which has the stamped inferredType)
 	const moreSpecific = findMoreSpecificChild(node, offset, stream);
 	if (moreSpecific) {
 		node = moreSpecific;
 	}
-
-	connection.console.log(
-		`Hover requested at offset ${offset} on node type ${node.type}, node value ${node.value} (inferred type: ${node.inferredType})`);
 
 	// Walk up the parent chain to find the first node with an inferred type
 	let inferredType = node.inferredType;
@@ -1045,6 +1043,11 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 		return null;
 	}
 	
+	// Convert Type object to string if needed
+	const typeString = typeof inferredType === 'string' 
+		? inferredType 
+		: inferredType.toString?.() || String(inferredType);
+	
 	// Get the token range for highlighting
 	const token = stream[node.stream_index];
 	if (!token) {
@@ -1054,7 +1057,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	return {
 		contents: {
 			kind: MarkupKind.Markdown,
-			value: `\`${inferredType}\``
+			value: `\`${typeString}\``
 		},
 		range: {
 			start: document.positionAt(token.start),

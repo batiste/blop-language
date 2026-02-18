@@ -132,4 +132,45 @@ def profile(prof: Profile) {
     expect(userPropertyNode.inferredType.toString()).not.toContain('verified');
   });
 
+  it('should stamp function name with return type from property access', () => {
+    const code = `type User = {
+    name: string,
+    id: number,
+    userType?: "Admin" | "User"
+}
+
+type Profile = {
+    user: User,
+    bio?: string,
+    verified: boolean
+}
+
+def profile(prof: Profile) {
+    return prof.user
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+    
+    // The function name "profile" should have the return type of User
+    // (because the function returns prof.user which is type User)
+    const funcDefs = findFunctionDefs(tree);
+    const profileFunc = funcDefs.find(f => f.named?.name?.value === 'profile');
+    
+    expect(profileFunc).toBeDefined();
+    const funcName = profileFunc.named?.name;
+    expect(funcName).toBeDefined();
+    expect(funcName.value).toBe('profile');
+    
+    // The inferred type should be the User type with name, id, userType
+    expect(funcName.inferredType).toBeDefined();
+    const typeStr = funcName.inferredType.toString();
+    expect(typeStr).toContain('name');
+    expect(typeStr).toContain('id');
+    expect(typeStr).toContain('userType');
+    // Should NOT contain Profile-specific fields like verified or bio
+    expect(typeStr).not.toContain('verified');
+    expect(typeStr).not.toContain('bio');
+  });
 });
