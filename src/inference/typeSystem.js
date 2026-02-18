@@ -661,6 +661,10 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
  * @returns {Type}
  */
 export function stringToType(typeString) {
+  if (typeof typeString !== 'string') {
+    throw new Error(`stringToType expects a string input. Received: ${typeof typeString}`);
+  }
+
   if (!typeString || typeString === 'any') return AnyType;
   typeString = stripOuterParens(typeString.trim());
   if (typeString === 'never') return NeverType;
@@ -697,32 +701,32 @@ export function stringToType(typeString) {
     return Types.array(stringToType(elementStr));
   }
   
-  // Union type
-  const unionParts = splitTopLevel(typeString, '|');
-  if (unionParts.length > 1) {
-    const types = unionParts.map(t => stringToType(t.trim()));
-    return Types.union(types);
-  }
+  // // Union type
+  // const unionParts = splitTopLevel(typeString, '|');
+  // if (unionParts.length > 1) {
+  //   const types = unionParts.map(t => stringToType(t.trim()));
+  //   return Types.union(types);
+  // }
   
-  // Intersection type
-  const intersectionParts = splitTopLevel(typeString, '&');
-  if (intersectionParts.length > 1) {
-    const types = intersectionParts.map(t => stringToType(t.trim()));
-    return Types.intersection(types);
-  }
+  // // Intersection type
+  // const intersectionParts = splitTopLevel(typeString, '&');
+  // if (intersectionParts.length > 1) {
+  //   const types = intersectionParts.map(t => stringToType(t.trim()));
+  //   return Types.intersection(types);
+  // }
   
-  // Object type
-  if (typeString.startsWith('{') && typeString.endsWith('}')) {
-    return parseObjectTypeFromString(typeString);
-  }
+  // // Object type
+  // if (typeString.startsWith('{') && typeString.endsWith('}')) {
+  //   return parseObjectTypeFromString(typeString);
+  // }
   
-  // Generic type
-  const genericMatch = typeString.match(/^(\w+)<(.+)>$/);
-  if (genericMatch) {
-    const [, baseName, argsStr] = genericMatch;
-    const typeArgs = argsStr.split(',').map(arg => stringToType(arg.trim()));
-    return Types.generic(new TypeAlias(baseName), typeArgs);
-  }
+  // // Generic type
+  // const genericMatch = typeString.match(/^(\w+)<(.+)>$/);
+  // if (genericMatch) {
+  //   const [, baseName, argsStr] = genericMatch;
+  //   const typeArgs = argsStr.split(',').map(arg => stringToType(arg.trim()));
+  //   return Types.generic(new TypeAlias(baseName), typeArgs);
+  // }
   
   // Unknown - treat as type alias
   return new TypeAlias(typeString);

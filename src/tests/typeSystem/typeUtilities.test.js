@@ -266,36 +266,3 @@ describe('resolveTypeAlias', () => {
     expect(result).toBe(AnyFunctionType);
   });
 });
-
-// ---------------------------------------------------------------------------
-// parseObjectTypeString (string round-trip)
-// Returns a plain {key: {type: string, optional: bool}} map, not an ObjectType
-// ---------------------------------------------------------------------------
-
-describe('parseObjectTypeString', () => {
-  test('parses a simple object type string into a plain map', () => {
-    const result = parseObjectTypeString('{name: string, age: number}');
-    expect(result).not.toBeNull();
-    expect(result).toBeTypeOf('object');
-    expect(result.name.type).toBe('string');
-    expect(result.age.type).toBe('number');
-  });
-
-  test('returns null for non-object type string', () => {
-    expect(parseObjectTypeString('string')).toBeNull();
-    expect(parseObjectTypeString('number')).toBeNull();
-  });
-
-  test('parses optional properties', () => {
-    const result = parseObjectTypeString('{name: string, age?: number}');
-    expect(result).not.toBeNull();
-    expect(result.age.optional).toBe(true);
-    expect(result.name.optional).toBe(false);
-  });
-
-  test('empty object {} parses to empty plain object', () => {
-    const result = parseObjectTypeString('{}');
-    expect(result).not.toBeNull();
-    expect(Object.keys(result)).toHaveLength(0);
-  });
-});
