@@ -275,10 +275,11 @@ export function parseGenericParams(genericParamsNode) {
 
 /**
  * Convert a type name string to a Type object
+ * Handles primitive types, boolean literals, and type alias references
  * @param {string} name - Type name
  * @returns {Type}
  */
-function primitiveFromName(name) {
+export function primitiveFromName(name) {
   switch (name) {
     case 'string': return StringType;
     case 'number': return NumberType;

@@ -14,7 +14,7 @@ import {
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
 } from './Type.js';
-import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
+import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType, primitiveFromName } from './typeParser.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
 
 
@@ -491,44 +491,18 @@ export function parseObjectTypeString(objectTypeString) {
 }
 
 /**
- * Check object structural compatibility (for backward compatibility)
- * @param {Object} valueStructure
- * @param {Object} targetStructure
+ * Check object structural compatibility
+ * @param {ObjectType} valueType
+ * @param {ObjectType} targetType
  * @param {TypeAliasMap|Object} aliases
  * @returns {Object} {compatible: boolean, errors: string[]}
  */
-export function checkObjectStructuralCompatibility(valueStructure, targetStructure, aliases) {
+export function checkObjectStructuralCompatibility(valueType, targetType, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
   const errors = [];
   
-  if (!valueStructure || !targetStructure) {
-    return { compatible: false, errors: ['Invalid object structures'] };
-  }
-  
-  // Accept ObjectType instances directly, or convert from string-keyed maps (legacy path)
-  let valueType, targetType;
-  if (valueStructure instanceof ObjectType) {
-    valueType = valueStructure;
-  } else {
-    const valueProps = new Map();
-    for (const [key, prop] of Object.entries(valueStructure)) {
-      const type = stringToType(prop);
-      const optional = typeof prop === 'object' && prop.optional;
-      valueProps.set(key, { type, optional });
-    }
-    valueType = new ObjectType(valueProps);
-  }
-
-  if (targetStructure instanceof ObjectType) {
-    targetType = targetStructure;
-  } else {
-    const targetProps = new Map();
-    for (const [key, prop] of Object.entries(targetStructure)) {
-      const type = stringToType(prop);
-      const optional = typeof prop === 'object' && prop.optional;
-      targetProps.set(key, { type, optional });
-    }
-    targetType = new ObjectType(targetProps);
+  if (!(valueType instanceof ObjectType) || !(targetType instanceof ObjectType)) {
+    return { compatible: true, errors: [] };
   }
   
   // Check compatibility (structural subtyping - ignores excess properties)
@@ -584,20 +558,7 @@ export function stringToType(typeString) {
     throw new Error(`stringToType expects a string input. Received: ${typeof typeString}`);
   }
 
-  if (!typeString || typeString === 'any') return AnyType;
-  if (typeString === 'never') return NeverType;
-  if (typeString === 'string') return StringType;
-  if (typeString === 'number') return NumberType;
-  if (typeString === 'boolean') return BooleanType;
-  if (typeString === 'null') return NullType;
-  if (typeString === 'undefined') return UndefinedType;
-  if (typeString === 'function') return AnyFunctionType;
-  
-  // Boolean literal
-  if (typeString === 'true') return Types.literal(true, BooleanType);
-  if (typeString === 'false') return Types.literal(false, BooleanType);
-
-  return new TypeAlias(typeString);
+  return primitiveFromName(typeString);
 }
 
 /**
