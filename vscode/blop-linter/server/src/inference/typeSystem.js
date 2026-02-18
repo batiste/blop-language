@@ -88,13 +88,6 @@ export function isTypeCompatible(valueType, targetType, aliases) {
  */
 export function resolveTypeAlias(type, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
-  
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const resolved = aliasMap.resolve(typeObj);
-    return typeToString(resolved);
-  }
-  
   return aliasMap.resolve(type);
 }
 
@@ -228,7 +221,7 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
       const builtinType = getBuiltinObjectType(currentType.name);
       if (builtinType && builtinType[propName]) {
         const propType = builtinType[propName];
-        currentType = typeof propType === 'string' ? stringToType(propType) : propType;
+        currentType = stringToType(propType);
         continue;
       }
       return null;
@@ -492,7 +485,7 @@ export function instantiateGenericType(genericTypeName, typeArgs, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
   
   // Convert strings to Type objects
-  const args = typeArgs.map(t => typeof t === 'string' ? stringToType(t) : t);
+  const args = typeArgs.map(t => stringToType(t));
   
   const result = aliasMap.instantiate(genericTypeName, args);
   
@@ -546,7 +539,7 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   } else {
     const valueProps = new Map();
     for (const [key, prop] of Object.entries(valueStructure)) {
-      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const type = stringToType(prop);
       const optional = typeof prop === 'object' && prop.optional;
       valueProps.set(key, { type, optional });
     }
@@ -558,7 +551,7 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   } else {
     const targetProps = new Map();
     for (const [key, prop] of Object.entries(targetStructure)) {
-      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const type = stringToType(prop);
       const optional = typeof prop === 'object' && prop.optional;
       targetProps.set(key, { type, optional });
     }
@@ -614,6 +607,10 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
  * @returns {Type}
  */
 export function stringToType(typeString) {
+  if (typeof typeString !== 'string') {
+    throw new Error(`stringToType expects a string input. Received: ${typeof typeString}`);
+  }
+
   if (!typeString || typeString === 'any') return AnyType;
   typeString = stripOuterParens(typeString.trim());
   if (typeString === 'never') return NeverType;
@@ -668,11 +665,11 @@ function stringMapToTypeAliasMap(obj) {
   for (const [name, value] of Object.entries(obj)) {
     if (typeof value === 'object' && value.genericParams && value.genericParams.length > 0) {
       // Generic alias
-      const type = typeof value.type === 'string' ? stringToType(value.type) : value.type;
+      const type = stringToType(value.type);
       aliasMap.define(name, type, value.genericParams);
     } else {
       // Regular alias
-      const type = typeof value === 'string' ? stringToType(value) : value;
+      const type = stringToType(value.type);
       aliasMap.define(name, type);
     }
   }
@@ -690,7 +687,7 @@ function objectToMap(obj) {
   
   const map = new Map();
   for (const [key, value] of Object.entries(obj)) {
-    map.set(key, typeof value === 'string' ? stringToType(value) : value);
+    map.set(key, stringToType(value));
   }
   return map;
 }

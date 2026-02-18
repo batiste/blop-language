@@ -200,10 +200,7 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  // TODO: try to remove string literals from inference
-  // migrated yet don't break the type system invariants.
-  const value = typeof inference === 'string' ? stringToType(inference) : inference;
-  node.inference.push(value);
+  node.inference.push(stringToType(inference));
 }
 
 function pushWarning(node, message) {
