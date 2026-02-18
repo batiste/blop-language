@@ -2,9 +2,12 @@
 // Type System - Refactored to use structured Type objects
 // ============================================================================
 // This module provides the main interface for type operations using the
-// structured Type system. It maintains backward compatibility with string-based
-// APIs where needed for gradual migration.
+// structured Type system. All types are Type objects, never strings.
 // ============================================================================
+
+// NOTE: String-based type APIs (from legacy code) are consolidated in
+// stringToType() and primitiveFromName() for backward compatibility in
+// resolveTypeAlias() which handles type alias lookup by name.
 
 import {
   Type, Types, TypeAliasMap,
@@ -544,12 +547,8 @@ export function checkObjectStructuralCompatibility(valueType, targetType, aliase
 // ============================================================================
 
 /**
- * Convert a string type to a Type object
- * @param {string} typeString
- * @returns {Type}
- */
-/**
- * Convert type string to Type object (exported for inference stack normalization)
+ * Convert type string to Type object
+ * Handles primitive names, boolean literals, and type alias references
  * @param {string} typeString
  * @returns {Type}
  */
@@ -559,61 +558,6 @@ export function stringToType(typeString) {
   }
 
   return primitiveFromName(typeString);
-}
-
-/**
- * Parse object type from string
- * @param {string} objStr
- * @returns {ObjectType}
- */
-function parseObjectTypeFromString(objStr) {
-  if (objStr === '{}') return Types.object(new Map());
-  
-  const content = objStr.slice(1, -1).trim();
-  if (!content) return Types.object(new Map());
-  
-  const properties = new Map();
-  
-  // Simple comma split (doesn't handle all nested cases)
-  const parts = [];
-  let current = '';
-  let depth = 0;
-  
-  for (let i = 0; i < content.length; i++) {
-    const char = content[i];
-    
-    if (char === '{') depth++;
-    else if (char === '}') depth--;
-    else if (char === ',' && depth === 0) {
-      parts.push(current.trim());
-      current = '';
-      continue;
-    }
-    
-    current += char;
-  }
-  
-  if (current.trim()) parts.push(current.trim());
-  
-  for (const part of parts) {
-    const colonIndex = part.indexOf(':');
-    if (colonIndex === -1) continue;
-    
-    let key = part.slice(0, colonIndex).trim();
-    const typeStr = part.slice(colonIndex + 1).trim();
-    
-    const isOptional = key.endsWith('?');
-    if (isOptional) key = key.slice(0, -1).trim();
-    
-    if (key && typeStr) {
-      properties.set(key, {
-        type: stringToType(typeStr),
-        optional: isOptional
-      });
-    }
-  }
-  
-  return Types.object(properties);
 }
 
 /**
