@@ -11,7 +11,7 @@ import {
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, createUnion } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 
 function createFunctionHandlers(getState) {
@@ -197,7 +197,7 @@ function createFunctionHandlers(getState) {
       
       // Anonymous functions as expressions should infer as 'function'
       if (parent && !node.named.name) {
-        pushInference(parent, 'function'); // using FunctionType trigger ~10 errors in tests, need to investigate
+        pushInference(parent, AnyFunctionType);
         
         // Validate anonymous function return types if they have type annotations
         if (declaredType && inferredType !== AnyType) {

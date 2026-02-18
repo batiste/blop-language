@@ -12,7 +12,7 @@ import {
   IntersectionType, GenericType, FunctionType, TypeAlias,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
-  AnyType, NeverType
+  AnyType, NeverType, AnyFunctionType
 } from './Type.js';
 import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
@@ -178,13 +178,11 @@ export function removeNullish(type) {
  * @returns {Type|string} Narrowed type (matches input format)
  */
 export function narrowType(type, narrowedType) {
-  const narrowedTypeObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
-  
   if (type instanceof UnionType) {
-    return type.narrow(narrowedTypeObj);
+    return type.narrow(narrowedType);
   }
   
-  if (type.equals(narrowedTypeObj)) {
+  if (type.equals(narrowedType)) {
     return type;
   }
   
@@ -202,13 +200,11 @@ export function excludeType(type, excludedType) {
     return AnyType;
   }
   
-  const excludedTypeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
-  
   if (type instanceof UnionType) {
-    return type.exclude(excludedTypeObj);
+    return type.exclude(excludedType);
   }
   
-  if (type.equals(excludedTypeObj)) {
+  if (type.equals(excludedType)) {
     return NeverType;
   }
   
@@ -700,6 +696,7 @@ export function stringToType(typeString) {
   if (typeString === 'boolean') return BooleanType;
   if (typeString === 'null') return NullType;
   if (typeString === 'undefined') return UndefinedType;
+  if (typeString === 'function') return AnyFunctionType;
   
   // String literal
   if (typeString.startsWith('"') && typeString.endsWith('"')) {

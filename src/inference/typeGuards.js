@@ -2,7 +2,7 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType } from './typeSystem.js';
+import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType, stringToType } from './typeSystem.js';
 import { LiteralType, StringType, NumberType } from './Type.js';
 
 /**
@@ -39,9 +39,9 @@ function detectTypeofCheck(expNode) {
     
     // Check for comparison type (string literal)
     if (node.type === 'str' && hasTypeof) {
-      // Extract string value (remove quotes)
+      // Extract string value (remove quotes) and convert to Type object
       const strValue = node.value.slice(1, -1);
-      comparisonType = strValue;
+      comparisonType = stringToType(strValue);
     }
     
     // Check for comparison operator

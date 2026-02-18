@@ -5,7 +5,8 @@
 import {
   Type, Types, TypeAlias, UnionType, IntersectionType, ArrayType, ObjectType,
   GenericType, LiteralType, PrimitiveType,
-  StringType, NumberType, BooleanType, NullType, UndefinedType
+  StringType, NumberType, BooleanType, NullType, UndefinedType,
+  AnyFunctionType
 } from './Type.js';
 
 /**
@@ -287,6 +288,7 @@ function primitiveFromName(name) {
     case 'any': return Types.any;
     case 'never': return Types.never;
     case 'void': return Types.void;
+    case 'function': return AnyFunctionType;
     case 'true': return Types.literal(true, BooleanType);
     case 'false': return Types.literal(false, BooleanType);
     default:

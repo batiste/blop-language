@@ -866,6 +866,7 @@ export function substituteTypeParams(type, substitutions) {
   }
   
   if (type instanceof FunctionType) {
+    if (type.params === null) return type; // AnyFunctionType — no substitution needed
     return new FunctionType(
       type.params.map(t => substituteTypeParams(t, substitutions)),
       substituteTypeParams(type.returnType, substitutions),

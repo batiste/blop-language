@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -312,11 +312,11 @@ function createExpressionHandlers(getState) {
       // Check if it's a variable definition
       if (def) {
         if (def.source === 'func_def') {
-          pushInference(parent, FunctionType);
+          pushInference(parent, AnyFunctionType);
           // Stamp the name node with the function's inferred type for hover
           const { inferencePhase } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = def.type ?? FunctionType;
+            name.inferredType = def.type ?? AnyFunctionType;
           }
         } else {
           pushInference(parent, def.type);
