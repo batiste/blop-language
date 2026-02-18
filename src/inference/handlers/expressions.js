@@ -399,7 +399,7 @@ function createExpressionHandlers(getState) {
         
         // Unknown variable or couldn't validate
         visitChildren(access);
-        pushInference(parent, 'any');
+        pushInference(parent, AnyType);
         return;
       }
       
