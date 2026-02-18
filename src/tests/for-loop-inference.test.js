@@ -7,7 +7,7 @@ describe('For-loop type inference - of keyword warnings', () => {
         items: string[] = ['a', 'b', 'c']
         result = ''
         
-        for index, item of items {
+        for index, item in items {
           result := result + item
         }
         
@@ -25,7 +25,7 @@ describe('For-loop type inference - of keyword warnings', () => {
       def test() {
         items = ['x', 'y', 'z']
         
-        for index, item of items {
+        for index, item in items {
           console.log(index)
         }
       }
@@ -45,7 +45,7 @@ describe('For-loop type inference - of keyword warnings', () => {
       def test() {
         items = getItems()
         
-        for index, item of items {
+        for index, item in items {
           console.log(index)
         }
       }
