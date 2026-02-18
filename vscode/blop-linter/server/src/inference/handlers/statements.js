@@ -5,13 +5,14 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
-import { UndefinedType } from '../Type.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
+import { UndefinedType, StringType, NumberType } from '../Type.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
+import { AnyType, AnyFunctionType } from '../Type.js';
 
 /**
  * Extract import names from destructuring_values node
@@ -393,7 +394,7 @@ function createStatementHandlers(getState) {
       const isArray = !!(node.named.of)
       
       // Key type: number with :array, string without (Object.keys returns strings)
-      const keyType = isArray ? 'number' : 'string';
+      const keyType = isArray ? NumberType : StringType;
       
       // Add variables to scope with their types
       if (key) {
@@ -422,11 +423,11 @@ function createStatementHandlers(getState) {
       // Infer value type if possible
       if (value && node.named.exp && node.named.exp.inference) {
         const expType = node.named.exp.inference[0];
-        let valueType = 'any';
+        let valueType = AnyType;
         
         const resolvedExpType = resolveTypeAlias(expType, typeAliases);
         if (resolvedExpType instanceof ArrayType) {
-          valueType = resolvedExpType.elementType.toString();
+          valueType = resolvedExpType.elementType;
         }
         
         scope[value] = { type: valueType, node: node.named.value };

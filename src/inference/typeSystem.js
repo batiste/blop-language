@@ -74,8 +74,7 @@ export function resolveTypeAlias(type, aliases) {
   
   if (typeof type === 'string') {
     const typeObj = stringToType(type);
-    const resolved = aliasMap.resolve(typeObj);
-    return typeToString(resolved);
+    return aliasMap.resolve(typeObj);
   }
   
   return aliasMap.resolve(type);

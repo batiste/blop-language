@@ -14,24 +14,9 @@ import {
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
 } from './Type.js';
-import { parseAnnotation, getBaseType } from './typeParser.js';
+import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
 
-function stripOuterParens(typeString) {
-  if (!typeString.startsWith('(') || !typeString.endsWith(')')) {
-    return typeString;
-  }
-  let depth = 0;
-  for (let i = 0; i < typeString.length; i++) {
-    const char = typeString[i];
-    if (char === '(') depth++;
-    else if (char === ')') depth--;
-    if (depth === 0 && i < typeString.length - 1) {
-      return typeString;
-    }
-  }
-  return typeString.slice(1, -1).trim();
-}
 
 function resolveGenericType(type, aliasMap) {
   if (type instanceof GenericType) {
@@ -86,6 +71,12 @@ export function isTypeCompatible(valueType, targetType, aliases) {
  */
 export function resolveTypeAlias(type, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    return aliasMap.resolve(typeObj);
+  }
+  
   return aliasMap.resolve(type);
 }
 
@@ -279,9 +270,6 @@ export function isNumberLiteral(type) {
  * @returns {boolean}
  */
 export function isBooleanLiteral(type) {
-  if (typeof type === 'string') {
-    return type === 'true' || type === 'false';
-  }
   return type instanceof LiteralType && type.baseType === BooleanType;
 }
 
@@ -597,7 +585,6 @@ export function stringToType(typeString) {
   }
 
   if (!typeString || typeString === 'any') return AnyType;
-  typeString = stripOuterParens(typeString.trim());
   if (typeString === 'never') return NeverType;
   if (typeString === 'string') return StringType;
   if (typeString === 'number') return NumberType;
@@ -606,24 +593,66 @@ export function stringToType(typeString) {
   if (typeString === 'undefined') return UndefinedType;
   if (typeString === 'function') return AnyFunctionType;
   
-  // String literal
-  if (typeString.startsWith('"') && typeString.endsWith('"')) {
-    const value = typeString.slice(1, -1);
-    if (!value.includes('"')) {
-      return Types.literal(value, StringType);
-    }
-  }
-  
-  // Number literal
-  if (/^-?\d+(\.\d+)?$/.test(typeString)) {
-    return Types.literal(parseFloat(typeString), NumberType);
-  }
-  
   // Boolean literal
   if (typeString === 'true') return Types.literal(true, BooleanType);
   if (typeString === 'false') return Types.literal(false, BooleanType);
 
-  throw new Error(`Complex type strings should be parsed by the grammar parser into structured Type objects. Got: ${typeString}`);
+  return new TypeAlias(typeString);
+}
+
+/**
+ * Parse object type from string
+ * @param {string} objStr
+ * @returns {ObjectType}
+ */
+function parseObjectTypeFromString(objStr) {
+  if (objStr === '{}') return Types.object(new Map());
+  
+  const content = objStr.slice(1, -1).trim();
+  if (!content) return Types.object(new Map());
+  
+  const properties = new Map();
+  
+  // Simple comma split (doesn't handle all nested cases)
+  const parts = [];
+  let current = '';
+  let depth = 0;
+  
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    
+    if (char === '{') depth++;
+    else if (char === '}') depth--;
+    else if (char === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+      continue;
+    }
+    
+    current += char;
+  }
+  
+  if (current.trim()) parts.push(current.trim());
+  
+  for (const part of parts) {
+    const colonIndex = part.indexOf(':');
+    if (colonIndex === -1) continue;
+    
+    let key = part.slice(0, colonIndex).trim();
+    const typeStr = part.slice(colonIndex + 1).trim();
+    
+    const isOptional = key.endsWith('?');
+    if (isOptional) key = key.slice(0, -1).trim();
+    
+    if (key && typeStr) {
+      properties.set(key, {
+        type: stringToType(typeStr),
+        optional: isOptional
+      });
+    }
+  }
+  
+  return Types.object(properties);
 }
 
 /**

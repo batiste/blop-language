@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes } from '../visitor.js';
-import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias, ObjectType } from '../typeSystem.js';
+import { getBaseTypeOfLiteral, resolveTypeAlias, ObjectType } from '../typeSystem.js';
 import { Types, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
 
 /**

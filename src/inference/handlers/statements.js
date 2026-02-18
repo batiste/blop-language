@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType } from '../Type.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
