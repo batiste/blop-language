@@ -105,6 +105,7 @@ const tokensDefinition = {
   'else': { str: 'else ' },
   'for': { str: 'for ' },
   'in': { str: 'in ' },
+  'of': { str: 'of ' },
   'await': { str: 'await ' },
   'async': { str: 'async ' },
   'extends': { str: 'extends ' },

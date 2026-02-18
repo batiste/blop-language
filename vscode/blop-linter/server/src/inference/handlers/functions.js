@@ -2,21 +2,23 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-import { visitChildren, pushToParent } from '../visitor.js';
+import { visitChildren } from '../visitor.js';
 import { 
   getAnnotationType, 
   createUnionType, 
   isTypeCompatible,
   parseGenericParams,
+  resolveTypeAlias,
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
+import { AnyType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
-      const { getCurrentScope } = getState();
+      const { getCurrentScope, inferencePhase, stampTypeAnnotation, typeAliases } = getState();
       const scope = getCurrentScope();
       
       if (!scope.__currentFctParams) {
@@ -24,17 +26,29 @@ function createFunctionHandlers(getState) {
       }
       
       if (node.named.annotation) {
+        // Stamp the type annotation for hover support
+        stampTypeAnnotation(node.named.annotation);
+        
         const annotation = getAnnotationType(node.named.annotation);
         if (annotation) {
           scope[node.named.name.value] = {
             type: annotation,
           };
           scope.__currentFctParams.push(annotation);
+          if (inferencePhase === 'inference' && node.named.name) {
+            node.named.name.inferredType = resolveTypeAlias(annotation, typeAliases).toString();
+          }
         } else {
-          scope.__currentFctParams.push('any');
+          scope.__currentFctParams.push(AnyType);
+          if (inferencePhase === 'inference' && node.named.name) {
+            node.named.name.inferredType = 'any';
+          }
         }
       } else {
-        scope.__currentFctParams.push('any');
+        scope.__currentFctParams.push(AnyType);
+        if (inferencePhase === 'inference' && node.named.name) {
+          node.named.name.inferredType = 'any';
+        }
       }
       visitChildren(node);
     },
@@ -118,7 +132,7 @@ function createFunctionHandlers(getState) {
     },
     
     func_def: (node, parent) => {
-      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning } = getState();
+      const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation } = getState();
       const parentScope = getCurrentScope();
       const scope = pushScope();
       scope.__currentFctParams = [];
@@ -144,9 +158,17 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
       
       const { annotation } = node.named;
+      
+      // Stamp the return type annotation for hover support
+      if (annotation) {
+        stampTypeAnnotation(annotation);
+      }
+      
+      // declaredType is now a Type object (or null); inferredType remains a string
+      // from the inference stack (that migration is a later step).
       const declaredType = annotation ? getAnnotationType(annotation) : null;
       
-      // Infer return type from actual returns
+      // Infer return type from actual returns (strings from inference stack)
       let inferredType = 'undefined'; // Default to undefined for empty function bodies
       if (scope.__returnTypes && scope.__returnTypes.length > 0) {
         // Filter out empty/undefined returns unless they're all undefined
@@ -179,15 +201,16 @@ function createFunctionHandlers(getState) {
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
             pushWarning(
               errorToken,
-              `Function returns ${inferredType} but declared as ${declaredType}`
+              `Function returns ${inferredType} but declared as ${declaredType.toString()}`
             );
           }
         }
       }
       
       if (node.named.name) {
-        // Use declared type if provided, otherwise use inferred type
-        const finalType = declaredType || inferredType;
+        // Use declared Type if provided, otherwise fall back to inferred string
+        // (TODO step3: inferred return types will also become Type objects)
+        const finalType = declaredType ?? inferredType;
         
         // Validate named function return types
         if (declaredType && inferredType !== 'any') {
@@ -195,9 +218,16 @@ function createFunctionHandlers(getState) {
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
             pushWarning(
               node.named.name,
-              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
+              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType.toString()}`
             );
           }
+        }
+        
+        // Stamp the function name with its type for hover
+        const { inferencePhase } = getState();
+        if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
+          // inferredType on the hover node should be a display string
+          node.named.name.inferredType = declaredType ? declaredType.toString() : inferredType;
         }
         
         parentScope[node.named.name.value] = {

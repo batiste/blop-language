@@ -11,6 +11,7 @@ import {
   isNumberLiteral,
   isStringLiteral 
 } from './typeSystem.js';
+import { AnyType, PrimitiveType } from './Type.js';
 
 const TypeChecker = {
   /**
@@ -52,8 +53,10 @@ const TypeChecker = {
     if (annotationType && valueType !== 'any') {
       if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
         // Check if this is an object type mismatch - provide detailed errors
-        const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
-        const resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
+        const _resolvedValueType = resolveTypeAlias(valueType, typeAliases);
+        const _resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
+        const resolvedValueType = typeof _resolvedValueType === 'string' ? _resolvedValueType : _resolvedValueType.toString();
+        const resolvedTargetType = typeof _resolvedTargetType === 'string' ? _resolvedTargetType : _resolvedTargetType.toString();
         
         if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
           const valueStructure = parseObjectTypeString(resolvedValueType);
@@ -104,7 +107,13 @@ const TypeChecker = {
    * Check if function return types match declaration
    */
   checkReturnTypes(returnTypes, declaredType, functionName, typeAliases) {
-    if (!declaredType || declaredType === 'any') {
+    // AnyType object or 'any' string both mean "no constraint"
+    const isAny = !declaredType || 
+                  declaredType === 'any' || 
+                  declaredType === AnyType ||
+                  (declaredType instanceof PrimitiveType && declaredType.name === 'any') ||
+                  (typeof declaredType === 'object' && declaredType.toString() === 'any');
+    if (isAny) {
       return { valid: true };
     }
     

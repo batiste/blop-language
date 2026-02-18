@@ -204,15 +204,20 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
         const unionTypes = parseUnionType(resolvedType);
         
         // Check if all union members are string literals (quoted values)
-        const allLiterals = unionTypes.every(t => 
-          (t.startsWith('"') && t.endsWith('"')) || 
-          (t.startsWith("'") && t.endsWith("'")) ||
-          /^\d+$/.test(t) // number literal
-        );
+        // Members can be Type objects (from annotation) or strings (from inference)
+        const allLiterals = unionTypes.every(t => {
+          const ts = typeof t === 'string' ? t : t.toString();
+          return (ts.startsWith('"') && ts.endsWith('"')) || 
+                 (ts.startsWith("'") && ts.endsWith("'")) ||
+                 /^\d+$/.test(ts); // number literal
+        });
         
         if (allLiterals) {
           // Check if the compared value is in the union
-          const isInUnion = unionTypes.some(t => t === literalValue);
+          const isInUnion = unionTypes.some(t => {
+            const ts = typeof t === 'string' ? t : t.toString();
+            return ts === literalValue;
+          });
           
           if (!isInUnion) {
             return {

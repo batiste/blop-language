@@ -62,7 +62,7 @@ def Counter(attributes) {
 def List(attributes, children) {
   { items } = attributes
   <ul>
-    for item in items: array {
+    for item in items {
       <li>item</li>
     }
     = children
@@ -124,7 +124,7 @@ def Table(attributes) {
       </tr>
     </thead>
     <tbody>
-      for row in rows: array {
+      for row in rows {
         <TableRow name=row.name value=row.value />
       }
     </tbody>
@@ -139,7 +139,7 @@ def Link(attributes) {
 def Navigation(attributes) {
   { links } = attributes
   <nav>
-    for link in links: array {
+    for link in links {
       // Using component as a function
       = Link({ href: link.href, text: link.text })
     }
@@ -150,7 +150,7 @@ def Navigation(attributes) {
 def Container(attributes, children) {
   <div class="container">
     <h2>attributes.title</h2>
-    for child in children: array {
+    for child in children {
       = child
     }
   </div>

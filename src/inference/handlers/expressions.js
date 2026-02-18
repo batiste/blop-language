@@ -4,7 +4,9 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
+import { ObjectType, PrimitiveType, AnyType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
+import { getBuiltinObjectType, isBuiltinObjectType } from '../builtinTypes.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -43,7 +45,7 @@ function extractExplicitTypeArguments(typeArgsNode) {
 
 /**
  * Extract property name nodes from an access chain
- * Returns array of {name: string, node: astNode} for each step in the chain
+ * Returns array {name: string, node: astNode} for each step in the chain
  */
 function extractPropertyNodesFromAccess(accessNode) {
   const properties = [];
@@ -87,6 +89,20 @@ function createExpressionHandlers(getState) {
           visitChildren(access);
           
           const def = lookupVariable(name.value);
+
+          // Built-in object method call (e.g. Math.cos, Object.keys, Array.isArray)
+          if (!def && isBuiltinObjectType(name.value)) {
+            const objectAccess = access.children?.find(child => child.type === 'object_access');
+            const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+            if (methodName) {
+              const builtinType = getBuiltinObjectType(name.value);
+              const rawReturn = builtinType?.[methodName];
+              const returnType = rawReturn ?? 'any';
+              pushInference(parent, returnType);
+              return;
+            }
+          }
+
           if (def && def.params) {
             // Extract argument types from the func_call node
             const objectAccess = access.children?.find(child => child.type === 'object_access');
@@ -140,7 +156,7 @@ function createExpressionHandlers(getState) {
               }
               
               // Substitute type parameters in return type
-              let returnType = def.type || 'any';
+              let returnType = def.type ?? AnyType;
               returnType = substituteType(returnType, substitutions);
               pushInference(parent, returnType);
               return;
@@ -152,15 +168,33 @@ function createExpressionHandlers(getState) {
                   result.warnings.forEach(warning => pushWarning(name, warning));
                 }
               }
-              pushInference(parent, def.type || 'any');
+              // step3 done: pushInference normalizes Type objects
+              const retType = def.type ?? 'any';
+              pushInference(parent, retType);
               return;
             }
           }
         }
         
+        // Not a function call - check built-in object property access (e.g. Math.PI, Number.MAX_VALUE)
+        if (isBuiltinObjectType(name.value)) {
+          const objectAccess = access.children?.find(child => child.type === 'object_access');
+          const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+          if (propName) {
+            const builtinType = getBuiltinObjectType(name.value);
+            const rawProp = builtinType?.[propName];
+            const propType = rawProp ?? 'any';
+            pushInference(parent, propType);
+            return;
+          }
+        }
+
         // Not a function call - validate property access for object types only
         const def = lookupVariable(name.value);
-        if (def && def.type && def.type !== 'any') {
+        // def.type may be a Type object (annotated) or a string (inferred)
+        const defTypeIsAny = !def?.type || def.type === 'any' || def.type === AnyType ||
+                              (def.type instanceof PrimitiveType && def.type.name === 'any');
+        if (def && def.type && !defTypeIsAny) {
           // Check if this is optional chaining
           const hasOptionalChain = access && access.children &&
             access.children.some(child => 
@@ -177,20 +211,29 @@ function createExpressionHandlers(getState) {
           
           // Resolve type alias to see if it's an object type
           const resolvedType = resolveTypeAlias(def.type, typeAliases);
+          const resolvedStr = resolvedType.toString();
           
           // Skip validation for empty object type {} as it's often used when type inference fails
-          if (resolvedType === '{}') {
+          if (resolvedStr === '{}') {
             visitChildren(access);
             pushInference(parent, 'any');
             return;
           }
           
-          // Only validate property access for object types (start with { but not array types)
-          if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+          // Validate property access for object types and primitive scalar types.
+          // Array types are intentionally excluded here: subscript element types
+          // are not tracked at this stage, so we fall through to 'any' for arrays.
+          const isPrimitiveType = resolvedType instanceof PrimitiveType &&
+                                  (resolvedType.name === 'string' || resolvedType.name === 'number' || resolvedType.name === 'boolean');
+          const isObjectType = resolvedType instanceof ObjectType;
+          if (isPrimitiveType || isObjectType) {
             // Extract property name nodes and their names
             const properties = extractPropertyNodesFromAccess(access);
             
             if (properties.length > 0) {
+              // Stamp the object name with its resolved type for hover
+              name.inferredType = resolvedStr;
+              
               // For nested property chains, validate and annotate properties
               let currentType = def.type;
               let validatedPath = [];
@@ -201,13 +244,17 @@ function createExpressionHandlers(getState) {
                 const resolvedCurrent = resolveTypeAlias(currentType, typeAliases);
                 
                 // Skip empty objects
-                if (resolvedCurrent === '{}') {
+                if (resolvedCurrent.toString() === '{}') {
                   break;
                 }
                 
-                // Can only validate properties on object types (not arrays)
-                if (!resolvedCurrent || !resolvedCurrent.startsWith('{') || resolvedCurrent.endsWith('[]')) {
-                  // Reached a non-object type (array, primitive), stop validation
+                // Can only continue validating on object types or scalar primitives.
+                // Arrays are not followed (subscript element types are not tracked).
+                const isCurrentPrimitive = resolvedCurrent instanceof PrimitiveType &&
+                                           (resolvedCurrent.name === 'string' || resolvedCurrent.name === 'number' || resolvedCurrent.name === 'boolean');
+                const isCurrentObject = resolvedCurrent instanceof ObjectType;
+                if (!isCurrentPrimitive && !isCurrentObject) {
+                  // Reached an array, unknown, or other type – stop validation
                   break;
                 }
                 
@@ -221,6 +268,8 @@ function createExpressionHandlers(getState) {
                 
                 // Annotate property name node with its resolved type
                 pushInference(propNode, nextType);
+                // Stamp property node with its resolved type for hover support
+                propNode.inferredType = resolveTypeAlias(nextType, typeAliases).toString();
                 
                 validatedPath.push(propName);
                 currentType = nextType;
@@ -237,6 +286,10 @@ function createExpressionHandlers(getState) {
                 pushInference(parent, 'any');
                 return;
               }
+              
+              // Successfully validated property chain - push the final type
+              pushInference(parent, currentType);
+              return;
             }
           }
         }
@@ -253,8 +306,18 @@ function createExpressionHandlers(getState) {
       if (def) {
         if (def.source === 'func_def') {
           pushInference(parent, 'function');
+          // Stamp the name node with the function's inferred type for hover
+          const { inferencePhase } = getState();
+          if (inferencePhase === 'inference' && name.inferredType === undefined) {
+            name.inferredType = def.type?.toString() || 'function';
+          }
         } else {
           pushInference(parent, def.type);
+          // Stamp the name node with its resolved type for hover
+          const { inferencePhase, typeAliases } = getState();
+          if (inferencePhase === 'inference' && name.inferredType === undefined) {
+            name.inferredType = resolveTypeAlias(def.type, typeAliases).toString();
+          }
         }
       } else {
         // Unknown identifier - could be undefined or from outer scope

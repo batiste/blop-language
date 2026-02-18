@@ -1,7 +1,7 @@
 const { expectCompilationError, expectCompiles } = require('./testHelpers');
 
-describe('For-loop type inference - :array annotation warnings', () => {
-  test('warns when iterating array without :array annotation', () => {
+describe('For-loop type inference - of keyword warnings', () => {
+  test('warns when iterating array without of keyword', () => {
     const code = `
       def test() {
         items: string[] = ['a', 'b', 'c']
@@ -16,11 +16,11 @@ describe('For-loop type inference - :array annotation warnings', () => {
     `;
     expectCompilationError(
       code, 
-      /Iterating array without ':array' annotation.*will be string/
+      /Iterating array without 'of' keyword.*will be string/
     );
   });
 
-  test('warns when iterating inferred array type without :array', () => {
+  test("warns when iterating inferred array type without 'of'", () => {
     const code = `
       def test() {
         items = ['x', 'y', 'z']
@@ -32,11 +32,11 @@ describe('For-loop type inference - :array annotation warnings', () => {
     `;
     expectCompilationError(
       code,
-      /Iterating array without ':array' annotation/
+      /Iterating array without 'of' keyword/
     );
   });
 
-  test('warns when iterating function returning array without :array', () => {
+  test("warns when iterating function returning array without 'of'", () => {
     const code = `
       def getItems(): string[] {
         return ['a', 'b', 'c']
@@ -52,17 +52,17 @@ describe('For-loop type inference - :array annotation warnings', () => {
     `;
     expectCompilationError(
       code,
-      /Iterating array without ':array' annotation/
+      /Iterating array without 'of' keyword/
     );
   });
 
-  test('no warning with :array annotation', () => {
+  test("no warning with 'of' keyword", () => {
     const code = `
       def test() {
         items: string[] = ['a', 'b', 'c']
         result = ''
         
-        for index, item in items: array {
+        for index, item of items {
           result := result + item
         }
         
@@ -72,7 +72,7 @@ describe('For-loop type inference - :array annotation warnings', () => {
     expectCompiles(code);
   });
 
-  test('no warning for object iteration without :array', () => {
+  test("no warning for object iteration with 'in'", () => {
     const code = `
       def test() {
         obj = { a: 1, b: 2, c: 3 }
@@ -131,18 +131,18 @@ describe('For-loop type inference - :array annotation warnings', () => {
     `;
     expectCompilationError(
       code,
-      /Iterating array without ':array' annotation/
+      /Iterating array without 'of' keyword/
     );
   });
 
-  test('no warning when function call with :array annotation', () => {
+  test("no warning when function call with 'of' keyword", () => {
     const code = `
       def getItems(): string[] {
         return ['a', 'b']
       }
       
       def test() {
-        for index, item in getItems(): array {
+        for index, item of getItems() {
           console.log(item)
         }
       }
@@ -157,7 +157,7 @@ describe('For-loop variable type inference', () => {
       def test() {
         items: string[] = ['a', 'b', 'c']
         
-        for index, item in items: array {
+        for index, item of items {
           upper: string = item.toUpperCase()
         }
       }
@@ -170,7 +170,7 @@ describe('For-loop variable type inference', () => {
       def test() {
         items: number[] = [1, 2, 3]
         
-        for index, item in items: array {
+        for index, item of items {
           doubled: number = item * 2
         }
       }

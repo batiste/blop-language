@@ -109,7 +109,7 @@ def ListDemo(_attributes, _children, node): VNode {
     </div>
     
     <ul class="list-group">
-      for index, item in items: array {
+      for index, item of items {
         itemNumber = index + 1
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span style={ fontSize: '1.1em' }>
@@ -172,7 +172,7 @@ def ConditionalDemo(_attributes, _children, node): VNode {
     <div style={ marginTop: '2em' }>
       <h5 class="text-center" style={ marginBottom: '1em' }>'Select your mood:'</h5>
       <div style={ display: 'flex', gap: '0.5em', justifyContent: 'center', flexWrap: 'wrap' }>
-        for m in moods: array {
+        for m in moods {
           isActive = m == mood
           btnClass := 'btn btn-outline-primary'
           if isActive {
@@ -231,7 +231,7 @@ def ShowcasePage(attributes, _children, node): VNode {
         { id: 'comparison', label: '⚖️ Blop vs JSX' }
       ]
       
-      for tab in tabs: array {
+      for tab in tabs {
         isActive = tab.id == activeTab
         linkClass = 'nav-link'
         if isActive {
@@ -415,7 +415,7 @@ def ShowcasePage(attributes, _children, node): VNode {
     </button>
     
     <ul class=\"list-group\">
-      for index, item in items: array {
+      for index, item of items {
         itemNumber = index + 1
         <li class=\"list-group-item\">
           <strong>'#'itemNumber</strong>
@@ -508,7 +508,7 @@ def ShowcasePage(attributes, _children, node): VNode {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Natural For Loops'</h5>
                 <CodeBlock code="<ul>
-  for index, item in items: array {
+  for index, item of items {
     <li>
       <strong>'#'index</strong>
       ' 'item.name

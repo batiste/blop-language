@@ -61,7 +61,7 @@ def PetStore(attributes, _chilren, node) {
     if petStore.pets.length {
       = pagination(petStore)
       <table class="table">
-        for key, pet in page: array {
+        for key, pet in page {
           // the key can help with the patching speed
           <tr key>
             <td>

@@ -7,6 +7,12 @@ user: User = {
     id: 1
 }
 
+input = <input type="text" />
+
+def accessInput() {
+    return input
+}
+
 test('User object properties', () => {
     expect(user.name).toBe("Alice")
     expect(user.id).toBe(1)

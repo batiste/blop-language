@@ -1,922 +1,634 @@
 // ============================================================================
-// Type System - Type aliases, unions, narrowing, and compatibility checking
+// Type System - Refactored to use structured Type objects
+// ============================================================================
+// This module provides the main interface for type operations using the
+// structured Type system. It maintains backward compatibility with string-based
+// APIs where needed for gradual migration.
 // ============================================================================
 
-import { getBuiltinObjectType, isBuiltinObjectType } from './builtinTypes.js';
+import {
+  Type, Types, TypeAliasMap,
+  PrimitiveType, LiteralType, ArrayType, ObjectType, UnionType,
+  IntersectionType, GenericType, FunctionType, TypeAlias,
+  substituteTypeParams, createUnion,
+  StringType, NumberType, BooleanType, NullType, UndefinedType,
+  AnyType, NeverType
+} from './Type.js';
+import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
+import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
-/**
- * Resolve a type alias to its underlying type
- * @param {string} type - Type name that might be an alias
- * @param {Object} typeAliases - Map of type aliases
- * @returns {string} The resolved type (or original if not an alias)
- */
-/**
- * Parse an object type string like "{name: string, id: number}" into a structured format
- * @param {string} objectTypeString - Object type string from type definition
- * @returns {Object|null} Object with property names as keys and types as values, or null if invalid
- */
-function parseObjectTypeString(objectTypeString) {
-  if (!objectTypeString || typeof objectTypeString !== 'string') {
-    return null;
-  }
-  
-  // Check if it's an object type
-  if (!objectTypeString.startsWith('{') || !objectTypeString.endsWith('}')) {
-    return null;
-  }
-  
-  // Empty object
-  if (objectTypeString === '{}') {
-    return {};
-  }
-  
-  // Extract the content between braces
-  const content = objectTypeString.slice(1, -1).trim();
-  if (!content) {
-    return {};
-  }
-  
-  const properties = {};
-  
-  // Split by comma, but be careful of nested structures and unions
+function splitTopLevel(typeString, delimiter) {
   const parts = [];
   let current = '';
-  let depth = 0;
-  let inUnion = false;
+  let depthParen = 0;
+  let depthBrace = 0;
+  let depthBracket = 0;
+  let depthAngle = 0;
+  let inString = false;
   
-  for (let i = 0; i < content.length; i++) {
-    const char = content[i];
+  for (let i = 0; i < typeString.length; i++) {
+    const char = typeString[i];
     
-    if (char === '{') depth++;
-    else if (char === '}') depth--;
-    else if (char === '|' && depth === 0) inUnion = true;
-    else if (char === ',' && depth === 0 && !inUnion) {
-      parts.push(current.trim());
+    if (char === '"') {
+      inString = !inString;
+      current += char;
+      continue;
+    }
+    
+    if (!inString) {
+      if (char === '(') depthParen++;
+      else if (char === ')') depthParen--;
+      else if (char === '{') depthBrace++;
+      else if (char === '}') depthBrace--;
+      else if (char === '[') depthBracket++;
+      else if (char === ']') depthBracket--;
+      else if (char === '<') depthAngle++;
+      else if (char === '>') depthAngle--;
+    }
+    
+    if (!inString && depthParen === 0 && depthBrace === 0 && depthBracket === 0 && depthAngle === 0 && char === delimiter) {
+      if (current.trim()) {
+        parts.push(current.trim());
+      }
       current = '';
-      inUnion = false;
       continue;
     }
     
     current += char;
-    if (char !== '|' && char !== ' ') inUnion = false;
   }
   
   if (current.trim()) {
     parts.push(current.trim());
   }
   
-  // Parse each part as "key: type" or "key?: type"
-  for (const part of parts) {
-    const colonIndex = part.indexOf(':');
-    if (colonIndex === -1) continue;
-    
-    let key = part.slice(0, colonIndex).trim();
-    const type = part.slice(colonIndex + 1).trim();
-    
-    // Check if the property is optional (key ends with ?)
-    const isOptional = key.endsWith('?');
-    if (isOptional) {
-      key = key.slice(0, -1).trim();
-    }
-    
-    if (key && type) {
-      properties[key] = {
-        type: type,
-        optional: isOptional
-      };
-    }
-  }
-  
-  return properties;
+  return parts;
 }
 
-/**
- * Check if two object type structures are compatible (structural typing)
- * @param {Object} valueStructure - The structure of the value being assigned (properties can be strings or {type, optional})
- * @param {Object} targetStructure - The expected structure from type definition (properties are {type, optional})
- * @param {Object} typeAliases - Type aliases for resolving nested types
- * @returns {Object} { compatible: boolean, errors: string[] }
- */
-function checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases = {}) {
-  const errors = [];
-  
-  if (!valueStructure || !targetStructure) {
-    return { compatible: false, errors: ['Invalid object structures'] };
+function stripOuterParens(typeString) {
+  if (!typeString.startsWith('(') || !typeString.endsWith(')')) {
+    return typeString;
   }
-  
-  // Check all required properties in target exist in value
-  for (const [key, targetProp] of Object.entries(targetStructure)) {
-    // Extract type and optional flag from target
-    const targetType = typeof targetProp === 'string' ? targetProp : targetProp.type;
-    const isOptional = typeof targetProp === 'object' && targetProp.optional === true;
-    
-    if (!(key in valueStructure)) {
-      // Skip error for optional properties
-      if (!isOptional) {
-        errors.push(`Missing property '${key}'`);
-      }
-      continue;
-    }
-    
-    // Extract type from value (handle both string and object formats)
-    const valueType = typeof valueStructure[key] === 'string' 
-      ? valueStructure[key] 
-      : valueStructure[key].type;
-    
-    // Check if the property type is compatible
-    if (!isTypeCompatible(valueType, targetType, typeAliases)) {
-      errors.push(`Property '${key}' has type ${valueType} but expected ${targetType}`);
+  let depth = 0;
+  for (let i = 0; i < typeString.length; i++) {
+    const char = typeString[i];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    if (depth === 0 && i < typeString.length - 1) {
+      return typeString;
     }
   }
-  
-  // Check for excess properties (optional, could be a warning instead)
-  for (const key of Object.keys(valueStructure)) {
-    if (!(key in targetStructure)) {
-      errors.push(`Excess property '${key}' not in type definition`);
-    }
-  }
-  
-  return {
-    compatible: errors.length === 0,
-    errors
-  };
+  return typeString.slice(1, -1).trim();
 }
 
-function resolveTypeAlias(type, typeAliases) {
-  if (!type || typeof type !== 'string') return type;
-  
-  // Check if it's a union or intersection type
-  if (type.includes(' | ') || type.includes(' & ')) {
-    // Parse and resolve each component
-    const separator = type.includes(' | ') ? ' | ' : ' & ';
-    const types = type.split(separator).map(t => t.trim());
-    const resolved = types.map(t => resolveTypeAlias(t, typeAliases));
-    return resolved.join(separator);
-  }
-  
-  // Check if it's an array type
-  if (type.endsWith('[]')) {
-    const elementType = type.slice(0, -2);
-    return resolveTypeAlias(elementType, typeAliases) + '[]';
-  }
-  
-  // Check if it's a generic type instantiation like "Box<number>"
-  const genericMatch = type.match(/^(\w+)<(.+)>$/);
-  if (genericMatch) {
-    const [, baseType, argsString] = genericMatch;
-    
-    // Check if the base type is a generic type alias
-    const aliasInfo = typeAliases[baseType];
-    if (aliasInfo && typeof aliasInfo === 'object' && aliasInfo.genericParams) {
-      // Parse type arguments (simple comma split for now)
-      const typeArgs = argsString.split(',').map(arg => arg.trim());
-      
-      // Create substitution map
-      const substitutions = {};
-      for (let i = 0; i < aliasInfo.genericParams.length && i < typeArgs.length; i++) {
-        substitutions[aliasInfo.genericParams[i]] = typeArgs[i];
-      }
-      
-      // Apply substitutions to the aliased type
-      const instantiated = substituteType(aliasInfo.type, substitutions);
-      
-      // Recursively resolve in case the result contains more aliases
-      return resolveTypeAlias(instantiated, typeAliases);
+function resolveGenericType(type, aliasMap) {
+  if (type instanceof GenericType) {
+    let baseName = null;
+    if (typeof type.baseType === 'string') {
+      baseName = type.baseType;
+    } else if (type.baseType instanceof TypeAlias) {
+      baseName = type.baseType.name;
+    } else {
+      baseName = type.baseType.toString();
     }
-    
-    // Not a generic alias, return as-is
-    return type;
+    return aliasMap.instantiate(baseName, type.typeArgs);
   }
-  
-  // Resolve the alias itself (non-generic)
-  if (typeAliases[type]) {
-    const aliasValue = typeAliases[type];
-    
-    // Check if it's a generic type alias (should not be instantiated without args)
-    if (typeof aliasValue === 'object' && aliasValue.genericParams) {
-      // Generic type used without type arguments - return as-is or error
-      // For now, return the raw type (could be enhanced to show error)
-      return type;
-    }
-    
-    // Regular alias - recursively resolve
-    return resolveTypeAlias(aliasValue, typeAliases);
-  }
-  
   return type;
 }
 
-/**
- * Check if a type string represents a union type
- * @param {string} type - Type string to check
- * @returns {boolean}
- */
-function isUnionType(type) {
-  return typeof type === 'string' && type.includes(' | ');
-}
-
-/**
- * Parse a union type into its constituent types
- * @param {string} unionType - Union type string like "string | number"
- * @returns {string[]} Array of individual types
- */
-function parseUnionType(unionType) {
-  if (!isUnionType(unionType)) {
-    return [unionType];
+function resolveAliasType(type, aliasMap) {
+  if (type instanceof TypeAlias) {
+    return aliasMap.resolve(type);
   }
-  return unionType.split(' | ').map(t => t.trim());
-}
-
-/**
- * Create a union type string from multiple types
- * @param {string[]} types - Array of type strings
- * @returns {string} Union type string or single type
- */
-function createUnionType(types) {
-  // Remove duplicates and 'any'
-  let uniqueTypes = [...new Set(types.filter(t => t && t !== 'any'))];
-  
-  if (uniqueTypes.length === 0) {
-    return 'any';
-  }
-  if (uniqueTypes.length === 1) {
-    return uniqueTypes[0];
-  }
-  
-  // Simplify unions: if a base type is present, remove its literals
-  // e.g., "true" | "false" | boolean → boolean
-  // e.g., "hello" | "world" | string → string
-  // e.g., 1 | 2 | 3 | number → number
-  const hasString = uniqueTypes.includes('string');
-  const hasNumber = uniqueTypes.includes('number');
-  const hasBoolean = uniqueTypes.includes('boolean');
-  
-  if (hasString || hasNumber || hasBoolean) {
-    uniqueTypes = uniqueTypes.filter(t => {
-      const base = getBaseTypeOfLiteral(t);
-      // Remove literal if its base type is in the union
-      if (base !== t) {
-        if (base === 'string' && hasString) return false;
-        if (base === 'number' && hasNumber) return false;
-        if (base === 'boolean' && hasBoolean) return false;
-      }
-      return true;
-    });
-  }
-  
-  if (uniqueTypes.length === 1) {
-    return uniqueTypes[0];
-  }
-  
-  return uniqueTypes.join(' | ');
-}
-
-/**
- * Check if a type is a string literal type
- * @param {string} type - Type to check
- * @returns {boolean}
- */
-function isStringLiteral(type) {
-  return typeof type === 'string' && type.startsWith('"') && type.endsWith('"');
-}
-
-/**
- * Check if a type is a number literal type
- * @param {string} type - Type to check
- * @returns {boolean}
- */
-function isNumberLiteral(type) {
-  return typeof type === 'string' && /^-?\d+(\.\d+)?$/.test(type);
-}
-
-/**
- * Check if a type is a boolean literal type
- * @param {string} type - Type to check
- * @returns {boolean}
- */
-function isBooleanLiteral(type) {
-  return type === 'true' || type === 'false';
-}
-
-/**
- * Get the base type of a literal (e.g., "hello" -> string, 42 -> number)
- * @param {string} type - Literal type
- * @returns {string} Base type
- */
-function getBaseTypeOfLiteral(type) {
-  if (isStringLiteral(type)) return 'string';
-  if (isNumberLiteral(type)) return 'number';
-  if (isBooleanLiteral(type)) return 'boolean';
   return type;
 }
 
+// ============================================================================
+// Core Type Operations (using structured types internally)
+// ============================================================================
+
 /**
- * Check if a type is compatible with another, including union types
- * @param {string} valueType - The type being assigned
- * @param {string} targetType - The target type
- * @param {Object} typeAliases - Map of type aliases
+ * Check if a type is compatible with another type
+ * @param {Type|string} valueType - The type being assigned
+ * @param {Type|string} targetType - The target type
+ * @param {TypeAliasMap} aliases - Type aliases map
  * @returns {boolean}
  */
-function isTypeCompatible(valueType, targetType, typeAliases = {}) {
-  // Resolve type aliases first
-  const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
-  const resolvedTargetType = resolveTypeAlias(targetType, typeAliases);
+export function isTypeCompatible(valueType, targetType, aliases) {
+  // Convert strings to Type objects if needed (for backward compatibility)
+  const value = typeof valueType === 'string' ? stringToType(valueType) : valueType;
+  const target = typeof targetType === 'string' ? stringToType(targetType) : targetType;
   
-  if (resolvedValueType === 'any' || resolvedTargetType === 'any') {
-    return true;
-  }
+  // Resolve aliases
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+
+  const resolvedValue = resolveAliasType(resolveGenericType(value, aliasMap), aliasMap);
+  const resolvedTarget = resolveAliasType(resolveGenericType(target, aliasMap), aliasMap);
   
-  if (resolvedValueType === resolvedTargetType) {
-    return true;
-  }
-  
-  // Literal type widening: literal types can be assigned to their base types
-  // e.g., "hello" can be assigned to string, 42 can be assigned to number
-  const valueBaseType = getBaseTypeOfLiteral(resolvedValueType);
-  if (valueBaseType !== resolvedValueType && valueBaseType === resolvedTargetType) {
-    return true;
-  }
-  
-  // Allow generic "array" to be compatible with typed arrays like "number[]"
-  if (resolvedValueType === 'array' && resolvedTargetType.endsWith('[]')) {
-    return true;
-  }
-  
-  // Allow typed arrays like "number[]" to be compatible with generic "array"
-  if (resolvedValueType.endsWith('[]') && resolvedTargetType === 'array') {
-    return true;
-  }
-  
-  // Allow union arrays like "(string | null)[]" to be compatible with generic "array"
-  if (resolvedValueType.match(/\(.+\)\[\]$/) && resolvedTargetType === 'array') {
-    return true;
-  }
-  
-  // Allow generic "object" to be compatible with any object-based type
-  if (resolvedValueType === 'object' && resolvedTargetType === 'object') {
-    return true;
-  }
-  
-  // Allow object structure to be compatible with generic "object" (widening)
-  if (resolvedValueType.startsWith('{') && resolvedTargetType === 'object') {
-    return true;
-  }
-  
-  // Structural type checking for object types
-  // Both value and target are object type structures like "{name: string, id: number}"
-  if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
-    const valueStructure = parseObjectTypeString(resolvedValueType);
-    const targetStructure = parseObjectTypeString(resolvedTargetType);
-    
-    if (valueStructure && targetStructure) {
-      const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
-      return result.compatible;
-    }
-    
-    // If parsing failed, fall back to string comparison
-    return resolvedValueType === resolvedTargetType;
-  }
-  
-  // Generic "object" assigned to an object type structure - not enough information
-  // This should ideally not happen if we infer proper structures for object literals
-  if (resolvedValueType === 'object' && resolvedTargetType.startsWith('{')) {
-    return true; // Allow for now, but this won't validate structure
-  }
-  
-  // Check if valueType is in targetType's union
-  if (isUnionType(resolvedTargetType)) {
-    const targetTypes = parseUnionType(resolvedTargetType);
-    if (isUnionType(resolvedValueType)) {
-      const valueTypes = parseUnionType(resolvedValueType);
-      // All value types must be compatible with at least one target type
-      return valueTypes.every(vt => 
-        targetTypes.some(tt => isTypeCompatible(vt, tt, typeAliases))
-      );
-    }
-    // Single value type must be compatible with at least one target type
-    return targetTypes.some(tt => isTypeCompatible(resolvedValueType, tt, typeAliases));
-  }
-  
-  return false;
+  return resolvedValue.isCompatibleWith(resolvedTarget, aliasMap);
 }
 
 /**
- * Remove null and undefined from a union type (for nullish coalescing)
- * @param {string} type - Type to process
- * @returns {string} Type without null/undefined
+ * Resolve a type alias to its underlying type
+ * @param {Type|string} type - Type that might be an alias
+ * @param {TypeAliasMap|Object} aliases - Type aliases
+ * @returns {Type|string} Resolved type (matches input format)
  */
-function removeNullish(type) {
-  if (type === 'null' || type === 'undefined') {
-    return 'never';
+export function resolveTypeAlias(type, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    const resolved = aliasMap.resolve(typeObj);
+    return typeToString(resolved);
   }
   
-  if (isUnionType(type)) {
-    const types = parseUnionType(type).filter(t => t !== 'null' && t !== 'undefined');
-    return createUnionType(types);
-  }
-  
-  return type;
+  return aliasMap.resolve(type);
 }
 
 /**
- * Narrow a union type to only include specified types
- * @param {string} type - Original type
- * @param {string} narrowedType - Type to narrow to
- * @returns {string} Narrowed type
+ * Create a union type from multiple types
+ * @param {Array<Type|string>} types - Types to union
+ * @returns {Type|string} Union type (matches input format)
  */
-function narrowType(type, narrowedType) {
-  if (type === 'any') {
-    return narrowedType;
+export function createUnionType(types) {
+  if (types.length === 0) return 'any';
+  
+  // Check if inputs are strings
+  const areStrings = types.every(t => typeof t === 'string');
+  
+  if (areStrings) {
+    const typeObjs = types.map(stringToType);
+    const union = createUnion(typeObjs);
+    return typeToString(union);
   }
   
-  if (!isUnionType(type)) {
-    // If it's already the narrowed type, keep it
-    if (type === narrowedType) {
-      return type;
+  return createUnion(types);
+}
+
+/**
+ * Remove null and undefined from a type (for nullish coalescing)
+ * @param {Type|string} type - Type to process
+ * @returns {Type|string} Type without null/undefined (matches input format)
+ */
+export function removeNullish(type) {
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    if (typeObj instanceof UnionType) {
+      const result = typeObj.removeNullish();
+      return typeToString(result);
     }
-    // Otherwise, narrowing is impossible
-    return 'never';
-  }
-  
-  const types = parseUnionType(type);
-  const narrowedTypes = types.filter(t => t === narrowedType);
-  
-  if (narrowedTypes.length === 0) {
-    return 'never';
-  }
-  
-  return createUnionType(narrowedTypes);
-}
-
-/**
- * Narrow a union type by removing specified types (for else branches)
- * @param {string} type - Original type
- * @param {string} excludedType - Type to exclude
- * @returns {string} Type with excluded types removed
- */
-function excludeType(type, excludedType) {
-  if (type === 'any') {
-    return 'any';
-  }
-  
-  if (!isUnionType(type)) {
-    if (type === excludedType) {
+    if (typeObj instanceof PrimitiveType && (typeObj.name === 'null' || typeObj.name === 'undefined')) {
       return 'never';
     }
     return type;
   }
   
-  const types = parseUnionType(type);
-  const remainingTypes = types.filter(t => t !== excludedType);
-  
-  if (remainingTypes.length === 0) {
-    return 'never';
+  if (type instanceof UnionType) {
+    return type.removeNullish();
   }
   
-  return createUnionType(remainingTypes);
-}
-
-/**
- * Extract type name from annotation node
- * Handles both old format (name) and new format (type_expression) with union/intersection types
- * @param {Object} annotationNode - The annotation AST node
- * @returns {string} The type name (may be a union/intersection type string)
- */
-function getAnnotationType(annotationNode) {
-  if (!annotationNode) return null;
-  
-  // New format: annotation.named.type is a type_expression
-  if (annotationNode.named && annotationNode.named.type) {
-    return parseTypeExpression(annotationNode.named.type);
+  if (type instanceof PrimitiveType && (type.name === 'null' || type.name === 'undefined')) {
+    return NeverType;
   }
   
-  // Old format fallback: annotation.named.name
-  if (annotationNode.named && annotationNode.named.name) {
-    return annotationNode.named.name.value;
-  }
-  
-  return null;
-}
-
-/**
- * Parse a type_expression AST node into a type string
- * Handles union (|), intersection (&), and array types
- * @param {Object} typeExprNode - The type_expression AST node
- * @returns {string} The parsed type string
- */
-function parseTypeExpression(typeExprNode) {
-  if (!typeExprNode) return 'any';
-  
-  // Check for union type: type_primary | type_expression
-  if (typeExprNode.named && typeExprNode.named.union) {
-    const leftType = parseTypePrimary(typeExprNode.children[0]);
-    const rightType = parseTypeExpression(typeExprNode.named.union);
-    return `${leftType} | ${rightType}`;
-  }
-  
-  // Check for intersection type: type_primary & type_expression  
-  if (typeExprNode.named && typeExprNode.named.intersection) {
-    const leftType = parseTypePrimary(typeExprNode.children[0]);
-    const rightType = parseTypeExpression(typeExprNode.named.intersection);
-    return `${leftType} & ${rightType}`;
-  }
-  
-  // Just a single type_primary
-  if (typeExprNode.children && typeExprNode.children[0]) {
-    return parseTypePrimary(typeExprNode.children[0]);
-  }
-  
-  return 'any';
-}
-
-/**
- * Parse a type_primary AST node into a type string
- * Handles basic types, array types, object types, literal types, and generic type instantiation
- * @param {Object} typePrimaryNode - The type_primary AST node
- * @returns {string} The parsed type string
- */
-function parseTypePrimary(typePrimaryNode) {
-  if (!typePrimaryNode || !typePrimaryNode.named) return 'any';
-  
-  // Check for object type
-  if (typePrimaryNode.children && typePrimaryNode.children[0] && 
-      typePrimaryNode.children[0].type === 'object_type') {
-    return parseObjectType(typePrimaryNode.children[0]);
-  }
-  
-  // Check for string literal type
-  if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'str') {
-    // Strip quotes from the token value (which includes quotes like 'hello' or "hello")
-    const rawValue = typePrimaryNode.named.literal.value.slice(1, -1);
-    return `"${rawValue}"`;
-  }
-  
-  // Check for number literal type
-  if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'number') {
-    return typePrimaryNode.named.literal.value;
-  }
-  
-  const { name, type_args } = typePrimaryNode.named;
-  if (!name) return 'any';
-  
-  // name is now a type_name node, get its first child
-  const typeToken = name.children ? name.children[0] : name;
-  const typeName = typeToken.value;
-  
-  // Check if it's a generic type instantiation: Type<Args>
-  if (type_args) {
-    const typeArgs = parseGenericArguments(type_args);
-    const instantiatedType = `${typeName}<${typeArgs.join(', ')}>`;
-    
-    // Check if it's also an array: Type<Args>[]
-    const hasArrayBrackets = typePrimaryNode.children?.some((child, i) => 
-      child.value === '[' && typePrimaryNode.children[i + 1]?.value === ']'
-    );
-    
-    if (hasArrayBrackets) {
-      return `${instantiatedType}[]`;
-    }
-    
-    return instantiatedType;
-  }
-  
-  // Check if it's an array type (has [ ] after the name)
-  // The grammar matches: ['type_name:name', '[', ']']
-  if (typePrimaryNode.children && typePrimaryNode.children.length > 1) {
-    return `${typeName}[]`;
-  }
-  
-  return typeName;
-}
-
-/**
- * Parse an object_type AST node into a type string
- * @param {Object} objectTypeNode - The object_type AST node
- * @returns {string} The parsed type string like "{name: string, id: number}"
- */
-function parseObjectType(objectTypeNode) {
-  if (!objectTypeNode || !objectTypeNode.named || !objectTypeNode.named.properties) {
-    return '{}'; // Empty object type
-  }
-  
-  // Collect all properties from the recursive properties structure
-  function collectProperties(propertiesNode) {
-    if (!propertiesNode) return [];
-    
-    const props = [];
-    let current = propertiesNode;
-    
-    // Handle the recursive structure: object_type_properties can contain another object_type_properties
-    while (current) {
-      // Find the object_type_property node
-      const propertyNode = current.children ? current.children.find(c => c.type === 'object_type_property') : null;
-      
-      if (propertyNode && propertyNode.named && propertyNode.named.key && propertyNode.named.valueType) {
-        const key = propertyNode.named.key.value;
-        const valueType = parseTypeExpression(propertyNode.named.valueType);
-        const isOptional = propertyNode.named.optional ? true : false;
-        
-        if (isOptional) {
-          props.push(`${key}?: ${valueType}`);
-        } else {
-          props.push(`${key}: ${valueType}`);
-        }
-      }
-      
-      // Check for nested object_type_properties
-      const nested = current.children ? current.children.find(c => c.type === 'object_type_properties') : null;
-      current = nested;
-    }
-    
-    return props;
-  }
-  
-  const propertyStrings = collectProperties(objectTypeNode.named.properties);
-  return `{${propertyStrings.join(', ')}}`;
-}
-
-// ============================================================================
-// Generic Type System
-// ============================================================================
-
-/**
- * Parse generic parameters from generic_params AST node
- * @param {Object} genericParamsNode - The generic_params AST node
- * @returns {string[]} Array of type parameter names (e.g., ['T', 'U'])
- */
-function parseGenericParams(genericParamsNode) {
-  if (!genericParamsNode || !genericParamsNode.named || !genericParamsNode.named.params) {
-    return [];
-  }
-  
-  const params = [];
-  let current = genericParamsNode.named.params;
-  
-  // Traverse the recursive generic_param_list structure
-  while (current) {
-    if (current.named && current.named.param) {
-      params.push(current.named.param.value);
-    }
-    current = current.named ? current.named.rest : null;
-  }
-  
-  return params;
-}
-
-/**
- * Parse generic type arguments from type_arg_list AST node
- * @param {Object} typeArgListNode - The type_arg_list AST node
- * @returns {string[]} Array of type arguments (e.g., ['number', 'string'])
- */
-function parseGenericArguments(typeArgListNode) {
-  if (!typeArgListNode) {
-    return [];
-  }
-  
-  const args = [];
-  let current = typeArgListNode;
-  
-  // Traverse the recursive type_arg_list structure
-  while (current) {
-    if (current.named && current.named.arg) {
-      const argType = parseTypeExpression(current.named.arg);
-      args.push(argType);
-    }
-    current = current.named ? current.named.rest : null;
-  }
-  
-  return args;
-}
-
-/**
- * Check if a type string is a generic type parameter (single uppercase letter or name)
- * @param {string} type - Type string to check
- * @param {string[]} genericParams - List of generic parameter names in scope
- * @returns {boolean}
- */
-function isGenericTypeParameter(type, genericParams = []) {
-  if (!type || typeof type !== 'string') return false;
-  
-  // Check if it's in the list of current generic parameters
-  if (genericParams.includes(type)) {
-    return true;
-  }
-  
-  // Fallback: single uppercase letter (T, U, V, K, etc.)
-  return /^[A-Z]$/.test(type);
-}
-
-/**
- * Substitute generic type parameters with concrete types
- * @param {string} type - Type string that may contain type parameters
- * @param {Object} substitutions - Map of type parameter names to concrete types (e.g., {T: 'number', U: 'string'})
- * @returns {string} Type with substitutions applied
- */
-function substituteType(type, substitutions = {}) {
-  if (!type || typeof type !== 'string') return type;
-  
-  // Direct substitution for simple type parameter
-  if (substitutions[type]) {
-    return substitutions[type];
-  }
-  
-  // Handle union types
-  if (isUnionType(type)) {
-    const types = parseUnionType(type);
-    const substituted = types.map(t => substituteType(t, substitutions));
-    return createUnionType(substituted);
-  }
-  
-  // Handle array types
-  if (type.endsWith('[]')) {
-    const elementType = type.slice(0, -2);
-    const substitutedElement = substituteType(elementType, substitutions);
-    return substitutedElement + '[]';
-  }
-  
-  // Handle object types
-  if (type.startsWith('{') && type.endsWith('}')) {
-    const structure = parseObjectTypeString(type);
-    if (!structure) return type;
-    
-    const substitutedProps = [];
-    for (const [key, prop] of Object.entries(structure)) {
-      const propType = typeof prop === 'string' ? prop : prop.type;
-      const optional = typeof prop === 'object' && prop.optional;
-      const substitutedType = substituteType(propType, substitutions);
-      
-      if (optional) {
-        substitutedProps.push(`${key}?: ${substitutedType}`);
-      } else {
-        substitutedProps.push(`${key}: ${substitutedType}`);
-      }
-    }
-    
-    return `{${substitutedProps.join(', ')}}`;
-  }
-  
-  // Handle generic type instantiation like "Box<T>" -> "Box<number>"
-  // This is a simplified version - full implementation would need proper parsing
-  const genericMatch = type.match(/^(\w+)<(.+)>$/);
-  if (genericMatch) {
-    const [, baseType, args] = genericMatch;
-    // Parse and substitute each argument
-    const argTypes = args.split(',').map(arg => arg.trim());
-    const substitutedArgs = argTypes.map(arg => substituteType(arg, substitutions));
-    return `${baseType}<${substitutedArgs.join(', ')}>`;
-  }
-  
-  // No substitution needed
   return type;
 }
 
 /**
- * Infer generic type arguments from function call
- * @param {string[]} genericParams - Generic parameter names (e.g., ['T', 'U'])
- * @param {string[]} paramTypes - Expected parameter types (may contain type variables)
- * @param {string[]} argTypes - Actual argument types from call site
- * @param {Object} typeAliases - Type aliases for compatibility checking
- * @returns {Object} Object with `substitutions` map and `errors` array
+ * Narrow a union type to only specified type
+ * @param {Type|string} type - Original type
+ * @param {Type|string} narrowedType - Type to narrow to
+ * @returns {Type|string} Narrowed type (matches input format)
  */
-function inferGenericArguments(genericParams, paramTypes, argTypes, typeAliases = {}) {
-  const substitutions = {};
+export function narrowType(type, narrowedType) {
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    const narrowObj = stringToType(narrowedType);
+    
+    if (typeObj instanceof UnionType) {
+      const result = typeObj.narrow(narrowObj);
+      return typeToString(result);
+    }
+    
+    if (typeObj.equals(narrowObj)) {
+      return type;
+    }
+    
+    return 'never';
+  }
+  
+  if (type instanceof UnionType) {
+    const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
+    return type.narrow(narrowObj);
+  }
+  
+  const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
+  if (type.equals(narrowObj)) {
+    return type;
+  }
+  
+  return NeverType;
+}
+
+/**
+ * Narrow a union type by removing specified type (for else branches)
+ * @param {Type|string} type - Original type
+ * @param {Type|string} excludedType - Type to exclude
+ * @returns {Type|string} Type with excluded types removed (matches input format)
+ */
+export function excludeType(type, excludedType) {
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    const excludeObj = stringToType(excludedType);
+    
+    if (typeObj instanceof PrimitiveType && typeObj.name === 'any') {
+      return 'any';
+    }
+    
+    if (typeObj instanceof UnionType) {
+      const result = typeObj.exclude(excludeObj);
+      return typeToString(result);
+    }
+    
+    if (typeObj.equals(excludeObj)) {
+      return 'never';
+    }
+    
+    return type;
+  }
+  
+  if (type instanceof PrimitiveType && type.name === 'any') {
+    return AnyType;
+  }
+  
+  if (type instanceof UnionType) {
+    const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
+    return type.exclude(excludeObj);
+  }
+  
+  const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
+  if (type.equals(excludeObj)) {
+    return NeverType;
+  }
+  
+  return type;
+}
+
+/**
+ * Get the property type from an object type
+ * @param {Type|string} objectType - Object type
+ * @param {string|string[]} propertyPath - Property name or path
+ * @param {TypeAliasMap|Object} aliases - Type aliases
+ * @returns {Type|string|null} Property type or null (matches input format)
+ */
+export function getPropertyType(objectType, propertyPath, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  
+  if (typeof objectType === 'string') {
+    const typeObj = stringToType(objectType);
+    const result = getPropertyTypeFromType(typeObj, propertyPath, aliasMap);
+    return result ? typeToString(result) : null;
+  }
+  
+  return getPropertyTypeFromType(objectType, propertyPath, aliasMap);
+}
+
+function getPropertyTypeFromType(type, propertyPath, aliases) {
+  if (type instanceof PrimitiveType && type.name === 'any') {
+    return AnyType;
+  }
+  
+  // Resolve alias
+  let resolvedType = aliases.resolve(type);
+  
+  // Handle unions - get property from non-nullish parts
+  if (resolvedType instanceof UnionType) {
+    resolvedType = resolvedType.removeNullish();
+    if (resolvedType instanceof PrimitiveType && resolvedType.name === 'never') {
+      return null;
+    }
+  }
+  
+  // Convert single property to array
+  const properties = Array.isArray(propertyPath) ? propertyPath : [propertyPath];
+  
+  let currentType = resolvedType;
+  
+  for (const propName of properties) {
+    if (currentType instanceof PrimitiveType && currentType.name === 'any') {
+      return AnyType;
+    }
+    
+    // Check primitive types (string, number, boolean)
+    if (currentType instanceof PrimitiveType) {
+      const memberType = getPrimitiveMemberType(currentType.name, propName);
+      if (memberType !== null) {
+        currentType = memberType;
+        continue;
+      }
+      return null;
+    }
+
+    // Check array types (T[])
+    if (currentType instanceof ArrayType) {
+      const memberType = getPrimitiveMemberType('array', propName);
+      if (memberType !== null) {
+        currentType = memberType;
+        continue;
+      }
+      return null;
+    }
+
+    // Check built-in objects
+    if (currentType instanceof TypeAlias && isBuiltinObjectType(currentType.name)) {
+      const builtinType = getBuiltinObjectType(currentType.name);
+      if (builtinType && builtinType[propName]) {
+        const propType = builtinType[propName];
+        currentType = typeof propType === 'string' ? stringToType(propType) : propType;
+        continue;
+      }
+      return null;
+    }
+    
+    // Check object types
+    if (currentType instanceof ObjectType) {
+      const propType = currentType.getPropertyType(propName);
+      if (!propType) return null;
+      
+      currentType = aliases.resolve(propType);
+      
+      // Handle unions at each level
+      if (currentType instanceof UnionType) {
+        currentType = currentType.removeNullish();
+        if (currentType instanceof PrimitiveType && currentType.name === 'never') {
+          return null;
+        }
+      }
+    } else {
+      return null;
+    }
+  }
+  
+  return currentType;
+}
+
+/**
+ * Get the base type of a literal type
+ * @param {Type|string} type - Type to check
+ * @returns {Type|string} Base type (matches input format)
+ */
+export function getBaseTypeOfLiteral(type) {
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    const base = getBaseType(typeObj);
+    return typeToString(base);
+  }
+  
+  return getBaseType(type);
+}
+
+/**
+ * Check if a type is a string literal
+ * @param {Type|string} type
+ * @returns {boolean}
+ */
+export function isStringLiteral(type) {
+  if (typeof type === 'string') {
+    return type.startsWith('"') && type.endsWith('"');
+  }
+  return type instanceof LiteralType && type.baseType === StringType;
+}
+
+/**
+ * Check if a type is a number literal
+ * @param {Type|string} type
+ * @returns {boolean}
+ */
+export function isNumberLiteral(type) {
+  if (typeof type === 'string') {
+    return /^-?\d+(\.\d+)?$/.test(type);
+  }
+  return type instanceof LiteralType && type.baseType === NumberType;
+}
+
+/**
+ * Check if a type is a boolean literal
+ * @param {Type|string} type
+ * @returns {boolean}
+ */
+export function isBooleanLiteral(type) {
+  if (typeof type === 'string') {
+    return type === 'true' || type === 'false';
+  }
+  return type instanceof LiteralType && type.baseType === BooleanType;
+}
+
+/**
+ * Check if a type is a union type
+ * @param {Type|string} type
+ * @returns {boolean}
+ */
+export function isUnionType(type) {
+  if (typeof type === 'string') {
+    return type.includes(' | ');
+  }
+  return type instanceof UnionType;
+}
+
+/**
+ * Parse a union type into its constituent types
+ * @param {Type|string} unionType
+ * @returns {Array<Type|string>} Array of types (matches input format)
+ */
+export function parseUnionType(unionType) {
+  if (typeof unionType === 'string') {
+    if (!unionType.includes(' | ')) {
+      return [unionType];
+    }
+    return unionType.split(' | ').map(t => t.trim());
+  }
+  
+  if (unionType instanceof UnionType) {
+    return unionType.types;
+  }
+  
+  return [unionType];
+}
+
+// ============================================================================
+// Annotation & AST Parsing (delegates to typeParser)
+// ============================================================================
+
+/**
+ * Extract type from annotation node
+ * @param {Object} annotationNode - AST annotation node
+ * @returns {Type}
+ */
+export function getAnnotationType(annotationNode) {
+  return parseAnnotation(annotationNode);
+}
+
+/**
+ * Extract type from annotation node as string (for display / error messages)
+ * @param {Object} annotationNode - AST annotation node
+ * @returns {string}
+ */
+export function getAnnotationTypeString(annotationNode) {
+  return typeToString(parseAnnotation(annotationNode));
+}
+
+/**
+ * @deprecated Use getAnnotationType (now returns Type directly)
+ */
+export function getAnnotationTypeStructured(annotationNode) {
+  return parseAnnotation(annotationNode);
+}
+
+// Re-export from typeParser for backward compatibility
+export { parseTypeExpression, parseGenericParams } from './typeParser.js';
+
+// Re-export structured parsing functions
+export { parseAnnotation, parseTypePrimary, parseObjectType } from './typeParser.js';
+
+// ============================================================================
+// Generics
+// ============================================================================
+
+/**
+ * Substitute type parameters with concrete types
+ * @param {Type|string} type - Type with parameters
+ * @param {Map|Object} substitutions - Parameter substitutions
+ * @returns {Type|string} Type with substitutions (matches input format)
+ */
+export function substituteType(type, substitutions) {
+  // Convert object to Map if needed
+  const substMap = substitutions instanceof Map ? substitutions : objectToMap(substitutions);
+  
+  if (typeof type === 'string') {
+    const typeObj = stringToType(type);
+    const result = substituteTypeParams(typeObj, substMap);
+    return typeToString(result);
+  }
+  
+  return substituteTypeParams(type, substMap);
+}
+
+/**
+ * Infer generic type arguments from call site
+ * @param {string[]} genericParams - Generic parameter names
+ * @param {Array<Type|string>} paramTypes - Expected parameter types
+ * @param {Array<Type|string>} argTypes - Actual argument types
+ * @param {TypeAliasMap|Object} aliases - Type aliases
+ * @returns {Object} {substitutions: Map<string, Type>, errors: string[]}
+ */
+export function inferGenericArguments(genericParams, paramTypes, argTypes, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  const substitutions = new Map();
   const errors = [];
   
   if (!genericParams || genericParams.length === 0) {
     return { substitutions, errors };
   }
   
-  // Iterate through parameters and arguments to collect constraints
-  for (let i = 0; i < Math.min(paramTypes.length, argTypes.length); i++) {
-    const paramType = paramTypes[i];
-    const argType = argTypes[i];
+  // Convert string types to Type objects if needed
+  const params = paramTypes.map(t => typeof t === 'string' ? stringToType(t) : t);
+  const args = argTypes.map(t => typeof t === 'string' ? stringToType(t) : t);
+  
+  // Iterate through parameters to collect constraints
+  for (let i = 0; i < Math.min(params.length, args.length); i++) {
+    const paramType = params[i];
+    const argType = args[i];
     
     if (!paramType || !argType) continue;
     
-    // Simple case: parameter is directly a type parameter
-    if (genericParams.includes(paramType)) {
-      if (substitutions[paramType]) {
-        // Type parameter already inferred - check consistency
-        const existingType = substitutions[paramType];
-        
-        if (existingType !== argType) {
-          // Check if both are literals of the same base type
-          const argBase = getBaseTypeOfLiteral(argType);
-          const existingBase = getBaseTypeOfLiteral(existingType);
+    // Direct type parameter
+    if (paramType instanceof TypeAlias && genericParams.includes(paramType.name)) {
+      const paramName = paramType.name;
+      
+      if (substitutions.has(paramName)) {
+        const existing = substitutions.get(paramName);
+        if (!existing.equals(argType)) {
+          // Try to unify literals
+          const argBase = getBaseType(argType);
+          const existingBase = getBaseType(existing);
           
-          if (argBase === existingBase && argBase !== argType) {
-            // Both are literals of the same base type (e.g., 1 and 2 are both numbers)
-            // Unify to the base type
-            substitutions[paramType] = argBase;
-          } else {
-            // Check if types are compatible before reporting error
-            const compatible = isTypeCompatible(argType, existingType, typeAliases) ||
-                             isTypeCompatible(existingType, argType, typeAliases);
-            
-            if (!compatible) {
-              errors.push(
-                `Type parameter ${paramType} inferred as both ${existingType} and ${argType} (param ${i + 1})`
-              );
-            } else {
-              // Types are compatible - use more specific type if one is a literal
-              if (argBase === existingType && argType !== existingType) {
-                // argType is a literal of existingType - keep existingType
-              } else if (existingBase === argType && existingType !== argType) {
-                // existingType is a literal of argType - keep argType
-                substitutions[paramType] = argType;
-              } else if (argType === 'any') {
-                // Keep existing type
-              } else if (existingType === 'any') {
-                substitutions[paramType] = argType;
-              }
-              // Otherwise keep the existing type
-            }
+          if (argBase.equals(existingBase) && !argBase.equals(argType)) {
+            substitutions.set(paramName, argBase);
+          } else if (!argType.isCompatibleWith(existing, aliasMap) && 
+                     !existing.isCompatibleWith(argType, aliasMap)) {
+            errors.push(
+              `Type parameter ${paramName} inferred as both ${typeToString(existing)} and ${typeToString(argType)}`
+            );
           }
         }
       } else {
-        substitutions[paramType] = argType;
+        substitutions.set(paramName, argType);
       }
       continue;
     }
     
-    // Array case: T[] with number[] => T = number
-    if (paramType.endsWith('[]') && argType.endsWith('[]')) {
-      const paramElement = paramType.slice(0, -2);
-      const argElement = argType.slice(0, -2);
+    // Array type: T[] with number[] => T = number
+    if (paramType instanceof ArrayType && argType instanceof ArrayType) {
+      const paramElement = paramType.elementType;
       
-      if (genericParams.includes(paramElement)) {
-        if (substitutions[paramElement]) {
-          const existingType = substitutions[paramElement];
-          
-          if (existingType !== argElement) {
-            // Check if both are literals of the same base type
-            const argBase = getBaseTypeOfLiteral(argElement);
-            const existingBase = getBaseTypeOfLiteral(existingType);
+      if (paramElement instanceof TypeAlias && genericParams.includes(paramElement.name)) {
+        const paramName = paramElement.name;
+        const argElement = argType.elementType;
+        
+        if (substitutions.has(paramName)) {
+          const existing = substitutions.get(paramName);
+          if (!existing.equals(argElement)) {
+            const argBase = getBaseType(argElement);
+            const existingBase = getBaseType(existing);
             
-            if (argBase === existingBase && argBase !== argElement) {
-              // Both are literals of the same base type - unify to base type
-              substitutions[paramElement] = argBase;
-            } else {
-              const compatible = isTypeCompatible(argElement, existingType, typeAliases) ||
-                               isTypeCompatible(existingType, argElement, typeAliases);
-              
-              if (!compatible) {
-                errors.push(
-                  `Type parameter ${paramElement} inferred as both ${existingType}[] and ${argElement}[] (param ${i + 1})`
-                );
-              }
+            if (argBase.equals(existingBase) && !argBase.equals(argElement)) {
+              substitutions.set(paramName, argBase);
+            } else if (!argElement.isCompatibleWith(existing, aliasMap) && 
+                       !existing.isCompatibleWith(argElement, aliasMap)) {
+              errors.push(
+                `Type parameter ${paramName} inferred as both ${typeToString(existing)}[] and ${typeToString(argElement)}[]`
+              );
             }
           }
         } else {
-          substitutions[paramElement] = argElement;
+          substitutions.set(paramName, argElement);
         }
       }
       continue;
     }
     
-    // Union type case: T | null with specific type => T = specific type
-    if (paramType.includes(' | ') && !argType.includes(' | ')) {
-      const unionTypes = parseUnionType(paramType);
-      
-      // Check if one of the union members is a type parameter
-      for (const unionMember of unionTypes) {
-        if (genericParams.includes(unionMember)) {
-          // Try to infer the type parameter from the argument
-          // If argType matches another member of the union, we can't infer
-          // Otherwise, infer T as argType
-          const otherMembers = unionTypes.filter(t => t !== unionMember);
-          const matchesOther = otherMembers.some(t => 
-            isTypeCompatible(argType, t, typeAliases)
-          );
+    // Union type: T | null with specific => T = specific
+    if (paramType instanceof UnionType) {
+      for (const unionMember of paramType.types) {
+        if (unionMember instanceof TypeAlias && genericParams.includes(unionMember.name)) {
+          const paramName = unionMember.name;
+          const otherMembers = paramType.types.filter(t => !t.equals(unionMember));
+          const matchesOther = otherMembers.some(t => argType.isCompatibleWith(t, aliasMap));
           
           if (!matchesOther) {
-            if (substitutions[unionMember]) {
-              const existingType = substitutions[unionMember];
-              if (existingType !== argType) {
-                const compatible = isTypeCompatible(argType, existingType, typeAliases) ||
-                                 isTypeCompatible(existingType, argType, typeAliases);
-                if (!compatible) {
+            if (substitutions.has(paramName)) {
+              const existing = substitutions.get(paramName);
+              if (!existing.equals(argType)) {
+                if (!argType.isCompatibleWith(existing, aliasMap) && 
+                    !existing.isCompatibleWith(argType, aliasMap)) {
                   errors.push(
-                    `Type parameter ${unionMember} inferred as both ${existingType} and ${argType} (param ${i + 1})`
+                    `Type parameter ${paramName} inferred as both ${typeToString(existing)} and ${typeToString(argType)}`
                   );
                 }
               }
             } else {
-              substitutions[unionMember] = argType;
+              substitutions.set(paramName, argType);
             }
           }
         }
       }
     }
-    
-    // Object type inference - simplified for now
-    // Future: traverse object structures and infer nested type parameters
   }
   
-  // Fill in any remaining unresolved type parameters with 'any'
+  // Fill in unresolved parameters with 'any'
   for (const param of genericParams) {
-    if (!substitutions[param]) {
-      substitutions[param] = 'any';
+    if (!substitutions.has(param)) {
+      substitutions.set(param, AnyType);
     }
   }
   
@@ -924,126 +636,323 @@ function inferGenericArguments(genericParams, paramTypes, argTypes, typeAliases 
 }
 
 /**
- * Instantiate a generic type with concrete type arguments
- * @param {string} genericType - Generic type name (e.g., 'Box')
- * @param {string[]} typeArgs - Type arguments (e.g., ['number'])
- * @param {Object} typeAliases - Type aliases map
- * @returns {string} Instantiated type
+ * Check if a type is a generic type parameter
+ * @param {Type|string} type
+ * @param {string[]} genericParams
+ * @returns {boolean}
  */
-function instantiateGenericType(genericType, typeArgs, typeAliases) {
-  const aliasInfo = typeAliases[genericType];
-  
-  if (!aliasInfo || !aliasInfo.genericParams) {
-    // Not a generic type, return as-is
-    return genericType;
+export function isGenericTypeParameter(type, genericParams = []) {
+  if (typeof type === 'string') {
+    return genericParams.includes(type) || /^[A-Z]$/.test(type);
   }
   
-  const { genericParams, type } = aliasInfo;
-  
-  // Create substitution map
-  const substitutions = {};
-  for (let i = 0; i < genericParams.length && i < typeArgs.length; i++) {
-    substitutions[genericParams[i]] = typeArgs[i];
+  if (type instanceof TypeAlias) {
+    return genericParams.includes(type.name) || /^[A-Z]$/.test(type.name);
   }
   
-  // Apply substitutions
-  return substituteType(type, substitutions);
+  return false;
 }
 
 /**
- * Get the type of a property from an object type
- * Handles nested property chains like ['user', 'name']
- * Handles union types by checking the non-nullish parts
- * @param {string} objectType - The object type to check
- * @param {string|string[]} propertyPath - Property name or array of property names for nested access
- * @param {Object} typeAliases - Type aliases map
- * @returns {string|null} The property type if it exists, null otherwise
+ * Instantiate a generic type with type arguments
+ * @param {string} genericTypeName - Generic type name
+ * @param {Array<Type|string>} typeArgs - Type arguments
+ * @param {TypeAliasMap|Object} aliases - Type aliases
+ * @returns {Type|string} Instantiated type
  */
-function getPropertyType(objectType, propertyPath, typeAliases = {}) {
-  if (!objectType || objectType === 'any') {
-    return 'any';
-  }
+export function instantiateGenericType(genericTypeName, typeArgs, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
   
-  // Convert single property to array for uniform handling
-  const properties = Array.isArray(propertyPath) ? propertyPath : [propertyPath];
+  // Convert strings to Type objects
+  const args = typeArgs.map(t => typeof t === 'string' ? stringToType(t) : t);
   
-  let currentType = resolveTypeAlias(objectType, typeAliases);
+  const result = aliasMap.instantiate(genericTypeName, args);
   
-  // For union types, try to get property from non-nullish parts
-  if (isUnionType(currentType)) {
-    const nonNullish = removeNullish(currentType);
-    if (nonNullish && nonNullish !== 'never') {
-      currentType = nonNullish;
-    }
-  }
-  
-  // Walk through each property in the chain
-  for (const propName of properties) {
-    // If current type is 'any', allow any property access
-    if (currentType === 'any') {
-      return 'any';
-    }
-    
-    // Check for built-in object types (VNode, Math, console, etc.)
-    if (isBuiltinObjectType(currentType)) {
-      const builtinType = getBuiltinObjectType(currentType);
-      if (builtinType && builtinType[propName]) {
-        currentType = builtinType[propName];
-        continue;
-      }
-      return null; // Property doesn't exist on this built-in type
-    }
-    
-    // Check if current type is an object type
-    if (!currentType.startsWith('{')) {
-      return null; // Can't access properties on non-object types
-    }
-    
-    const parsedProperties = parseObjectTypeString(currentType);
-    if (!parsedProperties || !parsedProperties[propName]) {
-      return null; // Property doesn't exist
-    }
-    
-    // Move to the next level
-    currentType = resolveTypeAlias(parsedProperties[propName].type, typeAliases);
-    
-    // Handle union types at each level
-    if (isUnionType(currentType)) {
-      const nonNullish = removeNullish(currentType);
-      if (nonNullish && nonNullish !== 'never') {
-        currentType = nonNullish;
-      }
-    }
-  }
-  
-  return currentType;
+  // Return in same format as input
+  const shouldReturnString = typeArgs.some(t => typeof t === 'string');
+  return shouldReturnString ? typeToString(result) : result;
 }
 
+// ============================================================================
+// Backward Compatibility - Object Structure Parsing
+// ============================================================================
+
+/**
+ * Parse an object type string into a structure (for backward compatibility)
+ * @param {string} objectTypeString - Object type string
+ * @returns {Object|null} Property structure
+ */
+export function parseObjectTypeString(objectTypeString) {
+  const type = stringToType(objectTypeString);
+  
+  if (!(type instanceof ObjectType)) {
+    return null;
+  }
+  
+  const result = {};
+  for (const [key, prop] of type.properties) {
+    result[key] = {
+      type: typeToString(prop.type),
+      optional: prop.optional
+    };
+  }
+  
+  return result;
+}
+
+/**
+ * Check object structural compatibility (for backward compatibility)
+ * @param {Object} valueStructure
+ * @param {Object} targetStructure
+ * @param {TypeAliasMap|Object} aliases
+ * @returns {Object} {compatible: boolean, errors: string[]}
+ */
+export function checkObjectStructuralCompatibility(valueStructure, targetStructure, aliases) {
+  const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
+  const errors = [];
+  
+  if (!valueStructure || !targetStructure) {
+    return { compatible: false, errors: ['Invalid object structures'] };
+  }
+  
+  // Convert to ObjectType instances
+  const valueProps = new Map();
+  for (const [key, prop] of Object.entries(valueStructure)) {
+    const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+    const optional = typeof prop === 'object' && prop.optional;
+    valueProps.set(key, { type, optional });
+  }
+  const valueType = new ObjectType(valueProps);
+  
+  const targetProps = new Map();
+  for (const [key, prop] of Object.entries(targetStructure)) {
+    const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+    const optional = typeof prop === 'object' && prop.optional;
+    targetProps.set(key, { type, optional });
+  }
+  const targetType = new ObjectType(targetProps);
+  
+  // Check compatibility
+  if (valueType.isCompatibleWith(targetType, aliasMap)) {
+    return { compatible: true, errors: [] };
+  }
+  
+  // Generate detailed errors
+  for (const [key, targetProp] of targetType.properties) {
+    if (!targetProp.optional && !valueType.properties.has(key)) {
+      errors.push(`Missing property '${key}'`);
+    } else if (valueType.properties.has(key)) {
+      const valueProp = valueType.properties.get(key);
+      if (!valueProp.type.isCompatibleWith(targetProp.type, aliasMap)) {
+        errors.push(
+          `Property '${key}' has type ${typeToString(valueProp.type)} but expected ${typeToString(targetProp.type)}`
+        );
+      }
+    }
+  }
+  
+  for (const key of valueType.properties.keys()) {
+    if (!targetType.properties.has(key)) {
+      errors.push(`Excess property '${key}' not in type definition`);
+    }
+  }
+  
+  return { compatible: false, errors };
+}
+
+// ============================================================================
+// Conversion Utilities (string <-> Type)
+// ============================================================================
+
+/**
+ * Convert a string type to a Type object
+ * @param {string} typeString
+ * @returns {Type}
+ */
+/**
+ * Convert type string to Type object (exported for inference stack normalization)
+ * @param {string} typeString
+ * @returns {Type}
+ */
+export function stringToType(typeString) {
+  if (!typeString || typeString === 'any') return AnyType;
+  typeString = stripOuterParens(typeString.trim());
+  if (typeString === 'never') return NeverType;
+  if (typeString === 'string') return StringType;
+  if (typeString === 'number') return NumberType;
+  if (typeString === 'boolean') return BooleanType;
+  if (typeString === 'null') return NullType;
+  if (typeString === 'undefined') return UndefinedType;
+  
+  // String literal
+  if (typeString.startsWith('"') && typeString.endsWith('"')) {
+    const value = typeString.slice(1, -1);
+    if (!value.includes('"')) {
+      return Types.literal(value, StringType);
+    }
+  }
+  
+  // Number literal
+  if (/^-?\d+(\.\d+)?$/.test(typeString)) {
+    return Types.literal(parseFloat(typeString), NumberType);
+  }
+  
+  // Boolean literal
+  if (typeString === 'true') return Types.literal(true, BooleanType);
+  if (typeString === 'false') return Types.literal(false, BooleanType);
+  
+  // Array type
+  if (typeString.endsWith('[]')) {
+    let elementStr = typeString.slice(0, -2);
+    if (elementStr.startsWith('(') && elementStr.endsWith(')')) {
+      elementStr = elementStr.slice(1, -1);
+    }
+    return Types.array(stringToType(elementStr));
+  }
+  
+  // Union type
+  const unionParts = splitTopLevel(typeString, '|');
+  if (unionParts.length > 1) {
+    const types = unionParts.map(t => stringToType(t.trim()));
+    return Types.union(types);
+  }
+  
+  // Intersection type
+  const intersectionParts = splitTopLevel(typeString, '&');
+  if (intersectionParts.length > 1) {
+    const types = intersectionParts.map(t => stringToType(t.trim()));
+    return Types.intersection(types);
+  }
+  
+  // Object type
+  if (typeString.startsWith('{') && typeString.endsWith('}')) {
+    return parseObjectTypeFromString(typeString);
+  }
+  
+  // Generic type
+  const genericMatch = typeString.match(/^(\w+)<(.+)>$/);
+  if (genericMatch) {
+    const [, baseName, argsStr] = genericMatch;
+    const typeArgs = argsStr.split(',').map(arg => stringToType(arg.trim()));
+    return Types.generic(new TypeAlias(baseName), typeArgs);
+  }
+  
+  // Unknown - treat as type alias
+  return new TypeAlias(typeString);
+}
+
+/**
+ * Parse object type from string
+ * @param {string} objStr
+ * @returns {ObjectType}
+ */
+function parseObjectTypeFromString(objStr) {
+  if (objStr === '{}') return Types.object(new Map());
+  
+  const content = objStr.slice(1, -1).trim();
+  if (!content) return Types.object(new Map());
+  
+  const properties = new Map();
+  
+  // Simple comma split (doesn't handle all nested cases)
+  const parts = [];
+  let current = '';
+  let depth = 0;
+  
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    
+    if (char === '{') depth++;
+    else if (char === '}') depth--;
+    else if (char === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+      continue;
+    }
+    
+    current += char;
+  }
+  
+  if (current.trim()) parts.push(current.trim());
+  
+  for (const part of parts) {
+    const colonIndex = part.indexOf(':');
+    if (colonIndex === -1) continue;
+    
+    let key = part.slice(0, colonIndex).trim();
+    const typeStr = part.slice(colonIndex + 1).trim();
+    
+    const isOptional = key.endsWith('?');
+    if (isOptional) key = key.slice(0, -1).trim();
+    
+    if (key && typeStr) {
+      properties.set(key, {
+        type: stringToType(typeStr),
+        optional: isOptional
+      });
+    }
+  }
+  
+  return Types.object(properties);
+}
+
+/**
+ * Convert a Type object to a string
+ * @param {Type} type
+ * @returns {string}
+ */
+function typeToString(type) {
+  return type.toString();
+}
+
+/**
+ * Convert object map to TypeAliasMap
+ * @param {Object} obj
+ * @returns {TypeAliasMap}
+ */
+function stringMapToTypeAliasMap(obj) {
+  if (!obj || typeof obj !== 'object') {
+    return new TypeAliasMap();
+  }
+  
+  const aliasMap = new TypeAliasMap();
+  
+  for (const [name, value] of Object.entries(obj)) {
+    if (typeof value === 'object' && value.genericParams) {
+      // Generic alias
+      const type = typeof value.type === 'string' ? stringToType(value.type) : value.type;
+      aliasMap.define(name, type, value.genericParams);
+    } else {
+      // Regular alias
+      const type = typeof value === 'string' ? stringToType(value) : value;
+      aliasMap.define(name, type);
+    }
+  }
+  
+  return aliasMap;
+}
+
+/**
+ * Convert object to Map
+ * @param {Object} obj
+ * @returns {Map}
+ */
+function objectToMap(obj) {
+  if (obj instanceof Map) return obj;
+  
+  const map = new Map();
+  for (const [key, value] of Object.entries(obj)) {
+    map.set(key, typeof value === 'string' ? stringToType(value) : value);
+  }
+  return map;
+}
+
+// ============================================================================
+// Export Type classes for direct use
+// ============================================================================
+
 export {
-  resolveTypeAlias,
-  isUnionType,
-  parseUnionType,
-  createUnionType,
-  isTypeCompatible,
-  removeNullish,
-  narrowType,
-  excludeType,
-  getAnnotationType,
-  parseTypeExpression,
-  parseTypePrimary,
-  parseObjectType,
-  parseObjectTypeString,
-  checkObjectStructuralCompatibility,
-  isStringLiteral,
-  isNumberLiteral,
-  isBooleanLiteral,
-  getBaseTypeOfLiteral,
-  getPropertyType,
-  // Generic type system
-  parseGenericParams,
-  parseGenericArguments,
-  isGenericTypeParameter,
-  substituteType,
-  inferGenericArguments,
-  instantiateGenericType,
+  Type, Types, TypeAliasMap,
+  PrimitiveType, LiteralType, ArrayType, ObjectType, UnionType,
+  IntersectionType, GenericType, FunctionType, TypeAlias
 };

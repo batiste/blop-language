@@ -131,12 +131,12 @@ const ERROR_PATTERNS = [
     name: 'missing_for_in',
     detect: (context) => {
       return context.ruleName === 'for_loop' && 
-             context.expectedToken === 'in';
+             (context.expectedToken === 'in' || context.expectedToken === 'of');
     },
-    message: () => 'Missing `in` keyword in for loop',
+    message: () => 'Missing `in` or `of` keyword in for loop',
     suggestion: () => 'For loop syntax:\n' +
       '  for item in items { ... }\n' +
-      '  for index, item in items { ... }',
+      '  for index, item of items { ... }',
   },
   {
     name: 'virtual_node_unclosed',

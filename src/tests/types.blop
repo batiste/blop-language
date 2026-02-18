@@ -19,12 +19,11 @@ type Profile = {
 
 type choices = "option1" | "option2" | "option3"
 
-
 def setUser(user: User) {
     user.userType = "User"
 }
 
-def profile(p: Profile) {
-    setUser(p.user)
+def profile(prof: Profile) {
+    setUser(prof.user)
 }
 

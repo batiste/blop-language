@@ -99,4 +99,87 @@ function expectCompilationError(source, expectedErrorPattern, filename = 'test.b
 export {
   expectCompiles,
   expectCompilationError,
+  findNodesWithValue,
+  findFunctionDefs,
+  extractParameters,
 };
+
+/**
+ * Find all nodes of a specific type with matching values
+ */
+function findNodesWithValue(node, values, results = []) {
+  if (!node) return results;
+  
+  if (node.type === 'name' && values.includes(node.value)) {
+    results.push(node);
+  }
+  
+  if (node.children) {
+    node.children.forEach(child => findNodesWithValue(child, values, results));
+  }
+  
+  if (node.named) {
+    Object.values(node.named).forEach(child => {
+      if (child && typeof child === 'object') {
+        findNodesWithValue(child, values, results);
+      }
+    });
+  }
+  
+  return results;
+}
+
+/**
+ * Find all function definitions in the AST
+ */
+function findFunctionDefs(node, results = []) {
+  if (!node) return results;
+  
+  if (node.type === 'func_def') {
+    results.push(node);
+  }
+  
+  if (node.children) {
+    node.children.forEach(child => findFunctionDefs(child, results));
+  }
+  
+  if (node.named) {
+    Object.values(node.named).forEach(child => {
+      if (child && typeof child === 'object') {
+        findFunctionDefs(child, results);
+      }
+    });
+  }
+  
+  return results;
+}
+
+/**
+ * Extract all function parameters from a func_def node
+ */
+function extractParameters(funcDef) {
+  const params = [];
+  
+  function traverse(node) {
+    if (!node) return;
+    
+    if (node.type === 'func_param') {
+      params.push(node);
+    }
+    
+    if (node.children) {
+      node.children.forEach(traverse);
+    }
+    
+    if (node.named) {
+      Object.values(node.named).forEach(child => {
+        if (child && typeof child === 'object') {
+          traverse(child);
+        }
+      });
+    }
+  }
+  
+  traverse(funcDef);
+  return params;
+}

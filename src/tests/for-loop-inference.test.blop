@@ -1,12 +1,12 @@
 // Test for loop type inference
 
-// Using :array annotation - correct way for arrays
+// Using of annotation - correct way for arrays
 def testWithArray() {
   items: string[] = ['a', 'b', 'c']
   result = ''
   
-  for _index, item in items: array {
-    // index will be number 0, 1, 2 with :array
+  for _index, item of items {
+    // index will be number 0, 1, 2 with of
     result := result + item
   }
   

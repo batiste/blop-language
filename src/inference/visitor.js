@@ -3,7 +3,8 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType } from './typeSystem.js';
+import { ObjectType, ArrayType } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -13,6 +14,7 @@ let typeAliases;
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
 let expectedObjectType; // Track expected type for object literals
+let inferencePhase = 'inference'; // 'inference' or 'checking' - controls warning suppression
 
 // Scope management
 const getCurrentScope = () => functionScopes[functionScopes.length - 1];
@@ -47,14 +49,168 @@ function getFunctionScope() {
   return null;
 }
 
+/**
+ * Recursively stamp type annotation names with their type definitions for hover support
+ * @param {Object} node - The annotation or type_expression node to traverse
+ */
+function stampTypeAnnotation(node) {
+  if (!node || inferencePhase !== 'inference') {
+    return;
+  }
+  
+  // Handle annotation node - extract the type_expression
+  if (node.type === 'annotation' && node.named && node.named.type) {
+    stampTypeAnnotation(node.named.type);
+    return;
+  }
+  
+  // Handle type_expression - recursively process children
+  if (node.type === 'type_expression') {
+    if (node.named) {
+      // Handle union/intersection branches
+      if (node.named.union) stampTypeAnnotation(node.named.union);
+      if (node.named.intersection) stampTypeAnnotation(node.named.intersection);
+    }
+    // Process children for type_primary
+    if (node.children) {
+      node.children.forEach(child => stampTypeAnnotation(child));
+    }
+    return;
+  }
+  
+  // Handle type_primary - look for names and object types
+  if (node.type === 'type_primary') {
+    // Check for basic type name
+    if (node.named && node.named.name) {
+      const nameNode = node.named.name;
+      const typeName = nameNode.value;
+      
+      // Check if it's a type alias
+      if (typeAliases[typeName]) {
+        if (nameNode.inferredType === undefined) {
+          nameNode.inferredType = typeAliases[typeName];
+        }
+      } else if (['string', 'number', 'boolean', 'any', 'undefined', 'null'].includes(typeName)) {
+        // Built-in type
+        if (nameNode.inferredType === undefined) {
+          nameNode.inferredType = typeName;
+        }
+      }
+    }
+    
+    // Handle array types (name followed by [])
+    if (node.named && node.named.array_suffix) {
+      stampTypeAnnotation(node.named.name);
+    }
+    
+    // Handle generic type instantiation (name<typeargs>)
+    if (node.named && node.named.type_args) {
+      if (node.named.name) stampTypeAnnotation(node.named.name);
+      // Recursively stamp type arguments
+      const typeArgsNode = node.named.type_args;
+      if (typeArgsNode.named && typeArgsNode.named.args) {
+        const stampTypeArgs = (argsNode) => {
+          if (argsNode.named && argsNode.named.arg) {
+            stampTypeAnnotation(argsNode.named.arg);
+          }
+          if (argsNode.named && argsNode.named.rest) {
+            stampTypeArgs(argsNode.named.rest);
+          }
+        };
+        stampTypeArgs(typeArgsNode.named.args);
+      }
+    }
+    
+    // Handle object types
+    if (node.children) {
+      node.children.forEach(child => {
+        if (child.type === 'object_type') {
+          stampObjectType(child);
+        }
+      });
+    }
+    return;
+  }
+  
+  // Handle other nodes recursively
+  if (node.children) {
+    node.children.forEach(child => stampTypeAnnotation(child));
+  }
+  if (node.named) {
+    Object.values(node.named).forEach(child => {
+      if (child && typeof child === 'object') {
+        stampTypeAnnotation(child);
+      }
+    });
+  }
+}
+
+/**
+ * Stamp property names in object type definitions
+ * @param {Object} objectTypeNode - The object_type node
+ */
+function stampObjectType(objectTypeNode) {
+  if (!objectTypeNode || inferencePhase !== 'inference') {
+    return;
+  }
+  
+  // Traverse object type properties
+  const traverse = (node) => {
+    if (!node) return;
+    
+    // Look for object_type_property nodes
+    if (node.type === 'object_type_property') {
+      // Stamp the property name with its type
+      if (node.named && node.named.key) {
+        const keyNode = node.named.key;
+        if (node.named.valueType && keyNode.inferredType === undefined) {
+          const valueType = getAnnotationType(node.named);
+          if (valueType) {
+            // inferredType is used for hover display - normalize to string
+            keyNode.inferredType = valueType.toString();
+          }
+        }
+      }
+      // Recursively stamp the value type annotation
+      if (node.named && node.named.valueType) {
+        stampTypeAnnotation(node.named.valueType);
+      }
+    }
+    
+    // Continue traversing
+    if (node.children) {
+      node.children.forEach(child => traverse(child));
+    }
+    if (node.named) {
+      Object.values(node.named).forEach(child => {
+        if (child && typeof child === 'object') {
+          traverse(child);
+        }
+      });
+    }
+  };
+  
+  traverse(objectTypeNode);
+}
+
 function pushInference(node, inference) {
+  if (inferencePhase === 'checking') {
+    return;
+  }
   if (!node.inference) {
     node.inference = [];
   }
-  node.inference.push(inference);
+  // Normalize string type values to Type objects; leave AST nodes (they have .type) as-is
+  const value = (typeof inference === 'string')
+    ? stringToType(inference)
+    : inference;
+  node.inference.push(value);
 }
 
 function pushWarning(node, message) {
+  if (inferencePhase === 'inference') {
+    return;
+  }
   const error = new Error(message);
   const token = stream[node.stream_index];
   error.token = token;
@@ -82,6 +238,25 @@ function handleMathOperator(types, i, operatorNode) {
   types[i - 2] = result.resultType;
   types.splice(i - 1, 2);
   return i - 2;
+}
+
+function checkMathOperator(types, i, operatorNode) {
+  const leftType = types[i - 1];
+  const rightType = types[i - 2];
+  const operator = operatorNode.value;
+
+  if (!leftType || !rightType) {
+    return;
+  }
+
+  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
+
+  if (result.warning) {
+    pushWarning(operatorNode, result.warning);
+  }
+  if (result.warnings) {
+    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
+  }
 }
 
 function handleBooleanOperator(types, i) {
@@ -170,7 +345,11 @@ function handleAssignment(types, i, assignNode) {
         // Look up the object's type
         const objectDef = lookupVariable(objectName);
         if (objectDef && objectDef.type) {
-          const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+          const _resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
+          // parseObjectTypeString expects a string; normalize Type objects
+          const resolvedObjectType = typeof _resolvedObjectType === 'string'
+            ? _resolvedObjectType
+            : _resolvedObjectType.toString();
           const properties = parseObjectTypeString(resolvedObjectType);
           
           if (properties && properties[propertyName]) {
@@ -242,14 +421,14 @@ function handleObjectAccess(types, i) {
     const resolvedType = resolveTypeAlias(objectType, typeAliases);
     
     // Skip validation for empty object type {} as it's often used when type inference fails
-    if (resolvedType === '{}') {
+    if (resolvedType.toString() === '{}') {
       types[i - 1] = 'any';
       types.splice(i, 1);
       return i - 1;
     }
     
     // Skip validation for non-object types and array types
-    if (resolvedType && resolvedType.startsWith('{') && !resolvedType.endsWith('[]')) {
+    if (resolvedType instanceof ObjectType) {
       // This is an object type - validate property access
       const propertyType = getPropertyType(objectType, propertyName, typeAliases);
       
@@ -276,6 +455,47 @@ function handleObjectAccess(types, i) {
   return i - 1;
 }
 
+function checkObjectAccess(types, i) {
+  const objectType = types[i - 1];
+  const accessNode = types[i];
+
+  const isOptionalChain = accessNode && accessNode.children &&
+    accessNode.children.some(child => child.type === 'optional_chain');
+
+  if (isOptionalChain) {
+    return;
+  }
+
+  let propertyName = null;
+  if (accessNode && accessNode.children) {
+    for (const child of accessNode.children) {
+      if (child.type === 'name') {
+        propertyName = child.value;
+        break;
+      }
+    }
+  }
+
+  if (objectType && objectType !== 'any' && propertyName) {
+    const resolvedType = resolveTypeAlias(objectType, typeAliases);
+
+    if (resolvedType.toString() === '{}') {
+      return;
+    }
+
+    if (resolvedType instanceof ObjectType) {
+      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
+
+      if (propertyType === null) {
+        pushWarning(
+          accessNode,
+          `Property '${propertyName}' does not exist on type ${objectType}`
+        );
+      }
+    }
+  }
+}
+
 /**
  * Resolves types in an inference stack and checks for type errors
  * @param {Object} node - AST node with inference array
@@ -286,6 +506,17 @@ function resolveTypes(node) {
     const types = node.inference;
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
+
+      if (inferencePhase === 'checking') {
+        if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
+          checkMathOperator(types, i, t);
+        } else if (t && t.type === 'assign') {
+          handleAssignment(types, i, t);
+        } else if (t && t.type === 'object_access' && types[i - 1]) {
+          checkObjectAccess(types, i);
+        }
+        continue;
+      }
       
       if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
         i = handleMathOperator(types, i, t);
@@ -297,6 +528,20 @@ function resolveTypes(node) {
         handleAssignment(types, i, t);
       } else if (t && t.type === 'object_access' && types[i - 1]) {
         i = handleObjectAccess(types, i);
+      }
+    }
+
+    if (inferencePhase === 'inference') {
+      for (let i = types.length - 1; i >= 0; i--) {
+        const value = types[i];
+        if (typeof value === 'string') {
+          node.inferredType = value;
+          break;
+        }
+        if (value && typeof value.toString === 'function' && value.type === undefined) {
+          node.inferredType = value.toString();
+          break;
+        }
       }
     }
   }
@@ -320,14 +565,50 @@ function visitChildren(node) {
 }
 
 /**
- * Initialize visitor state for a new file
+ * Phase 2.5: Stamp inferred types onto AST nodes for hover support
+ * Walks the entire AST and copies node.inference[0] to node.inferredType
  */
-function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename) {
+function stampInferredTypes(node) {
+  if (!node) return;
+  
+  // Stamp this node if it has inferred type (but preserve existing stamps)
+  if (node.inference && node.inference.length > 0 && !node.inferredType) {
+    const raw = node.inference[0];
+    // Normalize Type objects to strings (AST nodes have .type, Type objects use .kind)
+    node.inferredType = (raw && raw.kind !== undefined) ? raw.toString() : raw;
+  }
+  
+  // Recursively stamp all children
+  if (node.children) {
+    for (const child of node.children) {
+      stampInferredTypes(child);
+    }
+  }
+  
+  // Recursively stamp all named properties
+  if (node.named) {
+    for (const key in node.named) {
+      stampInferredTypes(node.named[key]);
+    }
+  }
+}
+
+/**
+ * Initialize visitor state for a new file
+ * @param {Array} _warnings - Array to collect warnings
+ * @param {Array} _stream - Token stream for error reporting
+ * @param {Array} _functionScopes - Function scope stack
+ * @param {Object} _typeAliases - Type aliases map
+ * @param {String} _filename - Current filename being processed
+ * @param {String} _phase - 'inference' or 'checking' - controls warning suppression
+ */
+function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference') {
   warnings = _warnings;
   stream = _stream;
   functionScopes = _functionScopes;
   typeAliases = _typeAliases;
   currentFilename = _filename;
+  inferencePhase = _phase;
 }
 
 /**
@@ -340,6 +621,7 @@ function getVisitorState() {
     functionScopes,
     typeAliases,
     currentFilename,
+    inferencePhase,
     getCurrentScope,
     pushScope,
     popScope,
@@ -347,6 +629,7 @@ function getVisitorState() {
     getFunctionScope,
     pushInference,
     pushWarning,
+    stampTypeAnnotation,
     getExpectedObjectType: () => expectedObjectType,
     setExpectedObjectType: (type) => { expectedObjectType = type; },
   };
@@ -376,4 +659,6 @@ export {
   initVisitor,
   getVisitorState,
   setHandlers,
+  stampTypeAnnotation,
+  stampInferredTypes,
 };

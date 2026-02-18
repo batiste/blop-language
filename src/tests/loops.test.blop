@@ -19,7 +19,7 @@ c = 0
 myobject = {}
 outkey = undefined
 hello = undefined
-for key, value in [1, 10, 100, 1000, 10000]: array {
+for key, value of [1, 10, 100, 1000, 10000] {
   hello := 12
   outkey := key
   if value > 9999 {
@@ -32,7 +32,7 @@ for key, value in [1, 10, 100, 1000, 10000]: array {
 }
 
 newArray = []
-for key2, value2 in ['hello', 'world']: array {
+for key2, value2 of ['hello', 'world'] {
   newArray.push({ key: key2, value: value2 })
 }
 

@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes } from '../visitor.js';
-import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias } from '../typeSystem.js';
+import { getBaseTypeOfLiteral, parseObjectTypeString, resolveTypeAlias, stringToType, ObjectType } from '../typeSystem.js';
 
 /**
  * Infer the element type of an array literal from its AST node
@@ -45,13 +45,15 @@ function inferArrayElementType(node) {
   }
   
   // Check if all elements are object types
-  const allObjectTypes = elementTypes.every(t => t.startsWith('{') && t.endsWith('}'));
+  const allObjectTypes = elementTypes.every(t => t instanceof ObjectType);
   
   if (allObjectTypes && elementTypes.length > 1) {
+    // Convert to strings for parseObjectTypeString (which works on string format)
+    const elementTypeStrings = elementTypes.map(t => t.toString());
     // Parse all object structures
-    const structures = elementTypes.map(t => parseObjectTypeString(t)).filter(s => s !== null);
+    const structures = elementTypeStrings.map(t => parseObjectTypeString(t)).filter(s => s !== null);
     
-    if (structures.length === elementTypes.length) {
+    if (structures.length === elementTypeStrings.length) {
       // All objects parsed successfully
       // Check if they have the same properties
       const firstKeys = Object.keys(structures[0]).sort();
@@ -84,10 +86,7 @@ function inferArrayElementType(node) {
   }
   
   // Unify all element types to a common base type
-  // If all elements are literals of the same base type (e.g., 1, 2, 3 -> number)
-  // or all the same type, return that type
-  
-  const baseTypes = elementTypes.map(t => getBaseTypeOfLiteral(t));
+  const baseTypes = elementTypes.map(t => getBaseTypeOfLiteral(t.toString()));
   const uniqueBaseTypes = [...new Set(baseTypes)];
   
   if (uniqueBaseTypes.length === 1) {
@@ -129,7 +128,8 @@ function inferObjectLiteralStructure(node, lookupVariable) {
     // Check if this node contains a spread
     const spreadNode = bodyNode.named?.spread_exp;
     if (spreadNode && spreadNode.inference && spreadNode.inference.length > 0) {
-      const spreadType = spreadNode.inference[0];
+      const spreadTypeRaw = spreadNode.inference[0];
+      const spreadType = spreadTypeRaw.toString();
       const spreadStructure = parseObjectTypeString(spreadType);
       if (spreadStructure) {
         // Merge spread properties into our properties map
@@ -149,7 +149,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
         if (lookupVariable) {
           const def = lookupVariable(key);
           if (def && def.type) {
-            valueType = def.type;
+            valueType = def.type.toString();
           }
         }
         propertiesMap[key] = valueType;
@@ -179,7 +179,7 @@ function inferObjectLiteralStructure(node, lookupVariable) {
       let valueType = 'any';
       
       if (exp.inference && exp.inference.length > 0) {
-        valueType = exp.inference[0];
+        valueType = exp.inference[0].toString();
       }
       
       propertiesMap[key] = valueType;
@@ -206,32 +206,50 @@ function inferObjectLiteralStructure(node, lookupVariable) {
 function createLiteralHandlers(getState) {
   return {
     number: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       // Infer literal types for numbers
       pushInference(parent, node.value);
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = node.value;
+      }
     },
     str: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       // Strip quotes from node.value and infer as literal type
       // node.value includes quotes like 'hello' or "hello", so we strip them
       const rawValue = node.value.slice(1, -1);
       pushInference(parent, `"${rawValue}"`);
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = `"${rawValue}"`;
+      }
     },
     null: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'null');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'null';
+      }
     },
     undefined: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'undefined');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'undefined';
+      }
     },
     true: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'true');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'true';
+      }
     },
     false: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, inferencePhase } = getState();
       pushInference(parent, 'false');
+      if (inferencePhase === 'inference' && node.inferredType === undefined) {
+        node.inferredType = 'false';
+      }
     },
     array_literal: (node, parent) => {
       const { pushInference } = getState();

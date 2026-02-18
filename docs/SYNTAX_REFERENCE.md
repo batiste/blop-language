@@ -105,8 +105,7 @@ for pet in petList {
   console.log(pet)
 }
 
-// For-in with index (array annotation tells compiler to iterate by index)
-for index, pet in petList: array {
+for index, pet in petList {
   console.log(index, pet)
 }
 

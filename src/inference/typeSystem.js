@@ -15,7 +15,7 @@ import {
   AnyType, NeverType
 } from './Type.js';
 import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
-import { getBuiltinObjectType, isBuiltinObjectType } from './builtinTypes.js';
+import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 function splitTopLevel(typeString, delimiter) {
   const parts = [];
@@ -218,10 +218,12 @@ export function narrowType(type, narrowedType) {
   }
   
   if (type instanceof UnionType) {
-    return type.narrow(narrowedType);
+    const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
+    return type.narrow(narrowObj);
   }
   
-  if (type.equals(narrowedType)) {
+  const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
+  if (type.equals(narrowObj)) {
     return type;
   }
   
@@ -260,10 +262,12 @@ export function excludeType(type, excludedType) {
   }
   
   if (type instanceof UnionType) {
-    return type.exclude(excludedType);
+    const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
+    return type.exclude(excludeObj);
   }
   
-  if (type.equals(excludedType)) {
+  const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
+  if (type.equals(excludeObj)) {
     return NeverType;
   }
   
@@ -315,6 +319,26 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
       return AnyType;
     }
     
+    // Check primitive types (string, number, boolean)
+    if (currentType instanceof PrimitiveType) {
+      const memberType = getPrimitiveMemberType(currentType.name, propName);
+      if (memberType !== null) {
+        currentType = memberType;
+        continue;
+      }
+      return null;
+    }
+
+    // Check array types (T[])
+    if (currentType instanceof ArrayType) {
+      const memberType = getPrimitiveMemberType('array', propName);
+      if (memberType !== null) {
+        currentType = memberType;
+        continue;
+      }
+      return null;
+    }
+
     // Check built-in objects
     if (currentType instanceof TypeAlias && isBuiltinObjectType(currentType.name)) {
       const builtinType = getBuiltinObjectType(currentType.name);
@@ -438,17 +462,23 @@ export function parseUnionType(unionType) {
 /**
  * Extract type from annotation node
  * @param {Object} annotationNode - AST annotation node
- * @returns {string} Type string (for backward compatibility)
+ * @returns {Type}
  */
 export function getAnnotationType(annotationNode) {
-  const type = parseAnnotation(annotationNode);
-  return typeToString(type);
+  return parseAnnotation(annotationNode);
 }
 
 /**
- * Extract type from annotation node (returns structured Type)
+ * Extract type from annotation node as string (for display / error messages)
  * @param {Object} annotationNode - AST annotation node
- * @returns {Type}
+ * @returns {string}
+ */
+export function getAnnotationTypeString(annotationNode) {
+  return typeToString(parseAnnotation(annotationNode));
+}
+
+/**
+ * @deprecated Use getAnnotationType (now returns Type directly)
  */
 export function getAnnotationTypeStructured(annotationNode) {
   return parseAnnotation(annotationNode);
@@ -739,7 +769,12 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
  * @param {string} typeString
  * @returns {Type}
  */
-function stringToType(typeString) {
+/**
+ * Convert type string to Type object (exported for inference stack normalization)
+ * @param {string} typeString
+ * @returns {Type}
+ */
+export function stringToType(typeString) {
   if (!typeString || typeString === 'any') return AnyType;
   typeString = stripOuterParens(typeString.trim());
   if (typeString === 'never') return NeverType;

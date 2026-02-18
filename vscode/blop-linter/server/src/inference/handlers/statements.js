@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -34,6 +34,29 @@ function extractImportNames(node) {
   
   traverse(node);
   return names;
+}
+
+/**
+ * Extract property name nodes from an access chain
+ * Returns array {name: string, node: astNode} for each step in the chain
+ */
+function extractPropertyNodesFromAccess(accessNode) {
+  const properties = [];
+  
+  function traverse(node) {
+    if (!node || !node.children) return;
+    
+    for (const child of node.children) {
+      if (child.type === 'name') {
+        properties.push({ name: child.value, node: child });
+      } else if (child.type === 'object_access') {
+        traverse(child);
+      }
+    }
+  }
+  
+  traverse(accessNode);
+  return properties;
 }
 
 function createStatementHandlers(getState) {
@@ -179,13 +202,16 @@ function createStatementHandlers(getState) {
     },
     
     assign: (node, parent) => {
-      const { pushInference, lookupVariable, typeAliases, pushWarning, setExpectedObjectType } = getState();
+      const { pushInference, lookupVariable, typeAliases, pushWarning, setExpectedObjectType, stampTypeAnnotation } = getState();
       
       if (node.named.name || node.named.path) {
         // If there's a type annotation and the expression is an object literal, set expected type
         let expectedType = null;
         if (node.named.annotation) {
           expectedType = getAnnotationType(node.named.annotation);
+          
+          // Stamp the type annotation for hover support
+          stampTypeAnnotation(node.named.annotation);
           
           // Check if exp is a wrapper (type 'exp') around object_literal
           let expNode = node.named.exp;
@@ -195,7 +221,7 @@ function createStatementHandlers(getState) {
           }
           
           if (expectedType && isObjectLiteral) {
-            setExpectedObjectType(expectedType);
+            setExpectedObjectType(expectedType.toString());
           }
         }
         
@@ -213,21 +239,8 @@ function createStatementHandlers(getState) {
           const accessNode = node.named.access;
           
           // Extract all property names from the access chain (handles nested like user.userType)
-          const propertyChain = [];
-          const extractProperties = (node) => {
-            if (!node) return;
-            
-            if (node.type === 'object_access' && node.children) {
-              for (const child of node.children) {
-                if (child.type === 'name') {
-                  propertyChain.push(child.value);
-                } else if (child.type === 'object_access') {
-                  extractProperties(child);
-                }
-              }
-            }
-          };
-          extractProperties(accessNode);
+          const propertyNodes = extractPropertyNodesFromAccess(accessNode);
+          const propertyChain = propertyNodes.map(prop => prop.name);
           
           if (objectName && propertyChain.length > 0) {
             // Get the type of the value being assigned
@@ -238,6 +251,17 @@ function createStatementHandlers(getState) {
               // Look up the object's type
               const objectDef = lookupVariable(objectName);
               if (objectDef && objectDef.type) {
+                // Stamp property name nodes with their resolved types for hover support
+                let currentType = objectDef.type;
+                for (const prop of propertyNodes) {
+                  const nextType = getPropertyType(currentType, prop.name, typeAliases);
+                  if (!nextType) {
+                    break;
+                  }
+                  prop.node.inferredType = resolveTypeAlias(nextType, typeAliases);
+                  currentType = nextType;
+                }
+
                 // Use getPropertyType to validate and get the final property type
                 const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                 
@@ -386,11 +410,8 @@ function createStatementHandlers(getState) {
       const key = (node.named.key && node.named.key.value) || null;
       const value = node.named.value ? node.named.value.value : null;
       
-      // Check for :array annotation
-      const objAnnotationType = node.named.objectannotation 
-        ? getAnnotationType(node.named.objectannotation) 
-        : null;
-      const isArray = objAnnotationType === 'array';
+      // Check for 'of' keyword (array iteration mode)
+      const isArray = !!(node.named.of)
       
       // Key type: number with :array, string without (Object.keys returns strings)
       const keyType = isArray ? 'number' : 'string';
@@ -407,15 +428,12 @@ function createStatementHandlers(getState) {
         // Check if we're iterating an array without :array annotation
         const expType = node.named.exp.inference?.[0];
         if (expType && key && !isArray) {
-          // Check if expression type looks like an array
-          const isArrayType = expType.endsWith('[]') || 
-                             expType === 'array' || 
-                             expType.startsWith('Array<');
+          const isArrayType = expType instanceof ArrayType;
           
           if (isArrayType) {
             pushWarning(
               node.named.exp,
-              `Iterating array without ':array' annotation - variable '${key}' will be string ("0", "1", ...) instead of number. Add ': array' after the expression to fix this.`
+              `Iterating array without 'of' keyword - variable '${key}' will be string ("0", "1", ...) instead of number. Add 'of' after the expression to fix this.`
             );
           }
         }
@@ -426,15 +444,8 @@ function createStatementHandlers(getState) {
         const expType = node.named.exp.inference[0];
         let valueType = 'any';
         
-        // Try to infer element type from array type
-        if (expType) {
-          if (expType.endsWith('[]')) {
-            // Extract element type: string[] -> string
-            valueType = expType.slice(0, -2);
-          } else if (expType.startsWith('Array<') && expType.endsWith('>')) {
-            // Extract element type: Array<number> -> number
-            valueType = expType.slice(6, -1);
-          }
+        if (expType instanceof ArrayType) {
+          valueType = expType.elementType.toString();
         }
         
         scope[value] = { type: valueType, node: node.named.value };
