@@ -788,7 +788,7 @@ export class TypeAliasMap {
     }
     
     // Check if it's a generic alias (should not be used without type args)
-    if (typeof aliasValue === 'object' && aliasValue.genericParams) {
+    if (typeof aliasValue === 'object' && aliasValue.genericParams && aliasValue.genericParams.length > 0) {
       // Generic type used without type arguments - return as-is
       return type;
     }

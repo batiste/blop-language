@@ -832,7 +832,7 @@ function stringMapToTypeAliasMap(obj) {
   const aliasMap = new TypeAliasMap();
   
   for (const [name, value] of Object.entries(obj)) {
-    if (typeof value === 'object' && value.genericParams) {
+    if (typeof value === 'object' && value.genericParams && value.genericParams.length > 0) {
       // Generic alias
       const type = typeof value.type === 'string' ? stringToType(value.type) : value.type;
       aliasMap.define(name, type, value.genericParams);
