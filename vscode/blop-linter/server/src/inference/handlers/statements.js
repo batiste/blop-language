@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
+import { UndefinedType } from '../Type.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
@@ -53,7 +54,7 @@ function createStatementHandlers(getState) {
           visitChildren(node);
           
           // Find the exp child and get its type
-          let returnType = 'undefined';
+          let returnType = UndefinedType;
           for (const child of node.children) {
             if (child.type === 'exp') {
               if (child.inference && child.inference.length > 0) {
@@ -330,8 +331,8 @@ function createStatementHandlers(getState) {
           const elseBranchReturns = returnsAfterElse > returnsBeforeElse;
           
           if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
-            if (!functionScope.__returnTypes.includes('undefined')) {
-              functionScope.__returnTypes.push('undefined');
+            if (!functionScope.__returnTypes.includes(UndefinedType)) {
+              functionScope.__returnTypes.push(UndefinedType);
             }
           }
         } else if (elseNode) {
@@ -367,8 +368,8 @@ function createStatementHandlers(getState) {
           
           // If we have simple if/else but not all branches return, add undefined
           if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
-            if (!functionScope.__returnTypes.includes('undefined')) {
-              functionScope.__returnTypes.push('undefined');
+            if (!functionScope.__returnTypes.includes(UndefinedType)) {
+              functionScope.__returnTypes.push(UndefinedType);
             }
           }
         } else if (elseNode) {

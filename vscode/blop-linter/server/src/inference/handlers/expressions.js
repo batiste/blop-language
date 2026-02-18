@@ -78,7 +78,7 @@ function createExpressionHandlers(getState) {
                 const returnType = getArrayMemberType(resolvedDefType, methodName);
                 // Annotate the method name node for hover
                 const methodNode = objectAccess?.children?.find(child => child.type === 'name');
-                if (methodNode) methodNode.inferredType = returnType.toString();
+                if (methodNode) methodNode.inferredType = returnType;
                 pushInference(parent, returnType);
                 return;
               }
@@ -206,10 +206,9 @@ function createExpressionHandlers(getState) {
           
           // Resolve type alias to see if it's an object type
           const resolvedType = resolveTypeAlias(def.type, typeAliases);
-          const resolvedStr = resolvedType.toString();
           
           // Skip validation for empty object type {} as it's often used when type inference fails
-          if (resolvedStr === '{}') {
+          if (resolvedType.toString() === '{}') {
             visitChildren(access);
             pushInference(parent, 'any');
             return;
@@ -223,8 +222,8 @@ function createExpressionHandlers(getState) {
               const memberType = getArrayMemberType(resolvedType, propName);
               // Annotate the property name node for hover
               const propNode = objectAccess?.children?.find(child => child.type === 'name');
-              if (propNode) propNode.inferredType = memberType.toString();
-              name.inferredType = resolvedStr;
+              if (propNode) propNode.inferredType = memberType;
+              name.inferredType = resolvedType;
               pushInference(parent, memberType);
               return;
             }
@@ -240,7 +239,7 @@ function createExpressionHandlers(getState) {
             
             if (properties.length > 0) {
               // Stamp the object name with its resolved type for hover
-              name.inferredType = resolvedStr;
+              name.inferredType = resolvedType;
               
               // For nested property chains, validate and annotate properties
               let currentType = def.type;
@@ -277,7 +276,7 @@ function createExpressionHandlers(getState) {
                 // Annotate property name node with its resolved type
                 pushInference(propNode, nextType);
                 // Stamp property node with its resolved type for hover support
-                propNode.inferredType = resolveTypeAlias(nextType, typeAliases).toString();
+                propNode.inferredType = resolveTypeAlias(nextType, typeAliases);
                 
                 validatedPath.push(propName);
                 currentType = nextType;
@@ -317,14 +316,14 @@ function createExpressionHandlers(getState) {
           // Stamp the name node with the function's inferred type for hover
           const { inferencePhase } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = def.type?.toString() || 'function';
+            name.inferredType = def.type ?? 'function';
           }
         } else {
           pushInference(parent, def.type);
           // Stamp the name node with its resolved type for hover
           const { inferencePhase, typeAliases } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = resolveTypeAlias(def.type, typeAliases).toString();
+            name.inferredType = resolveTypeAlias(def.type, typeAliases);
           }
         }
       } else {

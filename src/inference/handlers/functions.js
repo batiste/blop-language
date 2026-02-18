@@ -5,14 +5,13 @@
 import { visitChildren } from '../visitor.js';
 import { 
   getAnnotationType, 
-  createUnionType, 
   isTypeCompatible,
   parseGenericParams,
   resolveTypeAlias,
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
-import { AnyType } from '../Type.js';
+import { AnyType, UndefinedType, createUnion } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 
 function createFunctionHandlers(getState) {
@@ -36,18 +35,18 @@ function createFunctionHandlers(getState) {
           };
           scope.__currentFctParams.push(annotation);
           if (inferencePhase === 'inference' && node.named.name) {
-            node.named.name.inferredType = resolveTypeAlias(annotation, typeAliases).toString();
+            node.named.name.inferredType = resolveTypeAlias(annotation, typeAliases);
           }
         } else {
           scope.__currentFctParams.push(AnyType);
           if (inferencePhase === 'inference' && node.named.name) {
-            node.named.name.inferredType = 'any';
+            node.named.name.inferredType = AnyType;
           }
         }
       } else {
         scope.__currentFctParams.push(AnyType);
         if (inferencePhase === 'inference' && node.named.name) {
-          node.named.name.inferredType = 'any';
+          node.named.name.inferredType = AnyType;
         }
       }
       visitChildren(node);
@@ -65,7 +64,7 @@ function createFunctionHandlers(getState) {
         // Get the type of the expression and add it as an implicit return
         const functionScope = getFunctionScope();
         if (functionScope && functionScope.__returnTypes && node.named.exp.inference) {
-          const returnType = node.named.exp.inference[0] || 'undefined';
+          const returnType = node.named.exp.inference[0] ?? UndefinedType;
           functionScope.__returnTypes.push(returnType);
         }
       } else {
@@ -173,28 +172,26 @@ function createFunctionHandlers(getState) {
         stampTypeAnnotation(annotation);
       }
       
-      // declaredType is now a Type object (or null); inferredType remains a string
-      // from the inference stack (that migration is a later step).
       const declaredType = annotation ? getAnnotationType(annotation) : null;
       
-      // Infer return type from actual returns (strings from inference stack)
-      let inferredType = 'undefined'; // Default to undefined for empty function bodies
+      // Infer return type from actual returns (Type objects from inference stack)
+      let inferredType = UndefinedType; // Default to undefined for empty function bodies
       if (scope.__returnTypes && scope.__returnTypes.length > 0) {
         // Filter out empty/undefined returns unless they're all undefined
-        const explicitReturns = scope.__returnTypes.filter(t => t && t !== 'undefined');
+        const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
         
         if (explicitReturns.length > 0) {
           // Create union type from all return types
-          inferredType = createUnionType(explicitReturns);
+          inferredType = createUnion(explicitReturns);
           
           // If there were also undefined returns, add undefined to the union
-          const hasUndefined = scope.__returnTypes.some(t => t === 'undefined');
+          const hasUndefined = scope.__returnTypes.some(t => t === UndefinedType);
           if (hasUndefined) {
-            inferredType = createUnionType([inferredType, 'undefined']);
+            inferredType = createUnion([inferredType, UndefinedType]);
           }
         } else {
           // All returns are undefined (bare return or no return)
-          inferredType = 'undefined';
+          inferredType = UndefinedType;
         }
       }
       
@@ -203,31 +200,30 @@ function createFunctionHandlers(getState) {
         pushInference(parent, 'function');
         
         // Validate anonymous function return types if they have type annotations
-        if (declaredType && inferredType !== 'any') {
+        if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
             // For anonymous functions, use the parent token for error reporting
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
             pushWarning(
               errorToken,
-              `Function returns ${inferredType} but declared as ${declaredType.toString()}`
+              `Function returns ${inferredType} but declared as ${declaredType}`
             );
           }
         }
       }
       
       if (node.named.name) {
-        // Use declared Type if provided, otherwise fall back to inferred string
-        // (TODO step3: inferred return types will also become Type objects)
+        // Use declared Type if provided, otherwise fall back to inferred Type
         const finalType = declaredType ?? inferredType;
         
         // Validate named function return types
-        if (declaredType && inferredType !== 'any') {
+        if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
             pushWarning(
               node.named.name,
-              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType.toString()}`
+              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
             );
           }
         }
@@ -235,8 +231,7 @@ function createFunctionHandlers(getState) {
         // Stamp the function name with its type for hover
         const { inferencePhase } = getState();
         if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
-          // inferredType on the hover node should be a display string
-          node.named.name.inferredType = declaredType ? declaredType.toString() : inferredType;
+          node.named.name.inferredType = declaredType ?? inferredType;
         }
         
         parentScope[node.named.name.value] = {

@@ -2,7 +2,8 @@
 // Type Guards - Pattern detection and type narrowing
 // ============================================================================
 
-import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, parseObjectTypeString, getPropertyType } from './typeSystem.js';
+import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType } from './typeSystem.js';
+import { LiteralType, StringType, NumberType } from './Type.js';
 
 /**
  * Detect typeof checks in expressions
@@ -203,20 +204,23 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
       if (isUnionType(resolvedType)) {
         const unionTypes = parseUnionType(resolvedType);
         
-        // Check if all union members are string literals (quoted values)
-        // Members can be Type objects (from annotation) or strings (from inference)
+        // Check if all union members are string/number literals (LiteralType objects)
         const allLiterals = unionTypes.every(t => {
-          const ts = typeof t === 'string' ? t : t.toString();
-          return (ts.startsWith('"') && ts.endsWith('"')) || 
-                 (ts.startsWith("'") && ts.endsWith("'")) ||
-                 /^\d+$/.test(ts); // number literal
+          return t instanceof LiteralType && 
+                 (t.baseType === StringType || t.baseType === NumberType);
         });
         
         if (allLiterals) {
           // Check if the compared value is in the union
+          // literalValue still has quotes for string literals, e.g. `"hello"`
           const isInUnion = unionTypes.some(t => {
-            const ts = typeof t === 'string' ? t : t.toString();
-            return ts === literalValue;
+            if (t instanceof LiteralType && t.baseType === StringType) {
+              return `"${t.value}"` === literalValue;
+            }
+            if (t instanceof LiteralType && t.baseType === NumberType) {
+              return String(t.value) === literalValue;
+            }
+            return false;
           });
           
           if (!isInUnion) {

@@ -114,15 +114,14 @@ function resolveAliasType(type, aliasMap) {
  * @returns {boolean}
  */
 export function isTypeCompatible(valueType, targetType, aliases) {
-  // Convert strings to Type objects if needed (for backward compatibility)
-  const value = typeof valueType === 'string' ? stringToType(valueType) : valueType;
-  const target = typeof targetType === 'string' ? stringToType(targetType) : targetType;
-  
-  // Resolve aliases
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
 
-  const resolvedValue = resolveAliasType(resolveGenericType(value, aliasMap), aliasMap);
-  const resolvedTarget = resolveAliasType(resolveGenericType(target, aliasMap), aliasMap);
+  // Belt-and-suspenders: convert stray strings to Type objects
+  const vt = typeof valueType === 'string' ? stringToType(valueType) : valueType;
+  const tt = typeof targetType === 'string' ? stringToType(targetType) : targetType;
+
+  const resolvedValue = resolveAliasType(resolveGenericType(vt, aliasMap), aliasMap);
+  const resolvedTarget = resolveAliasType(resolveGenericType(tt, aliasMap), aliasMap);
   
   return resolvedValue.isCompatibleWith(resolvedTarget, aliasMap);
 }
@@ -151,17 +150,7 @@ export function resolveTypeAlias(type, aliases) {
  * @returns {Type|string} Union type (matches input format)
  */
 export function createUnionType(types) {
-  if (types.length === 0) return 'any';
-  
-  // Check if inputs are strings
-  const areStrings = types.every(t => typeof t === 'string');
-  
-  if (areStrings) {
-    const typeObjs = types.map(stringToType);
-    const union = createUnion(typeObjs);
-    return typeToString(union);
-  }
-  
+  if (types.length === 0) return AnyType;
   return createUnion(types);
 }
 
@@ -171,18 +160,6 @@ export function createUnionType(types) {
  * @returns {Type|string} Type without null/undefined (matches input format)
  */
 export function removeNullish(type) {
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    if (typeObj instanceof UnionType) {
-      const result = typeObj.removeNullish();
-      return typeToString(result);
-    }
-    if (typeObj instanceof PrimitiveType && (typeObj.name === 'null' || typeObj.name === 'undefined')) {
-      return 'never';
-    }
-    return type;
-  }
-  
   if (type instanceof UnionType) {
     return type.removeNullish();
   }
@@ -201,29 +178,11 @@ export function removeNullish(type) {
  * @returns {Type|string} Narrowed type (matches input format)
  */
 export function narrowType(type, narrowedType) {
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const narrowObj = stringToType(narrowedType);
-    
-    if (typeObj instanceof UnionType) {
-      const result = typeObj.narrow(narrowObj);
-      return typeToString(result);
-    }
-    
-    if (typeObj.equals(narrowObj)) {
-      return type;
-    }
-    
-    return 'never';
-  }
-  
   if (type instanceof UnionType) {
-    const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
-    return type.narrow(narrowObj);
+    return type.narrow(narrowedType);
   }
   
-  const narrowObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
-  if (type.equals(narrowObj)) {
+  if (type.equals(narrowedType)) {
     return type;
   }
   
@@ -237,37 +196,15 @@ export function narrowType(type, narrowedType) {
  * @returns {Type|string} Type with excluded types removed (matches input format)
  */
 export function excludeType(type, excludedType) {
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const excludeObj = stringToType(excludedType);
-    
-    if (typeObj instanceof PrimitiveType && typeObj.name === 'any') {
-      return 'any';
-    }
-    
-    if (typeObj instanceof UnionType) {
-      const result = typeObj.exclude(excludeObj);
-      return typeToString(result);
-    }
-    
-    if (typeObj.equals(excludeObj)) {
-      return 'never';
-    }
-    
-    return type;
-  }
-  
   if (type instanceof PrimitiveType && type.name === 'any') {
     return AnyType;
   }
   
   if (type instanceof UnionType) {
-    const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
-    return type.exclude(excludeObj);
+    return type.exclude(excludedType);
   }
   
-  const excludeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
-  if (type.equals(excludeObj)) {
+  if (type.equals(excludedType)) {
     return NeverType;
   }
   
@@ -283,13 +220,6 @@ export function excludeType(type, excludedType) {
  */
 export function getPropertyType(objectType, propertyPath, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
-  
-  if (typeof objectType === 'string') {
-    const typeObj = stringToType(objectType);
-    const result = getPropertyTypeFromType(typeObj, propertyPath, aliasMap);
-    return result ? typeToString(result) : null;
-  }
-  
   return getPropertyTypeFromType(objectType, propertyPath, aliasMap);
 }
 
@@ -378,12 +308,6 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
  * @returns {Type|string} Base type (matches input format)
  */
 export function getBaseTypeOfLiteral(type) {
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const base = getBaseType(typeObj);
-    return typeToString(base);
-  }
-  
   return getBaseType(type);
 }
 
@@ -393,9 +317,6 @@ export function getBaseTypeOfLiteral(type) {
  * @returns {boolean}
  */
 export function isStringLiteral(type) {
-  if (typeof type === 'string') {
-    return type.startsWith('"') && type.endsWith('"');
-  }
   return type instanceof LiteralType && type.baseType === StringType;
 }
 
@@ -405,9 +326,6 @@ export function isStringLiteral(type) {
  * @returns {boolean}
  */
 export function isNumberLiteral(type) {
-  if (typeof type === 'string') {
-    return /^-?\d+(\.\d+)?$/.test(type);
-  }
   return type instanceof LiteralType && type.baseType === NumberType;
 }
 
@@ -429,9 +347,6 @@ export function isBooleanLiteral(type) {
  * @returns {boolean}
  */
 export function isUnionType(type) {
-  if (typeof type === 'string') {
-    return type.includes(' | ');
-  }
   return type instanceof UnionType;
 }
 
@@ -441,17 +356,9 @@ export function isUnionType(type) {
  * @returns {Array<Type|string>} Array of types (matches input format)
  */
 export function parseUnionType(unionType) {
-  if (typeof unionType === 'string') {
-    if (!unionType.includes(' | ')) {
-      return [unionType];
-    }
-    return unionType.split(' | ').map(t => t.trim());
-  }
-  
   if (unionType instanceof UnionType) {
     return unionType.types;
   }
-  
   return [unionType];
 }
 
@@ -501,15 +408,7 @@ export { parseAnnotation, parseTypePrimary, parseObjectType } from './typeParser
  * @returns {Type|string} Type with substitutions (matches input format)
  */
 export function substituteType(type, substitutions) {
-  // Convert object to Map if needed
   const substMap = substitutions instanceof Map ? substitutions : objectToMap(substitutions);
-  
-  if (typeof type === 'string') {
-    const typeObj = stringToType(type);
-    const result = substituteTypeParams(typeObj, substMap);
-    return typeToString(result);
-  }
-  
   return substituteTypeParams(type, substMap);
 }
 
@@ -530,9 +429,8 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
     return { substitutions, errors };
   }
   
-  // Convert string types to Type objects if needed
-  const params = paramTypes.map(t => typeof t === 'string' ? stringToType(t) : t);
-  const args = argTypes.map(t => typeof t === 'string' ? stringToType(t) : t);
+  const params = paramTypes;
+  const args = argTypes;
   
   // Iterate through parameters to collect constraints
   for (let i = 0; i < Math.min(params.length, args.length); i++) {
@@ -715,22 +613,31 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
     return { compatible: false, errors: ['Invalid object structures'] };
   }
   
-  // Convert to ObjectType instances
-  const valueProps = new Map();
-  for (const [key, prop] of Object.entries(valueStructure)) {
-    const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
-    const optional = typeof prop === 'object' && prop.optional;
-    valueProps.set(key, { type, optional });
+  // Accept ObjectType instances directly, or convert from string-keyed maps (legacy path)
+  let valueType, targetType;
+  if (valueStructure instanceof ObjectType) {
+    valueType = valueStructure;
+  } else {
+    const valueProps = new Map();
+    for (const [key, prop] of Object.entries(valueStructure)) {
+      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const optional = typeof prop === 'object' && prop.optional;
+      valueProps.set(key, { type, optional });
+    }
+    valueType = new ObjectType(valueProps);
   }
-  const valueType = new ObjectType(valueProps);
-  
-  const targetProps = new Map();
-  for (const [key, prop] of Object.entries(targetStructure)) {
-    const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
-    const optional = typeof prop === 'object' && prop.optional;
-    targetProps.set(key, { type, optional });
+
+  if (targetStructure instanceof ObjectType) {
+    targetType = targetStructure;
+  } else {
+    const targetProps = new Map();
+    for (const [key, prop] of Object.entries(targetStructure)) {
+      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const optional = typeof prop === 'object' && prop.optional;
+      targetProps.set(key, { type, optional });
+    }
+    targetType = new ObjectType(targetProps);
   }
-  const targetType = new ObjectType(targetProps);
   
   // Check compatibility (structural subtyping - ignores excess properties)
   if (valueType.isCompatibleWith(targetType, aliasMap)) {

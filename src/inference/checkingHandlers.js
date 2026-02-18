@@ -7,9 +7,9 @@ import TypeChecker from '../typeChecker.js';
 import { 
   isTypeCompatible,
   resolveTypeAlias,
-  parseObjectTypeString,
   getPropertyType
 } from '../typeSystem.js';
+import { ObjectType, AnyType } from '../Type.js';
 
 /**
  * Create checking handlers for Phase 3
@@ -100,12 +100,11 @@ function createCheckingHandlers(getState) {
       if (!parent.inference || parent.inference.length === 0) return;
 
       const objectType = parent.inference[0];
-      if (!objectType || objectType === 'any') return;
+      if (!objectType || objectType === AnyType) return;
 
       // Validate property exists
       const resolvedType = resolveTypeAlias(objectType, typeAliases);
-      const resolvedTypeStr = typeof resolvedType === 'string' ? resolvedType : resolvedType.toString();
-      if (resolvedTypeStr === '{}' || !resolvedTypeStr.startsWith('{')) return;
+      if (!(resolvedType instanceof ObjectType)) return;
 
       const propertyType = getPropertyType(objectType, propertyName, typeAliases);
       if (propertyType === null) {
@@ -159,7 +158,7 @@ function createCheckingHandlers(getState) {
       if (!parent || !parent.inference || parent.inference.length === 0) return;
 
       const valueType = parent.inference[parent.inference.length - 1];
-      if (!valueType || valueType === 'any') return;
+      if (!valueType || valueType === AnyType) return;
 
       const result = TypeChecker.checkVariableReassignment(
         valueType,
@@ -227,18 +226,14 @@ function createCheckingHandlers(getState) {
       if (!parent || !parent.inference || parent.inference.length === 0) return;
 
       const valueType = parent.inference[parent.inference.length - 1];
-      if (!valueType || valueType === 'any') return;
+      if (!valueType || valueType === AnyType) return;
 
       // Look up object and validate property type
       const objectDef = lookupVariable(objectName);
       if (!objectDef || !objectDef.type) return;
 
-      const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
-      const resolvedObjectTypeStr = typeof resolvedObjectType === 'string' ? resolvedObjectType : resolvedObjectType.toString();
-      const properties = parseObjectTypeString(resolvedObjectTypeStr);
-
-      if (properties && properties[propertyName]) {
-        const expectedType = properties[propertyName].type;
+      const expectedType = getPropertyType(objectDef.type, propertyName, typeAliases);
+      if (expectedType !== null) {
         const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
 
         if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
