@@ -265,13 +265,6 @@ export class ObjectType extends Type {
         }
       }
       
-      // Check for excess properties (could be relaxed for structural typing)
-      for (const key of this.properties.keys()) {
-        if (!target.properties.has(key)) {
-          return false; // Excess property
-        }
-      }
-      
       return true;
     }
     
@@ -291,6 +284,25 @@ export class ObjectType extends Type {
   getPropertyType(propertyName) {
     const prop = this.properties.get(propertyName);
     return prop ? prop.type : null;
+  }
+
+  /**
+   * Check for excess properties against a target type.
+   * Unlike isCompatibleWith (which allows extras for structural subtyping),
+   * this is used at direct assignment sites (object literals) where excess
+   * properties are an error, matching TypeScript's excess property checking.
+   * @param {ObjectType} target
+   * @returns {string[]} Array of excess property names
+   */
+  excessPropertiesAgainst(target) {
+    if (!(target instanceof ObjectType)) return [];
+    const excess = [];
+    for (const key of this.properties.keys()) {
+      if (!target.properties.has(key)) {
+        excess.push(key);
+      }
+    }
+    return excess;
   }
 }
 

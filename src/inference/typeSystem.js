@@ -732,8 +732,16 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   }
   const targetType = new ObjectType(targetProps);
   
-  // Check compatibility
+  // Check compatibility (structural subtyping - ignores excess properties)
   if (valueType.isCompatibleWith(targetType, aliasMap)) {
+    // Even if structurally compatible, report excess properties at assignment sites
+    const excessKeys = valueType.excessPropertiesAgainst(targetType);
+    if (excessKeys.length > 0) {
+      for (const key of excessKeys) {
+        errors.push(`Excess property '${key}' not in type definition`);
+      }
+      return { compatible: false, errors };
+    }
     return { compatible: true, errors: [] };
   }
   
@@ -751,10 +759,8 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
     }
   }
   
-  for (const key of valueType.properties.keys()) {
-    if (!targetType.properties.has(key)) {
-      errors.push(`Excess property '${key}' not in type definition`);
-    }
+  for (const key of valueType.excessPropertiesAgainst(targetType)) {
+    errors.push(`Excess property '${key}' not in type definition`);
   }
   
   return { compatible: false, errors };

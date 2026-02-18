@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType, isUnionType, parseUnionType } from './typeSystem.js';
 import { ObjectType, ArrayType } from './typeSystem.js';
 
 // Module state
@@ -272,7 +272,6 @@ function handleNullishOperator(types, i) {
   const rightType = types[i - 2];
   
   // If left can never be nullish, result is left type
-  const { isUnionType, parseUnionType } = require('./typeSystem');
   if (leftType !== 'null' && leftType !== 'undefined' && 
       !isUnionType(leftType) || 
       (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === 'null' || t === 'undefined'))) {

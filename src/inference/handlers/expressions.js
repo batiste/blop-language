@@ -7,6 +7,7 @@ import { inferGenericArguments, substituteType, parseTypeExpression, getProperty
 import { ObjectType, PrimitiveType, AnyType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType } from '../builtinTypes.js';
+import { extractPropertyNodesFromAccess } from './utils.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -41,29 +42,6 @@ function extractExplicitTypeArguments(typeArgsNode) {
   }
   
   return args.length > 0 ? args : null;
-}
-
-/**
- * Extract property name nodes from an access chain
- * Returns array {name: string, node: astNode} for each step in the chain
- */
-function extractPropertyNodesFromAccess(accessNode) {
-  const properties = [];
-  
-  function traverse(node) {
-    if (!node || !node.children) return;
-    
-    for (const child of node.children) {
-      if (child.type === 'name') {
-        properties.push({ name: child.value, node: child });
-      } else if (child.type === 'object_access') {
-        traverse(child);
-      }
-    }
-  }
-  
-  traverse(accessNode);
-  return properties;
 }
 
 function createExpressionHandlers(getState) {
