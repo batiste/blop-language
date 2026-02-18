@@ -5,75 +5,42 @@ import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
 // import { saveState } from './services.blop'
 import './style.css' as style
+import { go } from './lib/navigation.blop'
 
-def navigationLinks(state) {
-  
+def navigationLinks() {
   def indexPage(e) {
-    state.$.router.go('/')
+    go('/')
     e.preventDefault()
   }
   def dogPage(e) {
-    state.$.router.go('/dogs')
+    go('/dogs')
     e.preventDefault()
   }
   def todoPage(e) {
-    state.$.router.go('/todo')
+    go('/todo')
     e.preventDefault()
   }
   def astExplorerPage(e) {
-    state.$.router.go('/ast')
+    go('/ast')
     e.preventDefault()
   }
   def playgroundPage(e) {
-    state.$.router.go('/playground')
+    go('/playground')
     e.preventDefault()
   }
   return { dogPage, todoPage, astExplorerPage, playgroundPage, indexPage }
 }
 
-// def linkList(state): VNode {
-//   links = navigationLinks(state)
-//   <div>
-//     <p>
-//       <a href="/showcase" on={ click: links.showcasePage } style={ fontSize: '1.2em', fontWeight: 'bold' }>'✨ Why Blop? (Showcase)'</a>
-//     </p>
-//     <hr />
-//     <p>
-//       <a href="/dog" on={ click: links.dogPage }>'Dog breed guessing game'</a>
-//     </p>
-//     <p>
-//       <a href="/petstore" on={ click: links.petStorePage }>'A pet store'</a>
-//     </p>
-//     <p>
-//       <a href="/meme" on={ click: links.memePage }>'Blank meme page'</a>
-//     </p>
-//     <p>
-//       <a href="/todo" on={ click: links.todoPage }>'A basic todo app'</a>
-//     </p>
-//     <p>
-//       <a href="/state" on={ click: links.statePage }>'Component state'</a>
-//     </p>
-//     <p>
-//       <a href="/fetch" on={ click: links.fetchPage }>'Fetch state'</a>
-//     </p>
-//   </div>
-// }
-
 def navigation(state): VNode {
-  links = navigationLinks(state)
+  links = navigationLinks()
 
-  // def saveStateEvent(e) {
-  //   saveState(state)
-  //   e.preventDefault()
-  // }
-
-  def navItem(pageType, go, name) {
+  def navItem(pageType, handler, name) {
     classes = "nav-item"
     if state.route.name == pageType {
       classes := ""classes" active"
     }
     <li class=classes>
-      <a href="/"pageType"" class="nav-link" on={ click: go }>
+      <a href="/"pageType"" class="nav-link" on={ click: handler }>
         = name
       </a>
     </li>
@@ -117,10 +84,6 @@ def navigation(state): VNode {
 }
 
 Index = (state): VNode => {
-  def indexPage(e) {
-    state.$.router.go('/')
-    e.preventDefault()
-  }
   <div>
     = navigation(state)
     <div class=''style.container' container'>

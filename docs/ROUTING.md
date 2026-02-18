@@ -46,15 +46,12 @@ state = createState({
   user: null
 })
 
-// Create router
+// Creating the Router automatically registers itself as the global navigator
 router = new Router(null, state, window)
-
-// Expose router via $ so components can call router.go()
-state.$.router = router
 ```
 
-> The router writes `state.route = { name, params }` on every navigation. Components read
-> `state.route.name` to decide what to render — no handler needs to set a `page` property.
+> The router registers a `go()` function into `lib/navigation.blop` on construction.
+> Components import `go` directly from there — no need to thread the router through state.
 
 ### 2. Define Route Handlers
 
@@ -120,8 +117,7 @@ import { createRouter } from './routing.blop'
 import { App } from './App.blop'
 
 state = createState({ route: { name: '', params: {} } })
-router = createRouter(state, window)
-state.$.router = router  // expose for navigation calls in components
+router = createRouter(state, window)  // registers the global navigator automatically
 
 render = () => {
   state.$.flush()
@@ -264,11 +260,13 @@ def NavigationMenu(state) {
 For proper handling with `preventDefault`:
 
 ```typescript
-def Links(state) {
+import { go } from './lib/navigation.blop'
+
+def Links(_state) {
   def navigateTo(path) {
     return (e) => {
       e.preventDefault()
-      state.$.router.go(path)
+      go(path)
     }
   }
   
@@ -283,10 +281,8 @@ def Links(state) {
 ### Router Methods
 
 ```typescript
-state.$.router.go(path)           // Navigate to path
-state.$.router.back()             // Go back in history
-state.$.router.forward()          // Go forward in history
-state.$.router.init()             // Initialize router
+router.go(path)    // Navigate to path (also available as go() from navigation.blop)
+router.init()      // Navigate to the current URL without pushing a history entry
 ```
 
 ## URL Parameters
@@ -450,11 +446,13 @@ export def App(state) {
 
 ```typescript
 // components/Navigation.blop
+import { go } from '../lib/navigation.blop'
+
 export def Navigation(state) {
   def navigate(path) {
     return (e) => {
       e.preventDefault()
-      state.$.router.go(path)
+      go(path)
     }
   }
   
@@ -491,8 +489,8 @@ state = createState({
   error: null
 })
 
+// Router registers go() into navigation.blop automatically
 router = createRouter(state, window)
-state.$.router = router  // expose for navigation calls in components
 
 render = () => {
   state.$.flush()

@@ -170,9 +170,8 @@ state = createState({
   loading: false
 })
 
-// Set up router, then expose it via $ for navigation calls in components
+// Set up router — registers the global navigator automatically
 router = createRouter(state, window)
-state.$.router = router
 
 // Render function
 render = () => {
@@ -475,7 +474,6 @@ state.$.listen(callback)     // Subscribe to any state change
 state.$.flush()              // Clear recorded modifications (call before each render)
 state.$.modifications        // Array of { path, action, value } since last flush
 state.$.raw                  // The underlying plain object (unproxied)
-state.$.router               // The router instance (assigned externally after creation)
 ```
 
 `hasChanged` is available on every (nested) proxy node:

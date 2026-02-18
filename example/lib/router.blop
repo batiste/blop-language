@@ -1,4 +1,6 @@
 
+import { register } from './navigation.blop'
+
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }
@@ -24,6 +26,7 @@ class Router {
     this.routes = []
     this.state = state
     this.global = global
+    register((path) => this.go(path))
     global.addEventListener('popstate', (e) => {
       if e.state == null {
         initial && initial()

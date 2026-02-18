@@ -5,7 +5,6 @@ import { Index } from './index.blop'
 
 proxiedState = createState(window.INITIAL_STATE)
 router = createRouter(proxiedState, window)
-proxiedState.$.router = router // expose router via $ for navigation calls in components
 
 // The render function for this application
 render = () => {
