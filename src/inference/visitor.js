@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, stringToType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType } from './typeSystem.js';
 import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType } from './Type.js';
 
 // Module state

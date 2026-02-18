@@ -102,10 +102,6 @@ function resolveAliasType(type, aliasMap) {
   return type;
 }
 
-// ============================================================================
-// Core Type Operations (using structured types internally)
-// ============================================================================
-
 /**
  * Check if a type is compatible with another type
  * @param {Type|string} valueType - The type being assigned
@@ -362,10 +358,6 @@ export function parseUnionType(unionType) {
   return [unionType];
 }
 
-// ============================================================================
-// Annotation & AST Parsing (delegates to typeParser)
-// ============================================================================
-
 /**
  * Extract type from annotation node
  * @param {Object} annotationNode - AST annotation node
@@ -375,31 +367,11 @@ export function getAnnotationType(annotationNode) {
   return parseAnnotation(annotationNode);
 }
 
-/**
- * Extract type from annotation node as string (for display / error messages)
- * @param {Object} annotationNode - AST annotation node
- * @returns {string}
- */
-export function getAnnotationTypeString(annotationNode) {
-  return typeToString(parseAnnotation(annotationNode));
-}
-
-/**
- * @deprecated Use getAnnotationType (now returns Type directly)
- */
-export function getAnnotationTypeStructured(annotationNode) {
-  return parseAnnotation(annotationNode);
-}
-
 // Re-export from typeParser for backward compatibility
 export { parseTypeExpression, parseGenericParams } from './typeParser.js';
 
 // Re-export structured parsing functions
 export { parseAnnotation, parseTypePrimary, parseObjectType } from './typeParser.js';
-
-// ============================================================================
-// Generics
-// ============================================================================
 
 /**
  * Substitute type parameters with concrete types
@@ -570,10 +542,6 @@ export function instantiateGenericType(genericTypeName, typeArgs, aliases) {
   const shouldReturnString = typeArgs.some(t => typeof t === 'string');
   return shouldReturnString ? typeToString(result) : result;
 }
-
-// ============================================================================
-// Backward Compatibility - Object Structure Parsing
-// ============================================================================
 
 /**
  * Parse an object type string into a structure (for backward compatibility)
@@ -860,10 +828,6 @@ function objectToMap(obj) {
   }
   return map;
 }
-
-// ============================================================================
-// Export Type classes for direct use
-// ============================================================================
 
 export {
   Type, Types, TypeAliasMap,
