@@ -30,6 +30,7 @@ import {
   narrowType,
   excludeType,
   createUnionType,
+  stringToType,
 } from '../../inference/typeSystem.js';
 
 import { parseTypePrimary } from '../../inference/typeParser.js';
@@ -97,46 +98,36 @@ describe('AnyFunctionType', () => {
 // stringToType — 'function' keyword
 // ---------------------------------------------------------------------------
 
-// describe('stringToType', () => {
-//   test('"function" -> AnyFunctionType', () => {
-//     expect(stringToType('function')).toBe(AnyFunctionType);
-//   });
+describe('stringToType', () => {
+  test('"function" -> AnyFunctionType', () => {
+    expect(stringToType('function')).toBe(AnyFunctionType);
+  });
 
-//   test('"string" -> StringType', () => {
-//     expect(stringToType('string')).toBe(StringType);
-//   });
+  test('"string" -> StringType', () => {
+    expect(stringToType('string')).toBe(StringType);
+  });
 
-//   test('"number" -> NumberType', () => {
-//     expect(stringToType('number')).toBe(NumberType);
-//   });
+  test('"number" -> NumberType', () => {
+    expect(stringToType('number')).toBe(NumberType);
+  });
 
-//   test('"boolean" -> BooleanType', () => {
-//     expect(stringToType('boolean')).toBe(BooleanType);
-//   });
+  test('"boolean" -> BooleanType', () => {
+    expect(stringToType('boolean')).toBe(BooleanType);
+  });
 
-//   test('"any" -> AnyType', () => {
-//     expect(stringToType('any')).toBe(AnyType);
-//   });
+  test('"any" -> AnyType', () => {
+    expect(stringToType('any')).toBe(AnyType);
+  });
 
-//   test('"never" -> NeverType', () => {
-//     expect(stringToType('never')).toBe(NeverType);
-//   });
+  test('"never" -> NeverType', () => {
+    expect(stringToType('never')).toBe(NeverType);
+  });
 
-//   test('"null" -> NullType', () => {
-//     expect(stringToType('null')).toBe(NullType);
-//   });
+  test('"null" -> NullType', () => {
+    expect(stringToType('null')).toBe(NullType);
+  });
 
-//   test('"string | null" -> UnionType', () => {
-//     const t = stringToType('string | null');
-//     expect(t).toBeInstanceOf(UnionType);
-//     expect(t.toString()).toBe('string | null');
-//   });
-
-//   test('"number[]" -> ArrayType', () => {
-//     const t = stringToType('number[]');
-//     expect(t.toString()).toBe('number[]');
-//   });
-// });
+});
 
 // ---------------------------------------------------------------------------
 // parseTypePrimary — 'function' type annotation

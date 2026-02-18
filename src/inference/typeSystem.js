@@ -593,7 +593,7 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   } else {
     const valueProps = new Map();
     for (const [key, prop] of Object.entries(valueStructure)) {
-      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const type = stringToType(prop);
       const optional = typeof prop === 'object' && prop.optional;
       valueProps.set(key, { type, optional });
     }
@@ -605,7 +605,7 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
   } else {
     const targetProps = new Map();
     for (const [key, prop] of Object.entries(targetStructure)) {
-      const type = typeof prop === 'string' ? stringToType(prop) : stringToType(prop.type);
+      const type = stringToType(prop);
       const optional = typeof prop === 'object' && prop.optional;
       targetProps.set(key, { type, optional });
     }
