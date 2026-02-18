@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from '../typeSystem.js';
+import { getAnnotationType, parseTypeExpression, parseGenericParams, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -430,13 +430,9 @@ function createStatementHandlers(getState) {
         visit(node.named.exp, node);
         
         // Check if we're iterating an array without :array annotation
-        const expTypeRaw = node.named.exp.inference?.[0];
-        const expType = expTypeRaw != null ? ((typeof expTypeRaw === 'string') ? expTypeRaw : expTypeRaw.toString()) : undefined;
+        const expType = node.named.exp.inference?.[0];
         if (expType && key && !isArray) {
-          // Check if expression type looks like an array
-          const isArrayType = expType.endsWith('[]') || 
-                             expType === 'array' || 
-                             expType.startsWith('Array<');
+          const isArrayType = expType instanceof ArrayType;
           
           if (isArrayType) {
             pushWarning(
@@ -449,19 +445,11 @@ function createStatementHandlers(getState) {
       
       // Infer value type if possible
       if (value && node.named.exp && node.named.exp.inference) {
-        const expTypeRaw = node.named.exp.inference[0];
-        const expType = expTypeRaw != null ? ((typeof expTypeRaw === 'string') ? expTypeRaw : expTypeRaw.toString()) : undefined;
+        const expType = node.named.exp.inference[0];
         let valueType = 'any';
         
-        // Try to infer element type from array type
-        if (expType) {
-          if (expType.endsWith('[]')) {
-            // Extract element type: string[] -> string
-            valueType = expType.slice(0, -2);
-          } else if (expType.startsWith('Array<') && expType.endsWith('>')) {
-            // Extract element type: Array<number> -> number
-            valueType = expType.slice(6, -1);
-          }
+        if (expType instanceof ArrayType) {
+          valueType = expType.elementType.toString();
         }
         
         scope[value] = { type: valueType, node: node.named.value };
