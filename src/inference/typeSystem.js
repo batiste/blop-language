@@ -178,11 +178,13 @@ export function removeNullish(type) {
  * @returns {Type|string} Narrowed type (matches input format)
  */
 export function narrowType(type, narrowedType) {
+  const narrowedTypeObj = typeof narrowedType === 'string' ? stringToType(narrowedType) : narrowedType;
+  
   if (type instanceof UnionType) {
-    return type.narrow(narrowedType);
+    return type.narrow(narrowedTypeObj);
   }
   
-  if (type.equals(narrowedType)) {
+  if (type.equals(narrowedTypeObj)) {
     return type;
   }
   
@@ -200,11 +202,13 @@ export function excludeType(type, excludedType) {
     return AnyType;
   }
   
+  const excludedTypeObj = typeof excludedType === 'string' ? stringToType(excludedType) : excludedType;
+  
   if (type instanceof UnionType) {
-    return type.exclude(excludedType);
+    return type.exclude(excludedTypeObj);
   }
   
-  if (type.equals(excludedType)) {
+  if (type.equals(excludedTypeObj)) {
     return NeverType;
   }
   

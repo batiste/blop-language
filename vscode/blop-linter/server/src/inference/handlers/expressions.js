@@ -45,6 +45,10 @@ function extractExplicitTypeArguments(typeArgsNode) {
 }
 
 function createExpressionHandlers(getState) {
+  // TODO: please break this into small chunks of code
+  // it is too complex and hard to maintain as a single function, 
+  // and it is doing too many things at once.
+  // I have also the feeling there might be dead code in there,
   return {
     math: (node, parent) => {
       const { pushInference } = getState();
@@ -187,8 +191,7 @@ function createExpressionHandlers(getState) {
         // Not a function call - validate property access for object types only
         const def = lookupVariable(name.value);
         // def.type may be a Type object (annotated) or a string (inferred)
-        const defTypeIsAny = !def?.type || def.type === 'any' || def.type === AnyType ||
-                              (def.type instanceof PrimitiveType && def.type.name === 'any');
+        const defTypeIsAny = def.type === AnyType;
         if (def && def.type && !defTypeIsAny) {
           // Check if this is optional chaining
           const hasOptionalChain = access && access.children &&
@@ -332,6 +335,7 @@ function createExpressionHandlers(getState) {
       }
       
       if (op) {
+        // not acceptable to have a require here, please fix if possible
         const nodeHandlers = require('../index').getHandlers();
         nodeHandlers.operation(op, node);
         pushToParent(node, parent);
@@ -342,19 +346,22 @@ function createExpressionHandlers(getState) {
       visitChildren(node);
       pushToParent(node, parent);
       if (node.named.math_op) {
-        pushInference(parent, node.named.math_op);
+        pushInference(parent, NumberType);
       }
       if (node.named.boolean_op) {
-        pushInference(parent, node.named.boolean_op);
+        pushInference(parent, BooleanType);
       }
     },
     access_or_operation: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
       pushToParent(node, parent);
-      if (node.named.access) {
-        pushInference(parent, node.named.access);
-      }
+      // Commenting this out didn't break any tests,
+      // Investigate if this is dead code or if we need to handle some cases here.
+      // if (node.named.access) {
+      //   // That looks incorrect, we need to pass a Type
+      //   pushInference(parent, node.named.access);
+      // }
     },
     new: (node, parent) => {
       const { pushInference } = getState();
