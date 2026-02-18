@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, NumberType, FunctionType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -45,15 +45,11 @@ function extractExplicitTypeArguments(typeArgsNode) {
 }
 
 function createExpressionHandlers(getState) {
-  // TODO: please break this into small chunks of code
-  // it is too complex and hard to maintain as a single function, 
-  // and it is doing too many things at once.
-  // I have also the feeling there might be dead code in there,
   return {
     math: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      pushInference(parent, NumberType);
+      pushInference(parent, PrimitiveType.Number);
     },
     name_exp: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
@@ -168,7 +164,7 @@ function createExpressionHandlers(getState) {
                 }
               }
               // step3 done: pushInference normalizes Type objects
-              const retType = def.type ?? 'any';
+              const retType = def.type ?? AnyType;
               pushInference(parent, retType);
               return;
             }
@@ -182,7 +178,7 @@ function createExpressionHandlers(getState) {
           if (propName) {
             const builtinType = getBuiltinObjectType(name.value);
             const rawProp = builtinType?.[propName];
-            const propType = rawProp ?? 'any';
+            const propType = rawProp ?? AnyType;
             pushInference(parent, propType);
             return;
           }
@@ -191,7 +187,8 @@ function createExpressionHandlers(getState) {
         // Not a function call - validate property access for object types only
         const def = lookupVariable(name.value);
         // def.type may be a Type object (annotated) or a string (inferred)
-        const defTypeIsAny = def.type === AnyType;
+        const defTypeIsAny = !def?.type || def.type === 'any' || def.type === AnyType ||
+                              (def.type instanceof PrimitiveType && def.type.name === 'any');
         if (def && def.type && !defTypeIsAny) {
           // Check if this is optional chaining
           const hasOptionalChain = access && access.children &&
@@ -315,11 +312,11 @@ function createExpressionHandlers(getState) {
       // Check if it's a variable definition
       if (def) {
         if (def.source === 'func_def') {
-          pushInference(parent, FunctionType);
+          pushInference(parent, AnyFunctionType);
           // Stamp the name node with the function's inferred type for hover
           const { inferencePhase } = getState();
           if (inferencePhase === 'inference' && name.inferredType === undefined) {
-            name.inferredType = def.type ?? FunctionType;
+            name.inferredType = def.type ?? AnyFunctionType;
           }
         } else {
           pushInference(parent, def.type);
@@ -335,7 +332,6 @@ function createExpressionHandlers(getState) {
       }
       
       if (op) {
-        // not acceptable to have a require here, please fix if possible
         const nodeHandlers = require('../index').getHandlers();
         nodeHandlers.operation(op, node);
         pushToParent(node, parent);
@@ -346,22 +342,19 @@ function createExpressionHandlers(getState) {
       visitChildren(node);
       pushToParent(node, parent);
       if (node.named.math_op) {
-        pushInference(parent, NumberType);
+        pushInference(parent, node.named.math_op);
       }
       if (node.named.boolean_op) {
-        pushInference(parent, BooleanType);
+        pushInference(parent, node.named.boolean_op);
       }
     },
     access_or_operation: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
       pushToParent(node, parent);
-      // Commenting this out didn't break any tests,
-      // Investigate if this is dead code or if we need to handle some cases here.
-      // if (node.named.access) {
-      //   // That looks incorrect, we need to pass a Type
-      //   pushInference(parent, node.named.access);
-      // }
+      if (node.named.access) {
+        pushInference(parent, node.named.access);
+      }
     },
     new: (node, parent) => {
       const { pushInference } = getState();

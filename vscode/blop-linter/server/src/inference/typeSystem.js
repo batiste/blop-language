@@ -12,7 +12,7 @@ import {
   IntersectionType, GenericType, FunctionType, TypeAlias,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
-  AnyType, NeverType
+  AnyType, NeverType, AnyFunctionType
 } from './Type.js';
 import { parseAnnotation, parseTypeExpression, parseGenericParams, getBaseType } from './typeParser.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getPrimitiveMemberType, getArrayMemberType } from './builtinTypes.js';
@@ -696,6 +696,7 @@ export function stringToType(typeString) {
   if (typeString === 'boolean') return BooleanType;
   if (typeString === 'null') return NullType;
   if (typeString === 'undefined') return UndefinedType;
+  if (typeString === 'function') return AnyFunctionType;
   
   // String literal
   if (typeString.startsWith('"') && typeString.endsWith('"')) {
@@ -831,7 +832,7 @@ function stringMapToTypeAliasMap(obj) {
   const aliasMap = new TypeAliasMap();
   
   for (const [name, value] of Object.entries(obj)) {
-    if (typeof value === 'object' && value.genericParams) {
+    if (typeof value === 'object' && value.genericParams && value.genericParams.length > 0) {
       // Generic alias
       const type = typeof value.type === 'string' ? stringToType(value.type) : value.type;
       aliasMap.define(name, type, value.genericParams);
