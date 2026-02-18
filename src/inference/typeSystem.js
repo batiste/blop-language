@@ -112,12 +112,17 @@ function resolveAliasType(type, aliasMap) {
 export function isTypeCompatible(valueType, targetType, aliases) {
   const aliasMap = aliases instanceof TypeAliasMap ? aliases : stringMapToTypeAliasMap(aliases);
 
-  // Belt-and-suspenders: convert stray strings to Type objects
-  const vt = typeof valueType === 'string' ? stringToType(valueType) : valueType;
-  const tt = typeof targetType === 'string' ? stringToType(targetType) : targetType;
+  // All types should be Type objects from grammar parsing, never strings
+  if (typeof valueType === 'string' || typeof targetType === 'string') {
+    throw new Error(
+      `isTypeCompatible expects Type objects, not strings. ` +
+      `Use parseAnnotation() or parseTypeExpression() to parse AST nodes into Type objects. ` +
+      `Got: valueType=${typeof valueType}, targetType=${typeof targetType}`
+    );
+  }
 
-  const resolvedValue = resolveAliasType(resolveGenericType(vt, aliasMap), aliasMap);
-  const resolvedTarget = resolveAliasType(resolveGenericType(tt, aliasMap), aliasMap);
+  const resolvedValue = resolveAliasType(resolveGenericType(valueType, aliasMap), aliasMap);
+  const resolvedTarget = resolveAliasType(resolveGenericType(targetType, aliasMap), aliasMap);
   
   return resolvedValue.isCompatibleWith(resolvedTarget, aliasMap);
 }

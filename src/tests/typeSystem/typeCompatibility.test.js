@@ -476,13 +476,6 @@ describe('isTypeCompatible — cross-cutting', () => {
     expect(isTypeCompatible(NumberType, strOrNull, {})).toBe(false);
   });
 
-  test('resolves string-type inputs via stringToType', () => {
-    // isTypeCompatible accepts raw strings and converts them
-    expect(isTypeCompatible('string', 'string', {})).toBe(true);
-    expect(isTypeCompatible('number', 'string', {})).toBe(false);
-    expect(isTypeCompatible('function', 'function', {})).toBe(true);
-  });
-
   test('null is compatible with string | null', () => {
     const strOrNull = Types.union([StringType, NullType]);
     expect(isTypeCompatible(NullType, strOrNull, {})).toBe(true);

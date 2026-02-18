@@ -27,7 +27,6 @@ import {
 
 import {
   isTypeCompatible,
-  stringToType,
   narrowType,
   excludeType,
   createUnionType,
@@ -241,10 +240,10 @@ describe('isTypeCompatible — function types', () => {
     expect(isTypeCompatible(AnyFunctionType, NumberType, {})).toBe(false);
   });
 
-  test('"function" string is compatible with Callback alias', () => {
-    // stringToType('function') === AnyFunctionType
+  test('"function" type is compatible with Callback alias', () => {
+    // AnyFunctionType is compatible with function-accepting aliases
     const aliases = { Callback: AnyFunctionType };
-    expect(isTypeCompatible(stringToType('function'), new TypeAlias('Callback'), aliases)).toBe(true);
+    expect(isTypeCompatible(AnyFunctionType, new TypeAlias('Callback'), aliases)).toBe(true);
   });
 });
 

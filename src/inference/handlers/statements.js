@@ -157,16 +157,16 @@ function createStatementHandlers(getState) {
               importNames.forEach(name => {
                 if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
                   // Parse the type definition for use in inference
-                  const typeString = parseTypeExpression(result.typeAliases[name].typeNode);
-                  typeAliases[name] = typeString;
+                  const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
+                  typeAliases[name] = aliasType;
                 }
               });
             } else if (node.named.name && !node.named.module) {
               // import User from './types.blop'
               const name = node.named.name.value;
               if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
-                const typeString = parseTypeExpression(result.typeAliases[name].typeNode);
-                typeAliases[name] = typeString;
+                const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
+                typeAliases[name] = aliasType;
               }
             } else {
               // import './types.blop' - import all types

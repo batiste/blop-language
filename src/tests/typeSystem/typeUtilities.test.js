@@ -8,7 +8,6 @@
  * - createUnionType
  * - resolveTypeAlias
  * - parseObjectTypeString (round-trip string → ObjectType)
- * - stringToType round-trips (toString → stringToType)
  */
 
 import { describe, test, expect } from 'vitest';
@@ -32,7 +31,6 @@ import {
   createUnionType,
   resolveTypeAlias,
   parseObjectTypeString,
-  stringToType,
 } from '../../inference/typeSystem.js';
 
 const NO_ALIASES = {};
@@ -299,35 +297,5 @@ describe('parseObjectTypeString', () => {
     const result = parseObjectTypeString('{}');
     expect(result).not.toBeNull();
     expect(Object.keys(result)).toHaveLength(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// stringToType round-trips
-// ---------------------------------------------------------------------------
-
-describe('stringToType round-trips', () => {
-  const roundTrip = (t) => stringToType(t.toString()).toString() === t.toString();
-
-  test('string round-trips', () => expect(roundTrip(StringType)).toBe(true));
-  test('number round-trips', () => expect(roundTrip(NumberType)).toBe(true));
-  test('boolean round-trips', () => expect(roundTrip(BooleanType)).toBe(true));
-  test('null round-trips', () => expect(roundTrip(NullType)).toBe(true));
-  test('undefined round-trips', () => expect(roundTrip(UndefinedType)).toBe(true));
-  test('any round-trips', () => expect(roundTrip(AnyType)).toBe(true));
-  test('never round-trips', () => expect(roundTrip(NeverType)).toBe(true));
-  test('function round-trips', () => expect(roundTrip(AnyFunctionType)).toBe(true));
-  test('number[] round-trips', () => expect(roundTrip(Types.array(NumberType))).toBe(true));
-  test('string | number round-trips', () => {
-    expect(roundTrip(Types.union([StringType, NumberType]))).toBe(true);
-  });
-  test('string | null round-trips', () => {
-    expect(roundTrip(Types.union([StringType, NullType]))).toBe(true);
-  });
-  test('"hello" string literal round-trips', () => {
-    expect(roundTrip(Types.literal('hello', StringType))).toBe(true);
-  });
-  test('42 number literal round-trips', () => {
-    expect(roundTrip(Types.literal(42, NumberType))).toBe(true);
   });
 });

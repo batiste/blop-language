@@ -24,9 +24,9 @@ function extractExplicitTypeArguments(typeArgsNode) {
     
     // Check if this node itself has a named.arg (type_expression)
     if (node.named && node.named.arg) {
-      const typeStr = parseTypeExpression(node.named.arg);
-      if (typeStr) {
-        args.push(typeStr);
+      const typeArg = parseTypeExpression(node.named.arg);
+      if (typeArg) {
+        args.push(typeArg);
       }
     }
     
