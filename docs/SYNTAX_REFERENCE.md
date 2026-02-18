@@ -1,10 +1,10 @@
 # Blop Language Syntax Reference
 
-Complete reference for the Blop language syntax.
+A practical reference for writing Blop code. Each section explains the syntax, shows examples, and calls out any gotchas.
 
 ## Table of Contents
 
-- [Import Syntax](#import-syntax)
+- [Imports](#imports)
 - [Variables](#variables)
 - [Functions](#functions)
 - [Loops](#loops)
@@ -15,58 +15,57 @@ Complete reference for the Blop language syntax.
 - [Virtual DOM](#virtual-dom)
 - [Modern Features](#modern-features)
 
-## Import Syntax
+---
 
-### Grammar
+## Imports
 
-```typescript
-import %name% from %file%
-import { %name%[ as %rename%]?[, %name%[ as %rename%]?]* } from %file%
-import %file% as %name%
-import %file%
-```
-
-### Examples
+Blop supports four import forms:
 
 ```typescript
+// Named import
 import Index from './index.blop'
+
+// Named imports with optional aliasing
 import { createRouter, createRoute as something } from './routing.blop'
+
+// Import a module and bind it to a name
 import 'webpack-dev-middleware' as middleware
+
+// Side-effect import
 import 'express'
 ```
 
+---
+
 ## Variables
 
-Variables are declared Python-style. Variables are hoisted to the top of the current block scope and compiled as `let` variables.
+Variables are declared Python-style — no `let`, `const`, or `var`.
+They are hoisted to the top of the current block scope and compiled as `let`.
 
 ```typescript
-// Simple assignment
+// Declare a variable
 index = 1
 name = 'Alice'
-count = 42
 
 // Destructuring
 { x, y, z as depth } = { x: 1, y: 2, z: 100.0 }
-
-// Reassignment requires explicit operator
-depth = index       // ERROR: reassigning will trigger an error
-depth := index + 1  // CORRECT: use := for reassignment
 ```
+
+**Reassignment** requires the `:=` operator. Using `=` on an already-declared variable is an error:
+
+```typescript
+depth = index       // ERROR: variable already declared
+depth := index + 1  // OK: explicit reassignment
+```
+
+---
 
 ## Functions
 
-### Grammar
+Functions can be declared with `def` or as arrow functions. Both support `async` and optional type annotations.
 
 ```typescript
-async? def %name%? (%parameters%)[:%annotation%]? { %statements% }
-async? (%parameters%)[:%annotation%]? => { %statements% }
-async? (%parameters%)[:%annotation%]? => %expression%
-```
-
-### Examples
-
-```typescript
-// Function declaration with type annotation
+// Named function with a default parameter and return type annotation
 def greet(name='John Doe'): string {
   return `Hello `name``
 }
@@ -77,45 +76,47 @@ async def fetchData(url) {
   return response.json()
 }
 
-// Arrow functions
-add = (a, b): number => a + b
-square = (a) => a * a
+// Arrow functions — single-expression or block body
+add      = (a, b): number => a + b
+square   = (a) => a * a
 multiply = (a, b) => {
   return a * b
 }
 ```
 
+> Anonymous functions (no name after `def`) are also valid and useful for callbacks or IIFEs.
+
+---
+
 ## Loops
 
-### Syntax
+### `for … in`
+
+Iterate over arrays or objects. You can optionally capture the index/key as a first variable.
 
 ```typescript
-for %value% in %expression%[:%annotation%]? { %statements% }
-for %key%, %value% in %expression%[:%annotation%]? { %statements% }
-while %expression% { %statements% }
-```
-
-### Examples
-
-```typescript
-// For-in loop
 petList = ['cat', 'dog', 'goldfish']
 
+// Values only
 for pet in petList {
   console.log(pet)
 }
 
+// Index + value
 for index, pet in petList {
   console.log(index, pet)
 }
 
-// For-in over object keys
+// Key + value for objects
 user = { name: 'Alice', age: 30 }
 for key, value in user {
   console.log(key, value)
 }
+```
 
-// While loop
+### `while`
+
+```typescript
 count = 0
 while count < 10 {
   console.log(count)
@@ -123,18 +124,11 @@ while count < 10 {
 }
 ```
 
+---
+
 ## Conditionals
 
-### Grammar
-
-```typescript
-if %expression% { %statements% }
-if %expression% { %statements% } else { %statements% }
-if %expression% { %statements% } elseif %expression% { %statements% }
-if %expression% { %statements% } elseif %expression% { %statements% } else { %statements% }
-```
-
-### Examples
+### `if / elseif / else`
 
 ```typescript
 def renderPage(state) {
@@ -146,69 +140,85 @@ def renderPage(state) {
     <span>'No page found'</span>
   }
 }
+```
 
-// Ternary operator
+### Ternary
+
+```typescript
 result = condition ? 'yes' : 'no'
 ```
 
+---
+
 ## Strings
 
-Strings can be delimited with `"`, `'`, or `` ` `` and are all functionally equivalent.
+Strings can be delimited with `"`, `'`, or `` ` `` — all three are equivalent.
 
-String concatenation is achieved by placing strings and expressions adjacent to each other:
+### Concatenation
+
+Place strings and expressions side by side to concatenate them:
 
 ```typescript
-whitespace = " "
-greeting = 'hello'
-name = 'world'
+whitespace = ' '
+greeting   = 'hello'
+name       = 'world'
 
-// String concatenation
-message = greeting whitespace name  // "hello world"
-console.log('hello' whitespace `world`)  // hello world
-
-// Template-like syntax
-count = 42
-message = 'The answer is 'count''  // "The answer is 42"
+message = greeting whitespace name      // "hello world"
+console.log('hello' whitespace `world`) // hello world
 ```
+
+### Embedding expressions
+
+Wrap the expression in the same quote character used to open the string:
+
+```typescript
+count   = 42
+message = 'The answer is 'count''  // "The answer is 42"
+url     = `https://api.example.com/`id``
+```
+
+---
 
 ## Objects and Arrays
 
-Blop supports ES6-style objects and arrays:
+Blop uses ES6-style object and array literals, destructuring, and spread.
 
 ```typescript
 // Object literal
 person = {
   name: 'Alice',
-  age: 30,
+  age:  30,
   city: 'Paris'
 }
 
 // Array literal
 numbers = [1, 2, 3, 4, 5]
-mixed = [1, 'two', { three: 3 }]
+mixed   = [1, 'two', { three: 3 }]
 
 // Destructuring
-{ name, age } = person
+{ name, age }            = person
 [first, second, ...rest] = numbers
 
-// Object spread
+// Object spread — later keys override earlier ones
 defaults = { timeout: 5000, retries: 3 }
-options = { ...defaults, timeout: 10000 }
+options  = { ...defaults, timeout: 10000 }
 
 // Array spread
 arr1 = [1, 2, 3]
 arr2 = [...arr1, 4, 5, 6]
 ```
 
+---
+
 ## Classes
 
-Similar to ES6 classes:
+Classes follow the ES6 pattern. Use `def` for methods and `this` for instance properties.
 
 ```typescript
 class ExampleClass {
   def constructor(something=false) {
     this.routes = [1, 2, 3]
-    this.state = { hello: 1, world: 2 }
+    this.state  = { hello: 1, world: 2 }
   }
 
   async def fetchData(id) {
@@ -222,48 +232,42 @@ class ExampleClass {
   }
 
   def processData(data) {
-    // Process data
     return data.map((item) => item.value)
   }
 }
 
-// Instantiation
 instance = new ExampleClass(true)
 ```
 
+---
+
 ## Virtual DOM
 
-### Basic Syntax
+Blop has a built-in JSX-like syntax for building UIs, compiled with [Snabbdom](https://github.com/snabbdom/snabbdom).
+
+### Element syntax
 
 ```typescript
-<name[%attributes%]*/>
-<name[%attributes%]*>%statements%</name>
-<name[%attributes%]*>%expression%</name>
+// Self-closing
+<input type="text" />
+
+// With children
+<div class="card">
+  <h2>title</h2>
+</div>
 ```
 
-Attributes:
+Attributes accept expressions or bare names (treated as boolean `true`):
+
 ```typescript
-%whitespace% %name%=%expression%
-%whitespace% %name%  // boolean attribute
+<button disabled class=buttonClass>label</button>
 ```
 
-### Examples
+### Returning elements from a list with `=`
+
+Use the `=` operator to yield elements inside a loop:
 
 ```typescript
-// Simple element
-def Button(attributes) {
-  <button class="btn">attributes.label</button>
-}
-
-// Nested elements
-def Card(attributes) {
-  <div class="card">
-    <h2>attributes.title</h2>
-    <p>attributes.description</p>
-  </div>
-}
-
-// Using assignment operator (=)
 def List(attributes) {
   items = attributes.items
   <ul>
@@ -274,34 +278,33 @@ def List(attributes) {
 }
 ```
 
-### Rules for Virtual DOM
+### Rules to keep in mind
 
-1. **Must be inside a function** - Virtual DOM statements create return statements
-2. **Single root per branch** - Each conditional branch should have one root element
-3. **Code after root is unreachable** - The root generates a return statement
+1. **Must be inside a function** — a Virtual DOM expression compiles into a `return` statement.
+2. **One root element per branch** — each `if`/`else` branch should produce a single root.
+3. **Code after the root is unreachable** — nothing placed after the root element will run.
 
 ```typescript
 def Example(state) {
-  // This is OK - single root with conditionals
   if state.loading {
     <div>'Loading...'</div>
   } else {
     <div>'Content'</div>
   }
 
-  // This code will never execute (after virtual DOM root)
-  console.log('This won't run!')
+  // Unreachable — the Virtual DOM root already returned
+  console.log('This will never run')
 }
 ```
 
 ### Events
 
-Events are attached using the `on` attribute with an object:
+Attach event listeners with the `on` attribute, passing an object of handler functions:
 
 ```typescript
 def ClickableButton(attributes) {
   handleClick = (event) => {
-    console.log('Button clicked!', event)
+    console.log('clicked', event)
     attributes.onClick?.()
   }
 
@@ -310,7 +313,7 @@ def ClickableButton(attributes) {
   </button>
 }
 
-// Multiple events
+// Multiple events on the same element
 def Input(attributes) {
   <input
     type="text"
@@ -318,87 +321,69 @@ def Input(attributes) {
     on={
       input: (e) => attributes.onInput(e.target.value),
       focus: () => console.log('focused'),
-      blur: () => console.log('blurred')
+      blur:  () => console.log('blurred')
     }
   />
 }
 ```
 
-### Hooks
+### Lifecycle hooks
 
-Blop uses [Snabbdom hooks](https://github.com/snabbdom/snabbdom#hooks) for lifecycle management:
+Blop uses [Snabbdom hooks](https://github.com/snabbdom/snabbdom#hooks) for element lifecycle events. Pass a `hooks` object as an attribute:
 
 ```typescript
 def FocusedInput(attributes) {
   hooks = {
-    insert: (vnode) => {
-      vnode.elm.focus()
-      vnode.elm.select()
-    },
-    destroy: (vnode) => {
-      console.log('Input destroyed')
-    }
+    insert:  (vnode) => { vnode.elm.focus(); vnode.elm.select() },
+    destroy: (vnode) => { console.log('removed') }
   }
 
-  <input
-    hooks
-    type="text"
-    value=attributes.value
-  />
+  <input hooks type="text" value=attributes.value />
 }
 ```
 
-Available hooks:
-- `pre` - Before patch
-- `init` - Element created
-- `create` - Element added to DOM
-- `insert` - Element inserted into parent
-- `prepatch` - Before element patched
-- `update` - Element updated
-- `postpatch` - After element patched
-- `destroy` - Element removed from parent
-- `remove` - Element being removed
-- `post` - After patch
+Available hooks: `pre`, `init`, `create`, `insert`, `prepatch`, `update`, `postpatch`, `destroy`, `remove`, `post`.
+
+---
 
 ## Modern Features
 
-### Optional Chaining
+### Optional chaining
+
+Safely access a property that may not exist — returns `undefined` instead of throwing:
 
 ```typescript
-// Safely access nested properties
-name = user?.profile?.name
-age = user?.profile?.age
-
-// With arrays
+name  = user?.profile?.name
 first = list?.[0]
-item = obj?.['property']
+value = obj?.['key']
 ```
 
-### Nullish Coalescing
+### Nullish coalescing
+
+Use a fallback only when a value is `null` or `undefined`.
+Unlike `||`, it does **not** fall back on `0`, `''`, or `false`:
 
 ```typescript
-// Use default only for null/undefined (not for 0, '', false)
-count = value ?? 0
-text = message ?? 'No message'
-
-// Chaining
-result = value1 ?? value2 ?? value3 ?? 'default'
+count  = value   ?? 0
+text   = message ?? 'No message'
+result = a ?? b ?? c ?? 'default'
 ```
 
-### Object Spread
+### Spread
 
 ```typescript
-// Clone and merge objects
-defaults = { timeout: 5000, retries: 3 }
+// Merge objects (later keys win)
 config = { ...defaults, timeout: 10000 }
 
-// Spreading arrays
-arr = [...array1, ...array2]
+// Combine arrays
+all = [...array1, ...array2]
 ```
+
+---
 
 ## See Also
 
-- [Components](./COMPONENTS.md) - Component system
-- [Modern Features](./MODERN_FEATURES.md) - Detailed modern JS features
-- [Generics](./GENERICS_QUICK_REFERENCE.md) - Generic types
-- [Virtual DOM](./VIRTUAL_DOM.md) - Deep dive into Virtual DOM
+- [Components](./COMPONENTS.md) — Component system
+- [Virtual DOM](./VIRTUAL_DOM.md) — Deep dive into Virtual DOM
+- [Modern Features](./MODERN_FEATURES.md) — Modern JS features in detail
+- [Generics](./GENERICS_QUICK_REFERENCE.md) — Generic types

@@ -301,12 +301,12 @@ def PlaygroundPage(_attributes, _children, node): VNode {
                       </a>
                     </li>
                     <li>
-                      <a href="https://github.com/batiste/blop-language/blob/main/docs/SYNTAX_REFERENCE.md" target="_blank">
+                      <a href="https://github.com/batiste/blop-language/blob/master/docs/SYNTAX_REFERENCE.md" target="_blank">
                         'Syntax Reference'
                       </a>
                     </li>
                     <li>
-                      <a href="https://github.com/batiste/blop-language/blob/main/docs/QUICK_START.md" target="_blank">
+                      <a href="https://github.com/batiste/blop-language/blob/master/docs/QUICK_START.md" target="_blank">
                         'Quick Start Guide'
                       </a>
                     </li>
