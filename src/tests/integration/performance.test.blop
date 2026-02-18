@@ -1,5 +1,5 @@
 import 'vm'
-import { compileSource } from '../compile.js'
+import { compileSource } from '../../compile.js'
 import 'process'
 
 n = 0

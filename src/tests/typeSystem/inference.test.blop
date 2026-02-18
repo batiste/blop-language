@@ -1,4 +1,4 @@
-import { testImportedInference } from './lib.blop'
+import { testImportedInference } from '../lib.blop'
 
 testImportedInference('a', 1)
 

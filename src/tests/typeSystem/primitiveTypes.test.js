@@ -3,7 +3,7 @@
  */
 
 import { describe, test } from 'vitest';
-import { expectCompiles, expectCompilationError } from './testHelpers.js';
+import { expectCompiles, expectCompilationError } from '../testHelpers.js';
 
 describe('Primitive type method inference', () => {
   describe('string methods', () => {

@@ -1,10 +1,10 @@
 const { readFileSync } = require('fs');
 const { join } = require('path');
-const { compileSource } = require('../compile.js');
+const { compileSource } = require('../../compile.js');
 
 describe('Example files compilation', () => {
   test('example/index.blop compiles without errors', () => {
-    const filePath = join(__dirname, '../../example/index.blop');
+    const filePath = join(__dirname, '../../../example/index.blop');
     const source = readFileSync(filePath, 'utf-8');
     
     const result = compileSource(source, 'example/index.blop', true);
@@ -18,7 +18,7 @@ describe('Example files compilation', () => {
   });
 
   test('example/routing.blop compiles without errors', () => {
-    const filePath = join(__dirname, '../../example/routing.blop');
+    const filePath = join(__dirname, '../../../example/routing.blop');
     const source = readFileSync(filePath, 'utf-8');
     
     const result = compileSource(source, 'example/routing.blop', true);
@@ -32,7 +32,7 @@ describe('Example files compilation', () => {
   });
 
   test('example/services.blop compiles without errors', () => {
-    const filePath = join(__dirname, '../../example/services.blop');
+    const filePath = join(__dirname, '../../../example/services.blop');
     const source = readFileSync(filePath, 'utf-8');
     
     const result = compileSource(source, 'example/services.blop', true);

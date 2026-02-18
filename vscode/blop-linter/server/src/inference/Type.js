@@ -613,6 +613,7 @@ export class FunctionType extends Type {
   }
   
   toString() {
+    if (this.params === null) return 'function';
     const generics = this.genericParams.length > 0 
       ? `<${this.genericParams.join(', ')}>` 
       : '';
@@ -622,6 +623,8 @@ export class FunctionType extends Type {
   
   equals(other) {
     if (!(other instanceof FunctionType)) return false;
+    // AnyFunctionType equals any FunctionType
+    if (this.params === null || other.params === null) return true;
     if (this.params.length !== other.params.length) return false;
     if (!this.returnType.equals(other.returnType)) return false;
     
@@ -641,6 +644,8 @@ export class FunctionType extends Type {
     
     // Simple function compatibility (contravariant params, covariant return)
     if (target instanceof FunctionType) {
+      // AnyFunctionType (marker with null params) accepts any function
+      if (target.params === null || this.params === null) return true;
       if (this.params.length !== target.params.length) return false;
       
       // Parameters are contravariant
@@ -657,6 +662,11 @@ export class FunctionType extends Type {
     return false;
   }
 }
+
+/**
+ * Singleton representing a function with unknown signature (used as a type marker)
+ */
+export const AnyFunctionType = new FunctionType(null, AnyType);
 
 /**
  * Type alias reference (not resolved yet)
@@ -778,7 +788,7 @@ export class TypeAliasMap {
     }
     
     // Check if it's a generic alias (should not be used without type args)
-    if (typeof aliasValue === 'object' && aliasValue.genericParams) {
+    if (typeof aliasValue === 'object' && aliasValue.genericParams && aliasValue.genericParams.length > 0) {
       // Generic type used without type arguments - return as-is
       return type;
     }
@@ -866,6 +876,7 @@ export function substituteTypeParams(type, substitutions) {
   }
   
   if (type instanceof FunctionType) {
+    if (type.params === null) return type; // AnyFunctionType — no substitution needed
     return new FunctionType(
       type.params.map(t => substituteTypeParams(t, substitutions)),
       substituteTypeParams(type.returnType, substitutions),

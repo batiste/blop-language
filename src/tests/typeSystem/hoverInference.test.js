@@ -3,10 +3,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import parser from '../parser.js';
-import { tokensDefinition } from '../tokensDefinition.js';
-import { inference } from '../inference/index.js';
-import { findNodesWithValue, findFunctionDefs } from './testHelpers.js';
+import parser from '../../parser.js';
+import { tokensDefinition } from '../../tokensDefinition.js';
+import { inference } from '../../inference/index.js';
+import { findNodesWithValue, findFunctionDefs } from '../testHelpers.js';
 
 describe('AST Hover Information (inferredType)', () => {
   
@@ -25,7 +25,7 @@ describe('AST Hover Information (inferredType)', () => {
     const funcName = funcDefs[0].named?.name;
     expect(funcName).toBeDefined();
     expect(funcName.value).toBe('getValue');
-    expect(funcName.inferredType).toBe('number');
+    expect(funcName.inferredType?.toString()).toBe('number');
   });
 
   it('should stamp function name with undefined when no explicit return', () => {
@@ -43,7 +43,7 @@ describe('AST Hover Information (inferredType)', () => {
     const funcName = funcDefs[0].named?.name;
     expect(funcName).toBeDefined();
     expect(funcName.value).toBe('doNothing');
-    expect(funcName.inferredType).toBe('undefined');
+    expect(funcName.inferredType?.toString()).toBe('undefined');
   });
 
   it('should stamp object parameter with resolved Profile type', () => {
@@ -71,15 +71,15 @@ def profile(prof: Profile) {
     const profNodes = findNodesWithValue(tree, ['prof']);
     const profInReturn = profNodes.find(n => 
       n.inferredType && 
-      n.inferredType.includes('user') && 
-      n.inferredType.includes('verified')
+      n.inferredType.toString().includes('user') && 
+      n.inferredType.toString().includes('verified')
     );
     
     expect(profInReturn).toBeDefined();
     // Should contain the Profile structure, not User structure
-    expect(profInReturn.inferredType).toContain('user');
-    expect(profInReturn.inferredType).toContain('verified');
-    expect(profInReturn.inferredType).toContain('bio');
+    expect(profInReturn.inferredType.toString()).toContain('user');
+    expect(profInReturn.inferredType.toString()).toContain('verified');
+    expect(profInReturn.inferredType.toString()).toContain('bio');
   });
 
   it('should stamp property access with correct resolved type', () => {
@@ -107,28 +107,28 @@ def profile(prof: Profile) {
     const profNodes = findNodesWithValue(tree, ['prof']);
     const profNode = profNodes.find(n => 
       n.inferredType && 
-      n.inferredType.includes('verified')
+      n.inferredType.toString().includes('verified')
     );
     
     if (profNode) {
       // prof should have Profile type, NOT User type
-      expect(profNode.inferredType).toContain('verified');
-      expect(profNode.inferredType).not.toContain('userType');
+      expect(profNode.inferredType.toString()).toContain('verified');
+      expect(profNode.inferredType.toString()).not.toContain('userType');
     }
     
     // prof.user should show User type (with name, id, userType)
     const userNodes = findNodesWithValue(tree, ['user']);
     const userPropertyNode = userNodes.find(n => 
       n.inferredType && 
-      n.inferredType.includes('userType')
+      n.inferredType.toString().includes('userType')
     );
     
     expect(userPropertyNode).toBeDefined();
-    expect(userPropertyNode.inferredType).toContain('name');
-    expect(userPropertyNode.inferredType).toContain('id');
-    expect(userPropertyNode.inferredType).toContain('userType');
+    expect(userPropertyNode.inferredType.toString()).toContain('name');
+    expect(userPropertyNode.inferredType.toString()).toContain('id');
+    expect(userPropertyNode.inferredType.toString()).toContain('userType');
     // Should NOT contain Profile-specific fields
-    expect(userPropertyNode.inferredType).not.toContain('verified');
+    expect(userPropertyNode.inferredType.toString()).not.toContain('verified');
   });
 
 });

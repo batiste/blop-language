@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('./testHelpers');
+const { expectCompilationError, expectCompiles } = require('../testHelpers');
 
 describe('For-loop type inference - of keyword warnings', () => {
   test('warns when iterating array without of keyword', () => {

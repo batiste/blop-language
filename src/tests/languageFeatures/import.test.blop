@@ -1,7 +1,7 @@
-import { moduleParam1, moduleParam2, moduleParam3 } from './lib.blop'
-import './lib.blop' as moduleRenamed
-import './lib.blop'
-import { another } from './lib.blop'
+import { moduleParam1, moduleParam2, moduleParam3 } from '../lib.blop'
+import '../lib.blop' as moduleRenamed
+import '../lib.blop'
+import { another } from '../lib.blop'
 
 test('Module import deconstruction', () => {
   expect(moduleParam1).toBe(undefined)

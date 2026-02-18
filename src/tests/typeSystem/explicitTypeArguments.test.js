@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('./testHelpers');
+const { expectCompilationError, expectCompiles } = require('../testHelpers');
 
 describe('Explicit Type Arguments', () => {
   test('allows explicit type argument with matching value', () => {

@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('./testHelpers');
+const { expectCompilationError, expectCompiles } = require('../testHelpers');
 
 describe('Object shorthand property inference', () => {
   test('infers single shorthand property', () => {

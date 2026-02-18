@@ -3,8 +3,8 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType, isUnionType, parseUnionType } from './typeSystem.js';
-import { ObjectType, ArrayType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, stringToType } from './typeSystem.js';
+import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType } from './Type.js';
 
 // Module state
 let warnings;
@@ -92,9 +92,9 @@ function stampTypeAnnotation(node) {
           nameNode.inferredType = typeAliases[typeName];
         }
       } else if (['string', 'number', 'boolean', 'any', 'undefined', 'null'].includes(typeName)) {
-        // Built-in type
+        // Built-in type — resolve to a Type object via the type system
         if (nameNode.inferredType === undefined) {
-          nameNode.inferredType = typeName;
+          nameNode.inferredType = getAnnotationType(node);
         }
       }
     }
@@ -167,8 +167,7 @@ function stampObjectType(objectTypeNode) {
         if (node.named.valueType && keyNode.inferredType === undefined) {
           const valueType = getAnnotationType(node.named);
           if (valueType) {
-            // inferredType is used for hover display - normalize to string
-            keyNode.inferredType = valueType.toString();
+            keyNode.inferredType = valueType;
           }
         }
       }
@@ -201,10 +200,9 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  // Normalize string type values to Type objects; leave AST nodes (they have .type) as-is
-  const value = (typeof inference === 'string')
-    ? stringToType(inference)
-    : inference;
+  // TODO: try to remove string literals from inference
+  // migrated yet don't break the type system invariants.
+  const value = typeof inference === 'string' ? stringToType(inference) : inference;
   node.inference.push(value);
 }
 
@@ -261,7 +259,7 @@ function checkMathOperator(types, i, operatorNode) {
 }
 
 function handleBooleanOperator(types, i) {
-  types[i - 2] = 'boolean';
+  types[i - 2] = BooleanType;
   types.splice(i - 1, 2);
   return i - 2;
 }
@@ -273,20 +271,20 @@ function handleNullishOperator(types, i) {
   const rightType = types[i - 2];
   
   // If left can never be nullish, result is left type
-  if (leftType !== 'null' && leftType !== 'undefined' && 
+  if (leftType !== NullType && leftType !== UndefinedType && 
       !isUnionType(leftType) || 
-      (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === 'null' || t === 'undefined'))) {
+      (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === NullType || t === UndefinedType))) {
     types[i - 2] = leftType;
   } else {
     // Remove nullish from left and union with right
     const nonNullishLeft = removeNullish(leftType);
-    if (nonNullishLeft === 'never') {
+    if (nonNullishLeft === NeverType) {
       // Left is definitely null/undefined, result is right type
       types[i - 2] = rightType;
     } else {
       // Left might be nullish, result is union of non-nullish left and right
       const resultTypes = [];
-      if (nonNullishLeft !== 'never') {
+      if (nonNullishLeft !== NeverType) {
         resultTypes.push(nonNullishLeft);
       }
       if (rightType) {
@@ -303,7 +301,7 @@ function handleAssignment(types, i, assignNode) {
   const { annotation, name, explicit_assign } = assignNode.named;
   const valueType = types[i - 1];
   
-  if (annotation && valueType && valueType !== 'any') {
+    if (annotation && valueType && valueType !== AnyType) {
     const annotationType = getAnnotationType(annotation);
     if (annotationType) {
       const result = TypeChecker.checkAssignment(valueType, annotationType, typeAliases);
@@ -313,7 +311,7 @@ function handleAssignment(types, i, assignNode) {
     }
   }
   
-  if (valueType && name && valueType !== 'any') {
+  if (valueType && name && valueType !== AnyType) {
     // Check if this is a property assignment (e.g., u.name = 1)
     if (name.type === 'name_exp' && name.named && name.named.access) {
       // Extract object and property names
@@ -345,17 +343,9 @@ function handleAssignment(types, i, assignNode) {
         // Look up the object's type
         const objectDef = lookupVariable(objectName);
         if (objectDef && objectDef.type) {
-          const _resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
-          // parseObjectTypeString expects a string; normalize Type objects
-          const resolvedObjectType = typeof _resolvedObjectType === 'string'
-            ? _resolvedObjectType
-            : _resolvedObjectType.toString();
-          const properties = parseObjectTypeString(resolvedObjectType);
-          
-          if (properties && properties[propertyName]) {
-            const expectedType = properties[propertyName].type;
+          const expectedType = getPropertyType(objectDef.type, propertyName, typeAliases);
+          if (expectedType !== null) {
             const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
-            
             if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
               pushWarning(
                 assignNode,
@@ -410,13 +400,13 @@ function handleObjectAccess(types, i) {
   
   // Skip validation for optional chaining - it's designed to safely access potentially non-existent properties
   if (isOptionalChain) {
-    types[i - 1] = 'any';
+    types[i - 1] = AnyType;
     types.splice(i, 1);
     return i - 1;
   }
   
   // Only validate property access for object types (types that resolve to {...})
-  if (objectType && objectType !== 'any' && propertyName) {
+  if (objectType && objectType !== AnyType && propertyName) {
     // Resolve type alias to check if it's an object type
     const resolvedType = resolveTypeAlias(objectType, typeAliases);
     
@@ -438,17 +428,17 @@ function handleObjectAccess(types, i) {
           accessNode,
           `Property '${propertyName}' does not exist on type ${objectType}`
         );
-        types[i - 1] = 'any';
+        types[i - 1] = AnyType;
       } else {
         // Update to the property's type
         types[i - 1] = propertyType;
       }
     } else {
       // Not an object type (array, string, etc.) - don't validate
-      types[i - 1] = 'any';
+      types[i - 1] = AnyType;
     }
   } else {
-    types[i - 1] = 'any';
+    types[i - 1] = AnyType;
   }
   
   types.splice(i, 1);
@@ -476,7 +466,7 @@ function checkObjectAccess(types, i) {
     }
   }
 
-  if (objectType && objectType !== 'any' && propertyName) {
+  if (objectType && objectType !== AnyType && propertyName) {
     const resolvedType = resolveTypeAlias(objectType, typeAliases);
 
     if (resolvedType.toString() === '{}') {
@@ -534,12 +524,9 @@ function resolveTypes(node) {
     if (inferencePhase === 'inference') {
       for (let i = types.length - 1; i >= 0; i--) {
         const value = types[i];
-        if (typeof value === 'string') {
+        // Skip AST nodes (they have a .type string property like 'assign', 'math_operator', etc.)
+        if (value && value.kind !== undefined) {
           node.inferredType = value;
-          break;
-        }
-        if (value && typeof value.toString === 'function' && value.type === undefined) {
-          node.inferredType = value.toString();
           break;
         }
       }
@@ -574,8 +561,10 @@ function stampInferredTypes(node) {
   // Stamp this node if it has inferred type (but preserve existing stamps)
   if (node.inference && node.inference.length > 0 && !node.inferredType) {
     const raw = node.inference[0];
-    // Normalize Type objects to strings (AST nodes have .type, Type objects use .kind)
-    node.inferredType = (raw && raw.kind !== undefined) ? raw.toString() : raw;
+    // Store Type objects directly; skip AST nodes (they have .type like 'assign')
+    if (raw && raw.kind !== undefined) {
+      node.inferredType = raw;
+    }
   }
   
   // Recursively stamp all children

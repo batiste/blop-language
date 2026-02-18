@@ -5,13 +5,10 @@
 import { 
   isTypeCompatible, 
   resolveTypeAlias,
-  parseObjectTypeString,
   checkObjectStructuralCompatibility,
   getBaseTypeOfLiteral,
-  isNumberLiteral,
-  isStringLiteral 
 } from './typeSystem.js';
-import { AnyType, PrimitiveType } from './Type.js';
+import { AnyType, PrimitiveType, ObjectType, LiteralType, StringType, NumberType, UndefinedType } from './Type.js';
 
 const TypeChecker = {
   /**
@@ -21,28 +18,31 @@ const TypeChecker = {
     // Get base types for literals
     const leftBase = getBaseTypeOfLiteral(leftType);
     const rightBase = getBaseTypeOfLiteral(rightType);
+    const isStringBase = (t) => t instanceof PrimitiveType && t.name === 'string';
+    const isNumberBase = (t) => t instanceof PrimitiveType && t.name === 'number';
+    const isAnyType   = (t) => t === AnyType || (t instanceof PrimitiveType && t.name === 'any');
     
     if (operator === '+') {
-      if (leftBase === 'string' && rightBase === 'string') {
-        return { valid: false, resultType: 'string', warning: 'Use template strings instead of \'++\' for string concatenation' };
+      if (isStringBase(leftBase) && isStringBase(rightBase)) {
+        return { valid: false, resultType: StringType, warning: 'Use template strings instead of \'++\' for string concatenation' };
       }
-      if ((leftBase === 'string' && rightBase === 'number') || (leftBase === 'number' && rightBase === 'string')) {
-        return { valid: true, resultType: 'string' };
+      if ((isStringBase(leftBase) && isNumberBase(rightBase)) || (isNumberBase(leftBase) && isStringBase(rightBase))) {
+        return { valid: true, resultType: StringType };
       }
-      if ((leftBase === 'number' || leftType === 'any') && (rightBase === 'number' || rightType === 'any')) {
-        return { valid: true, resultType: 'number' };
+      if ((isNumberBase(leftBase) || isAnyType(leftType)) && (isNumberBase(rightBase) || isAnyType(rightType))) {
+        return { valid: true, resultType: NumberType };
       }
-      return { valid: false, resultType: 'any', warning: `Cannot apply '+' operator to ${leftType} and ${rightType}` };
+      return { valid: false, resultType: AnyType, warning: `Cannot apply '+' operator to ${leftType} and ${rightType}` };
     } else {
       // Other math operators require numbers
       const warnings = [];
-      if (leftBase !== 'number' && leftType !== 'any') {
+      if (!isNumberBase(leftBase) && !isAnyType(leftType)) {
         warnings.push(`Math operator '${operator}' not allowed on ${leftType}`);
       }
-      if (rightBase !== 'number' && rightType !== 'any') {
+      if (!isNumberBase(rightBase) && !isAnyType(rightType)) {
         warnings.push(`Math operator '${operator}' not allowed on ${rightType}`);
       }
-      return { valid: warnings.length === 0, resultType: 'number', warnings };
+      return { valid: warnings.length === 0, resultType: NumberType, warnings };
     }
   },
 
@@ -50,47 +50,29 @@ const TypeChecker = {
    * Check if an assignment is valid
    */
   checkAssignment(valueType, annotationType, typeAliases) {
-    if (annotationType && valueType !== 'any') {
+    if (annotationType && valueType !== AnyType) {
       if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
-        // Check if this is an object type mismatch - provide detailed errors
-        const _resolvedValueType = resolveTypeAlias(valueType, typeAliases);
-        const _resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
-        const resolvedValueType = typeof _resolvedValueType === 'string' ? _resolvedValueType : _resolvedValueType.toString();
-        const resolvedTargetType = typeof _resolvedTargetType === 'string' ? _resolvedTargetType : _resolvedTargetType.toString();
+        const resolvedValue  = resolveTypeAlias(valueType, typeAliases);
+        const resolvedTarget = resolveTypeAlias(annotationType, typeAliases);
         
-        if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
-          const valueStructure = parseObjectTypeString(resolvedValueType);
-          const targetStructure = parseObjectTypeString(resolvedTargetType);
-          
-          if (valueStructure && targetStructure) {
-            const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
-            if (!result.compatible && result.errors.length > 0) {
-              const detailedError = `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}`;
-              return { valid: false, warning: detailedError };
-            }
+        if (resolvedValue instanceof ObjectType && resolvedTarget instanceof ObjectType) {
+          const result = checkObjectStructuralCompatibility(resolvedValue, resolvedTarget, typeAliases);
+          if (!result.compatible && result.errors.length > 0) {
+            return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}` };
           }
         }
         
         return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
       }
 
-      // Even when structurally compatible, check for excess properties at assignment sites
-      // (matches TypeScript's excess property checking on object literals)
-      const _resolvedValueType = resolveTypeAlias(valueType, typeAliases);
-      const _resolvedTargetType = resolveTypeAlias(annotationType, typeAliases);
-      const resolvedValueType = typeof _resolvedValueType === 'string' ? _resolvedValueType : _resolvedValueType.toString();
-      const resolvedTargetType = typeof _resolvedTargetType === 'string' ? _resolvedTargetType : _resolvedTargetType.toString();
+      // Excess property check
+      const resolvedValue  = resolveTypeAlias(valueType, typeAliases);
+      const resolvedTarget = resolveTypeAlias(annotationType, typeAliases);
 
-      if (resolvedValueType.startsWith('{') && resolvedTargetType.startsWith('{')) {
-        const valueStructure = parseObjectTypeString(resolvedValueType);
-        const targetStructure = parseObjectTypeString(resolvedTargetType);
-
-        if (valueStructure && targetStructure) {
-          const result = checkObjectStructuralCompatibility(valueStructure, targetStructure, typeAliases);
-          if (!result.compatible && result.errors.length > 0) {
-            const detailedError = `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}`;
-            return { valid: false, warning: detailedError };
-          }
+      if (resolvedValue instanceof ObjectType && resolvedTarget instanceof ObjectType) {
+        const result = checkObjectStructuralCompatibility(resolvedValue, resolvedTarget, typeAliases);
+        if (!result.compatible && result.errors.length > 0) {
+          return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}` };
         }
       }
     }
@@ -127,17 +109,14 @@ const TypeChecker = {
    * Check if function return types match declaration
    */
   checkReturnTypes(returnTypes, declaredType, functionName, typeAliases) {
-    // AnyType object or 'any' string both mean "no constraint"
     const isAny = !declaredType || 
-                  declaredType === 'any' || 
                   declaredType === AnyType ||
-                  (declaredType instanceof PrimitiveType && declaredType.name === 'any') ||
-                  (typeof declaredType === 'object' && declaredType.toString() === 'any');
+                  (declaredType instanceof PrimitiveType && declaredType.name === 'any');
     if (isAny) {
       return { valid: true };
     }
     
-    const explicitReturns = returnTypes.filter(t => t !== 'undefined' && t);
+    const explicitReturns = returnTypes.filter(t => t !== UndefinedType && t);
     if (explicitReturns.length === 0) {
       return { valid: true };
     }
