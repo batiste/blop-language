@@ -10,7 +10,7 @@ user: User = {
 input = <input type="text" />
 
 def accessInput() {
-    input
+    return input
 }
 
 test('User object properties', () => {

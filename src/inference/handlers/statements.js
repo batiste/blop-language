@@ -221,7 +221,6 @@ function createStatementHandlers(getState) {
           }
           
           if (expectedType && isObjectLiteral) {
-            // TODO(step3): pass Type object directly once literals.js is migrated
             setExpectedObjectType(expectedType.toString());
           }
         }
@@ -431,7 +430,8 @@ function createStatementHandlers(getState) {
         visit(node.named.exp, node);
         
         // Check if we're iterating an array without :array annotation
-        const expType = node.named.exp.inference?.[0];
+        const expTypeRaw = node.named.exp.inference?.[0];
+        const expType = expTypeRaw != null ? ((typeof expTypeRaw === 'string') ? expTypeRaw : expTypeRaw.toString()) : undefined;
         if (expType && key && !isArray) {
           // Check if expression type looks like an array
           const isArrayType = expType.endsWith('[]') || 
@@ -449,7 +449,8 @@ function createStatementHandlers(getState) {
       
       // Infer value type if possible
       if (value && node.named.exp && node.named.exp.inference) {
-        const expType = node.named.exp.inference[0];
+        const expTypeRaw = node.named.exp.inference[0];
+        const expType = expTypeRaw != null ? ((typeof expTypeRaw === 'string') ? expTypeRaw : expTypeRaw.toString()) : undefined;
         let valueType = 'any';
         
         // Try to infer element type from array type

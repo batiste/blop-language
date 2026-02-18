@@ -769,7 +769,12 @@ export function checkObjectStructuralCompatibility(valueStructure, targetStructu
  * @param {string} typeString
  * @returns {Type}
  */
-function stringToType(typeString) {
+/**
+ * Convert type string to Type object (exported for inference stack normalization)
+ * @param {string} typeString
+ * @returns {Type}
+ */
+export function stringToType(typeString) {
   if (!typeString || typeString === 'any') return AnyType;
   typeString = stripOuterParens(typeString.trim());
   if (typeString === 'never') return NeverType;

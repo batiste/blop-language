@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, parseObjectTypeString, isTypeCompatible, getPropertyType, stringToType } from './typeSystem.js';
 
 // Module state
 let warnings;
@@ -199,7 +199,11 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  node.inference.push(inference);
+  // Normalize string type values to Type objects; leave AST nodes (they have .type) as-is
+  const value = (typeof inference === 'string')
+    ? stringToType(inference)
+    : inference;
+  node.inference.push(value);
 }
 
 function pushWarning(node, message) {
@@ -413,7 +417,8 @@ function handleObjectAccess(types, i) {
   // Only validate property access for object types (types that resolve to {...})
   if (objectType && objectType !== 'any' && propertyName) {
     // Resolve type alias to check if it's an object type
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
+    const resolvedTypeRaw = resolveTypeAlias(objectType, typeAliases);
+    const resolvedType = typeof resolvedTypeRaw === 'string' ? resolvedTypeRaw : resolvedTypeRaw.toString();
     
     // Skip validation for empty object type {} as it's often used when type inference fails
     if (resolvedType === '{}') {
@@ -472,7 +477,8 @@ function checkObjectAccess(types, i) {
   }
 
   if (objectType && objectType !== 'any' && propertyName) {
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
+    const resolvedTypeRaw = resolveTypeAlias(objectType, typeAliases);
+    const resolvedType = typeof resolvedTypeRaw === 'string' ? resolvedTypeRaw : resolvedTypeRaw.toString();
 
     if (resolvedType === '{}') {
       return;
@@ -568,7 +574,9 @@ function stampInferredTypes(node) {
   
   // Stamp this node if it has inferred type (but preserve existing stamps)
   if (node.inference && node.inference.length > 0 && !node.inferredType) {
-    node.inferredType = node.inference[0];
+    const raw = node.inference[0];
+    // Normalize Type objects to strings (AST nodes have .type, Type objects use .kind)
+    node.inferredType = (raw && raw.kind !== undefined) ? raw.toString() : raw;
   }
   
   // Recursively stamp all children

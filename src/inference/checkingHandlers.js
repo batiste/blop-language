@@ -104,7 +104,8 @@ function createCheckingHandlers(getState) {
 
       // Validate property exists
       const resolvedType = resolveTypeAlias(objectType, typeAliases);
-      if (resolvedType === '{}' || !resolvedType.startsWith('{')) return;
+      const resolvedTypeStr = typeof resolvedType === 'string' ? resolvedType : resolvedType.toString();
+      if (resolvedTypeStr === '{}' || !resolvedTypeStr.startsWith('{')) return;
 
       const propertyType = getPropertyType(objectType, propertyName, typeAliases);
       if (propertyType === null) {
@@ -233,7 +234,8 @@ function createCheckingHandlers(getState) {
       if (!objectDef || !objectDef.type) return;
 
       const resolvedObjectType = resolveTypeAlias(objectDef.type, typeAliases);
-      const properties = parseObjectTypeString(resolvedObjectType);
+      const resolvedObjectTypeStr = typeof resolvedObjectType === 'string' ? resolvedObjectType : resolvedObjectType.toString();
+      const properties = parseObjectTypeString(resolvedObjectTypeStr);
 
       if (properties && properties[propertyName]) {
         const expectedType = properties[propertyName].type;

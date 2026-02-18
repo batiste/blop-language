@@ -97,8 +97,7 @@ function createExpressionHandlers(getState) {
             if (methodName) {
               const builtinType = getBuiltinObjectType(name.value);
               const rawReturn = builtinType?.[methodName];
-              // TODO(step3): remove .toString() once pushInference accepts Type objects
-              const returnType = rawReturn != null ? rawReturn.toString() : 'any';
+              const returnType = rawReturn ?? 'any';
               pushInference(parent, returnType);
               return;
             }
@@ -159,8 +158,7 @@ function createExpressionHandlers(getState) {
               // Substitute type parameters in return type
               let returnType = def.type ?? AnyType;
               returnType = substituteType(returnType, substitutions);
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
-              pushInference(parent, typeof returnType === 'string' ? returnType : returnType.toString());
+              pushInference(parent, returnType);
               return;
             } else {
               // Non-generic function - validate parameters
@@ -170,9 +168,9 @@ function createExpressionHandlers(getState) {
                   result.warnings.forEach(warning => pushWarning(name, warning));
                 }
               }
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
+              // step3 done: pushInference normalizes Type objects
               const retType = def.type ?? 'any';
-              pushInference(parent, typeof retType === 'string' ? retType : retType.toString());
+              pushInference(parent, retType);
               return;
             }
           }
@@ -185,8 +183,7 @@ function createExpressionHandlers(getState) {
           if (propName) {
             const builtinType = getBuiltinObjectType(name.value);
             const rawProp = builtinType?.[propName];
-            // TODO(step3): remove .toString() once pushInference accepts Type objects
-            const propType = rawProp != null ? rawProp.toString() : 'any';
+            const propType = rawProp ?? 'any';
             pushInference(parent, propType);
             return;
           }
@@ -300,9 +297,7 @@ function createExpressionHandlers(getState) {
               }
               
               // Successfully validated property chain - push the final type
-              // TODO(step3): when inference stack accepts Type objects, remove .toString()
-              const finalType = typeof currentType === 'string' ? currentType : currentType.toString();
-              pushInference(parent, finalType);
+              pushInference(parent, currentType);
               return;
             }
           }
@@ -327,7 +322,6 @@ function createExpressionHandlers(getState) {
             name.inferredType = defTypeStr || 'function';
           }
         } else {
-          // TODO(step3): when inference stack accepts Type objects, remove .toString()
           const defTypeStr = typeof def.type === 'string' ? def.type : def.type?.toString();
           pushInference(parent, defTypeStr);
           // Stamp the name node with its resolved type for hover
