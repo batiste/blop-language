@@ -11,5 +11,27 @@ type Profile = {
 }
 
 def profile(prof: Profile) {
-    prof.user
+    return prof.user
 }
+
+def variableType(x) {
+    if (x > 10) {
+        return "Greater than 10"
+    } else {
+        return 10
+    }
+    return "Impossible"
+}
+
+inferred = variableType(3)
+console.log(inferred)
+
+// userAssignmentTest: User
+// User: {name: string, id: number, userType?: "Admin" | "User"}
+userAssignmentTest: User = { id: 1, name: "Alice" }
+// userAssignmentTest: name
+console.log(userAssignmentTest)
+
+hello = "Hello"
+hello := "asdf"
+console.log(userAssignmentTest)

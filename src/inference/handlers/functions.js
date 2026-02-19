@@ -24,30 +24,20 @@ function createFunctionHandlers(getState) {
         scope.__currentFctParams = [];
       }
       
-      if (node.named.annotation) {
-        // Stamp the type annotation for hover support
-        stampTypeAnnotation(node.named.annotation);
-        
-        const annotation = getAnnotationType(node.named.annotation);
-        if (annotation) {
-          scope[node.named.name.value] = {
-            type: annotation,
-          };
-          scope.__currentFctParams.push(annotation);
-          if (inferencePhase === 'inference' && node.named.name) {
-            node.named.name.inferredType = resolveTypeAlias(annotation, typeAliases);
-          }
-        } else {
-          scope.__currentFctParams.push(AnyType);
-          if (inferencePhase === 'inference' && node.named.name) {
-            node.named.name.inferredType = AnyType;
-          }
+      let paramType = AnyType;
+      const { annotation } = node.named;
+      if (annotation) {
+        stampTypeAnnotation(annotation);
+        const resolved = getAnnotationType(annotation);
+        if (resolved) {
+          scope[node.named.name.value] = { type: resolved };
+          paramType = resolved;
         }
-      } else {
-        scope.__currentFctParams.push(AnyType);
-        if (inferencePhase === 'inference' && node.named.name) {
-          node.named.name.inferredType = AnyType;
-        }
+      }
+
+      scope.__currentFctParams.push(paramType);
+      if (inferencePhase === 'inference' && node.named.name) {
+        node.named.name.inferredType = resolveTypeAlias(paramType, typeAliases);
       }
       visitChildren(node);
     },

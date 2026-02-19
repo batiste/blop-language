@@ -183,64 +183,26 @@ export function parseObjectType(objectTypeNode) {
 }
 
 /**
- * Parse type arguments from type_arg_list
- * @param {Object} typeArgsNode - The type_arguments AST node
+ * Parse type arguments from a type_arg_list node.
+ * @param {Object} typeArgsNode - The type_arg_list AST node
  * @returns {Type[]}
  */
 export function parseTypeArguments(typeArgsNode) {
   if (!typeArgsNode) return [];
-  
+
   const args = [];
-  
+
   function collectArgs(node) {
-    if (!node) return;
-    
-    // Check if this node has a named.arg (type_expression)
-    if (node.named && node.named.arg) {
+    if (!node?.named) return;
+    if (node.named.arg) {
       const typeArg = parseTypeExpression(node.named.arg);
-      if (typeArg) {
-        args.push(typeArg);
-      }
+      if (typeArg) args.push(typeArg);
     }
-    
-    // Check if it has a named.rest (for comma-separated list)
-    if (node.named && node.named.rest) {
-      collectArgs(node.named.rest);
-    }
-  }
-  
-  // The node should have a child that is type_arg_list
-  if (typeArgsNode.children) {
-    for (const child of typeArgsNode.children) {
-      if (child.type === 'type_arg_list') {
-        collectArgs(child);
-      }
-    }
+    if (node.named.rest) collectArgs(node.named.rest);
   }
 
-  // Fallback: some AST shapes may include type_expression nodes directly
-  const fallbackArgs = [];
-  function collectTypeExpressions(node) {
-    if (!node || typeof node !== 'object') return;
-    if (node.type === 'type_expression') {
-      const typeArg = parseTypeExpression(node);
-      if (typeArg) {
-        fallbackArgs.push(typeArg);
-      }
-      return;
-    }
-    if (node.children) {
-      node.children.forEach(collectTypeExpressions);
-    }
-    if (node.named) {
-      Object.values(node.named).forEach(collectTypeExpressions);
-    }
-  }
-  collectTypeExpressions(typeArgsNode);
-  if (fallbackArgs.length > args.length) {
-    return fallbackArgs;
-  }
-  
+  // typeArgsNode is the type_arg_list node itself: call collectArgs directly.
+  collectArgs(typeArgsNode);
   return args;
 }
 

@@ -50,32 +50,23 @@ const TypeChecker = {
    * Check if an assignment is valid
    */
   checkAssignment(valueType, annotationType, typeAliases) {
-    if (annotationType && valueType !== AnyType) {
-      if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
-        const resolvedValue  = resolveTypeAlias(valueType, typeAliases);
-        const resolvedTarget = resolveTypeAlias(annotationType, typeAliases);
-        
-        if (resolvedValue instanceof ObjectType && resolvedTarget instanceof ObjectType) {
-          const result = checkObjectStructuralCompatibility(resolvedValue, resolvedTarget, typeAliases);
-          if (!result.compatible && result.errors.length > 0) {
-            return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}` };
-          }
-        }
-        
-        return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
-      }
+    if (!annotationType || valueType === AnyType) return { valid: true };
 
-      // Excess property check
-      const resolvedValue  = resolveTypeAlias(valueType, typeAliases);
-      const resolvedTarget = resolveTypeAlias(annotationType, typeAliases);
+    const resolvedValue  = resolveTypeAlias(valueType, typeAliases);
+    const resolvedTarget = resolveTypeAlias(annotationType, typeAliases);
 
-      if (resolvedValue instanceof ObjectType && resolvedTarget instanceof ObjectType) {
-        const result = checkObjectStructuralCompatibility(resolvedValue, resolvedTarget, typeAliases);
-        if (!result.compatible && result.errors.length > 0) {
-          return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}` };
-        }
+    // Structural compatibility check for objects (covers both incompatibility and excess properties)
+    if (resolvedValue instanceof ObjectType && resolvedTarget instanceof ObjectType) {
+      const result = checkObjectStructuralCompatibility(resolvedValue, resolvedTarget, typeAliases);
+      if (!result.compatible && result.errors.length > 0) {
+        return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}: ${result.errors.join(', ')}` };
       }
     }
+
+    if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
+      return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
+    }
+
     return { valid: true };
   },
 
