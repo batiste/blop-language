@@ -14,7 +14,10 @@ def profile(prof: Profile) {
     return prof.user
 }
 
+// userAssignmentTest: User
+// User: {name: string, id: number, userType?: "Admin" | "User"}
 userAssignmentTest: User = { id: 1, name: "Alice" }
+// userAssignmentTest: name
 console.log(userAssignmentTest)
 
 hello = "Hello"

@@ -173,4 +173,41 @@ def profile(prof: Profile) {
     expect(typeStr).not.toContain('verified');
     expect(typeStr).not.toContain('bio');
   });
+
+  const USER_TYPES = `type User = {
+    name: string,
+    id: number,
+    userType?: "Admin" | "User"
+}
+`;
+
+  it('should stamp type alias name in annotation with its resolved type (not "undefined")', () => {
+    const code = USER_TYPES + `userAssignmentTest: User = { id: 1, name: "Alice" }`;
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // The 'User' token inside the annotation should resolve — not "undefined" or "any"
+    const userNodes = findNodesWithValue(tree, ['User']);
+    const annotationToken = userNodes.find(n => n.inferredType !== undefined);
+    expect(annotationToken).toBeDefined();
+    expect(annotationToken.inferredType.toString()).not.toBe('undefined');
+    expect(annotationToken.inferredType.toString()).not.toBe('any');
+  });
+
+  it('should stamp variable name at definition site (not show raw node type "name")', () => {
+    const code = USER_TYPES + `userAssignmentTest: User = { id: 1, name: "Alice" }`;
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    const varNodes = findNodesWithValue(tree, ['userAssignmentTest']);
+    const defNode = varNodes.find(n => n.inferredType !== undefined);
+    expect(defNode).toBeDefined();
+    expect(defNode.inferredType).toBeDefined();
+    expect(defNode.inferredType.toString()).not.toBe('name');
+    expect(defNode.inferredType.toString()).not.toBe('undefined');
+  });
 });

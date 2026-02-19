@@ -3,7 +3,7 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType } from './typeSystem.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary } from './typeSystem.js';
 import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType } from './Type.js';
 
 // Module state
@@ -61,7 +61,10 @@ function stampTypeAnnotation(node) {
   if (node.type === 'type_primary' && node.named?.name) {
     const nameNode = node.named.name;
     if (nameNode.inferredType === undefined) {
-      nameNode.inferredType = getAnnotationType(node);
+      const parsed = parseTypePrimary(node);
+      // If it's a type alias, resolve to its full structure for hover
+      const token = nameNode.children ? nameNode.children[0] : nameNode;
+      token.inferredType = (token.value && typeAliases[token.value]) ?? parsed;
     }
   }
 
@@ -237,6 +240,9 @@ function handleAssignment(types, i, assignNode) {
         type: valueType,
         node: assignNode,
       };
+      if (inferencePhase === 'inference' && name.inferredType === undefined) {
+        name.inferredType = valueType;
+      }
     } else if (name.value) {
       // Regular assignment (=), check if reassigning existing variable
       const result = TypeChecker.checkVariableReassignment(valueType, name.value, lookupVariable, typeAliases);
@@ -248,6 +254,13 @@ function handleAssignment(types, i, assignNode) {
           type: valueType,
           node: assignNode,
         };
+      }
+      // Stamp definition site for hover — prefer declared annotation type if available
+      if (inferencePhase === 'inference' && name.inferredType === undefined) {
+        const annotationType = assignNode.named.annotation
+          ? getAnnotationType(assignNode.named.annotation)
+          : null;
+        name.inferredType = annotationType ?? valueType;
       }
     }
   }
