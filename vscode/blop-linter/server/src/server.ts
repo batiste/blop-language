@@ -3,6 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as path from 'path';
+import * as fs from 'fs';
+
 import {
 	createConnection,
 	TextDocuments,
@@ -14,6 +17,7 @@ import {
 	CompletionItem,
 	CompletionItemKind,
 	TextDocumentPositionParams,
+	DefinitionParams,
 	TextDocumentSyncKind,
 	InitializeResult,
 	DiagnosticRelatedInformation,
@@ -209,7 +213,9 @@ connection.onInitialize((params: InitializeParams) => {
 				codeActionKinds: [CodeActionKind.QuickFix]
 			},
 			// Tell the client that the server supports hover
-			hoverProvider: true
+			hoverProvider: true,
+			// Tell the client that the server supports go to definition
+			definitionProvider: true
 		}
 	};
 	if (hasWorkspaceFolderCapability) {
@@ -977,6 +983,277 @@ function findParentChain(root: any, targetNode: any): any[] {
 	return chain;
 }
 
+
+/**
+ * Convert a file:// URI to an absolute file system path
+ */
+function uriToPath(uri: string): string {
+	return decodeURIComponent(uri.replace(/^file:\/\//, ''));
+}
+
+/**
+ * Convert an absolute file system path to a file:// URI
+ */
+function pathToUri(filePath: string): string {
+	return 'file://' + filePath;
+}
+
+/**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Find the character offset of a top-level definition for `name` in file content.
+ * Looks for: `def name`, `async def name`, `class name`, or `name =` / `name:... =` at line start.
+ * Returns -1 if not found.
+ */
+function findDefinitionInFile(content: string, name: string): number {
+	const escaped = escapeRegex(name);
+
+	// Function definition: (async) def name(
+	const defPattern = new RegExp(`(?:^|\\n)(?:async\\s+)?def\\s+(${escaped})\\b`);
+	let match = defPattern.exec(content);
+	if (match) {
+		const nameOffset = match[0].lastIndexOf(name);
+		return match.index + nameOffset;
+	}
+
+	// Class definition: class name
+	const classPattern = new RegExp(`(?:^|\\n)class\\s+(${escaped})\\b`);
+	match = classPattern.exec(content);
+	if (match) {
+		const nameOffset = match[0].lastIndexOf(name);
+		return match.index + nameOffset;
+	}
+
+	// Variable/constant assignment at line start: name = or name: Type =
+	const assignPattern = new RegExp(`(?:^|\\n)(${escaped})\\s*(?::[^=\\n]*)?\s*=`);
+	match = assignPattern.exec(content);
+	if (match) {
+		const nameOffset = match[0].indexOf(name);
+		return match.index + nameOffset;
+	}
+
+	return -1;
+}
+
+/**
+ * Parse all import statements in a document and return a map of
+ * localName -> resolved absolute file path.
+ *
+ * Handles:
+ *   import { foo, bar as baz } from './file'  -> foo: file, baz: file
+ *   import DefaultName from './file'           -> DefaultName: file
+ *   import './file' as DefaultName             -> DefaultName: file
+ */
+function buildImportMap(text: string, currentFilePath: string): Map<string, string> {
+	const map = new Map<string, string>();
+	const dir = path.dirname(currentFilePath);
+
+	const importBracedRegex = /^import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/gm;
+	const importDefaultRegex = /^import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/gm;
+	const importBareAsRegex   = /^import\s+['"]([^'"]+)['"]\s+as\s+(\w+)/gm;
+
+	let m: RegExpExecArray | null;
+
+	while ((m = importBracedRegex.exec(text)) !== null) {
+		const relPath = m[2];
+		if (!relPath.startsWith('.')) continue;
+		const resolved = path.resolve(dir, relPath);
+		for (const entry of m[1].split(',')) {
+			const parts = entry.trim().split(/\s+as\s+/);
+			const originalName = parts[0].trim();
+			const localName = parts.length > 1 ? parts[1].trim() : originalName;
+			if (localName) map.set(localName, resolved);
+		}
+	}
+
+	while ((m = importDefaultRegex.exec(text)) !== null) {
+		const relPath = m[2];
+		if (!relPath.startsWith('.')) continue;
+		const resolved = path.resolve(dir, relPath);
+		map.set(m[1].trim(), resolved);
+	}
+
+	while ((m = importBareAsRegex.exec(text)) !== null) {
+		const relPath = m[1];
+		if (!relPath.startsWith('.')) continue;
+		const resolved = path.resolve(dir, relPath);
+		map.set(m[2].trim(), resolved);
+	}
+
+	return map;
+}
+
+/**
+ * Return the identifier word that spans the given character position on a line.
+ */
+function getWordAtPosition(lineText: string, character: number): string | null {
+	const wordRe = /[a-zA-Z_$][a-zA-Z0-9_$]*/g;
+	let m: RegExpExecArray | null;
+	while ((m = wordRe.exec(lineText)) !== null) {
+		if (character >= m.index && character <= m.index + m[0].length) {
+			return m[0];
+		}
+	}
+	return null;
+}
+
+// Go to Definition handler – navigate from imported names to their declaration
+connection.onDefinition((params: DefinitionParams): Location | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) {
+		return null;
+	}
+
+	// Read the full line the cursor is on
+	const line = params.position.line;
+	const lineText = document.getText({
+		start: { line, character: 0 },
+		end: { line, character: 10000 }
+	});
+
+	// Match: import { name, name as alias, ... } from './file'
+	//     or import DefaultName from './file'
+	const importBracedRegex = /^import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/;
+	const importDefaultRegex = /^import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/;
+	// Also: import 'string' as name  or  import 'file'
+	const importBareRegex = /^import\s+['"]([^'"]+)['"]/;
+
+	let filePath: string | null = null;
+	let targetName: string | null = null;
+
+	const bracedMatch = importBracedRegex.exec(lineText);
+	if (bracedMatch) {
+		filePath = bracedMatch[2];
+		const namesList = bracedMatch[1]; // e.g. "createRouter, foo as bar"
+		const charPos = params.position.character;
+
+		// Walk each imported name and check if the cursor falls on it
+		let searchFrom = lineText.indexOf('{') + 1;
+		for (const entry of namesList.split(',')) {
+			const trimmed = entry.trim();
+			if (!trimmed) continue;
+
+			// The original name (before a potential `as` alias)
+			const originalName = trimmed.split(/\s+as\s+/)[0].trim();
+
+			// Find the position of originalName in the line (after the opening brace)
+			const nameIdx = lineText.indexOf(originalName, searchFrom);
+			if (nameIdx !== -1 && charPos >= nameIdx && charPos <= nameIdx + originalName.length) {
+				targetName = originalName;
+				break;
+			}
+			searchFrom = nameIdx + trimmed.length;
+		}
+	} else {
+		const defaultMatch = importDefaultRegex.exec(lineText);
+		if (defaultMatch) {
+			filePath = defaultMatch[2];
+			const importedName = defaultMatch[1];
+			const nameIdx = lineText.indexOf(importedName);
+			const charPos = params.position.character;
+			if (charPos >= nameIdx && charPos <= nameIdx + importedName.length) {
+				targetName = importedName;
+			}
+		} else {
+			const bareMatch = importBareRegex.exec(lineText);
+			if (bareMatch) {
+				filePath = bareMatch[1];
+				// No specific name – go to top of file
+			}
+		}
+	}
+
+	if (!filePath) {
+		// Not on an import line – check if the word under the cursor is an imported name
+		const currentFilePath = uriToPath(params.textDocument.uri);
+		const fullText = document.getText();
+		const importMap = buildImportMap(fullText, currentFilePath);
+
+		const word = getWordAtPosition(lineText, params.position.character);
+		if (!word || !importMap.has(word)) {
+			return null;
+		}
+
+		const resolvedPath = importMap.get(word)!;
+		if (!fs.existsSync(resolvedPath)) {
+			return null;
+		}
+
+		const targetUri = pathToUri(resolvedPath);
+		const targetContent = fs.readFileSync(resolvedPath, 'utf-8');
+		const defOffset = findDefinitionInFile(targetContent, word);
+
+		let targetLine = 0;
+		let targetChar = 0;
+		if (defOffset !== -1) {
+			const upToOffset = targetContent.slice(0, defOffset);
+			const defLines = upToOffset.split('\n');
+			targetLine = defLines.length - 1;
+			targetChar = defLines[defLines.length - 1].length;
+		}
+
+		return {
+			uri: targetUri,
+			range: {
+				start: { line: targetLine, character: targetChar },
+				end: { line: targetLine, character: targetChar + word.length }
+			}
+		};
+	}
+
+	// Only handle local / relative imports
+	if (!filePath.startsWith('.')) {
+		return null;
+	}
+
+	// Resolve the file path relative to the current document
+	const currentFilePath = uriToPath(params.textDocument.uri);
+	const resolvedPath = path.resolve(path.dirname(currentFilePath), filePath);
+
+	if (!fs.existsSync(resolvedPath)) {
+		return null;
+	}
+
+	const targetUri = pathToUri(resolvedPath);
+
+	// If no specific name, point to the beginning of the file
+	if (!targetName) {
+		return {
+			uri: targetUri,
+			range: {
+				start: { line: 0, character: 0 },
+				end: { line: 0, character: 0 }
+			}
+		};
+	}
+
+	// Search for the definition of targetName in the target file
+	const targetContent = fs.readFileSync(resolvedPath, 'utf-8');
+	const defOffset = findDefinitionInFile(targetContent, targetName);
+
+	let targetLine = 0;
+	let targetChar = 0;
+
+	if (defOffset !== -1) {
+		const upToOffset = targetContent.slice(0, defOffset);
+		const lines = upToOffset.split('\n');
+		targetLine = lines.length - 1;
+		targetChar = lines[lines.length - 1].length;
+	}
+
+	return {
+		uri: targetUri,
+		range: {
+			start: { line: targetLine, character: targetChar },
+			end: { line: targetLine, character: targetChar + targetName.length }
+		}
+	};
+});
 
 // Hover handler - show inferred types
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
