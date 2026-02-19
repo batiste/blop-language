@@ -20,16 +20,18 @@ const TypeChecker = {
     const rightBase = getBaseTypeOfLiteral(rightType);
     const isStringBase = (t) => t instanceof PrimitiveType && t.name === 'string';
     const isNumberBase = (t) => t instanceof PrimitiveType && t.name === 'number';
+    const isBooleanBase = (t) => t instanceof PrimitiveType && t.name === 'boolean';
     const isAnyType   = (t) => t === AnyType || (t instanceof PrimitiveType && t.name === 'any');
     
     if (operator === '+') {
       if (isStringBase(leftBase) && isStringBase(rightBase)) {
-        return { valid: false, resultType: StringType, warning: 'Use template strings instead of \'++\' for string concatenation' };
+        // String concatenation is valid but style suggestion to use templates
+        return { valid: true, resultType: StringType, warning: 'Use template strings instead of \'++\' for string concatenation' };
       }
       if ((isStringBase(leftBase) && isNumberBase(rightBase)) || (isNumberBase(leftBase) && isStringBase(rightBase))) {
         return { valid: true, resultType: StringType };
       }
-      if ((isNumberBase(leftBase) || isAnyType(leftType)) && (isNumberBase(rightBase) || isAnyType(rightType))) {
+      if ((isNumberBase(leftBase) || isBooleanBase(leftBase) || isAnyType(leftType)) && (isNumberBase(rightBase) || isBooleanBase(rightBase) || isAnyType(rightType))) {
         return { valid: true, resultType: NumberType };
       }
       return { valid: false, resultType: AnyType, warning: `Cannot apply '+' operator to ${leftType} and ${rightType}` };

@@ -50,7 +50,14 @@ function compileSource(source, filename = false, enableInference = false) {
   if (shouldRunInference) {
     const warnings = inference(tree, stream, filename);
     if (warnings.length) {
-      displayBackendError(stream, warnings[0]);
+      // Treat type inference warnings as compilation errors
+      return {
+        code: result.code,
+        success: false,
+        errors: warnings,
+        warnings: result.warnings || [],
+        dependencies: result.dependencies || []
+      };
     }
   }
 

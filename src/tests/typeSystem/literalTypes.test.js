@@ -47,6 +47,6 @@ describe('Literal Types - Error Cases', () => {
       message: string = "world"
       exact: Exact = message
     `;
-    expectCompilationError(code, "string");
+    expectCompilationError(code, /Exact|world/);
   });
 });

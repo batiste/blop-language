@@ -77,7 +77,8 @@ function inference(node, _stream, filename) {
   initVisitor(checkingWarnings, _stream, checkingScopes, typeAliases, filename, 'checking', symbolTable);
   visit(node);
 
-  return checkingWarnings;
+  // Return all warnings from both phases (inference math operations + checking validations)
+  return [...inferenceWarnings, ...checkingWarnings];
 }
 
 function getHandlers() {

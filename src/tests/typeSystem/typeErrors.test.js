@@ -219,3 +219,81 @@ describe('Type inference - negative tests', () => {
     expectCompilationError(code, /string|number/);
   });
 });
+
+describe('Math operation type validation - negative tests', () => {
+  test('rejects multiplication of number and string', () => {
+    const code = `
+      result = 1 * 'asdf'
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects division of number and string', () => {
+    const code = `
+      result = 10 / 'text'
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects subtraction of number and string', () => {
+    const code = `
+      result = 5 - 'number'
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects modulo of number and string', () => {
+    const code = `
+      result = 20 % 'divisor'
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects power operation of number and string', () => {
+    const code = `
+      result = 2 ^ 'exponent'
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects string concatenation with incompatible types', () => {
+    const code = `
+      result = 'text' + {}
+    `;
+    expectCompilationError(code, /cannot|operator|object|string/i);
+  });
+
+  test('accepts addition of number and string (can be concatenation)', () => {
+    const code = `
+      result = 2 + 'text'
+    `;
+    expectCompiles(code);
+  });
+
+  test('accepts addition of boolean and number', () => {
+    const code = `
+      result = true + 5
+    `;
+    expectCompiles(code);
+  });
+
+  test('accepts standard math operations with numbers', () => {
+    const code = `
+      a = 10 + 5
+      b = 20 - 3
+      c = 4 * 5
+      d = 100 / 10
+      e = 17 % 5
+      f = 2 ^ 8
+    `;
+    expectCompiles(code);
+  });
+
+  test('accepts string concatenation with addition', () => {
+    const code = `
+      greeting = 'Hello' + 'World'
+      withNumber = 'Count: ' + 42
+    `;
+    expectCompiles(code);
+  });
+});

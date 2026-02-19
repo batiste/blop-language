@@ -45,3 +45,11 @@ Test = (): VNode => {
     <p>'hello'</p>
 }
 result_2 = Test()
+
+c = 1 * 'asdf'
+
+Stats = (attributes: { total: number, text: string }) => {
+    { total, text } = attributes
+    b = text + 1
+    <p>total' 'b</p>
+}

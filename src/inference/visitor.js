@@ -128,8 +128,23 @@ function isOptionalChainAccess(accessNode) {
  */
 function emitMathWarnings(leftType, rightType, operatorNode) {
   const result = TypeChecker.checkMathOperation(leftType, rightType, operatorNode.value);
-  if (result.warning) pushWarning(operatorNode, result.warning);
-  if (result.warnings) result.warnings.forEach(w => pushWarning(operatorNode, w));
+  // Only emit warnings for actually invalid operations, not for style warnings
+  if (!result.valid && (result.warning || result.warnings)) {
+    if (result.warning) {
+      const error = new Error(result.warning);
+      const token = stream[operatorNode.stream_index];
+      error.token = token;
+      warnings.push(error);
+    }
+    if (result.warnings) {
+      result.warnings.forEach(w => {
+        const error = new Error(w);
+        const token = stream[operatorNode.stream_index];
+        error.token = token;
+        warnings.push(error);
+      });
+    }
+  }
   return result;
 }
 
