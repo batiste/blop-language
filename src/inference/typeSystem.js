@@ -324,6 +324,35 @@ export function substituteType(type, substitutions) {
 }
 
 /**
+ * Merge a new inferred type into the substitutions for a type parameter.
+ * When the same parameter is inferred from multiple arguments, attempts to
+ * unify literal types to their base type; reports a conflict error otherwise.
+ * @param {Map} substitutions - Current substitutions
+ * @param {string} paramName - Type parameter name
+ * @param {Type} inferredType - Newly inferred type for the parameter
+ * @param {TypeAliasMap} aliasMap - Alias map for compatibility checks
+ * @param {string[]} errors - Error list to append to
+ * @param {string} suffix - Suffix for the error message (e.g. '[]' for array params)
+ */
+function mergeSubstitution(substitutions, paramName, inferredType, aliasMap, errors, suffix = '') {
+  if (!substitutions.has(paramName)) {
+    substitutions.set(paramName, inferredType);
+    return;
+  }
+  const existing = substitutions.get(paramName);
+  if (existing.equals(inferredType)) return;
+
+  const base = getBaseType(inferredType);
+  const existingBase = getBaseType(existing);
+  if (base.equals(existingBase) && !base.equals(inferredType)) {
+    substitutions.set(paramName, base);
+  } else if (!inferredType.isCompatibleWith(existing, aliasMap) &&
+             !existing.isCompatibleWith(inferredType, aliasMap)) {
+    errors.push(`Type parameter ${paramName} inferred as both ${typeToString(existing)}${suffix} and ${typeToString(inferredType)}${suffix}`);
+  }
+}
+
+/**
  * Infer generic type arguments from call site
  * @param {string[]} genericParams - Generic parameter names
  * @param {Array<Type|string>} paramTypes - Expected parameter types
@@ -352,27 +381,7 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
     
     // Direct type parameter
     if (paramType instanceof TypeAlias && genericParams.includes(paramType.name)) {
-      const paramName = paramType.name;
-      
-      if (substitutions.has(paramName)) {
-        const existing = substitutions.get(paramName);
-        if (!existing.equals(argType)) {
-          // Try to unify literals
-          const argBase = getBaseType(argType);
-          const existingBase = getBaseType(existing);
-          
-          if (argBase.equals(existingBase) && !argBase.equals(argType)) {
-            substitutions.set(paramName, argBase);
-          } else if (!argType.isCompatibleWith(existing, aliasMap) && 
-                     !existing.isCompatibleWith(argType, aliasMap)) {
-            errors.push(
-              `Type parameter ${paramName} inferred as both ${typeToString(existing)} and ${typeToString(argType)}`
-            );
-          }
-        }
-      } else {
-        substitutions.set(paramName, argType);
-      }
+      mergeSubstitution(substitutions, paramType.name, argType, aliasMap, errors);
       continue;
     }
     
@@ -381,27 +390,7 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
       const paramElement = paramType.elementType;
       
       if (paramElement instanceof TypeAlias && genericParams.includes(paramElement.name)) {
-        const paramName = paramElement.name;
-        const argElement = argType.elementType;
-        
-        if (substitutions.has(paramName)) {
-          const existing = substitutions.get(paramName);
-          if (!existing.equals(argElement)) {
-            const argBase = getBaseType(argElement);
-            const existingBase = getBaseType(existing);
-            
-            if (argBase.equals(existingBase) && !argBase.equals(argElement)) {
-              substitutions.set(paramName, argBase);
-            } else if (!argElement.isCompatibleWith(existing, aliasMap) && 
-                       !existing.isCompatibleWith(argElement, aliasMap)) {
-              errors.push(
-                `Type parameter ${paramName} inferred as both ${typeToString(existing)}[] and ${typeToString(argElement)}[]`
-              );
-            }
-          }
-        } else {
-          substitutions.set(paramName, argElement);
-        }
+        mergeSubstitution(substitutions, paramElement.name, argType.elementType, aliasMap, errors, '[]');
       }
       continue;
     }

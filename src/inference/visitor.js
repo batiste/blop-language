@@ -200,8 +200,8 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  if (inference === 'string') {
-    throw new Error(`Inference should be a Type object, not a string literal ${inference}, at ${JSON.stringify(node)}`);
+  if (typeof inference === 'string') {
+    throw new Error(`Inference should be a Type object, not a string. Got '${inference}' at node type '${node.type}'`);
   }
   node.inference.push(inference);
 }

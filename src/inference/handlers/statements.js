@@ -227,7 +227,7 @@ function createStatementHandlers(getState) {
             const expNode = node.named.exp;
             const valueType = expNode && expNode.inference && expNode.inference[0];
             
-            if (valueType && valueType !== 'any') {
+            if (valueType && valueType !== AnyType) {
               // Look up the object's type
               const objectDef = lookupVariable(objectName);
               if (objectDef && objectDef.type) {

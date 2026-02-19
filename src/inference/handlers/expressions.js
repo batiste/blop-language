@@ -77,7 +77,7 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
   if (methodName) {
     const builtinType = getBuiltinObjectType(name.value);
     const rawReturn = builtinType?.[methodName];
-    const returnType = rawReturn ?? 'any';
+    const returnType = rawReturn ?? AnyType;
     pushInference(parent, returnType);
     return true;
   }
@@ -143,7 +143,7 @@ function handleNonGenericFunctionCall(name, definition, argTypes, parent, { push
     }
   }
   
-  const retType = definition.type ?? 'any';
+  const retType = definition.type ?? AnyType;
   pushInference(parent, retType);
 }
 
@@ -372,7 +372,7 @@ function createExpressionHandlers(getState) {
         
         // Try object property access
         const definition = lookupVariable(name.value);
-        const defTypeIsAny = !definition?.type || definition.type === 'any' || definition.type === AnyType ||
+        const defTypeIsAny = !definition?.type || definition.type === AnyType ||
                               (definition.type instanceof PrimitiveType && definition.type.name === 'any');
         
         if (definition && definition.type && !defTypeIsAny) {
