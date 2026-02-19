@@ -190,7 +190,7 @@ function handleNullishOperator(types, i) {
 }
 
 function handleAssignment(types, i, assignNode) {
-  const { annotation, name, explicit_assign } = assignNode.named;
+  const { annotation, name, explicit_assign, destructuring } = assignNode.named;
   const valueType = types[i - 1];
 
   if (annotation && valueType && valueType !== AnyType) {
@@ -201,6 +201,43 @@ function handleAssignment(types, i, assignNode) {
         pushWarning(assignNode, result.warning);
       }
     }
+  }
+  
+  // Handle destructuring assignment: { total, text } = attributes
+  if (destructuring && valueType && valueType !== AnyType) {
+    const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
+    
+    // Extract destructured variable names from the destructuring node
+    const destructuredNames = extractDestructuredNames(destructuring);
+    
+    // If the value is an object type, infer property types for each destructured variable
+    if (resolvedValueType instanceof ObjectType) {
+      for (const varNode of destructuredNames) {
+        const varName = varNode.value;
+        const propertyType = getPropertyType(valueType, varName, typeAliases);
+        
+        if (propertyType !== null) {
+          // Create variable definition with inferred type
+          const scope = getCurrentScope();
+          scope[varName] = {
+            type: propertyType,
+            node: assignNode,
+          };
+          
+          // Stamp hover type information - do this unconditionally like regular assignments
+          if (varNode.inferredType === undefined) {
+            varNode.inferredType = propertyType;
+          }
+        } else {
+          // Property doesn't exist on the object type
+          pushWarning(
+            destructuring,
+            `Property '${varName}' does not exist on type ${valueType}`
+          );
+        }
+      }
+    }
+    // Don't return - let other assignment logic continue if needed
   }
   
   if (valueType && name && valueType !== AnyType) {
@@ -484,6 +521,41 @@ function visit(node, parent) {
 
 function setHandlers(handlers) {
   nodeHandlers = handlers;
+}
+
+/**
+ * Extract destructured variable names from an object_destructuring node
+ * @param {Object} destructuringNode - The object_destructuring AST node
+ * @returns {Object[]} Array of name token nodes (the actual 'name' tokens to stamp)
+ */
+function extractDestructuredNames(destructuringNode) {
+  if (!destructuringNode) return [];
+  
+  const names = [];
+  
+  // Find the destructuring_values node
+  const valuesNode = destructuringNode.children?.find(c => c.type === 'destructuring_values');
+  if (!valuesNode) return [];
+  
+  // Traverse the destructuring_values tree to extract all 'name' token nodes
+  const extractNames = (node) => {
+    if (!node) return;
+    
+    // Look for raw 'name' tokens in children
+    if (node.children) {
+      for (const child of node.children) {
+        if (child.type === 'name') {
+          names.push(child);
+        } else if (child.type === 'destructuring_values') {
+          // Continue recursing through nested destructuring_values
+          extractNames(child);
+        }
+      }
+    }
+  };
+  
+  extractNames(valuesNode);
+  return names;
 }
 
 export {

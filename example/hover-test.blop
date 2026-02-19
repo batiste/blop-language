@@ -50,8 +50,15 @@ Test = (): VNode => {
 }
 result_2 = Test()
 
-Stats = (attributes: { total: number, text: string }) => {
-    { total, text } = attributes
-    b = text + 1
-    <p>total' 'b</p>
+def testAnnotation1(attributes: { total: number, text: string }) {
+    return attributes
+}
+
+def testAnnotation2(attributes: { total: number, text: string }) {
+    return attributes.total
+}
+
+def testAnnotation3(attributes: { total: number, text: string }) {
+    { total, _text } = attributes
+    return total
 }
