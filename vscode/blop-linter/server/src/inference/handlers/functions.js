@@ -220,10 +220,12 @@ function createFunctionHandlers(getState) {
           }
         }
         
-        // Stamp the function name with its type for hover
+        // Stamp the function name with its full function type for hover support
         const { inferencePhase } = getState();
         if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
-          node.named.name.inferredType = declaredType ?? inferredType;
+          // Create a FunctionType with the actual params and return type
+          const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams);
+          node.named.name.inferredType = functionType;
         }
         
         parentScope[node.named.name.value] = {

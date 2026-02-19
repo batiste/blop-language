@@ -10,7 +10,7 @@ import { findNodesWithValue, findFunctionDefs } from '../testHelpers.js';
 
 describe('AST Hover Information (inferredType)', () => {
   
-  it('should stamp function name with its return type', () => {
+  it('should stamp function name with its function type', () => {
     const code = `def getValue(): number {
     return 42
 }`;
@@ -25,10 +25,11 @@ describe('AST Hover Information (inferredType)', () => {
     const funcName = funcDefs[0].named?.name;
     expect(funcName).toBeDefined();
     expect(funcName.value).toBe('getValue');
-    expect(funcName.inferredType?.toString()).toBe('number');
+    // Should show the full function type, not just the return type
+    expect(funcName.inferredType?.toString()).toBe('() => number');
   });
 
-  it('should stamp function name with undefined when no explicit return', () => {
+  it('should stamp function name with undefined return type when no explicit return', () => {
     const code = `def doNothing() {
     x = 1
 }`;
@@ -43,7 +44,8 @@ describe('AST Hover Information (inferredType)', () => {
     const funcName = funcDefs[0].named?.name;
     expect(funcName).toBeDefined();
     expect(funcName.value).toBe('doNothing');
-    expect(funcName.inferredType?.toString()).toBe('undefined');
+    // Should show the full function type with undefined return
+    expect(funcName.inferredType?.toString()).toBe('() => undefined');
   });
 
   it('should stamp object parameter with resolved Profile type', () => {
@@ -275,5 +277,51 @@ result_1 = test1()`
     const kindStr = testVar.inferredType.kind.toString();
     expect(kindStr).toBe('alias');
     expect(testVar.inferredType.name).toBe('VNode');
+  });
+
+  it('should infer the correct type when calling arrow function stored in variable', () => {
+    const code = `Test = (): VNode => {
+    <p>'hello'</p>
+}
+result_2 = Test()`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find result_2 variable and check it gets the return type VNode
+    const resultNodes = findNodesWithValue(tree, ['result_2']);
+    expect(resultNodes.length).toBeGreaterThan(0);
+    
+    const resultVar = resultNodes[0];
+    expect(resultVar.value).toBe('result_2');
+    expect(resultVar.inferredType).toBeDefined();
+    
+    // Should resolve to VNode (the return type of Test)
+    expect(resultVar.inferredType.kind).toBe('alias');
+    expect(resultVar.inferredType.name).toBe('VNode');
+  });
+
+  it('should stamp Test name with function type when arrow function is called', () => {
+    const code = `Test = (): VNode => {
+    <p>'hello'</p>
+}
+result_2 = Test()`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find all Test name nodes
+    const testNodes = findNodesWithValue(tree, ['Test']);
+    expect(testNodes.length).toBeGreaterThan(1); // At least definition and usage
+    
+    // The Test in Test() call should be stamped with the function type
+    const testInCall = testNodes.find(n => 
+      n.inferredType &&
+      n.inferredType.kind === 'function'
+    );
+    expect(testInCall).toBeDefined();
+    expect(testInCall.inferredType.returnType.name).toBe('VNode');
   });
 });

@@ -1303,7 +1303,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 		inferredType = node.value;
 	}
 	
-	// Fallback: literal types
+	// Fallback: literal types, but avoid showing "name" for variable references
 	if (!inferredType) {
 		const literalTypes: Record<string, string> = {
 			'number': 'number',
@@ -1313,7 +1313,12 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 			'null': 'null',
 			'undefined': 'undefined'
 		};
-		inferredType = literalTypes[node.type] || node.type || node.value;
+		// For 'name' nodes, only use a fallback if it's a known literal type, otherwise return null
+		if (node.type === 'name') {
+			inferredType = literalTypes[node.type];
+		} else {
+			inferredType = literalTypes[node.type] || node.type || node.value;
+		}
 	}
 	
 	if (!inferredType) {

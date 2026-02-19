@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -88,10 +88,17 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
 /**
  * Handle generic function calls with explicit or inferred type arguments
  */
-function handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases }) {
+function handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
   const objectAccess = access.children?.find(child => child.type === 'object_access');
   const typeArgsNode = objectAccess?.children?.find(child => child.type === 'type_arguments');
   const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
+  
+  // Stamp the name node with the function type for hover support
+  if (inferencePhase === 'inference' && name.inferredType === undefined) {
+    // For func_def functions, construct the FunctionType from params and return type
+    const funcType = new FunctionType(definition.params, definition.type, definition.genericParams);
+    name.inferredType = funcType;
+  }
   
   const paramTypes = definition.params || [];
   let substitutions = {};
@@ -135,7 +142,14 @@ function handleGenericFunctionCall(name, access, definition, argTypes, parent, {
 /**
  * Handle non-generic function calls
  */
-function handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases }) {
+function handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
+  // Stamp the name node with the function type for hover support
+  if (inferencePhase === 'inference' && name.inferredType === undefined) {
+    // For func_def functions, construct the FunctionType from params and return type
+    const funcType = new FunctionType(definition.params, definition.type);
+    name.inferredType = funcType;
+  }
+  
   if (argTypes.length > 0) {
     const result = TypeChecker.checkFunctionCall(argTypes, definition.params, name.value, typeAliases);
     if (!result.valid) {
@@ -148,9 +162,37 @@ function handleNonGenericFunctionCall(name, definition, argTypes, parent, { push
 }
 
 /**
+ * Handle function calls to variables whose type is a FunctionType (e.g., arrow functions)
+ */
+function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
+  const funcType = definition.type;
+  if (!(funcType instanceof FunctionType)) {
+    return false;
+  }
+  
+  // Stamp the name node with the function type for hover support
+  if (inferencePhase === 'inference' && name.inferredType === undefined) {
+    name.inferredType = funcType;
+  }
+  
+  // Validate argument types if the function has a defined signature
+  if (funcType.params && funcType.params !== null && argTypes.length > 0) {
+    const result = TypeChecker.checkFunctionCall(argTypes, funcType.params, name.value, typeAliases);
+    if (!result.valid) {
+      result.warnings.forEach(warning => pushWarning(name, warning));
+    }
+  }
+  
+  // Push the return type as inference
+  const returnType = funcType.returnType ?? AnyType;
+  pushInference(parent, returnType);
+  return true;
+}
+
+/**
  * Handle function calls in name_exp with validation
  */
-function handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases }) {
+function handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase }) {
   visitChildren(access);
   
   const definition = lookupVariable(name.value);
@@ -169,12 +211,19 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
   
-  // Handle user-defined function calls
+  // Handle function-typed variables (e.g., arrow function assignments)
+  if (definition && definition.type instanceof FunctionType) {
+    if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
+      return true;
+    }
+  }
+  
+  // Handle user-defined function calls (from func_def)
   if (definition && definition.params) {
     if (definition.genericParams && definition.genericParams.length > 0) {
-      handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases });
+      handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase });
     } else {
-      handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases });
+      handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase });
     }
     return true;
   }
@@ -349,7 +398,7 @@ function createExpressionHandlers(getState) {
       pushInference(parent, PrimitiveType.Number);
     },
     name_exp: (node, parent) => {
-      const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
+      const { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase } = getState();
       const { name, access } = node.named;
       
       if (access) {
@@ -363,7 +412,7 @@ function createExpressionHandlers(getState) {
         const hasFuncCall = access.children?.some(child => hasFuncCallInObjectAccess(child));
         
         if (hasFuncCall) {
-          if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases })) {
+          if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase })) {
             return;
           }
         }
