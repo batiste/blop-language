@@ -9,3 +9,5 @@ Use camelCase for files.
 Prefer clean solution to quick hacks. When in doubt, ask for a review. Write tests to clarify complex logic rather than infer too much from code. Execute tests often to control your assertion about the code behavior.
 
 When you write md docs, avoid excessive emoticons. Use typescript as the code block language for proper coloration.
+
+For AST debugging during type inference investigations, use the reusable debug utilities in `src/tests/debugUtils.js`. Functions like `findNodes()`, `analyzeOperations()`, `printInferenceTree()` help explore AST structure and type inference without writing throwaway scripts.

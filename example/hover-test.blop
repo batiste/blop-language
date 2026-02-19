@@ -14,11 +14,15 @@ def profile(prof: Profile) {
     return prof.user
 }
 
-def variableType(x) {
+def test() {
+    return 1 + 2
+}
+
+def variableType(x, _y=5) {
     if (x > 10) {
         return "Greater than 10"
     } else {
-        return 10
+        return 10 + _y
     }
     return "Impossible"
 }
@@ -45,8 +49,6 @@ Test = (): VNode => {
     <p>'hello'</p>
 }
 result_2 = Test()
-
-c = 1 * 'asdf'
 
 Stats = (attributes: { total: number, text: string }) => {
     { total, text } = attributes
