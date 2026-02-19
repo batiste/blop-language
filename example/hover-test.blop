@@ -40,7 +40,7 @@ hello = "Hello"
 hello := "asdf"
 console.log(userAssignmentTest)
 
-def test1(): VNode {
+def test1(a: number=1): VNode {
     <p>'hello'</p>
 }
 result_1 = test1()
@@ -55,7 +55,7 @@ def testAnnotation1(attributes: { total: number, text: string }) {
 }
 
 def testAnnotation2(attributes: { total: number, text: string }) {
-    return attributes.total
+    return attributes.text
 }
 
 def testAnnotation3(attributes: { total: number, text: string }) {

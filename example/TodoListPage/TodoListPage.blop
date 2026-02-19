@@ -199,7 +199,7 @@ TodoListPage = (attributes, _children, node): VNode => {
         </div>
       } else {
         <ul class="list-unstyled">
-          for index, item in todoList {
+          for index, item of todoList {
             // Only render if item passes filter
             shouldRender = todo.filter == 'all' || (todo.filter == 'active' && !item.completed) || (todo.filter == 'completed' && item.completed)
             

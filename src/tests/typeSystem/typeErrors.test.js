@@ -263,11 +263,18 @@ describe('Math operation type validation - negative tests', () => {
     expectCompilationError(code, /cannot|operator|object|string/i);
   });
 
-  test('accepts addition of number and string (can be concatenation)', () => {
+  test('rejects addition of number and string (strict concatenation)', () => {
     const code = `
       result = 2 + 'text'
     `;
-    expectCompiles(code);
+    expectCompilationError(code, /cannot|operator|string|number/i);
+  });
+
+  test('rejects addition of string and number (strict concatenation)', () => {
+    const code = `
+      result = 'text' + 2
+    `;
+    expectCompilationError(code, /cannot|operator|string|number/i);
   });
 
   test('accepts addition of boolean and number', () => {
@@ -292,7 +299,6 @@ describe('Math operation type validation - negative tests', () => {
   test('accepts string concatenation with addition', () => {
     const code = `
       greeting = 'Hello' + 'World'
-      withNumber = 'Count: ' + 42
     `;
     expectCompiles(code);
   });
