@@ -7,88 +7,85 @@ import { getBaseTypeOfLiteral, resolveTypeAlias, ObjectType } from '../typeSyste
 import { Types, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
 
 /**
+ * Deduplicate types by their string representation, last write wins.
+ * @param {import('../Type.js').Type[]} types
+ * @returns {import('../Type.js').Type[]}
+ */
+function deduplicateTypes(types) {
+  const seen = new Map();
+  for (const t of types) seen.set(t.toString(), t);
+  return [...seen.values()];
+}
+
+/**
+ * Collect element types from an array_literal_body node (right-recursive).
+ * @param {Object} bodyNode
+ * @returns {import('../Type.js').Type[]}
+ */
+function collectBodyElementTypes(bodyNode) {
+  const elementTypes = [];
+  function collect(current) {
+    if (!current?.children) return;
+    for (const child of current.children) {
+      if (child.type === 'exp' && child.inference?.length > 0) {
+        elementTypes.push(child.inference[0]);
+      } else if (child.type === 'array_literal_body') {
+        collect(child);
+      }
+    }
+  }
+  collect(bodyNode);
+  return elementTypes;
+}
+
+/**
+ * Try to unify an array of ObjectTypes that share the same property keys.
+ * Returns a single ObjectType, or null if unification is not possible.
+ * @param {import('../Type.js').ObjectType[]} objectTypes
+ * @returns {import('../Type.js').ObjectType|null}
+ */
+function tryUnifyObjectTypes(objectTypes) {
+  const firstKeys = [...objectTypes[0].properties.keys()].sort();
+  const allSameKeys = objectTypes.every(obj => {
+    const keys = [...obj.properties.keys()].sort();
+    return keys.length === firstKeys.length && keys.every((k, i) => k === firstKeys[i]);
+  });
+  if (!allSameKeys) return null;
+
+  const unifiedProps = new Map();
+  for (const key of firstKeys) {
+    const propTypes = objectTypes.map(obj => obj.properties.get(key)?.type ?? AnyType);
+    const unique = deduplicateTypes(propTypes.map(t => getBaseTypeOfLiteral(t)));
+    const unified = unique.length === 1 ? unique[0] : Types.union(unique);
+    const optional = objectTypes.some(obj => obj.properties.get(key)?.optional ?? false);
+    unifiedProps.set(key, { type: unified, optional });
+  }
+  return Types.object(unifiedProps);
+}
+
+/**
  * Infer the element type of an array literal from its AST node
  * @param {Object} node - The array_literal AST node
  * @returns {import('../Type.js').Type|null} Array element Type object or null
  */
 function inferArrayElementType(node) {
-  if (!node || !node.children) {
-    return null;
-  }
-  
-  // Find the array_literal_body node
+  if (!node?.children) return null;
+
   const bodyNode = node.children.find(c => c.type === 'array_literal_body');
-  if (!bodyNode) {
-    // Empty array - can't infer element type
-    return null;
+  if (!bodyNode) return null; // empty array
+
+  const elementTypes = collectBodyElementTypes(bodyNode);
+  if (elementTypes.length === 0) return null;
+
+  // If all elements are objects with identical keys → unify into one object type
+  if (elementTypes.length > 1 && elementTypes.every(t => t instanceof ObjectType)) {
+    const unified = tryUnifyObjectTypes(elementTypes);
+    if (unified) return unified;
   }
-  
-  const elementTypes = [];
-  
-  // Recursively collect element types from array_literal_body
-  function collectElementTypes(current) {
-    if (!current || !current.children) return;
-    
-    for (const child of current.children) {
-      if (child.type === 'exp' && child.inference && child.inference.length > 0) {
-        elementTypes.push(child.inference[0]);
-      } else if (child.type === 'array_literal_body') {
-        // Recursive body (for comma-separated elements)
-        collectElementTypes(child);
-      }
-    }
-  }
-  
-  collectElementTypes(bodyNode);
-  
-  if (elementTypes.length === 0) {
-    return null;
-  }
-  
-  // Check if all elements are object types
-  const allObjectTypes = elementTypes.every(t => t instanceof ObjectType);
-  
-  if (allObjectTypes && elementTypes.length > 1) {
-    // All objects — try to unify their structures
-    const firstKeys = [...elementTypes[0].properties.keys()].sort();
-    const allSameKeys = elementTypes.every(obj => {
-      const keys = [...obj.properties.keys()].sort();
-      return keys.length === firstKeys.length && keys.every((k, i) => k === firstKeys[i]);
-    });
-    
-    if (allSameKeys) {
-      // Unify property types to their base types
-      const unifiedProps = new Map();
-      for (const key of firstKeys) {
-        const propTypes = elementTypes.map(obj => obj.properties.get(key)?.type ?? AnyType);
-        const basePropTypes = propTypes.map(t => getBaseTypeOfLiteral(t));
-        // Deduplicate by toString
-        const seen = new Map();
-        for (const t of basePropTypes) seen.set(t.toString(), t);
-        const unique = [...seen.values()];
-        
-        const unified = unique.length === 1 ? unique[0] : Types.union(unique);
-        const optional = elementTypes.some(obj => obj.properties.get(key)?.optional ?? false);
-        unifiedProps.set(key, { type: unified, optional });
-      }
-      return Types.object(unifiedProps);
-    }
-  }
-  
-  // Unify all element types to a common base type
-  const baseTypes = elementTypes.map(t => getBaseTypeOfLiteral(t));
-  // Deduplicate by toString
-  const seen = new Map();
-  for (const t of baseTypes) seen.set(t.toString(), t);
-  const uniqueBaseTypes = [...seen.values()];
-  
-  if (uniqueBaseTypes.length === 1) {
-    // All elements have the same base type
-    return uniqueBaseTypes[0];
-  }
-  
-  // Mixed types - create a union type
-  return Types.union(uniqueBaseTypes);
+
+  // Widen literals to their base types and deduplicate
+  const uniqueBaseTypes = deduplicateTypes(elementTypes.map(t => getBaseTypeOfLiteral(t)));
+  return uniqueBaseTypes.length === 1 ? uniqueBaseTypes[0] : Types.union(uniqueBaseTypes);
 }
 
 /**
@@ -187,139 +184,87 @@ function inferObjectLiteralStructure(node, lookupVariable) {
 }
 
 function createLiteralHandlers(getState) {
+  // Shared helper: push a type for a literal node and stamp inferredType
+  function pushLiteralType(node, parent, type) {
+    const { pushInference, inferencePhase } = getState();
+    pushInference(parent, type);
+    if (inferencePhase === 'inference' && node.inferredType === undefined) {
+      node.inferredType = type;
+    }
+  }
+
+  // Shared helper: push a VNode type and register an implicit return
+  function pushVNodeType(node, parent) {
+    const { pushInference, getFunctionScope } = getState();
+    const VNodeType = Types.alias('VNode');
+    pushInference(parent, VNodeType);
+    const functionScope = getFunctionScope();
+    if (functionScope?.__returnTypes) {
+      functionScope.__returnTypes.push(VNodeType);
+    }
+  }
+
   return {
-    number: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      // Infer literal types for numbers
-      const numType = Types.literal(parseFloat(node.value), NumberType);
-      pushInference(parent, numType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = numType;
-      }
-    },
-    str: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      // Strip quotes from node.value and infer as literal type
-      const rawValue = node.value.slice(1, -1);
-      const strType = Types.literal(rawValue, StringType);
-      pushInference(parent, strType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = strType;
-      }
-    },
-    null: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      pushInference(parent, NullType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = NullType;
-      }
-    },
-    undefined: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      pushInference(parent, UndefinedType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = UndefinedType;
-      }
-    },
-    true: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      const trueType = Types.literal(true, BooleanType);
-      pushInference(parent, trueType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = trueType;
-      }
-    },
-    false: (node, parent) => {
-      const { pushInference, inferencePhase } = getState();
-      const falseType = Types.literal(false, BooleanType);
-      pushInference(parent, falseType);
-      if (inferencePhase === 'inference' && node.inferredType === undefined) {
-        node.inferredType = falseType;
-      }
-    },
+    number: (node, parent) =>
+      pushLiteralType(node, parent, Types.literal(parseFloat(node.value), NumberType)),
+
+    str: (node, parent) =>
+      // Strip surrounding quotes before creating the literal type
+      pushLiteralType(node, parent, Types.literal(node.value.slice(1, -1), StringType)),
+
+    null: (node, parent) => pushLiteralType(node, parent, NullType),
+    undefined: (node, parent) => pushLiteralType(node, parent, UndefinedType),
+    true: (node, parent) => pushLiteralType(node, parent, Types.literal(true, BooleanType)),
+    false: (node, parent) => pushLiteralType(node, parent, Types.literal(false, BooleanType)),
+
     array_literal: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      
-      // Try to infer the element type
       const elementType = inferArrayElementType(node);
-      if (elementType) {
-        pushInference(parent, Types.array(elementType));
-      } else {
-        pushInference(parent, Types.alias('array'));
-      }
+      pushInference(parent, elementType ? Types.array(elementType) : Types.alias('array'));
     },
+
     object_literal: (node, parent) => {
       const { pushInference, getExpectedObjectType, typeAliases, lookupVariable } = getState();
       resolveTypes(node);
-      
-      // Try to infer the structure of the object literal
+
       const structure = inferObjectLiteralStructure(node, lookupVariable);
       pushInference(parent, structure ?? Types.alias('object'));
-      
-      // If we have an expected type from context (e.g., from an assignment annotation),
-      // use it to annotate the property keys with their expected types
+
+      // When there is a type annotation on the assignment, stamp property keys with
+      // their expected types for hover support.
       const expectedType = getExpectedObjectType();
-      
       if (expectedType) {
-        // Resolve type aliases to get the actual object structure
         const resolvedType = resolveTypeAlias(expectedType, typeAliases);
-        
         if (resolvedType instanceof ObjectType) {
-          // Recursively find and annotate object_literal_key nodes
           function annotatePropertyKeys(n) {
-            if (!n || !n.children) return;
-            
+            if (!n?.children) return;
             for (const child of n.children) {
-              // If this is an object_literal_key wrapper, get its inner name/str node
-              if (child.type === 'object_literal_key' && child.children && child.children[0]) {
-                const keyChild = child.children[0];  // This is the str or name node
+              if (child.type === 'object_literal_key' && child.children?.[0]) {
+                const keyChild = child.children[0];
                 let keyName = keyChild.value;
-                
-                // Remove quotes from string keys
-                if (keyName && (keyName.startsWith('"') || keyName.startsWith("'"))) {
+                if (keyName?.startsWith('"') || keyName?.startsWith("'")) {
                   keyName = keyName.slice(1, -1);
                 }
-                
-                // Annotate THE KEY CHILD (not the wrapper) with its expected property type
                 const prop = resolvedType.properties.get(keyName);
-                if (keyName && prop) {
-                  pushInference(keyChild, prop.type);
-                }
+                if (keyName && prop) pushInference(keyChild, prop.type);
               }
-              
-              // Recursively process all children
               annotatePropertyKeys(child);
             }
           }
-          
           annotatePropertyKeys(node);
         }
       }
     },
+
     virtual_node: (node, parent) => {
-      const { pushInference, getFunctionScope } = getState();
       resolveTypes(node);
-      const VNodeType = Types.alias('VNode');
-      pushInference(parent, VNodeType);
-      
-      // VNodes create implicit returns in Blop
-      const functionScope = getFunctionScope();
-      if (functionScope && functionScope.__returnTypes) {
-        functionScope.__returnTypes.push(VNodeType);
-      }
+      pushVNodeType(node, parent);
     },
+
     virtual_node_exp: (node, parent) => {
-      const { pushInference, getFunctionScope } = getState();
       visitChildren(node);
-      const VNodeType = Types.alias('VNode');
-      pushInference(parent, VNodeType);
-      
-      // VNodes create implicit returns in Blop
-      const functionScope = getFunctionScope();
-      if (functionScope && functionScope.__returnTypes) {
-        functionScope.__returnTypes.push(VNodeType);
-      }
+      pushVNodeType(node, parent);
     },
   };
 }

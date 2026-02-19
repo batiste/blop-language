@@ -269,33 +269,22 @@ function handleBooleanOperator(types, i) {
 
 function handleNullishOperator(types, i) {
   // Nullish coalescing: left ?? right
-  // Returns the left side if it's not null/undefined, otherwise right side
+  // If left is never nullish → result is left; otherwise → (non-null left) | right
   const leftType = types[i - 1];
   const rightType = types[i - 2];
-  
-  // If left can never be nullish, result is left type
-  if (leftType !== NullType && leftType !== UndefinedType && 
-      !isUnionType(leftType) || 
-      (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === NullType || t === UndefinedType))) {
+
+  const leftCanBeNullish = leftType === NullType || leftType === UndefinedType ||
+    (isUnionType(leftType) && parseUnionType(leftType).some(t => t === NullType || t === UndefinedType));
+
+  if (!leftCanBeNullish) {
     types[i - 2] = leftType;
   } else {
-    // Remove nullish from left and union with right
     const nonNullishLeft = removeNullish(leftType);
-    if (nonNullishLeft === NeverType) {
-      // Left is definitely null/undefined, result is right type
-      types[i - 2] = rightType;
-    } else {
-      // Left might be nullish, result is union of non-nullish left and right
-      const resultTypes = [];
-      if (nonNullishLeft !== NeverType) {
-        resultTypes.push(nonNullishLeft);
-      }
-      if (rightType) {
-        resultTypes.push(rightType);
-      }
-      types[i - 2] = createUnionType(resultTypes);
-    }
+    types[i - 2] = nonNullishLeft === NeverType
+      ? rightType
+      : createUnionType([nonNullishLeft, rightType].filter(Boolean));
   }
+
   types.splice(i - 1, 2);
   return i - 2;
 }
@@ -303,8 +292,8 @@ function handleNullishOperator(types, i) {
 function handleAssignment(types, i, assignNode) {
   const { annotation, name, explicit_assign } = assignNode.named;
   const valueType = types[i - 1];
-  
-    if (annotation && valueType && valueType !== AnyType) {
+
+  if (annotation && valueType && valueType !== AnyType) {
     const annotationType = getAnnotationType(annotation);
     if (annotationType) {
       const result = TypeChecker.checkAssignment(valueType, annotationType, typeAliases);
