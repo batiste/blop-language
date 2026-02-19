@@ -8,6 +8,7 @@ import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctio
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
+import { name } from 'happy-dom/lib/PropertySymbol.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
@@ -319,8 +320,7 @@ function handleBuiltinPropertyAccess(name, access, parent, { pushInference }) {
  * Handle simple variable reference without property access
  */
 function handleSimpleVariable(name, parent, definition, getState) {
-  const { pushInference } = getState();
-  
+  const { pushInference } = getState();  
   if (!definition) {
     pushInference(parent, AnyType);
     return;
@@ -334,8 +334,9 @@ function handleSimpleVariable(name, parent, definition, getState) {
     }
   } else {
     pushInference(parent, definition.type);
-    const { inferencePhase, typeAliases } = getState();
-    if (inferencePhase === 'inference' && name.inferredType === undefined) {
+    // console.log('handleSimpleVariable', name.value, 'inferred type:', definition.type);
+    const { typeAliases } = getState();
+    if (name.inferredType === undefined) {
       name.inferredType = resolveTypeAlias(definition.type, typeAliases);
     }
   }
@@ -353,11 +354,14 @@ function createExpressionHandlers(getState) {
       const { name, access } = node.named;
       
       if (access) {
-        // Check if this is a function call
-        const hasFuncCall = access.children?.some(child => 
-          child.type === 'object_access' && 
-          child.children?.some(c => c.type === 'func_call')
-        );
+        // Check if this is a function call (search recursively through nested
+        // object_access nodes, e.g. obj.method(x) has func_call one level deeper)
+        function hasFuncCallInObjectAccess(node) {
+          if (!node || node.type !== 'object_access') return false;
+          if (node.children?.some(c => c.type === 'func_call')) return true;
+          return node.children?.some(c => hasFuncCallInObjectAccess(c)) ?? false;
+        }
+        const hasFuncCall = access.children?.some(child => hasFuncCallInObjectAccess(child));
         
         if (hasFuncCall) {
           if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases })) {

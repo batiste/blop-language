@@ -210,4 +210,25 @@ def profile(prof: Profile) {
     expect(defNode.inferredType.toString()).not.toBe('name');
     expect(defNode.inferredType.toString()).not.toBe('undefined');
   });
+
+  it('should stamp variable name at usage site inside function call argument', () => {
+    const code = USER_TYPES + `userAssignmentTest: User = { id: 1, name: "Alice" }
+console.log(userAssignmentTest)`;
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    // console.log('AST before inference:', JSON.stringify(tree, null, 2));
+    inference(tree, stream);
+
+    const varNodes = findNodesWithValue(tree, ['userAssignmentTest']);
+
+    // There should be at least 2 nodes: one at definition, one at usage
+    expect(varNodes.length).toBeGreaterThanOrEqual(2);
+
+    expect(varNodes[0].inferredType).toBeDefined();
+    // After tree inspection, we get func_call_params -> name_exp -> name,
+    expect(varNodes[1].inferredType).toBeDefined();
+    expect(varNodes[0].inferredType.toString()).toBe('User');
+    expect(varNodes[1].inferredType.toString()).toBe('{id: 1, name: "Alice"}');
+  });
 });
