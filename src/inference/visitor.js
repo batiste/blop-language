@@ -51,146 +51,29 @@ function getFunctionScope() {
 }
 
 /**
- * Recursively stamp type annotation names with their type definitions for hover support
- * @param {Object} node - The annotation or type_expression node to traverse
+ * Recursively stamp type annotation names with their type definitions for hover support.
+ * Walks the annotation subtree uniformly: when a type_primary with a name is reached,
+ * stamp that name node with the resolved Type object.
+ * @param {Object} node - Any node within an annotation subtree
  */
 function stampTypeAnnotation(node) {
-  if (!node || inferencePhase !== 'inference') {
-    return;
+  if (!node || inferencePhase !== 'inference') return;
+
+  if (node.type === 'type_primary' && node.named?.name) {
+    const nameNode = node.named.name;
+    if (nameNode.inferredType === undefined) {
+      nameNode.inferredType = getAnnotationType(node);
+    }
   }
-  
-  // Handle annotation node - extract the type_expression
-  if (node.type === 'annotation' && node.named && node.named.type) {
-    stampTypeAnnotation(node.named.type);
-    return;
-  }
-  
-  // Handle type_expression - recursively process children
-  if (node.type === 'type_expression') {
-    if (node.named) {
-      // Handle union/intersection branches
-      if (node.named.union) stampTypeAnnotation(node.named.union);
-      if (node.named.intersection) stampTypeAnnotation(node.named.intersection);
-    }
-    // Process children for type_primary
-    if (node.children) {
-      node.children.forEach(child => stampTypeAnnotation(child));
-    }
-    return;
-  }
-  
-  // Handle type_primary - look for names and object types
-  if (node.type === 'type_primary') {
-    // Check for basic type name
-    if (node.named && node.named.name) {
-      const nameNode = node.named.name;
-      const typeName = nameNode.value;
-      
-      // Check if it's a type alias
-      if (typeAliases[typeName]) {
-        if (nameNode.inferredType === undefined) {
-          nameNode.inferredType = typeAliases[typeName];
-        }
-      } else if (['string', 'number', 'boolean', 'any', 'undefined', 'null'].includes(typeName)) {
-        // Built-in type — resolve to a Type object via the type system
-        if (nameNode.inferredType === undefined) {
-          nameNode.inferredType = getAnnotationType(node);
-        }
-      }
-    }
-    
-    // Handle array types (name followed by [])
-    if (node.named && node.named.array_suffix) {
-      stampTypeAnnotation(node.named.name);
-    }
-    
-    // Handle generic type instantiation (name<typeargs>)
-    if (node.named && node.named.type_args) {
-      if (node.named.name) stampTypeAnnotation(node.named.name);
-      // Recursively stamp type arguments
-      const typeArgsNode = node.named.type_args;
-      if (typeArgsNode.named && typeArgsNode.named.args) {
-        const stampTypeArgs = (argsNode) => {
-          if (argsNode.named && argsNode.named.arg) {
-            stampTypeAnnotation(argsNode.named.arg);
-          }
-          if (argsNode.named && argsNode.named.rest) {
-            stampTypeArgs(argsNode.named.rest);
-          }
-        };
-        stampTypeArgs(typeArgsNode.named.args);
-      }
-    }
-    
-    // Handle object types
-    if (node.children) {
-      node.children.forEach(child => {
-        if (child.type === 'object_type') {
-          stampObjectType(child);
-        }
-      });
-    }
-    return;
-  }
-  
-  // Handle other nodes recursively
+
   if (node.children) {
-    node.children.forEach(child => stampTypeAnnotation(child));
+    for (const child of node.children) stampTypeAnnotation(child);
   }
   if (node.named) {
-    Object.values(node.named).forEach(child => {
-      if (child && typeof child === 'object') {
-        stampTypeAnnotation(child);
-      }
-    });
+    for (const child of Object.values(node.named)) {
+      if (child && typeof child === 'object') stampTypeAnnotation(child);
+    }
   }
-}
-
-/**
- * Stamp property names in object type definitions
- * @param {Object} objectTypeNode - The object_type node
- */
-function stampObjectType(objectTypeNode) {
-  if (!objectTypeNode || inferencePhase !== 'inference') {
-    return;
-  }
-  
-  // Traverse object type properties
-  const traverse = (node) => {
-    if (!node) return;
-    
-    // Look for object_type_property nodes
-    if (node.type === 'object_type_property') {
-      // Stamp the property name with its type
-      if (node.named && node.named.key) {
-        const keyNode = node.named.key;
-        if (node.named.valueType && keyNode.inferredType === undefined) {
-          const valueType = getAnnotationType(node.named);
-          if (valueType) {
-            keyNode.inferredType = valueType;
-          }
-        }
-      }
-      // Recursively stamp the value type annotation
-      if (node.named && node.named.valueType) {
-        stampTypeAnnotation(node.named.valueType);
-      }
-    }
-    
-    // Continue traversing
-    if (node.children) {
-      node.children.forEach(child => traverse(child));
-    }
-    if (node.named) {
-      Object.values(node.named).forEach(child => {
-        if (child && typeof child === 'object') {
-          traverse(child);
-        }
-      });
-    }
-  };
-  
-  traverse(objectTypeNode);
 }
 
 function pushInference(node, inference) {
