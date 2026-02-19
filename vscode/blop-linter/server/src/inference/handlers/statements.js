@@ -59,7 +59,8 @@ function createStatementHandlers(getState) {
           for (const child of node.children) {
             if (child.type === 'exp') {
               if (child.inference && child.inference.length > 0) {
-                returnType = child.inference[0];
+                // Take the last inference value, which is the final result after all operations
+                returnType = child.inference[child.inference.length - 1];
               }
               break;
             }

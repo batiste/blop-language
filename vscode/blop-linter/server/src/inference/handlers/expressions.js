@@ -397,6 +397,10 @@ function createExpressionHandlers(getState) {
       visitChildren(node);
       pushInference(parent, PrimitiveType.Number);
     },
+    exp: (node, parent) => {
+      resolveTypes(node);
+      pushToParent(node, parent);
+    },
     name_exp: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase } = getState();
       const { name, access } = node.named;
@@ -445,8 +449,9 @@ function createExpressionHandlers(getState) {
     },
     operation: (node, parent) => {
       const { pushInference } = getState();
-      visitChildren(node);
+      resolveTypes(node);
       pushToParent(node, parent);
+      // Push the operator node itself so parent can process the binary operation
       if (node.named.math_op) {
         pushInference(parent, node.named.math_op);
       }
