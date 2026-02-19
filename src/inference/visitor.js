@@ -14,7 +14,6 @@ let typeAliases;
 let symbolTable; // Live SymbolTable from binding phase (for functionLocals lookup)
 let currentFilename;
 let currentFunctionCall; // Track function name for call validation
-let expectedObjectType; // Track expected type for object literals
 let inferencePhase = 'inference'; // 'inference' or 'checking' - controls warning suppression
 
 // Scope management
@@ -440,8 +439,6 @@ function getVisitorState() {
     pushInference,
     pushWarning,
     stampTypeAnnotation,
-    getExpectedObjectType: () => expectedObjectType,
-    setExpectedObjectType: (type) => { expectedObjectType = type; },
   };
 }
 

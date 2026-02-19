@@ -225,36 +225,11 @@ function createLiteralHandlers(getState) {
     },
 
     object_literal: (node, parent) => {
-      const { pushInference, getExpectedObjectType, typeAliases, lookupVariable } = getState();
+      const { pushInference, lookupVariable } = getState();
       resolveTypes(node);
 
       const structure = inferObjectLiteralStructure(node, lookupVariable);
       pushInference(parent, structure ?? Types.alias('object'));
-
-      // When there is a type annotation on the assignment, stamp property keys with
-      // their expected types for hover support.
-      const expectedType = getExpectedObjectType();
-      if (expectedType) {
-        const resolvedType = resolveTypeAlias(expectedType, typeAliases);
-        if (resolvedType instanceof ObjectType) {
-          function annotatePropertyKeys(n) {
-            if (!n?.children) return;
-            for (const child of n.children) {
-              if (child.type === 'object_literal_key' && child.children?.[0]) {
-                const keyChild = child.children[0];
-                let keyName = keyChild.value;
-                if (keyName?.startsWith('"') || keyName?.startsWith("'")) {
-                  keyName = keyName.slice(1, -1);
-                }
-                const prop = resolvedType.properties.get(keyName);
-                if (keyName && prop) pushInference(keyChild, prop.type);
-              }
-              annotatePropertyKeys(child);
-            }
-          }
-          annotatePropertyKeys(node);
-        }
-      }
     },
 
     virtual_node: (node, parent) => {

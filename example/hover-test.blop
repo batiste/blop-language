@@ -13,3 +13,10 @@ type Profile = {
 def profile(prof: Profile) {
     return prof.user
 }
+
+userAssignmentTest: User = { id: 1, name: "Alice" }
+console.log(userAssignmentTest)
+
+hello = "Hello"
+hello := "asdf"
+console.log(userAssignmentTest)
