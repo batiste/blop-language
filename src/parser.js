@@ -3851,12 +3851,18 @@ let func_def_params_0 = (stream, index) => {
 
   named['name'] = stream[i];
   children.push(stream[i]); i++;
+  const _rule_1 = annotation(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    named['annotation'] = _rule_1;
+    i = _rule_1.last_index;
+  }
 
   if (stream[i].type !== '=') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'func_def_params', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3865,16 +3871,10 @@ let func_def_params_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  const _rule_3 = annotation(stream, i);
-  if (_rule_3) {
-    children.push(_rule_3);
-    named['annotation'] = _rule_3;
-    i = _rule_3.last_index;
-  }
+  const _rule_3 = exp(stream, i);
+  if (!_rule_3) return false;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
 
   if (stream[i].type !== ',') {
     if (i >= best_failure_index) {
@@ -3936,12 +3936,18 @@ let func_def_params_1 = (stream, index) => {
 
   named['name'] = stream[i];
   children.push(stream[i]); i++;
+  const _rule_1 = annotation(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    named['annotation'] = _rule_1;
+    i = _rule_1.last_index;
+  }
 
   if (stream[i].type !== '=') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'func_def_params', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3950,16 +3956,10 @@ let func_def_params_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_2 = exp(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  const _rule_3 = annotation(stream, i);
-  if (_rule_3) {
-    children.push(_rule_3);
-    named['annotation'] = _rule_3;
-    i = _rule_3.last_index;
-  }
+  const _rule_3 = exp(stream, i);
+  if (!_rule_3) return false;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };

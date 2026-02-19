@@ -1,5 +1,6 @@
 
 
+
 something = 1
 
 async def testAsync() {
@@ -13,4 +14,46 @@ async def testAsync() {
 test('Async in condition', async () => {
   response = await testAsync()
   expect(response).toBe(1)
+})
+
+// Test: Simple parameter with type and default value
+def simpleDefault(x: number=5) {
+  return x * 2
+}
+
+test('Simple parameter with type and default', () => {
+  result1 = simpleDefault()
+  expect(result1).toBe(10)
+  
+  result2 = simpleDefault(3)
+  expect(result2).toBe(6)
+})
+
+// Test: Multiple parameters with mixed defaults
+def multipleDefaults(a: number, b: number=10) {
+  return a + b
+}
+
+test('Multiple parameters with defaults', () => {
+  result1 = multipleDefaults(5)
+  expect(result1).toBe(15)
+  
+  result2 = multipleDefaults(5, 20)
+  expect(result2).toBe(25)
+})
+
+// Test: Fat arrow function with defaults
+addWithDefault = (x: number=1, y: number=2): number => {
+  return x + y
+}
+
+test('Fat arrow with type and defaults', () => {
+  result1 = addWithDefault()
+  expect(result1).toBe(3)
+  
+  result2 = addWithDefault(10)
+  expect(result2).toBe(12)
+  
+  result3 = addWithDefault(10, 20)
+  expect(result3).toBe(30)
 })

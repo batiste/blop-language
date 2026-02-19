@@ -14,11 +14,11 @@ def profile(prof: Profile) {
     return prof.user
 }
 
-def test() {
-    return 1 + 2
+def test(a: number=1) {
+    return a
 }
 
-def variableType(x, _y=5) {
+def variableType(x: number, _y=5) {
     if (x > 10) {
         return "Greater than 10"
     } else {
