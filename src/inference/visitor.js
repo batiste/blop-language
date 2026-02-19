@@ -220,20 +220,36 @@ function pushWarning(node, message) {
 // Type Resolution Helpers
 // ============================================================================
 
+/**
+ * Extract the first property name from an object_access node
+ */
+function extractPropertyNameFromAccess(accessNode) {
+  if (!accessNode?.children) return null;
+  for (const child of accessNode.children) {
+    if (child.type === 'name') return child.value;
+  }
+  return null;
+}
+
+/**
+ * Check if an access node uses optional chaining
+ */
+function isOptionalChainAccess(accessNode) {
+  return !!(accessNode?.children?.some(child => child.type === 'optional_chain'));
+}
+
+/**
+ * Run a math operation check and emit any warnings. Returns the result.
+ */
+function emitMathWarnings(leftType, rightType, operatorNode) {
+  const result = TypeChecker.checkMathOperation(leftType, rightType, operatorNode.value);
+  if (result.warning) pushWarning(operatorNode, result.warning);
+  if (result.warnings) result.warnings.forEach(w => pushWarning(operatorNode, w));
+  return result;
+}
+
 function handleMathOperator(types, i, operatorNode) {
-  const leftType = types[i - 1];
-  const rightType = types[i - 2];
-  const operator = operatorNode.value;
-  
-  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
-  
-  if (result.warning) {
-    pushWarning(operatorNode, result.warning);
-  }
-  if (result.warnings) {
-    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
-  }
-  
+  const result = emitMathWarnings(types[i - 1], types[i - 2], operatorNode);
   types[i - 2] = result.resultType;
   types.splice(i - 1, 2);
   return i - 2;
@@ -242,20 +258,7 @@ function handleMathOperator(types, i, operatorNode) {
 function checkMathOperator(types, i, operatorNode) {
   const leftType = types[i - 1];
   const rightType = types[i - 2];
-  const operator = operatorNode.value;
-
-  if (!leftType || !rightType) {
-    return;
-  }
-
-  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
-
-  if (result.warning) {
-    pushWarning(operatorNode, result.warning);
-  }
-  if (result.warnings) {
-    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
-  }
+  if (leftType && rightType) emitMathWarnings(leftType, rightType, operatorNode);
 }
 
 function handleBooleanOperator(types, i) {
@@ -379,68 +382,43 @@ function handleAssignment(types, i, assignNode) {
   }
 }
 
+/**
+ * Validate property access on an object type and emit a warning if missing.
+ * Returns the resolved property type, or null if not found / not applicable.
+ */
+function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
+  if (!objectType || objectType === AnyType || !propertyName) return AnyType;
+
+  const resolvedType = resolveTypeAlias(objectType, typeAliases);
+
+  // Skip empty object type — often produced when inference fails
+  if (resolvedType.toString() === '{}') return AnyType;
+
+  if (resolvedType instanceof ObjectType) {
+    const propertyType = getPropertyType(objectType, propertyName, typeAliases);
+    if (propertyType === null) {
+      pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
+      return AnyType;
+    }
+    return propertyType;
+  }
+
+  // Not an object type (array, string, etc.) — skip validation
+  return AnyType;
+}
+
 function handleObjectAccess(types, i) {
   const objectType = types[i - 1];
   const accessNode = types[i];
-  
-  // Check if this is optional chaining
-  const isOptionalChain = accessNode && accessNode.children && 
-    accessNode.children.some(child => child.type === 'optional_chain');
-  
-  // Extract property name from the object_access node
-  let propertyName = null;
-  if (accessNode && accessNode.children) {
-    for (const child of accessNode.children) {
-      if (child.type === 'name') {
-        propertyName = child.value;
-        break;
-      }
-    }
-  }
-  
-  // Skip validation for optional chaining - it's designed to safely access potentially non-existent properties
-  if (isOptionalChain) {
+
+  if (isOptionalChainAccess(accessNode)) {
     types[i - 1] = AnyType;
     types.splice(i, 1);
     return i - 1;
   }
-  
-  // Only validate property access for object types (types that resolve to {...})
-  if (objectType && objectType !== AnyType && propertyName) {
-    // Resolve type alias to check if it's an object type
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
-    
-    // Skip validation for empty object type {} as it's often used when type inference fails
-    if (resolvedType.toString() === '{}') {
-      types[i - 1] = 'any';
-      types.splice(i, 1);
-      return i - 1;
-    }
-    
-    // Skip validation for non-object types and array types
-    if (resolvedType instanceof ObjectType) {
-      // This is an object type - validate property access
-      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
-      
-      if (propertyType === null) {
-        // Property doesn't exist on this type
-        pushWarning(
-          accessNode,
-          `Property '${propertyName}' does not exist on type ${objectType}`
-        );
-        types[i - 1] = AnyType;
-      } else {
-        // Update to the property's type
-        types[i - 1] = propertyType;
-      }
-    } else {
-      // Not an object type (array, string, etc.) - don't validate
-      types[i - 1] = AnyType;
-    }
-  } else {
-    types[i - 1] = AnyType;
-  }
-  
+
+  const propertyName = extractPropertyNameFromAccess(accessNode);
+  types[i - 1] = validateObjectPropertyAccess(objectType, propertyName, accessNode);
   types.splice(i, 1);
   return i - 1;
 }
@@ -449,40 +427,9 @@ function checkObjectAccess(types, i) {
   const objectType = types[i - 1];
   const accessNode = types[i];
 
-  const isOptionalChain = accessNode && accessNode.children &&
-    accessNode.children.some(child => child.type === 'optional_chain');
-
-  if (isOptionalChain) {
-    return;
-  }
-
-  let propertyName = null;
-  if (accessNode && accessNode.children) {
-    for (const child of accessNode.children) {
-      if (child.type === 'name') {
-        propertyName = child.value;
-        break;
-      }
-    }
-  }
-
-  if (objectType && objectType !== AnyType && propertyName) {
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
-
-    if (resolvedType.toString() === '{}') {
-      return;
-    }
-
-    if (resolvedType instanceof ObjectType) {
-      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
-
-      if (propertyType === null) {
-        pushWarning(
-          accessNode,
-          `Property '${propertyName}' does not exist on type ${objectType}`
-        );
-      }
-    }
+  if (!isOptionalChainAccess(accessNode)) {
+    const propertyName = extractPropertyNameFromAccess(accessNode);
+    validateObjectPropertyAccess(objectType, propertyName, accessNode);
   }
 }
 

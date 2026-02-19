@@ -11,5 +11,5 @@ type Profile = {
 }
 
 def profile(prof: Profile) {
-    prof.user
+    return prof.user
 }

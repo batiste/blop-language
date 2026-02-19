@@ -445,20 +445,6 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
 }
 
 /**
- * Check if a type is a generic type parameter
- * @param {Type|string} type
- * @param {string[]} genericParams
- * @returns {boolean}
- */
-export function isGenericTypeParameter(type, genericParams = []) {
-  if (type instanceof TypeAlias) {
-    return genericParams.includes(type.name) || /^[A-Z]$/.test(type.name);
-  }
-  
-  return false;
-}
-
-/**
  * Instantiate a generic type with type arguments
  * @param {string} genericTypeName - Generic type name
  * @param {Array<Type>} typeArgs - Type arguments (Type objects only)
