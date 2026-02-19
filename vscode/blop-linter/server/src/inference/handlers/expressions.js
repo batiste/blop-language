@@ -77,7 +77,7 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
   if (methodName) {
     const builtinType = getBuiltinObjectType(name.value);
     const rawReturn = builtinType?.[methodName];
-    const returnType = rawReturn ?? 'any';
+    const returnType = rawReturn ?? AnyType;
     pushInference(parent, returnType);
     return true;
   }
@@ -143,7 +143,7 @@ function handleNonGenericFunctionCall(name, definition, argTypes, parent, { push
     }
   }
   
-  const retType = definition.type ?? 'any';
+  const retType = definition.type ?? AnyType;
   pushInference(parent, retType);
 }
 
@@ -350,7 +350,7 @@ function createExpressionHandlers(getState) {
     },
     name_exp: (node, parent) => {
       const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
-      const { name, access, op } = node.named;
+      const { name, access } = node.named;
       
       if (access) {
         // Check if this is a function call
@@ -361,37 +361,22 @@ function createExpressionHandlers(getState) {
         
         if (hasFuncCall) {
           if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases })) {
-            if (op) {
-              const nodeHandlers = require('../index').getHandlers();
-              nodeHandlers.operation(op, node);
-              pushToParent(node, parent);
-            }
             return;
           }
         }
         
         // Try built-in property access first
         if (handleBuiltinPropertyAccess(name, access, parent, { pushInference })) {
-          if (op) {
-            const nodeHandlers = require('../index').getHandlers();
-            nodeHandlers.operation(op, node);
-            pushToParent(node, parent);
-          }
           return;
         }
         
         // Try object property access
         const definition = lookupVariable(name.value);
-        const defTypeIsAny = !definition?.type || definition.type === 'any' || definition.type === AnyType ||
+        const defTypeIsAny = !definition?.type || definition.type === AnyType ||
                               (definition.type instanceof PrimitiveType && definition.type.name === 'any');
         
         if (definition && definition.type && !defTypeIsAny) {
           if (handleObjectPropertyAccess(name, access, parent, definition, { pushInference, pushWarning, typeAliases })) {
-            if (op) {
-              const nodeHandlers = require('../index').getHandlers();
-              nodeHandlers.operation(op, node);
-              pushToParent(node, parent);
-            }
             return;
           }
         }
@@ -405,12 +390,6 @@ function createExpressionHandlers(getState) {
       // No access - handle simple variable reference
       const definition = lookupVariable(name.value);
       handleSimpleVariable(name, parent, definition, getState);
-      
-      if (op) {
-        const nodeHandlers = require('../index').getHandlers();
-        nodeHandlers.operation(op, node);
-        pushToParent(node, parent);
-      }
     },
     operation: (node, parent) => {
       const { pushInference } = getState();

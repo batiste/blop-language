@@ -65,42 +65,28 @@ function detectTypeofCheck(expNode) {
 }
 
 /**
- * Apply type narrowing to a scope
- * @param {Object} scope - Scope to apply narrowing to
- * @param {string} variable - Variable name to narrow
- * @param {string} narrowedType - Type to narrow to
+ * Apply a type transformation (narrow or exclude) to a variable in scope
+ * @param {Function} typeOp - narrowType or excludeType
+ * @param {Object} scope - Scope to update
+ * @param {string} variable - Variable name
+ * @param {*} effectType - Type operand for the operation
  * @param {Function} lookupVariable - Function to lookup variables in scope chain
  */
-function applyNarrowing(scope, variable, narrowedType, lookupVariable) {
+function applyTypeEffect(typeOp, scope, variable, effectType, lookupVariable) {
   const def = lookupVariable(variable);
   if (def && def.type) {
-    const newType = narrowType(def.type, narrowedType);
-    // Create a narrowed version in the current scope
-    scope[variable] = {
-      ...def,
-      type: newType,
-      narrowed: true,
-    };
+    scope[variable] = { ...def, type: typeOp(def.type, effectType), narrowed: true };
   }
 }
 
-/**
- * Apply type exclusion to a scope (for else branches)
- * @param {Object} scope - Scope to apply exclusion to
- * @param {string} variable - Variable name
- * @param {string} excludedType - Type to exclude
- * @param {Function} lookupVariable - Function to lookup variables in scope chain
- */
+/** Apply type narrowing to a scope (for if-true branch) */
+function applyNarrowing(scope, variable, narrowedType, lookupVariable) {
+  applyTypeEffect(narrowType, scope, variable, narrowedType, lookupVariable);
+}
+
+/** Apply type exclusion to a scope (for else branch) */
 function applyExclusion(scope, variable, excludedType, lookupVariable) {
-  const def = lookupVariable(variable);
-  if (def && def.type) {
-    const newType = excludeType(def.type, excludedType);
-    scope[variable] = {
-      ...def,
-      type: newType,
-      narrowed: true,
-    };
-  }
+  applyTypeEffect(excludeType, scope, variable, excludedType, lookupVariable);
 }
 
 /**

@@ -22,24 +22,31 @@ function createNodeHandlers() {
 }
 
 /**
- * Run type inference on an AST and return any type warnings
- * 
+ * Run type inference on an AST and return any type warnings.
+ *
  * Three-phase architecture:
- * 
- * Phase 1: Binding (runBindingPhase)
- * - Traverses AST once to collect all definitions (functions, type aliases)
- * - Populates symbol table without any type analysis
- * 
- * Phase 2: Type Inference (visit with inference handlers)
- * - Computes types for all expressions
- * - Records inferred types on AST nodes
- * - Handlers currently include validation (to be separated in future)
- * 
- * Phase 3: Type Checking (future refactoring)
- * - Would validate inferred types against declarations
- * - Would report all type errors and warnings
- * - Currently integrated with Phase 2 - to be separated later
- * 
+ *
+ * Phase 1 — Binding (runBindingPhase)
+ *   Traverses the AST once to collect all top-level definitions (functions,
+ *   type aliases, annotated locals).  Populates a SymbolTable used as the
+ *   initial scope for both later phases.  No type analysis is performed here.
+ *
+ * Phase 2 — Type Inference (inferencePhase = 'inference')
+ *   Walks the AST a second time to propagate structured Type objects through
+ *   expressions.  All types in this phase are proper Type instances (never
+ *   plain strings).  Warnings are suppressed so that incomplete information
+ *   mid-traversal does not produce false positives.
+ *
+ * Phase 2.5 — Hover Stamping (stampInferredTypes)
+ *   After inference is complete, copies inferred types onto AST node fields so
+ *   that the language server can provide hover information without re-running
+ *   inference.
+ *
+ * Phase 3 — Type Checking (inferencePhase = 'checking')
+ *   Re-walks the AST with the same handlers.  Now that all types are resolved,
+ *   assignment checks, function-call validation, property-access validation,
+ *   and return-type checks are performed, and warnings are collected.
+ *
  * @param {Object} node - Root AST node
  * @param {Array} _stream - Token stream for error reporting
  * @param {String} filename - Optional filename for import resolution

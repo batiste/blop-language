@@ -51,146 +51,29 @@ function getFunctionScope() {
 }
 
 /**
- * Recursively stamp type annotation names with their type definitions for hover support
- * @param {Object} node - The annotation or type_expression node to traverse
+ * Recursively stamp type annotation names with their type definitions for hover support.
+ * Walks the annotation subtree uniformly: when a type_primary with a name is reached,
+ * stamp that name node with the resolved Type object.
+ * @param {Object} node - Any node within an annotation subtree
  */
 function stampTypeAnnotation(node) {
-  if (!node || inferencePhase !== 'inference') {
-    return;
+  if (!node || inferencePhase !== 'inference') return;
+
+  if (node.type === 'type_primary' && node.named?.name) {
+    const nameNode = node.named.name;
+    if (nameNode.inferredType === undefined) {
+      nameNode.inferredType = getAnnotationType(node);
+    }
   }
-  
-  // Handle annotation node - extract the type_expression
-  if (node.type === 'annotation' && node.named && node.named.type) {
-    stampTypeAnnotation(node.named.type);
-    return;
-  }
-  
-  // Handle type_expression - recursively process children
-  if (node.type === 'type_expression') {
-    if (node.named) {
-      // Handle union/intersection branches
-      if (node.named.union) stampTypeAnnotation(node.named.union);
-      if (node.named.intersection) stampTypeAnnotation(node.named.intersection);
-    }
-    // Process children for type_primary
-    if (node.children) {
-      node.children.forEach(child => stampTypeAnnotation(child));
-    }
-    return;
-  }
-  
-  // Handle type_primary - look for names and object types
-  if (node.type === 'type_primary') {
-    // Check for basic type name
-    if (node.named && node.named.name) {
-      const nameNode = node.named.name;
-      const typeName = nameNode.value;
-      
-      // Check if it's a type alias
-      if (typeAliases[typeName]) {
-        if (nameNode.inferredType === undefined) {
-          nameNode.inferredType = typeAliases[typeName];
-        }
-      } else if (['string', 'number', 'boolean', 'any', 'undefined', 'null'].includes(typeName)) {
-        // Built-in type — resolve to a Type object via the type system
-        if (nameNode.inferredType === undefined) {
-          nameNode.inferredType = getAnnotationType(node);
-        }
-      }
-    }
-    
-    // Handle array types (name followed by [])
-    if (node.named && node.named.array_suffix) {
-      stampTypeAnnotation(node.named.name);
-    }
-    
-    // Handle generic type instantiation (name<typeargs>)
-    if (node.named && node.named.type_args) {
-      if (node.named.name) stampTypeAnnotation(node.named.name);
-      // Recursively stamp type arguments
-      const typeArgsNode = node.named.type_args;
-      if (typeArgsNode.named && typeArgsNode.named.args) {
-        const stampTypeArgs = (argsNode) => {
-          if (argsNode.named && argsNode.named.arg) {
-            stampTypeAnnotation(argsNode.named.arg);
-          }
-          if (argsNode.named && argsNode.named.rest) {
-            stampTypeArgs(argsNode.named.rest);
-          }
-        };
-        stampTypeArgs(typeArgsNode.named.args);
-      }
-    }
-    
-    // Handle object types
-    if (node.children) {
-      node.children.forEach(child => {
-        if (child.type === 'object_type') {
-          stampObjectType(child);
-        }
-      });
-    }
-    return;
-  }
-  
-  // Handle other nodes recursively
+
   if (node.children) {
-    node.children.forEach(child => stampTypeAnnotation(child));
+    for (const child of node.children) stampTypeAnnotation(child);
   }
   if (node.named) {
-    Object.values(node.named).forEach(child => {
-      if (child && typeof child === 'object') {
-        stampTypeAnnotation(child);
-      }
-    });
+    for (const child of Object.values(node.named)) {
+      if (child && typeof child === 'object') stampTypeAnnotation(child);
+    }
   }
-}
-
-/**
- * Stamp property names in object type definitions
- * @param {Object} objectTypeNode - The object_type node
- */
-function stampObjectType(objectTypeNode) {
-  if (!objectTypeNode || inferencePhase !== 'inference') {
-    return;
-  }
-  
-  // Traverse object type properties
-  const traverse = (node) => {
-    if (!node) return;
-    
-    // Look for object_type_property nodes
-    if (node.type === 'object_type_property') {
-      // Stamp the property name with its type
-      if (node.named && node.named.key) {
-        const keyNode = node.named.key;
-        if (node.named.valueType && keyNode.inferredType === undefined) {
-          const valueType = getAnnotationType(node.named);
-          if (valueType) {
-            keyNode.inferredType = valueType;
-          }
-        }
-      }
-      // Recursively stamp the value type annotation
-      if (node.named && node.named.valueType) {
-        stampTypeAnnotation(node.named.valueType);
-      }
-    }
-    
-    // Continue traversing
-    if (node.children) {
-      node.children.forEach(child => traverse(child));
-    }
-    if (node.named) {
-      Object.values(node.named).forEach(child => {
-        if (child && typeof child === 'object') {
-          traverse(child);
-        }
-      });
-    }
-  };
-  
-  traverse(objectTypeNode);
 }
 
 function pushInference(node, inference) {
@@ -200,8 +83,8 @@ function pushInference(node, inference) {
   if (!node.inference) {
     node.inference = [];
   }
-  if (inference === 'string') {
-    throw new Error(`Inference should be a Type object, not a string literal ${inference}, at ${JSON.stringify(node)}`);
+  if (typeof inference === 'string') {
+    throw new Error(`Inference should be a Type object, not a string. Got '${inference}' at node type '${node.type}'`);
   }
   node.inference.push(inference);
 }
@@ -220,20 +103,36 @@ function pushWarning(node, message) {
 // Type Resolution Helpers
 // ============================================================================
 
+/**
+ * Extract the first property name from an object_access node
+ */
+function extractPropertyNameFromAccess(accessNode) {
+  if (!accessNode?.children) return null;
+  for (const child of accessNode.children) {
+    if (child.type === 'name') return child.value;
+  }
+  return null;
+}
+
+/**
+ * Check if an access node uses optional chaining
+ */
+function isOptionalChainAccess(accessNode) {
+  return !!(accessNode?.children?.some(child => child.type === 'optional_chain'));
+}
+
+/**
+ * Run a math operation check and emit any warnings. Returns the result.
+ */
+function emitMathWarnings(leftType, rightType, operatorNode) {
+  const result = TypeChecker.checkMathOperation(leftType, rightType, operatorNode.value);
+  if (result.warning) pushWarning(operatorNode, result.warning);
+  if (result.warnings) result.warnings.forEach(w => pushWarning(operatorNode, w));
+  return result;
+}
+
 function handleMathOperator(types, i, operatorNode) {
-  const leftType = types[i - 1];
-  const rightType = types[i - 2];
-  const operator = operatorNode.value;
-  
-  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
-  
-  if (result.warning) {
-    pushWarning(operatorNode, result.warning);
-  }
-  if (result.warnings) {
-    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
-  }
-  
+  const result = emitMathWarnings(types[i - 1], types[i - 2], operatorNode);
   types[i - 2] = result.resultType;
   types.splice(i - 1, 2);
   return i - 2;
@@ -242,20 +141,7 @@ function handleMathOperator(types, i, operatorNode) {
 function checkMathOperator(types, i, operatorNode) {
   const leftType = types[i - 1];
   const rightType = types[i - 2];
-  const operator = operatorNode.value;
-
-  if (!leftType || !rightType) {
-    return;
-  }
-
-  const result = TypeChecker.checkMathOperation(leftType, rightType, operator);
-
-  if (result.warning) {
-    pushWarning(operatorNode, result.warning);
-  }
-  if (result.warnings) {
-    result.warnings.forEach(warning => pushWarning(operatorNode, warning));
-  }
+  if (leftType && rightType) emitMathWarnings(leftType, rightType, operatorNode);
 }
 
 function handleBooleanOperator(types, i) {
@@ -266,33 +152,22 @@ function handleBooleanOperator(types, i) {
 
 function handleNullishOperator(types, i) {
   // Nullish coalescing: left ?? right
-  // Returns the left side if it's not null/undefined, otherwise right side
+  // If left is never nullish → result is left; otherwise → (non-null left) | right
   const leftType = types[i - 1];
   const rightType = types[i - 2];
-  
-  // If left can never be nullish, result is left type
-  if (leftType !== NullType && leftType !== UndefinedType && 
-      !isUnionType(leftType) || 
-      (isUnionType(leftType) && !parseUnionType(leftType).some(t => t === NullType || t === UndefinedType))) {
+
+  const leftCanBeNullish = leftType === NullType || leftType === UndefinedType ||
+    (isUnionType(leftType) && parseUnionType(leftType).some(t => t === NullType || t === UndefinedType));
+
+  if (!leftCanBeNullish) {
     types[i - 2] = leftType;
   } else {
-    // Remove nullish from left and union with right
     const nonNullishLeft = removeNullish(leftType);
-    if (nonNullishLeft === NeverType) {
-      // Left is definitely null/undefined, result is right type
-      types[i - 2] = rightType;
-    } else {
-      // Left might be nullish, result is union of non-nullish left and right
-      const resultTypes = [];
-      if (nonNullishLeft !== NeverType) {
-        resultTypes.push(nonNullishLeft);
-      }
-      if (rightType) {
-        resultTypes.push(rightType);
-      }
-      types[i - 2] = createUnionType(resultTypes);
-    }
+    types[i - 2] = nonNullishLeft === NeverType
+      ? rightType
+      : createUnionType([nonNullishLeft, rightType].filter(Boolean));
   }
+
   types.splice(i - 1, 2);
   return i - 2;
 }
@@ -300,8 +175,8 @@ function handleNullishOperator(types, i) {
 function handleAssignment(types, i, assignNode) {
   const { annotation, name, explicit_assign } = assignNode.named;
   const valueType = types[i - 1];
-  
-    if (annotation && valueType && valueType !== AnyType) {
+
+  if (annotation && valueType && valueType !== AnyType) {
     const annotationType = getAnnotationType(annotation);
     if (annotationType) {
       const result = TypeChecker.checkAssignment(valueType, annotationType, typeAliases);
@@ -379,68 +254,43 @@ function handleAssignment(types, i, assignNode) {
   }
 }
 
+/**
+ * Validate property access on an object type and emit a warning if missing.
+ * Returns the resolved property type, or null if not found / not applicable.
+ */
+function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
+  if (!objectType || objectType === AnyType || !propertyName) return AnyType;
+
+  const resolvedType = resolveTypeAlias(objectType, typeAliases);
+
+  // Skip empty object type — often produced when inference fails
+  if (resolvedType.toString() === '{}') return AnyType;
+
+  if (resolvedType instanceof ObjectType) {
+    const propertyType = getPropertyType(objectType, propertyName, typeAliases);
+    if (propertyType === null) {
+      pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
+      return AnyType;
+    }
+    return propertyType;
+  }
+
+  // Not an object type (array, string, etc.) — skip validation
+  return AnyType;
+}
+
 function handleObjectAccess(types, i) {
   const objectType = types[i - 1];
   const accessNode = types[i];
-  
-  // Check if this is optional chaining
-  const isOptionalChain = accessNode && accessNode.children && 
-    accessNode.children.some(child => child.type === 'optional_chain');
-  
-  // Extract property name from the object_access node
-  let propertyName = null;
-  if (accessNode && accessNode.children) {
-    for (const child of accessNode.children) {
-      if (child.type === 'name') {
-        propertyName = child.value;
-        break;
-      }
-    }
-  }
-  
-  // Skip validation for optional chaining - it's designed to safely access potentially non-existent properties
-  if (isOptionalChain) {
+
+  if (isOptionalChainAccess(accessNode)) {
     types[i - 1] = AnyType;
     types.splice(i, 1);
     return i - 1;
   }
-  
-  // Only validate property access for object types (types that resolve to {...})
-  if (objectType && objectType !== AnyType && propertyName) {
-    // Resolve type alias to check if it's an object type
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
-    
-    // Skip validation for empty object type {} as it's often used when type inference fails
-    if (resolvedType.toString() === '{}') {
-      types[i - 1] = 'any';
-      types.splice(i, 1);
-      return i - 1;
-    }
-    
-    // Skip validation for non-object types and array types
-    if (resolvedType instanceof ObjectType) {
-      // This is an object type - validate property access
-      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
-      
-      if (propertyType === null) {
-        // Property doesn't exist on this type
-        pushWarning(
-          accessNode,
-          `Property '${propertyName}' does not exist on type ${objectType}`
-        );
-        types[i - 1] = AnyType;
-      } else {
-        // Update to the property's type
-        types[i - 1] = propertyType;
-      }
-    } else {
-      // Not an object type (array, string, etc.) - don't validate
-      types[i - 1] = AnyType;
-    }
-  } else {
-    types[i - 1] = AnyType;
-  }
-  
+
+  const propertyName = extractPropertyNameFromAccess(accessNode);
+  types[i - 1] = validateObjectPropertyAccess(objectType, propertyName, accessNode);
   types.splice(i, 1);
   return i - 1;
 }
@@ -449,40 +299,9 @@ function checkObjectAccess(types, i) {
   const objectType = types[i - 1];
   const accessNode = types[i];
 
-  const isOptionalChain = accessNode && accessNode.children &&
-    accessNode.children.some(child => child.type === 'optional_chain');
-
-  if (isOptionalChain) {
-    return;
-  }
-
-  let propertyName = null;
-  if (accessNode && accessNode.children) {
-    for (const child of accessNode.children) {
-      if (child.type === 'name') {
-        propertyName = child.value;
-        break;
-      }
-    }
-  }
-
-  if (objectType && objectType !== AnyType && propertyName) {
-    const resolvedType = resolveTypeAlias(objectType, typeAliases);
-
-    if (resolvedType.toString() === '{}') {
-      return;
-    }
-
-    if (resolvedType instanceof ObjectType) {
-      const propertyType = getPropertyType(objectType, propertyName, typeAliases);
-
-      if (propertyType === null) {
-        pushWarning(
-          accessNode,
-          `Property '${propertyName}' does not exist on type ${objectType}`
-        );
-      }
-    }
+  if (!isOptionalChainAccess(accessNode)) {
+    const propertyName = extractPropertyNameFromAccess(accessNode);
+    validateObjectPropertyAccess(objectType, propertyName, accessNode);
   }
 }
 
