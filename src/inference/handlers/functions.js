@@ -185,9 +185,11 @@ function createFunctionHandlers(getState) {
         }
       }
       
-      // Anonymous functions as expressions should infer as 'function'
+      // Anonymous functions as expressions should infer as a function type with proper signature
       if (parent && !node.named.name) {
-        pushInference(parent, AnyFunctionType);
+        const finalType = declaredType ?? inferredType;
+        const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams);
+        pushInference(parent, functionType);
         
         // Validate anonymous function return types if they have type annotations
         if (declaredType && inferredType !== AnyType) {

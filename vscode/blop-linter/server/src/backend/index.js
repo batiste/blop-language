@@ -57,6 +57,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     resolve,
     env, // Track environment for import/export generation
     generateCode: null, // Will be set after creation
+    backendCompiler: _backend, // Reference to main compiler for recursive calls
   };
 
   // Create validators

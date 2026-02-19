@@ -35,3 +35,13 @@ console.log(userAssignmentTest)
 hello = "Hello"
 hello := "asdf"
 console.log(userAssignmentTest)
+
+def test1(): VNode {
+    <p>'hello'</p>
+}
+result_1 = test1()
+
+Test = (): VNode => {
+    <p>'hello'</p>
+}
+result_2 = Test()

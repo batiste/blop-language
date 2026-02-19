@@ -439,7 +439,7 @@ describe('FunctionType variance', () => {
   });
 
   test('toString() for AnyFunctionType', () => {
-    expect(AnyFunctionType.toString()).toBe('function');
+    expect(AnyFunctionType.toString()).toBe('() => any');
   });
 
   test('equals() for identical signatures', () => {

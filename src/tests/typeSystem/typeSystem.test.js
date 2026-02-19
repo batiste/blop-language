@@ -62,7 +62,7 @@ describe('AnyFunctionType', () => {
   });
 
   test('toString() returns "function"', () => {
-    expect(AnyFunctionType.toString()).toBe('function');
+    expect(AnyFunctionType.toString()).toBe('() => any');
   });
 
   test('equals any FunctionType (wildcard)', () => {

@@ -613,11 +613,10 @@ export class FunctionType extends Type {
   }
   
   toString() {
-    if (this.params === null) return 'function';
     const generics = this.genericParams.length > 0 
       ? `<${this.genericParams.join(', ')}>` 
       : '';
-    const params = this.params.map((p, i) => `p${i}: ${p.toString()}`).join(', ');
+    const params = this.params ? this.params.map((p, i) => `p${i}: ${p.toString()}`).join(', ') : '';
     return `${generics}(${params}) => ${this.returnType.toString()}`;
   }
   

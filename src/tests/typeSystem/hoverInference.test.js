@@ -231,4 +231,27 @@ console.log(userAssignmentTest)`;
     expect(varNodes[0].inferredType.toString()).toBe('User');
     expect(varNodes[1].inferredType.toString()).toBe('{id: 1, name: "Alice"}');
   });
+
+  it('should infer the correct type for arrow function returning VNode', () => {
+    const code = `Test = (): VNode => {
+    <p>'hello'</p>
+}`
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find the 'Test' variable node and check its inferred type
+    const testNodes = findNodesWithValue(tree, ['Test']);
+    expect(testNodes.length).toBeGreaterThan(0);
+    console.log('Test nodes:', testNodes);
+    
+    // The first 'Test' is the variable definition (assignment left side)
+    const testVar = testNodes[0];
+    expect(testVar.value).toBe('Test');
+    expect(testVar.inferredType).toBeDefined();
+    
+    // Should resolve to a function type with VNode return type
+    const typeStr = testVar.inferredType.toString();
+    expect(typeStr).toContain('VNode');
+  });
 });
