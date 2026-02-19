@@ -8,7 +8,6 @@ import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctio
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
-import { name } from 'happy-dom/lib/PropertySymbol.js';
 
 /**
  * Extract explicit type arguments from type_arguments node
