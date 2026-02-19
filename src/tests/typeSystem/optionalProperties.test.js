@@ -1,4 +1,4 @@
-const { expectCompilationError } = require('../testHelpers');
+import { expectCompilationError } from '../testHelpers.js';
 
 describe('Optional Properties - Error Cases', () => {
   test('optional property with wrong type should fail', () => {

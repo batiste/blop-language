@@ -1,4 +1,4 @@
-const { expectCompilationError } = require('../testHelpers');
+import { expectCompilationError } from '../testHelpers.js';
 
 describe('Literal Types - Error Cases', () => {
   test('string literal type rejects wrong literal', () => {

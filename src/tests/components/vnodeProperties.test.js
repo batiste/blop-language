@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('../testHelpers');
+import { expectCompilationError, expectCompiles } from '../testHelpers.js';
 
 describe('VNode type properties', () => {
   test('allows access to elm property on VNode', () => {

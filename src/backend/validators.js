@@ -7,9 +7,6 @@ import { all } from '../builtin.js';
 import { ERROR_MESSAGES } from '../constants.js';
 import { streamContext } from '../errorMessages.js';
 
-// Create a require function for module resolution in ESM environment
-const require = createRequire(import.meta.url);
-
 function createValidators(context) {
   const { scopes, stream, input, checkFilename, config, keysCache, errors, warnings } = context;
   const configGlobals = config.globals || {};
@@ -100,9 +97,8 @@ function createValidators(context) {
     const tokenStream = parser.tokenize(tokensDefinition, source);
     const tree = parser.parse(tokenStream);
     if (tree.success) {
-      // Import backend dynamically to avoid circular dependency
-      const backend = require('./index');
-      const result = backend.generateCode(tree, tokenStream, source, filename);
+      // Use backend compiler from context to avoid circular dependency
+      const result = context.backendCompiler(tree, tokenStream, source, filename);
       keysCache[filename] = {
         keys: result.exportKeys,
         objects: result.exportObjects,
@@ -130,10 +126,12 @@ function createValidators(context) {
     }
     let filename;
     try {
+      // Create require function for module resolution
+      const requireFn = createRequire(checkFilename);
       if (name.startsWith('.')) {
-        filename = require.resolve(name, { paths: [path.dirname(checkFilename)] });
+        filename = requireFn.resolve(name, { paths: [path.dirname(checkFilename)] });
       } else {
-        filename = require.resolve(name, { paths: [path.dirname(checkFilename)] });
+        filename = requireFn.resolve(name, { paths: [path.dirname(checkFilename)] });
       }
       if (filename.endsWith('.blop')) {
         checkImportKeys(filename, importedKeys);

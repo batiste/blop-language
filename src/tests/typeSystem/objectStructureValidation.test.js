@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('../testHelpers');
+import { expectCompilationError, expectCompiles } from '../testHelpers.js';
 
 describe('Object type structural validation - negative tests', () => {
   test('rejects object missing required property', () => {

@@ -1,6 +1,9 @@
-const { readFileSync } = require('fs');
-const { join } = require('path');
-const { compileSource } = require('../../compile.js');
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { compileSource } from '../../compile.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('Example files compilation', () => {
   test('example/index.blop compiles without errors', () => {

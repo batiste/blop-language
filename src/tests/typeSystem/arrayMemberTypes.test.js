@@ -1,4 +1,4 @@
-const { expectCompilationError, expectCompiles } = require('../testHelpers');
+import { expectCompilationError, expectCompiles } from '../testHelpers.js';
 
 describe('Array member type tracking', () => {
   // -------------------------------------------------------------------------

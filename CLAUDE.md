@@ -2,4 +2,8 @@ The directory vscode/blop-linter/blop-linter/server/src contains mostly files th
 
 To write negative tests, you can use `src/tests/testHelpers.js` -> `expectCompilationError`. Prefer writing genuine Blop test files for positive tests (they will be compiled)
 
+Always use ESM imports, even in test files.
+
+Use camelCase for files
+
 When you write md docs, avoid too many emoticon, use typescript as the code block language for proper coloration
