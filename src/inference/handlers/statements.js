@@ -219,7 +219,7 @@ function createStatementHandlers(getState) {
           
           // Extract destructured variable names and stamp them with property types
           if (resolvedValueType instanceof ObjectType) {
-            const destNode = node.named.destructuring;
+            const destNode = node.named.destructuring.named.values;
             
             // Extract all destructured names with their corresponding properties
             // Returns array of {propertyName, varName, node}

@@ -208,36 +208,36 @@ function handleAssignment(types, i, assignNode) {
     const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
     
     // Extract destructured variable names from the destructuring node
-    const destructuredNames = extractDestructuredNames(destructuring);
+    const destructuredBindings = extractDestructuredNames(destructuring);
     
     // If the value is an object type, infer property types for each destructured variable
     if (resolvedValueType instanceof ObjectType) {
-      for (const varNode of destructuredNames) {
-        const varName = varNode.value;
-        const propertyType = getPropertyType(valueType, varName, typeAliases);
+      for (const { propertyName, varName, node: varNode } of destructuredBindings) {
+        // Look up property on the object using the PROPERTY NAME
+        const propertyType = getPropertyType(valueType, propertyName, typeAliases);
         
         if (propertyType !== null) {
-          // Create variable definition with inferred type
+          // Create variable definition with inferred type using the VARIABLE NAME
           const scope = getCurrentScope();
           scope[varName] = {
             type: propertyType,
             node: assignNode,
           };
           
-          // Stamp hover type information
-          if (inferencePhase === 'inference' && varNode.inferredType === undefined) {
+          // Stamp hover type information - do this unconditionally like regular assignments
+          if (varNode.inferredType === undefined) {
             varNode.inferredType = propertyType;
           }
         } else {
           // Property doesn't exist on the object type
           pushWarning(
             destructuring,
-            `Property '${varName}' does not exist on type ${valueType}`
+            `Property '${propertyName}' does not exist on type ${valueType}`
           );
         }
       }
     }
-    return;
+    // Don't return - let other assignment logic continue if needed
   }
   
   if (valueType && name && valueType !== AnyType) {
@@ -526,41 +526,44 @@ function setHandlers(handlers) {
 /**
  * Extract destructured variable names from an object_destructuring node
  * @param {Object} destructuringNode - The object_destructuring AST node
- * @returns {Object[]} Array of name nodes
+ * @returns {Object[]} Array of name token nodes (the actual 'name' tokens to stamp)
  */
 function extractDestructuredNames(destructuringNode) {
   if (!destructuringNode) return [];
   
-  const names = [];
+  const bindings = [];
   
-  // Find the destructuring_values node
-  const valuesNode = destructuringNode.children?.find(c => c.type === 'destructuring_values');
+  // Get the destructuring_values node from within the object_destructuring wrapper
+  const valuesNode = destructuringNode.named?.values || 
+                      destructuringNode.children?.find(c => c.type === 'destructuring_values');
+  
   if (!valuesNode) return [];
   
-  // Traverse the destructuring_values tree to extract all name nodes
-  const extractNames = (node) => {
-    if (!node) return;
+  // Traverse the destructuring_values tree to extract property->variable mappings
+  const extractBindings = (node) => {
+    if (!node || node.type !== 'destructuring_values') return;
     
-    // Named node has a 'name' property (the destructured variable name)
+    // Extract current binding
     if (node.named?.name) {
-      names.push(node.named.name);
+      const propertyName = node.named.name.value;
+      const varName = node.named.rename?.value || propertyName;
+      const varNode = node.named.rename || node.named.name;
+      
+      bindings.push({
+        propertyName,
+        varName,
+        node: varNode
+      });
     }
     
-    // Continue traversing for nested destructuring
+    // Recurse for more values
     if (node.named?.more) {
-      extractNames(node.named.more);
+      extractBindings(node.named.more);
     }
-    
-    // Also check children in case of different structure
-    node.children?.forEach(child => {
-      if (child.type === 'destructuring_values') {
-        extractNames(child);
-      }
-    });
   };
   
-  extractNames(valuesNode);
-  return names;
+  extractBindings(valuesNode);
+  return bindings;
 }
 
 export {

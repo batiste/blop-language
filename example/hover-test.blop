@@ -59,6 +59,6 @@ def testAnnotation2(attributes: { total: number, text: string }) {
 }
 
 def testAnnotation3(attributes: { total: number, text: string }) {
-    { total, _text } = attributes
+    { total, text as _text } = attributes
     return total
 }

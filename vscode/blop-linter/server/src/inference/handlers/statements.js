@@ -5,8 +5,8 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, ArrayType } from '../typeSystem.js';
-import { UndefinedType, StringType, NumberType } from '../Type.js';
+import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, ArrayType, ObjectType } from '../typeSystem.js';
+import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
@@ -37,6 +37,29 @@ function extractImportNames(node) {
   
   traverse(node);
   return names;
+}
+
+/**
+ * Widen literal types to their abstract base types
+ * For LiteralType, returns baseType; for UnionType, widens each member
+ */
+function widenLiteralTypes(type) {
+  if (type instanceof LiteralType) {
+    return type.baseType;
+  } else if (type instanceof UnionType) {
+    const widenedTypes = type.types.map(t => widenLiteralTypes(t));
+    // Avoid creating nested unions by flattening
+    const flattened = [];
+    for (const t of widenedTypes) {
+      if (t instanceof UnionType) {
+        flattened.push(...t.types);
+      } else {
+        flattened.push(t);
+      }
+    }
+    return new UnionType(flattened);
+  }
+  return type;
 }
 
 function createStatementHandlers(getState) {
@@ -185,7 +208,102 @@ function createStatementHandlers(getState) {
     assign: (node, parent) => {
       const { pushInference, lookupVariable, typeAliases, pushWarning, stampTypeAnnotation } = getState();
       
-      if (node.named.name || node.named.path) {
+      if (node.named.destructuring) {
+        // Handle destructuring assignment: { total, text } = attributes
+        visit(node.named.exp, node);
+        const expNode = node.named.exp;
+        const valueType = expNode && expNode.inference && expNode.inference[0];
+        
+        if (valueType && valueType !== AnyType) {
+          const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
+          
+          // Extract destructured variable names and stamp them with property types
+          if (resolvedValueType instanceof ObjectType) {
+            const destNode = node.named.destructuring.named.values;
+            
+            // Extract all destructured names with their corresponding properties
+            // Returns array of {propertyName, varName, node}
+            function extractBindings(n) {
+              const bindings = [];
+              
+              if (n.type === 'destructuring_values') {
+                // Destructuring value with possible rename or simple name
+                if (n.named.name && n.named.rename) {
+                  // Renamed: x as xPos
+                  bindings.push({
+                    propertyName: n.named.name.value,
+                    varName: n.named.rename.value,
+                    node: n.named.rename
+                  });
+                } else if (n.named.name) {
+                  // Simple name in destructuring_values
+                  bindings.push({
+                    propertyName: n.named.name.value,
+                    varName: n.named.name.value,
+                    node: n.named.name
+                  });
+                }
+                // Recurse for nested destructuring through 'more' property or children
+                if (n.named.more) {
+                  bindings.push(...extractBindings(n.named.more));
+                } else if (n.children) {
+                  // Find nested destructuring_values in children
+                  for (const child of n.children) {
+                    if (child.type === 'destructuring_values') {
+                      bindings.push(...extractBindings(child));
+                    }
+                  }
+                }
+              } else if (n.children) {
+                // For other container nodes, recurse through children
+                for (const child of n.children) {
+                  if (child.type === 'destructuring_values') {
+                    bindings.push(...extractBindings(child));
+                  }
+                }
+              }
+              
+              return bindings;
+            }
+            
+            const bindings = extractBindings(destNode);
+            
+            for (const {propertyName, varName, node} of bindings) {
+              // For destructuring, get the raw property type WITHOUT removing undefined
+              // (which getPropertyType does for regular property access)
+              let propertyType = null;
+              
+              if (resolvedValueType instanceof ObjectType) {
+                const prop = resolvedValueType.properties.get(propertyName);
+                if (prop) {
+                  propertyType = prop.type;
+                  // For optional properties, include undefined in the union
+                  if (prop.optional && propertyType) {
+                    propertyType = new UnionType([propertyType, UndefinedType]);
+                  }
+                }
+              } else {
+                // Fall back to getPropertyType for other types
+                propertyType = getPropertyType(valueType, propertyName, typeAliases);
+              }
+              
+              if (propertyType !== null) {
+                // Widen literal types to their abstract base types
+                const widenedType = widenLiteralTypes(propertyType);
+                node.inferredType = widenedType;
+              } else {
+                pushWarning(
+                  destNode,
+                  `Property '${propertyName}' does not exist on type ${valueType}`
+                );
+              }
+            }
+          }
+        }
+        
+        pushToParent(node, parent);
+        pushInference(parent, node);
+      } else if (node.named.name || node.named.path) {
         if (node.named.annotation) {
           // Stamp the type annotation for hover support
           stampTypeAnnotation(node.named.annotation);
