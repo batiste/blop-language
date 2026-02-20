@@ -93,11 +93,13 @@ def smartProcess(val: string | number | boolean | null): string {
   if val == null {
     return 'got null'
   } elseif typeof val == 'string' {
-    return 'string length: 'val.length''
+    return 'string length: 'val.length.toString()
   } elseif typeof val == 'number' {
-    return 'number doubled: '(val * 2)''
+    // 2 * val
+    // TODO: should we allow math operations on inferred number types without explicit type annotation?
+    return 'number doubled: '(parseFloat(val.toString()) * 2).toString()
   } else {
-    return 'boolean: 'val''
+    return 'boolean: 'val.toString()
   }
 }
 

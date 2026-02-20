@@ -1,12 +1,14 @@
 // Test simplified string interpolation syntax
 
 def simplifiedSyntax() {
-  index = 5
+  // TODO, should also work 
+  // without :number
+  index: number = 5
   username = 'Alice'
   
-  result1 = '#'index
+  result1 = '#'index.toString()
   result2 = username' welcome!'
-  result3 = 'Hello 'username', you are user #'index
+  result3 = 'Hello 'username', you are user #'index.toString()
   
   return result1 + result2 + result3
 }

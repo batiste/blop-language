@@ -36,7 +36,7 @@ Run with: `node --experimental-vm-modules src/tests/yourDebugFile.js`
 
 The grammar is defined in `src/grammar.js`. The named key for a node in the AST matches the `:label` in the grammar rule. For example `type_arguments:type_args` means the node is stored at `.named.type_args`, NOT `.named.type_arguments`.
 
-`object_access` is recursive. Each grammar alternative consumes one "step", so chained calls nest: `node.useState<number>('count', 0)` produces:
+The grammar is recursive. Each grammar alternative consumes one "step", so chained calls nest: `node.useState<number>('count', 0)` produces:
 
 ```
 access_or_operation
@@ -46,14 +46,3 @@ access_or_operation
         named.args → type_argument_list
           named.arg → type_expression
 ```
-
-When looking for `type_arguments` in an `object_access`, check the **nested** child `object_access`, not the top-level one. The pattern is:
-
-```javascript
-const outerOA = access.children?.find(c => c.type === 'object_access');
-const methodName = outerOA?.children?.find(c => c.type === 'name')?.value;
-const innerOA = outerOA?.children?.find(c => c.type === 'object_access');
-const typeArgsNode = innerOA?.children?.find(c => c.type === 'type_arguments');
-```
-
-When in doubt about the structure of a specific expression, add a temporary `printNode(ne, 0, 6)` call in a debug script and read the output before writing any handler code.
