@@ -402,7 +402,7 @@ function createStatementHandlers(getState) {
     },
     
     condition: (node, parent) => {
-      const { pushScope, popScope, lookupVariable, getFunctionScope, pushWarning, typeAliases } = getState();
+      const { pushScope, popScope, lookupVariable, getCurrentScope, getFunctionScope, pushWarning, typeAliases } = getState();
       const functionScope = getFunctionScope();
       
       // Check for impossible comparisons
@@ -471,6 +471,21 @@ function createStatementHandlers(getState) {
         } else {
           visit(elseNode, node);
         }
+      }
+      
+      // When the if-branch is an early-exit type guard (always returns) with no else,
+      // the code after this block is only reachable when the condition was false.
+      // Apply type exclusion to the outer scope so subsequent statements see the narrowed type.
+      // Note: the parser always creates an else_if node (matched with empty rule ['w?']) even
+      // when there is no actual else clause, so we must check for meaningful else content.
+      const ifBranchAlwaysReturns = returnsAfterIf > returnsBeforeIf;
+      const elseHasContent = elseNode && (
+        elseNode.named?.exp ||
+        (elseNode.named?.stats && elseNode.named.stats.length > 0) ||
+        elseNode.named?.elseif
+      );
+      if (typeGuard && !elseHasContent && ifBranchAlwaysReturns) {
+        applyExclusion(getCurrentScope(), typeGuard.variable, typeGuard.checkType, lookupVariable);
       }
       
       pushToParent(node, parent);

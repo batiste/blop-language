@@ -81,22 +81,21 @@ def useElseBranch(val: string | number): string {
 
 // The type narrowing needs to persist AFTER the if block for code that follows, regardless of whether the if block returns. 
 
-// Test 9: TODO - Type narrowing with undefined guard
-// Note: Undefined type narrowing requires more complex scope tracking
-// def undefinedGuardBranch(val: string | undefined): string {
-//   if typeof val == 'undefined' {
-//     return ''
-//   }
-//   return val
-// }
+// Test 9: Type narrowing with undefined guard
+def undefinedGuardBranch(val: string | undefined): string {
+  if typeof val == 'undefined' {
+    return ''
+  }
+  return val.toUpperCase()
+}
 
-// Test 10: TODO - Type narrowing with number guard
-// def numberGuardBranch(val: string | number): string {
-//   if typeof val == 'number' {
-//     return val.toString()
-//   }
-//   return val
-// }
+// Test 10: Type narrowing with number guard
+def numberGuardBranch(val: string | number): string {
+  if typeof val == 'number' {
+    return val.toString()
+  }
+  return val.toUpperCase()
+}
 
 
 test('typeof narrowing with string', () => {
@@ -139,4 +138,14 @@ test('typeof narrowing with multiple types', () => {
 test('typeof narrowing in else branch', () => {
   expect(useElseBranch(42)).toBe('number: 42')
   expect(useElseBranch('hello')).toBe('HELLO')
+})
+
+test('type narrowing persists after early-return undefined guard', () => {
+  expect(undefinedGuardBranch('hello')).toBe('HELLO')
+  expect(undefinedGuardBranch(undefined)).toBe('')
+})
+
+test('type narrowing persists after early-return number guard', () => {
+  expect(numberGuardBranch(42)).toBe('42')
+  expect(numberGuardBranch('hello')).toBe('HELLO')
 })
