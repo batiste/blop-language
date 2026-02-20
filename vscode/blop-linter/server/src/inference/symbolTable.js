@@ -158,8 +158,9 @@ function createBindingHandlers() {
       const functionName = node.named?.name?.value;
       if (!functionName) return;
 
-      // Extract parameter types
+      // Extract parameter types and names
       const paramTypes = [];
+      const paramNames = [];
       let paramNode = node.named?.params;
       while (paramNode) {
         if (paramNode.named?.annotation) {
@@ -168,6 +169,7 @@ function createBindingHandlers() {
         } else {
           paramTypes.push(AnyType);
         }
+        paramNames.push(paramNode.named?.name?.value || `p${paramNames.length}`);
         paramNode = paramNode.named?.more;
       }
 
@@ -184,6 +186,7 @@ function createBindingHandlers() {
       symbolTable.addFunction(functionName, {
         type: returnTypeAnnotation ?? AnyType, // Will be refined by inference phase
         params: paramTypes,
+        paramNames: paramNames,
         genericParams: genericParams.length > 0 ? genericParams : undefined,
         node,
       });

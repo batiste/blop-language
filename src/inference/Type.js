@@ -604,19 +604,26 @@ export class GenericType extends Type {
  * Function types: (a: string, b: number) => boolean
  */
 export class FunctionType extends Type {
-  constructor(params, returnType, genericParams = []) {
+  constructor(params, returnType, genericParams = [], paramNames = []) {
     super();
     this.kind = 'function';
     this.params = params; // Type[]
     this.returnType = returnType; // Type
     this.genericParams = genericParams; // string[]
+    this.paramNames = paramNames; // string[]
   }
   
   toString() {
     const generics = this.genericParams.length > 0 
       ? `<${this.genericParams.join(', ')}>` 
       : '';
-    const params = this.params ? this.params.map((p, i) => `p${i}: ${p.toString()}`).join(', ') : '';
+    let params = '';
+    if (this.params) {
+      params = this.params.map((p, i) => {
+        const paramName = this.paramNames && this.paramNames[i] ? this.paramNames[i] : `p${i}`;
+        return `${paramName}: ${p.toString()}`;
+      }).join(', ');
+    }
     return `${generics}(${params}) => ${this.returnType.toString()}`;
   }
   
@@ -938,8 +945,8 @@ export const Types = {
     return new GenericType(baseType, typeArgs);
   },
   
-  function(params, returnType, genericParams = []) {
-    return new FunctionType(params, returnType, genericParams);
+  function(params, returnType, genericParams = [], paramNames = []) {
+    return new FunctionType(params, returnType, genericParams, paramNames);
   },
   
   alias(name) {

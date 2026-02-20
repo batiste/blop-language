@@ -96,7 +96,7 @@ function handleGenericFunctionCall(name, access, definition, argTypes, parent, {
   // Stamp the name node with the function type for hover support
   if (inferencePhase === 'inference' && name.inferredType === undefined) {
     // For func_def functions, construct the FunctionType from params and return type
-    const funcType = new FunctionType(definition.params, definition.type, definition.genericParams);
+    const funcType = new FunctionType(definition.params, definition.type, definition.genericParams, definition.paramNames);
     name.inferredType = funcType;
   }
   
@@ -146,7 +146,7 @@ function handleNonGenericFunctionCall(name, definition, argTypes, parent, { push
   // Stamp the name node with the function type for hover support
   if (inferencePhase === 'inference' && name.inferredType === undefined) {
     // For func_def functions, construct the FunctionType from params and return type
-    const funcType = new FunctionType(definition.params, definition.type);
+    const funcType = new FunctionType(definition.params, definition.type, undefined, definition.paramNames);
     name.inferredType = funcType;
   }
   

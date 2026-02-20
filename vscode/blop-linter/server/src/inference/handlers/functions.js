@@ -23,6 +23,9 @@ function createFunctionHandlers(getState) {
       if (!scope.__currentFctParams) {
         scope.__currentFctParams = [];
       }
+      if (!scope.__currentFctParamNames) {
+        scope.__currentFctParamNames = [];
+      }
       
       let paramType = AnyType;
       const { annotation } = node.named;
@@ -36,6 +39,7 @@ function createFunctionHandlers(getState) {
       }
 
       scope.__currentFctParams.push(paramType);
+      scope.__currentFctParamNames.push(node.named.name.value);
       if (inferencePhase === 'inference' && node.named.name) {
         node.named.name.inferredType = resolveTypeAlias(paramType, typeAliases);
       }
@@ -188,7 +192,7 @@ function createFunctionHandlers(getState) {
       // Anonymous functions as expressions should infer as a function type with proper signature
       if (parent && !node.named.name) {
         const finalType = declaredType ?? inferredType;
-        const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams);
+        const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames);
         pushInference(parent, functionType);
         
         // Validate anonymous function return types if they have type annotations
@@ -224,7 +228,7 @@ function createFunctionHandlers(getState) {
         const { inferencePhase } = getState();
         if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
           // Create a FunctionType with the actual params and return type
-          const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams);
+          const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames);
           node.named.name.inferredType = functionType;
         }
         
@@ -235,6 +239,7 @@ function createFunctionHandlers(getState) {
           declaredReturnType: declaredType,
           node,
           params: scope.__currentFctParams,
+          paramNames: scope.__currentFctParamNames,
           genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
       }
