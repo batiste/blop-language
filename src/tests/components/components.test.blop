@@ -86,6 +86,9 @@ def CounterDemo(_attributes, _children, node: Component): VNode {
   return <div>value</div>
 }
 
+// test builtin functions
+clearInterval(1)
+
 def ErrorIcon() {
   <span class="icon error">'❌'</span>
 }

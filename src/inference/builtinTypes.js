@@ -7,6 +7,7 @@ import {
   AnyType, StringType, NumberType, BooleanType, NullType, UndefinedType,
   ArrayType, UnionType,
   FunctionType,
+  AnyFunctionType,
 } from './Type.js';
 
 /**
@@ -14,7 +15,7 @@ import {
  * Values are structured Type objects (from Type.js).
  * This allows the type system to validate property access on native JS objects.
  */
-export const builtinObjectTypes = {
+let builtinObjectTypes = {
   // Component type - injected context for component functions
   // Provides access to hooks like useState, useEffect, etc.
   Component: {
@@ -30,6 +31,38 @@ export const builtinObjectTypes = {
       ])),
       ['T'],
       ['key', 'initialValue']
+    ),
+
+    // function onMount() { return this; }
+    onMount: new FunctionType([], AnyType, [], []),
+
+    // function onUnmount() { return this; }
+    onUnmount: new FunctionType([], AnyType, [], []),
+
+    // function onChange(attribute, callback) { ... }
+    onChange: new FunctionType([StringType, AnyType], UndefinedType, [], ['attribute', 'callback']),
+
+    // function mount(func) { return this; }
+    mount: new FunctionType([AnyType], AnyType, [], ['func']),
+
+    // function unmount(func) { return this; }
+    unmount: new FunctionType([AnyType], AnyType, [], ['func']),
+
+    // function refresh() { ... }
+    refresh: new FunctionType([], UndefinedType, [], []),
+
+    // function useContext(name, initialValue) {
+    //   return { setContext, getContext, value };
+    // }
+    useContext: new FunctionType(
+      [StringType, Types.alias('T')],
+      Types.object(new Map([
+        ['setContext', { type: new FunctionType([Types.alias('T')], UndefinedType, [], ['value']), optional: false }],
+        ['getContext', { type: new FunctionType([], Types.alias('T')), optional: false }],
+        ['value',      { type: Types.alias('T'), optional: false }],
+      ])),
+      ['T'],
+      ['name', 'initialValue']
     ),
   },
 
@@ -200,10 +233,10 @@ export const builtinObjectTypes = {
     alert: UndefinedType,
     confirm: BooleanType,
     prompt: Types.union([StringType, NullType]),
-    setTimeout: NumberType,             // returns a timer id
-    setInterval: NumberType,            // returns a timer id
-    clearTimeout: UndefinedType,
-    clearInterval: UndefinedType,
+    setTimeout: AnyFunctionType,             // returns a timer id
+    setInterval: AnyFunctionType,            // returns a timer id
+    clearTimeout: AnyFunctionType,
+    clearInterval: AnyFunctionType,
     fetch: AnyType,                     // returns Promise<Response>; typed as any until generics
     location: AnyType,
     history: AnyType,
@@ -237,6 +270,10 @@ export const builtinObjectTypes = {
     removeEventListener: UndefinedType,
   },
 };
+
+builtinObjectTypes = { ...builtinObjectTypes, ...builtinObjectTypes.window }; // Include all global properties (e.g. setTimeout) as built-in types for convenience
+
+export default builtinObjectTypes;
 
 /**
  * Built-in method/property types for primitive types (string, number, boolean, array).
@@ -442,4 +479,94 @@ export function getBuiltinObjectType(typeName) {
  */
 export function isBuiltinObjectType(typeName) {
   return typeName in builtinObjectTypes;
+}
+
+// ============================================================================
+// Global Constants and Functions (non-object built-ins)
+// ============================================================================
+
+/**
+ * Global constants and functions that are not part of object types.
+ * These complement builtinObjectTypes and builtinPrimitiveTypes.
+ */
+export const builtinGlobals = {
+  // Primitive value constants
+  Infinity: { type: 'Value' },
+  NaN: { type: 'Value' },
+  undefined: { type: 'Value' },
+  null: { type: 'Value' },
+  true: { type: 'Value' },
+  false: { type: 'Value' },
+  
+  // Global functions
+  eval: { type: 'Function' },
+  uneval: { type: 'Function' },
+  isFinite: { type: 'Function' },
+  isNaN: { type: 'Function' },
+  parseFloat: { type: 'Function' },
+  parseInt: {
+    type: 'Function',
+    documentation: 'The parseInt() function parses a string argument and returns an integer of the specified radix (the base in mathematical numeral systems).',
+    detail: 'parseInt(string, radix);',
+  },
+  decodeURI: { type: 'Function' },
+  decodeURIComponent: { type: 'Function' },
+  encodeURI: { type: 'Function' },
+  encodeURIComponent: { type: 'Function' },
+  escape: { type: 'Function' },
+  unescape: { type: 'Function' },
+  
+  // Jest API
+  test: { type: 'Function', detail: 'test(description, Function) { ... }' },
+  expect: { type: 'Function', detail: 'expect(expression).toBe(value)', documentation: 'https://jestjs.io/docs/en/expect' },
+  
+  // Language keywords and object references
+  // TODO: think about using inference for these 
+  // instead of hardcoding as globals 
+  // (e.g. `this` type depends on context, 
+  // `super` only valid in classes)
+  arguments: { type: 'Object' },
+  this: { type: 'Reference' },
+  super: { type: 'Function' },
+  
+  // Environment specific
+  __dirname: { type: 'String' },
+};
+
+/**
+ * Get all built-in global names (both objects and other globals).
+ * Used by the backend validator to check if a name is defined.
+ */
+export function getGlobalNames() {
+  const names = new Set();
+  
+  // Add object type names
+  Object.keys(builtinObjectTypes).forEach(name => names.add(name));
+  
+  // Add global constants and functions
+  Object.keys(builtinGlobals).forEach(name => names.add(name));
+  
+  return names;
+}
+
+/**
+ * Get metadata for globals used in autocomplete and hover information.
+ * Combines type, documentation, and detail for VS Code server.
+ */
+export function getGlobalMetadata() {
+  const metadata = {};
+  
+  // Add globals with their metadata
+  Object.entries(builtinGlobals).forEach(([name, info]) => {
+    metadata[name] = info;
+  });
+  
+  // Add object types (all have type 'Object')
+  Object.keys(builtinObjectTypes).forEach(name => {
+    if (!metadata[name]) {
+      metadata[name] = { type: 'Object' };
+    }
+  });
+  
+  return metadata;
 }

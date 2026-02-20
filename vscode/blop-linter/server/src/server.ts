@@ -36,13 +36,16 @@ import {
 import { tokensDefinition } from './tokensDefinition.js';
 import parser from './parser.js';
 import { grammar } from './grammar.js';
-import { all as builtin } from './builtin.js';
+import { getGlobalMetadata } from './inference/builtinTypes.js';
 import backend from './backend.js';
 import { inference } from './inference/index.js';
 import properties from './properties.js';
 import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
 import { selectBestFailure } from './selectBestFailure.js';
 import { parseTypeExpression, parseObjectTypeString } from './inference/typeSystem.js';
+
+// Load global metadata for autocomplete
+const globalMetadata = getGlobalMetadata();
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -656,8 +659,8 @@ connection.onCompletion(
 				const array: any[] = [];
 				// @ts-expect-error - properties dynamic indexing
 				properties[name].forEach((item: String) => {
-					// @ts-expect-error - builtin dynamic indexing
-					const builtinForItem = (builtin[item.toString()] || { type: 'Function' });
+					// @ts-expect-error - globalMetadata dynamic indexing
+					const builtinForItem = (globalMetadata[item.toString()] || { type: 'Function' });
 					const documentation = builtinForItem.documentation;
 					const detail = builtinForItem.detail;
 					const type = kindMap[builtinForItem.type];
@@ -676,10 +679,10 @@ connection.onCompletion(
 		const result2 = reg0.exec(text);
 		if (result2) {
 			const name = result2[2];
-			// @ts-expect-error - builtin dynamic indexing
-			if (builtin[name]) {
-				// @ts-expect-error - builtin dynamic indexing
-				const builtinForItem = builtin[name];
+			// @ts-expect-error - globalMetadata dynamic indexing
+			if (globalMetadata[name]) {
+				// @ts-expect-error - globalMetadata dynamic indexing
+				const builtinForItem = globalMetadata[name];
 				const documentation = builtinForItem.documentation;
 				const detail = builtinForItem.detail;
 				const type = kindMap[builtinForItem.type];

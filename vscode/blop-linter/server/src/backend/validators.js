@@ -3,13 +3,14 @@ import fs from 'fs';
 import { createRequire } from 'module';
 import parser from '../parser.js';
 import { tokensDefinition } from '../tokensDefinition.js';
-import { all } from '../builtin.js';
+import { getGlobalNames } from '../inference/builtinTypes.js';
 import { ERROR_MESSAGES } from '../constants.js';
 import { streamContext } from '../errorMessages.js';
 
 function createValidators(context) {
   const { scopes, stream, input, checkFilename, config, keysCache, errors, warnings } = context;
   const configGlobals = config.globals || {};
+  const globalNames = getGlobalNames();
 
   function generateError(node, message, warning = false) {
     const token = stream[node.stream_index];
@@ -58,7 +59,7 @@ function createValidators(context) {
   }
 
   function shouldBeDefined(name, node) {
-    if (all[name] || configGlobals[name]) {
+    if (globalNames.has(name) || configGlobals[name]) {
       return;
     }
     let defined = false;
@@ -78,7 +79,7 @@ function createValidators(context) {
     if (scope) {
       const { names } = scope;
       Object.keys(names).forEach((name) => {
-        if (all[name] || configGlobals[name] || name.startsWith('_')) {
+        if (globalNames.has(name) || configGlobals[name] || name.startsWith('_')) {
           return;
         }
         if (names[name].node && names[name].used !== true) {

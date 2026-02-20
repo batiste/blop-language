@@ -17,7 +17,6 @@ FILES=(
   "grammar.js"
   "tokensDefinition.js"
   "backend.js"
-  "builtin.js"
   "constants.js"
   "utils.js"
   "errorMessages.js"
