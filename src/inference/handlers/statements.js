@@ -12,8 +12,33 @@ import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
-import { AnyType, AnyFunctionType } from '../Type.js';
+import { AnyType, AnyFunctionType, FunctionType } from '../Type.js';
 import { runBindingPhase } from '../symbolTable.js';
+
+/**
+ * Extract import name nodes from destructuring_values node
+ * @param {Object} node - destructuring_values AST node
+ * @returns {Array<{name: string, node: Object}>} Array of {name, node} pairs
+ */
+function extractImportNameNodes(node) {
+  const entries = [];
+
+  function traverse(n) {
+    if (!n) return;
+
+    if (n.type === 'destructuring_values') {
+      if (n.named.name) {
+        entries.push({ name: n.named.name.value, node: n.named.name });
+      }
+      if (n.named.more) {
+        traverse(n.named.more);
+      }
+    }
+  }
+
+  traverse(node);
+  return entries;
+}
 
 /**
  * Extract import names from destructuring_values node
@@ -257,28 +282,48 @@ function createStatementHandlers(getState) {
             if (node.named.dest_values) {
               // import { User, Post } from './types.blop'
               // Only import specific types
-              const importNames = extractImportNames(node.named.dest_values);
-              const { getCurrentScope } = getState();
+              const importNameNodes = extractImportNameNodes(node.named.dest_values);
+              const { getCurrentScope, inferencePhase } = getState();
               const scope = getCurrentScope();
-              importNames.forEach(name => {
+              importNameNodes.forEach(({ name, node: nameNode }) => {
                 if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
                   // Parse the type definition for use in inference
                   const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
                   typeAliases[name] = aliasType;
+                  if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                    nameNode.inferredType = aliasType;
+                  }
                 } else if (importedFunctions[name]) {
                   // Register imported function in current scope for hover + lookupVariable
-                  scope[name] = importedFunctions[name];
+                  const def = importedFunctions[name];
+                  scope[name] = def;
+                  if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                    nameNode.inferredType = def.params
+                      ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
+                      : AnyFunctionType;
+                  }
                 }
               });
             } else if (node.named.name && !node.named.module) {
               // import User from './types.blop'
               const name = node.named.name.value;
+              const nameNode = node.named.name;
+              const { inferencePhase } = getState();
               if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
                 const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
                 typeAliases[name] = aliasType;
+                if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                  nameNode.inferredType = aliasType;
+                }
               } else if (importedFunctions[name]) {
+                const def = importedFunctions[name];
                 const { getCurrentScope } = getState();
-                getCurrentScope()[name] = importedFunctions[name];
+                getCurrentScope()[name] = def;
+                if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                  nameNode.inferredType = def.params
+                    ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
+                    : AnyFunctionType;
+                }
               }
             } else {
               // import './types.blop' - import all types

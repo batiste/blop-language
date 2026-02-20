@@ -9,7 +9,7 @@ def DogGame(attributes, children) {
 
   // Normalize breed names for comparison (remove spaces, dashes, make lowercase)
   def normalizeBreed(breedName: string): string {
-    return breedName.toLowerCase().replace(/[\s\-]/g, '')
+    return breedName.toLowerCase().replace(/[\s\-]/g, ' ')
   }
 
   def check() {
