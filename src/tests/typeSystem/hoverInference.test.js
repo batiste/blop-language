@@ -230,8 +230,9 @@ console.log(userAssignmentTest)`;
     expect(varNodes[0].inferredType).toBeDefined();
     // After tree inspection, we get func_call_params -> name_exp -> name,
     expect(varNodes[1].inferredType).toBeDefined();
+    // Definition site shows the type alias name, usage site shows expanded type
     expect(varNodes[0].inferredType.toString()).toBe('User');
-    expect(varNodes[1].inferredType.toString()).toBe('{id: 1, name: "Alice"}');
+    expect(varNodes[1].inferredType.toString()).toBe('{id: number, name: string}');
   });
 
   it('should infer the correct type for arrow function returning VNode', () => {
@@ -323,5 +324,121 @@ result_2 = Test()`;
     );
     expect(testInCall).toBeDefined();
     expect(testInCall.inferredType.returnType.name).toBe('VNode');
+  });
+
+  it('should stamp variable with its type when used in method call expression', () => {
+    // Regression test for: hovering over variable in expressions like text.toUpperCase() should show type
+    const code = `def test(text: string) {
+  text
+  text.toUpperCase()
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find all 'text' name nodes (should be 3: parameter + standalone + in method call)
+    const textNodes = findNodesWithValue(tree, ['text']);
+    expect(textNodes.length).toBe(3);
+    
+    // All text nodes should have their type stamped
+    textNodes.forEach((node, i) => {
+      expect(node.inferredType).toBeDefined(`text node ${i} should have inferredType`);
+      expect(node.inferredType.toString()).toBe('string', `text node ${i} should be string type`);
+    });
+    
+    // Specifically, the text in text.toUpperCase() (last one) should have type
+    const textInMethodCall = textNodes[2];
+    expect(textInMethodCall.value).toBe('text');
+    expect(textInMethodCall.inferredType.toString()).toBe('string');
+  });
+
+  it('should stamp assignment result variable with method call return type', () => {
+    // Regression test for: variable assigned from method call result should have correct type
+    const code = `def test(vt: number) {
+  result = vt.toString()
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find 'result' variable - should have string type from toString() return
+    const resultNodes = findNodesWithValue(tree, ['result']);
+    expect(resultNodes.length).toBeGreaterThan(0);
+    
+    const resultVar = resultNodes[0];
+    expect(resultVar.inferredType).toBeDefined();
+    expect(resultVar.inferredType.toString()).toBe('string');
+  });
+
+  it('should handle literal number variable in method call and show abstract type', () => {
+    // Regression test for: literal-typed variables (e.g., vt = 5) should show number type in method calls
+    const code = `def test() {
+  vt: number = 5
+  result = vt.toString()
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find 'vt' name nodes in method call
+    const vtNodes = findNodesWithValue(tree, ['vt']);
+    expect(vtNodes.length).toBeGreaterThan(0);
+    
+    // The vt variable should show type 'number', not the literal '5'
+    vtNodes.forEach(node => {
+      if (node.inferredType) {
+        expect(node.inferredType.toString()).toBe('number');
+      }
+    });
+
+    // Result should be string from toString()
+    const resultNodes = findNodesWithValue(tree, ['result']);
+    expect(resultNodes.length).toBeGreaterThan(0);
+    const resultVar = resultNodes[0];
+    expect(resultVar.inferredType.toString()).toBe('string');
+  });
+
+  it('should normalize object literal property types to abstract types', () => {
+    // Regression test for: object property with literal value should infer abstract type
+    const code = `type Attempt = { attempt: number, count: number }
+obj: Attempt = { attempt: 1, count: 2 }`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find 'attempt' property nodes in the object literal
+    const attemptNodes = findNodesWithValue(tree, ['attempt']);
+    expect(attemptNodes.length).toBeGreaterThan(0);
+    
+    // The property should resolve to the type annotation, not literal
+    const typeAnnotNodes = attemptNodes.filter(n => n.inferredType && n.inferredType.toString().includes('number'));
+    expect(typeAnnotNodes.length).toBeGreaterThan(0);
+  });
+
+  it('should handle chained method calls with correct types', () => {
+    // Additional regression test: ensure type tracking through method chains
+    const code = `def test(text: string) {
+  upper = text.toUpperCase()
+  lower = upper.toLowerCase()
+}`;
+    
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // Find variable assignments
+    const upperNodes = findNodesWithValue(tree, ['upper']);
+    const lowerNodes = findNodesWithValue(tree, ['lower']);
+    
+    expect(upperNodes.length).toBeGreaterThan(0);
+    expect(lowerNodes.length).toBeGreaterThan(0);
+    
+    // Both should be string type from their respective method calls
+    expect(upperNodes[0].inferredType.toString()).toBe('string');
+    expect(lowerNodes[0].inferredType.toString()).toBe('string');
   });
 });

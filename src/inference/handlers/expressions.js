@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
-import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
+import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
@@ -78,7 +78,8 @@ function extractReturnType(type) {
  * Check if a type is a concrete primitive type (string, number, or boolean)
  */
 function isValidPrimitiveType(type) {
-  return type instanceof PrimitiveType && ['string', 'number', 'boolean'].includes(type.name);
+  const baseType = getBaseTypeOfLiteral(type);
+  return baseType instanceof PrimitiveType && ['string', 'number', 'boolean'].includes(baseType.name);
 }
 
 /**
@@ -149,9 +150,18 @@ function handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushI
     access,
     definition,
     parent,
-    (type) => type instanceof PrimitiveType,
-    (type, methodName) => getPrimitiveMemberType(type.name, methodName),
-    (type) => ['string', 'number', 'boolean'].includes(type.name), // skip 'any'
+    (type) => {
+      const baseType = getBaseTypeOfLiteral(type);
+      return baseType instanceof PrimitiveType;
+    },
+    (type, methodName) => {
+      const baseType = getBaseTypeOfLiteral(type);
+      return getPrimitiveMemberType(baseType.name, methodName);
+    },
+    (type) => {
+      const baseType = getBaseTypeOfLiteral(type);
+      return baseType instanceof PrimitiveType && ['string', 'number', 'boolean'].includes(baseType.name);
+    },
     { pushInference, typeAliases }
   );
 }
@@ -423,7 +433,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
  * Validate property chain access on a type and annotate nodes
  */
 function validatePropertyChain(properties, definition, typeAliases, { pushInference, pushWarning, access }) {
-  let currentType = definition.type;
+  let currentType = getBaseTypeOfLiteral(definition.type);
   let validatedPath = [];
   let invalidProperty = null;
   
@@ -454,7 +464,7 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
     pushInference(propNode, nextType);
     propNode.inferredType = resolveTypeAlias(nextType, typeAliases);
     validatedPath.push(propName);
-    currentType = nextType;
+    currentType = getBaseTypeOfLiteral(nextType);
   }
   
   return { currentType, validatedPath, invalidProperty };
@@ -586,6 +596,25 @@ function createExpressionHandlers(getState) {
       const { name, access } = node.named;
       
       if (access) {
+        // Lookup variable definition early so we can stamp the name node
+        const definition = lookupVariable(name.value);
+        
+        // Stamp the name node with its type for hover support
+        if (definition && definition.type) {
+          if (definition.source === 'func_def') {
+            if (inferencePhase === 'inference' && name.inferredType === undefined) {
+              name.inferredType = definition.type ?? AnyFunctionType;
+            }
+          } else {
+            if (name.inferredType === undefined) {
+              // Normalize literal types to their base types for hover display
+              // But preserve type aliases as-is
+              const typeToStamp = getBaseTypeOfLiteral(definition.type);
+              name.inferredType = typeToStamp;
+            }
+          }
+        }
+        
         // Check if this is a function call (search recursively through nested
         // object_access nodes, e.g. obj.method(x) has func_call one level deeper)
         function hasFuncCallInObjectAccess(node) {
@@ -607,7 +636,6 @@ function createExpressionHandlers(getState) {
         }
         
         // Try object property access
-        const definition = lookupVariable(name.value);
         const defTypeIsAny = !definition?.type || definition.type === AnyType ||
                               (definition.type instanceof PrimitiveType && definition.type.name === 'any');
         

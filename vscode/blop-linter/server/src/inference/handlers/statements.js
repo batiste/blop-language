@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, ArrayType, ObjectType } from '../typeSystem.js';
+import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -375,6 +375,23 @@ function createStatementHandlers(getState) {
                   }
                 }
               }
+            }
+          }
+        } else if (node.named.name && !node.named.path) {
+          // Simple variable assignment: stamp the variable name  
+          // At definition site, prefer declared annotation type over inferred type
+          if (node.named.annotation && node.named.name.inferredType === undefined) {
+            const annotationType = getAnnotationType(node.named.annotation);
+            if (annotationType) {
+              node.named.name.inferredType = annotationType;
+            }
+          } else {
+            // No annotation, use inferred type from the expression
+            const expNode = node.named.exp;
+            const valueType = expNode && expNode.inference && expNode.inference[0];
+            
+            if (valueType && valueType !== AnyType && node.named.name.inferredType === undefined) {
+              node.named.name.inferredType = resolveTypeAlias(valueType, typeAliases);
             }
           }
         }

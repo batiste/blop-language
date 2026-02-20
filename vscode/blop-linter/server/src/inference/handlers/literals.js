@@ -165,7 +165,8 @@ function inferObjectLiteralStructure(node, lookupVariable) {
       let valueType = AnyType;
       
       if (exp.inference && exp.inference.length > 0) {
-        valueType = exp.inference[0];
+        // Normalize literal types to their base types for object properties
+        valueType = getBaseTypeOfLiteral(exp.inference[0]);
       }
       
       propertiesMap.set(key, { type: valueType, optional: false });

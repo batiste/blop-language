@@ -42,22 +42,23 @@ def genericFunction<T>(arg: T): T {
 def identity<T>(arg: T): T {
     return arg
 }
-identity<number>(5) + identity<string>("10")
-5 + "10"
-5 + identity<string>("10")
-identity<number>(5) + "10"
+// identity<number>(5) + identity<string>("10")
+// 5 + "10"
+// 5 + identity<string>("10")
+// identity<number>(5) + "10"
 
-def text(t: string): string {
-    return t
+def text(title: string): string {
+    title
+    return title.toUpperCase()
 }
 def num(n: number): number {
     return n
 }
 
-text("Hello") + num(5)
-num(5) + text("Hello")
-5 + text("Hello")
-text("Hello") + 5
+// text("Hello") + num(5)
+// num(5) + text("Hello")
+// 5 + text("Hello")
+// text("Hello") + 5
 
 // userAssignmentTest: User
 // User: {name: string, id: number, userType?: "Admin" | "User"}
