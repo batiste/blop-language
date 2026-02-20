@@ -106,7 +106,7 @@ function pushWarning(node, message) {
 // ============================================================================
 
 /**
- * Extract the first property name from an object_access node
+ * Extract the first property name from an object_access node  
  */
 function extractPropertyNameFromAccess(accessNode) {
   if (!accessNode?.children) return null;
@@ -114,6 +114,17 @@ function extractPropertyNameFromAccess(accessNode) {
     if (child.type === 'name') return child.value;
   }
   return null;
+}
+
+/**
+ * Check if an access node is bracket notation (array indexing)
+ */
+function isBracketAccess(accessNode) {
+  if (!accessNode?.children) return false;
+  for (const child of accessNode.children) {
+    if (child.value === '[') return true;
+  }
+  return false;
 }
 
 /**
@@ -323,7 +334,7 @@ function handleAssignment(types, i, assignNode) {
  * Returns the resolved property type, or null if not found / not applicable.
  */
 function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
-  if (!objectType || objectType === AnyType || !propertyName) return AnyType;
+  if (!objectType || objectType === AnyType) return AnyType;
 
   const resolvedType = resolveTypeAlias(objectType, typeAliases);
 
@@ -331,6 +342,7 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
   if (resolvedType.toString() === '{}') return AnyType;
 
   if (resolvedType instanceof ObjectType) {
+    if (!propertyName) return AnyType;
     const propertyType = getPropertyType(objectType, propertyName, typeAliases);
     if (propertyType === null) {
       pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
@@ -339,7 +351,21 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
     return propertyType;
   }
 
-  // Not an object type (array, string, etc.) — skip validation
+  // Handle array types with bracket access (element access)
+  if (resolvedType instanceof ArrayType && !propertyName) {
+    return resolvedType.elementType;
+  }
+
+  // Array with property name (e.g., arr.length is handled via getArrayMemberType)
+  if (resolvedType instanceof ArrayType && propertyName) {
+    const memberType = getArrayMemberType(resolvedType, propertyName);
+    if (memberType === AnyType && propertyName !== 'length' && propertyName !== 'push' && propertyName !== 'pop') {
+      pushWarning(accessNode, `Property '${propertyName}' does not exist on array type`);
+    }
+    return memberType;
+  }
+
+  // Not an object or array type — skip validation
   return AnyType;
 }
 
@@ -353,6 +379,14 @@ function handleObjectAccess(types, i) {
     return i - 1;
   }
 
+  // Handle bracket access (array indexing) - propertyName is null, returns element type
+  if (isBracketAccess(accessNode)) {
+    types[i - 1] = validateObjectPropertyAccess(objectType, null, accessNode);
+    types.splice(i, 1);
+    return i - 1;
+  }
+
+  // Handle dot notation property access
   const propertyName = extractPropertyNameFromAccess(accessNode);
   types[i - 1] = validateObjectPropertyAccess(objectType, propertyName, accessNode);
   types.splice(i, 1);
@@ -364,8 +398,14 @@ function checkObjectAccess(types, i) {
   const accessNode = types[i];
 
   if (!isOptionalChainAccess(accessNode)) {
-    const propertyName = extractPropertyNameFromAccess(accessNode);
-    validateObjectPropertyAccess(objectType, propertyName, accessNode);
+    // Handle bracket access (array indexing)
+    if (isBracketAccess(accessNode)) {
+      validateObjectPropertyAccess(objectType, null, accessNode);
+    } else {
+      // Handle dot notation property access
+      const propertyName = extractPropertyNameFromAccess(accessNode);
+      validateObjectPropertyAccess(objectType, propertyName, accessNode);
+    }
   }
 }
 

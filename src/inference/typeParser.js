@@ -137,10 +137,12 @@ export function parseTypePrimary(typePrimaryNode) {
 function parseArraySuffix(elementType, arraySuffixNode) {
   let result = Types.array(elementType);
   
-  // array_suffix recursively contains more array_suffix nodes via named.array_suffix
-  if (arraySuffixNode.named && arraySuffixNode.named.array_suffix) {
+  // array_suffix recursively contains more array_suffix nodes in children array
+  // Grammar: 'array_suffix': [['[', ']', 'array_suffix?']]
+  const nestedArraySuffix = arraySuffixNode.children?.find(child => child.type === 'array_suffix');
+  if (nestedArraySuffix) {
     // This means we have [][] or more
-    return parseArraySuffix(result, arraySuffixNode.named.array_suffix);
+    return parseArraySuffix(result, nestedArraySuffix);
   }
   
   return result;

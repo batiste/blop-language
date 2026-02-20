@@ -21,6 +21,7 @@ def test(a: number=1) {
 def arrayFct(a: number=1): { a: number }[] {
     return [{ a }, { a: a + 1 }, { a: a + 2 }]
 }
+arrayFct()[0].b
 
 def variableType(x: number, _y=5) {
     if (x > 10) {
@@ -34,6 +35,17 @@ def variableType(x: number, _y=5) {
 inferred = variableType(3)
 console.log(inferred)
 
+def genericFunction<T>(arg: T): T {
+    return arg
+}
+
+def identity<T>(arg: T): T {
+    return arg
+}
+identity<number>(5) + identity<string>("10")
+
+genericValue = genericFunction(5) + genericFunction("10")
+
 // userAssignmentTest: User
 // User: {name: string, id: number, userType?: "Admin" | "User"}
 userAssignmentTest: User = { id: 1, name: "Alice" }
@@ -44,7 +56,7 @@ hello = "Hello"
 hello := "asdf"
 console.log(userAssignmentTest)
 
-def test1(a: number=1): VNode {
+def test1(_a: number=1): VNode {
     <p>'hello'</p>
 }
 result_1 = test1()

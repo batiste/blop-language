@@ -155,3 +155,10 @@ test('multi-dimensional array of inline object types', () => {
   expect(matrix[0][0].x).toBe(1)
   expect(matrix[1][1].y).toBe(8)
 })
+
+// Test 12: Property access on multi-dimensional array elements
+test('property access on multi-dimensional array elements', () => {
+  elem = matrix[0][0]
+  expect(elem.x).toBe(1)
+  expect(elem.y).toBe(2)
+})
