@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType, stringToType } from './typeSystem.js';
-import { LiteralType, StringType, NumberType } from './Type.js';
+import { LiteralType, StringType, NumberType, NullType, UndefinedType } from './Type.js';
 
 /**
  * Detect typeof checks in expressions
@@ -225,8 +225,83 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
   return null;
 }
 
+/**
+ * Detect equality checks used as type guards in expressions.
+ * Handles patterns like: val == null, val === undefined, val === 'literal'
+ * Returns { variable, checkType } if detected, null otherwise.
+ * @param {Object} expNode - Expression node to analyze
+ * @returns {Object|null} Type guard info or null
+ */
+function detectEqualityCheck(expNode) {
+  if (!expNode) return null;
+
+  let variableName = null;
+  let comparedType = null;
+  let hasEqualityCheck = false;
+  let hasTypeofKeyword = false;
+
+  const checkNode = (node) => {
+    if (!node) return;
+
+    // If there's a typeof operand, this is a typeof check — skip it
+    if (node.type === 'operand' && node.value && node.value.includes('typeof')) {
+      hasTypeofKeyword = true;
+      return;
+    }
+
+    // Capture the first plain variable name (the narrowing target)
+    if (node.type === 'name' && !variableName) {
+      variableName = node.value;
+    }
+
+    // null literal
+    if (node.type === 'null' && !comparedType) {
+      comparedType = NullType;
+    }
+
+    // undefined literal
+    if (node.type === 'undefined' && !comparedType) {
+      comparedType = UndefinedType;
+    }
+
+    // String literal → LiteralType (e.g. val === 'active')
+    if (node.type === 'str' && !comparedType) {
+      const strValue = node.value.slice(1, -1);
+      comparedType = new LiteralType(strValue, StringType);
+    }
+
+    // Number literal → LiteralType (e.g. val === 42)
+    if (node.type === 'number' && !comparedType) {
+      comparedType = new LiteralType(Number(node.value), NumberType);
+    }
+
+    // Equality operator
+    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '===')) {
+      hasEqualityCheck = true;
+    }
+
+    if (node.children) {
+      node.children.forEach(checkNode);
+    }
+    if (node.named) {
+      Object.values(node.named).forEach(child => {
+        if (child && typeof child === 'object') checkNode(child);
+      });
+    }
+  };
+
+  checkNode(expNode);
+
+  if (!hasTypeofKeyword && hasEqualityCheck && variableName && comparedType) {
+    return { variable: variableName, checkType: comparedType };
+  }
+
+  return null;
+}
+
 export {
   detectTypeofCheck,
+  detectEqualityCheck,
   applyNarrowing,
   applyExclusion,
   detectImpossibleComparison,

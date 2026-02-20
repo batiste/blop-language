@@ -2,9 +2,10 @@
 // Expression Handlers - Type inference for expressions
 // ============================================================================
 
-import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
-import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral } from '../typeSystem.js';
+import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
+import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias } from '../Type.js';
+import { detectTypeofCheck, detectEqualityCheck, applyNarrowing, applyExclusion } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -703,6 +704,60 @@ function createExpressionHandlers(getState) {
       const { pushInference } = getState();
       resolveTypes(node);
       pushInference(parent, ObjectType);
+    },
+
+    short_if_expression: (node, parent) => {
+      const { pushInference, pushScope, popScope, lookupVariable, inferencePhase } = getState();
+      const { exp1, exp2, exp3 } = node.named;
+
+      // Visit condition so its children are type-checked
+      if (exp1) visit(exp1, node);
+
+      const typeGuard = detectTypeofCheck(exp1) || detectEqualityCheck(exp1);
+
+      // Visit true-branch — narrow the guard variable if a type guard is present
+      const trueScratch = {};
+      if (typeGuard) {
+        const trueScope = pushScope();
+        applyNarrowing(trueScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+        visit(exp2, trueScratch);
+        popScope();
+      } else {
+        visit(exp2, trueScratch);
+      }
+
+      // Visit else-branch — exclude the guard type if a type guard is present
+      const falseScratch = {};
+      if (exp3) {
+        if (typeGuard) {
+          const falseScope = pushScope();
+          applyExclusion(falseScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          visit(exp3, falseScratch);
+          popScope();
+        } else {
+          visit(exp3, falseScratch);
+        }
+      }
+
+      // Compute and push result type only during inference phase
+      // (pushInference is a no-op during checking; children are still visited above
+      // with proper scopes so type warnings fire correctly in both phases)
+      if (inferencePhase === 'inference') {
+        const trueType = trueScratch.inference?.[0] ?? AnyType;
+        const falseType = exp3 ? (falseScratch.inference?.[0] ?? AnyType) : null;
+
+        let resultType;
+        if (!falseType) {
+          resultType = trueType;
+        } else if (trueType.equals?.(falseType)) {
+          resultType = trueType;
+        } else {
+          resultType = createUnionType([trueType, falseType]);
+        }
+
+        node.inferredType = resultType;
+        pushInference(parent, resultType);
+      }
     },
   };
 }

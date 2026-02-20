@@ -7,7 +7,7 @@ import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
-import { detectTypeofCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
+import { detectTypeofCheck, detectEqualityCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -436,7 +436,7 @@ function createStatementHandlers(getState) {
         );
       }
       
-      const typeGuard = detectTypeofCheck(node.named.exp);
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp);
       const returnsBeforeIf = getReturnTypeCount(functionScope);
       
       // Visit condition expression
@@ -529,7 +529,7 @@ function createStatementHandlers(getState) {
       visit(node.named.exp, node);
 
       // Apply type narrowing for this elseif's own condition
-      const typeGuard = detectTypeofCheck(node.named.exp);
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp);
       if (typeGuard) {
         const ifScope = pushScope();
         applyNarrowing(ifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);

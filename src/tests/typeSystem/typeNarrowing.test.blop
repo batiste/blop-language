@@ -98,15 +98,6 @@ def numberGuardBranch(val: string | number): string {
 }
 
 
-// Test 11: Returning 1, should not be allowed
-// def undefinedValueGuardBranch(val: string | undefined): string {
-//   if true {
-//     return 1
-//   }
-//   return val.toUpperCase()
-// }
-
-
 test('typeof narrowing with string', () => {
   expect(processString('hello')).toBe('HELLO')
   expect(processString(42)).toBe('42')
@@ -157,4 +148,86 @@ test('type narrowing persists after early-return undefined guard', () => {
 test('type narrowing persists after early-return number guard', () => {
   expect(numberGuardBranch(42)).toBe('42')
   expect(numberGuardBranch('hello')).toBe('HELLO')
+})
+
+// ── Equality narrowing ───────────────────────────────────────────────────────
+
+// Test 12: null equality guard — early return
+def nullEqGuard(val: string | null): string {
+  if val == null {
+    return 'was null'
+  }
+  return val.toUpperCase()
+}
+
+// Test 13: null equality guard — else branch
+def nullEqGuardElse(val: string | null): string {
+  if val == null {
+    return 'was null'
+  } else {
+    return val.toUpperCase()
+  }
+}
+
+// Test 14: undefined equality guard — early return
+def undefinedEqGuard(val: string | undefined): string {
+  if val == undefined {
+    return 'was undefined'
+  }
+  return val.toUpperCase()
+}
+
+// Test 15: undefined equality guard — else branch
+def undefinedEqGuardElse(val: string | undefined): string {
+  if val == undefined {
+    return 'was undefined'
+  } else {
+    return val.toUpperCase()
+  }
+}
+
+// Test 16: null guard narrows in the if-branch too (val is null inside)
+def nullBranchAccess(val: string | null): string {
+  if val == null {
+    return 'null'
+  }
+  return val.toUpperCase()
+}
+
+// Test 17: null guard narrows in the if-branch too (val is null inside)
+def shortIf(val: string | null): string {
+  value = if val == null => 'null str' else val
+  return value.toUpperCase()
+}
+
+test('equality narrowing: null guard early return', () => {
+  expect(nullEqGuard('hello')).toBe('HELLO')
+  expect(nullEqGuard(null)).toBe('was null')
+})
+
+test('equality narrowing: null guard else branch', () => {
+  expect(nullEqGuardElse('world')).toBe('WORLD')
+  expect(nullEqGuardElse(null)).toBe('was null')
+})
+
+test('equality narrowing: undefined guard early return', () => {
+  expect(undefinedEqGuard('hi')).toBe('HI')
+  expect(undefinedEqGuard(undefined)).toBe('was undefined')
+})
+
+test('equality narrowing: undefined guard else branch', () => {
+  expect(undefinedEqGuardElse('bye')).toBe('BYE')
+  expect(undefinedEqGuardElse(undefined)).toBe('was undefined')
+})
+
+test('equality narrowing: null branch access', () => {
+  expect(nullBranchAccess('test')).toBe('TEST')
+  expect(nullBranchAccess(null)).toBe('null')
+})
+
+// ── Equality narrowing in short-if expressions (if cond => x else y) ────────
+
+test('equality narrowing in short-if else branch', () => {
+  expect(shortIf('hello')).toBe('HELLO')
+  expect(shortIf(null)).toBe('NULL STR')
 })
