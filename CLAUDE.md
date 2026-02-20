@@ -32,6 +32,14 @@ inference(ast, stream, 'debug.blop');
 
 Run with: `node --experimental-vm-modules src/tests/yourDebugFile.js`
 
+## Type inference architecture
+
+Two-phase design: **inference** (phase 2) propagates types silently — warnings are suppressed so partial information mid-traversal doesn't produce false positives. **Checking** (phase 3) re-walks the same AST with the same handlers and emits warnings. Both phases run with fresh scopes initialised from the binding phase symbol table. A bug that only manifests in one phase usually means the handler is doing the wrong thing for that phase — check `inferencePhase === 'checking'` guards.
+
+## LiteralType vs PrimitiveType
+
+Variables without type annotations get a `LiteralType` (e.g. `x = 5` → `LiteralType(5, NumberType)`), not a bare `PrimitiveType`. Any check using `instanceof PrimitiveType` will miss inferred literals. Always use `getBaseTypeOfLiteral(type)` (from `typeSystem.js`) to normalise before comparing kinds. This applies in `checkMathOperation`, property access guards, and anywhere types from inferred variables are consumed.
+
 ## Grammar and AST structure
 
 The grammar is defined in `src/grammar.js`. The named key for a node in the AST matches the `:label` in the grammar rule. For example `type_arguments:type_args` means the node is stored at `.named.type_args`, NOT `.named.type_arguments`.
