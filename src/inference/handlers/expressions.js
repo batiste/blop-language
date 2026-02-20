@@ -802,7 +802,9 @@ function createExpressionHandlers(getState) {
 
         let resultType;
         if (!falseType) {
-          resultType = trueType;
+          // No else-branch: the expression evaluates to `undefined` when the
+          // condition is false, so the result type must include undefined.
+          resultType = createUnionType([trueType, UndefinedType]);
         } else if (trueType.equals?.(falseType)) {
           resultType = trueType;
         } else {
