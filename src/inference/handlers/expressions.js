@@ -45,25 +45,115 @@ function extractExplicitTypeArguments(typeArgsNode) {
 }
 
 /**
- * Handle array instance method calls and built-in type method returns
+ * Get the member name from an object access node
+ * (e.g. 'foo' from obj.foo or obj.foo())
  */
-function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases }) {
+function getObjectAccessMemberName(access) {
+  const objectAccess = access.children?.find(child => child.type === 'object_access');
+  return objectAccess?.children?.find(child => child.type === 'name')?.value;
+}
+
+/**
+ * Get the member name and its AST node from an object access node
+ * Used when we need to annotate the node with inferred type
+ */
+function getObjectAccessMemberInfo(access) {
+  const objectAccess = access.children?.find(child => child.type === 'object_access');
+  const memberName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+  const memberNode = objectAccess?.children?.find(child => child.type === 'name');
+  return { memberName, memberNode };
+}
+
+/**
+ * Extract return type from a Type (if it's a FunctionType, get returnType; otherwise return as-is)
+ */
+function extractReturnType(type) {
+  if (type instanceof FunctionType) {
+    return type.returnType;
+  }
+  return type ?? AnyType;
+}
+
+/**
+ * Check if a type is a concrete primitive type (string, number, or boolean)
+ */
+function isValidPrimitiveType(type) {
+  return type instanceof PrimitiveType && ['string', 'number', 'boolean'].includes(type.name);
+}
+
+/**
+ * Generic handler for method calls on typed values (arrays, primitives, etc.)
+ * Handles extraction of return type and stamping of AST nodes
+ */
+function handleTypedMethodCall(
+  name,
+  access,
+  definition,
+  parent,
+  typeChecker,
+  memberGetter,
+  validTypeFilter,
+  { pushInference, typeAliases }
+) {
   const resolvedDefType = resolveTypeAlias(definition?.type, typeAliases);
   
-  // Array instance method call (e.g. items.map(), nums.filter(), arr.pop())
-  if (definition && resolvedDefType instanceof ArrayType) {
-    const objectAccess = access.children?.find(child => child.type === 'object_access');
-    const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
-    if (methodName) {
-      const returnType = getArrayMemberType(resolvedDefType, methodName);
-      const methodNode = objectAccess?.children?.find(child => child.type === 'name');
-      if (methodNode) methodNode.inferredType = returnType;
-      pushInference(parent, returnType);
-      return true;
-    }
+  // Check if the resolved type matches the expected type
+  if (!definition || !typeChecker(resolvedDefType)) {
+    return false;
   }
   
-  return false;
+  // Apply optional filter (e.g., exclude 'any' primitive type)
+  if (validTypeFilter && !validTypeFilter(resolvedDefType)) {
+    return false;
+  }
+  
+  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  if (!memberName) {
+    return false;
+  }
+  
+  const methodDef = memberGetter(resolvedDefType, memberName);
+  if (!methodDef) {
+    return false;
+  }
+  
+  const finalType = extractReturnType(methodDef);
+  
+  if (memberNode) memberNode.inferredType = finalType;
+  pushInference(parent, finalType);
+  return true;
+}
+
+/**
+ * Handle array instance method calls (e.g. items.map(), nums.filter(), arr.pop())
+ */
+function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases }) {
+  return handleTypedMethodCall(
+    name,
+    access,
+    definition,
+    parent,
+    (type) => type instanceof ArrayType,
+    getArrayMemberType,
+    null, // no extra filter needed
+    { pushInference, typeAliases }
+  );
+}
+
+/**
+ * Handle primitive type method calls (e.g. s.toLowerCase(), nums.includes(), n.toFixed())
+ */
+function handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushInference, typeAliases }) {
+  return handleTypedMethodCall(
+    name,
+    access,
+    definition,
+    parent,
+    (type) => type instanceof PrimitiveType,
+    (type, methodName) => getPrimitiveMemberType(type.name, methodName),
+    (type) => ['string', 'number', 'boolean'].includes(type.name), // skip 'any'
+    { pushInference, typeAliases }
+  );
 }
 
 /**
@@ -72,23 +162,15 @@ function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { push
 function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
   if (!isBuiltinObjectType(name.value)) return false;
   
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
-  if (methodName) {
-    const builtinType = getBuiltinObjectType(name.value);
-    const rawReturn = builtinType?.[methodName];
-    
-    // If the property is a FunctionType, extract the return type
-    let returnType = rawReturn ?? AnyType;
-    if (rawReturn instanceof FunctionType) {
-      returnType = rawReturn.returnType;
-    }
-    
-    pushInference(parent, returnType);
-    return true;
-  }
+  const methodName = getObjectAccessMemberName(access);
+  if (!methodName) return false;
   
-  return false;
+  const builtinType = getBuiltinObjectType(name.value);
+  const rawReturn = builtinType?.[methodName];
+  const returnType = extractReturnType(rawReturn);
+  
+  pushInference(parent, returnType);
+  return true;
 }
 
 /**
@@ -297,6 +379,12 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
   
+  // Try primitive type method calls (e.g. s.toLowerCase(), n.toFixed())
+  if (handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushInference, typeAliases })) {
+    pushSubsequentOperation(access, parent, pushInference);
+    return true;
+  }
+  
   // Try builtin object method calls (e.g. Math.cos())
   if (handleBuiltinMethodCall(name, access, parent, { pushInference })) {
     pushSubsequentOperation(access, parent, pushInference);
@@ -349,8 +437,7 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
     }
     
     // Check if we can continue validating
-    const isCurrentPrimitive = resolvedCurrent instanceof PrimitiveType &&
-                               (resolvedCurrent.name === 'string' || resolvedCurrent.name === 'number' || resolvedCurrent.name === 'boolean');
+    const isCurrentPrimitive = isValidPrimitiveType(resolvedCurrent);
     const isCurrentObject = resolvedCurrent instanceof ObjectType;
     const isCurrentArray = resolvedCurrent instanceof ArrayType;
     if (!isCurrentPrimitive && !isCurrentObject && !isCurrentArray) {
@@ -399,11 +486,9 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
   
   // Handle array property access
   if (resolvedType instanceof ArrayType) {
-    const objectAccess = access.children?.find(child => child.type === 'object_access');
-    const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+    const { memberName: propName, memberNode: propNode } = getObjectAccessMemberInfo(access);
     if (propName) {
       const memberType = getArrayMemberType(resolvedType, propName);
-      const propNode = objectAccess?.children?.find(child => child.type === 'name');
       if (propNode) propNode.inferredType = memberType;
       name.inferredType = resolvedType;
       pushInference(parent, memberType);
@@ -412,8 +497,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
   }
   
   // Validate property access for object types and primitive scalar types
-  const isPrimitiveType = resolvedType instanceof PrimitiveType &&
-                          (resolvedType.name === 'string' || resolvedType.name === 'number' || resolvedType.name === 'boolean');
+  const isPrimitiveType = isValidPrimitiveType(resolvedType);
   const isObjectType = resolvedType instanceof ObjectType;
   
   if (isPrimitiveType || isObjectType) {
@@ -451,17 +535,13 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
 function handleBuiltinPropertyAccess(name, access, parent, { pushInference }) {
   if (!isBuiltinObjectType(name.value)) return false;
   
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  const propName = objectAccess?.children?.find(child => child.type === 'name')?.value;
-  if (propName) {
-    const builtinType = getBuiltinObjectType(name.value);
-    const rawProp = builtinType?.[propName];
-    const propType = rawProp ?? AnyType;
-    pushInference(parent, propType);
-    return true;
-  }
+  const propName = getObjectAccessMemberName(access);
+  if (!propName) return false;
   
-  return false;
+  const builtinType = getBuiltinObjectType(name.value);
+  const propType = extractReturnType(builtinType?.[propName]);
+  pushInference(parent, propType);
+  return true;
 }
 
 /**

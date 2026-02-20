@@ -62,6 +62,60 @@ function widenLiteralTypes(type) {
   return type;
 }
 
+/**
+ * Extract destructuring bindings recursively from destructuring_values node
+ * Returns array of {propertyName, varName, node}
+ */
+function extractDestructuringBindings(node) {
+  const bindings = [];
+  
+  if (node.type === 'destructuring_values') {
+    // Destructuring value with possible rename or simple name
+    if (node.named.name && node.named.rename) {
+      // Renamed: x as xPos
+      bindings.push({
+        propertyName: node.named.name.value,
+        varName: node.named.rename.value,
+        node: node.named.rename
+      });
+    } else if (node.named.name) {
+      // Simple name in destructuring_values
+      bindings.push({
+        propertyName: node.named.name.value,
+        varName: node.named.name.value,
+        node: node.named.name
+      });
+    }
+    // Recurse for nested destructuring through 'more' property or children
+    if (node.named.more) {
+      bindings.push(...extractDestructuringBindings(node.named.more));
+    } else if (node.children) {
+      // Find nested destructuring_values in children
+      for (const child of node.children) {
+        if (child.type === 'destructuring_values') {
+          bindings.push(...extractDestructuringBindings(child));
+        }
+      }
+    }
+  } else if (node.children) {
+    // For other container nodes, recurse through children
+    for (const child of node.children) {
+      if (child.type === 'destructuring_values') {
+        bindings.push(...extractDestructuringBindings(child));
+      }
+    }
+  }
+  
+  return bindings;
+}
+
+/**
+ * Get the current return type count for a function scope
+ */
+function getReturnTypeCount(functionScope) {
+  return functionScope?.__returnTypes?.length || 0;
+}
+
 function createStatementHandlers(getState) {
   return {
     GLOBAL_STATEMENT: resolveTypes,
@@ -223,53 +277,7 @@ function createStatementHandlers(getState) {
           // Extract destructured variable names and stamp them with property types
           if (resolvedValueType instanceof ObjectType) {
             const destNode = node.named.destructuring.named.values;
-            
-            // Extract all destructured names with their corresponding properties
-            // Returns array of {propertyName, varName, node}
-            function extractBindings(n) {
-              const bindings = [];
-              
-              if (n.type === 'destructuring_values') {
-                // Destructuring value with possible rename or simple name
-                if (n.named.name && n.named.rename) {
-                  // Renamed: x as xPos
-                  bindings.push({
-                    propertyName: n.named.name.value,
-                    varName: n.named.rename.value,
-                    node: n.named.rename
-                  });
-                } else if (n.named.name) {
-                  // Simple name in destructuring_values
-                  bindings.push({
-                    propertyName: n.named.name.value,
-                    varName: n.named.name.value,
-                    node: n.named.name
-                  });
-                }
-                // Recurse for nested destructuring through 'more' property or children
-                if (n.named.more) {
-                  bindings.push(...extractBindings(n.named.more));
-                } else if (n.children) {
-                  // Find nested destructuring_values in children
-                  for (const child of n.children) {
-                    if (child.type === 'destructuring_values') {
-                      bindings.push(...extractBindings(child));
-                    }
-                  }
-                }
-              } else if (n.children) {
-                // For other container nodes, recurse through children
-                for (const child of n.children) {
-                  if (child.type === 'destructuring_values') {
-                    bindings.push(...extractBindings(child));
-                  }
-                }
-              }
-              
-              return bindings;
-            }
-            
-            const bindings = extractBindings(destNode);
+            const bindings = extractDestructuringBindings(destNode);
             
             for (const {propertyName, varName, node} of bindings) {
               // For destructuring, get the raw property type WITHOUT removing undefined
@@ -391,7 +399,7 @@ function createStatementHandlers(getState) {
       }
       
       const typeGuard = detectTypeofCheck(node.named.exp);
-      const returnsBeforeIf = functionScope?.__returnTypes?.length || 0;
+      const returnsBeforeIf = getReturnTypeCount(functionScope);
       
       // Visit condition expression
       if (node.named.exp) {
@@ -408,14 +416,14 @@ function createStatementHandlers(getState) {
         node.named.stats?.forEach(stat => visit(stat, node));
       }
       
-      const returnsAfterIf = functionScope?.__returnTypes?.length || 0;
+      const returnsAfterIf = getReturnTypeCount(functionScope);
       
       // Handle else/elseif branch
       const elseNode = node.named.elseif;
       const isSimpleElse = elseNode && !elseNode.named?.exp && elseNode.named?.stats?.length > 0;
       
       if (isSimpleElse) {
-        const returnsBeforeElse = functionScope?.__returnTypes?.length || 0;
+        const returnsBeforeElse = getReturnTypeCount(functionScope);
         
         if (typeGuard) {
           const elseScope = pushScope();
@@ -426,7 +434,7 @@ function createStatementHandlers(getState) {
           visit(elseNode, node);
         }
         
-        const returnsAfterElse = functionScope?.__returnTypes?.length || 0;
+        const returnsAfterElse = getReturnTypeCount(functionScope);
         
         // If not all branches return, the if/else may complete without returning
         const ifBranchReturns = returnsAfterIf > returnsBeforeIf;
