@@ -5,14 +5,14 @@ import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
 
 
-def PlaygroundPage(_attributes, _children, node): VNode {
+def PlaygroundPage(_attributes, _children, node: Component): VNode {
   defaultCode = 'def Greeting(attributes, _children): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
   
   { value as code, setState as setCode } = node.useState('code', defaultCode)
   { value as output, setState as setOutput } = node.useState('output', '')
   { value as error, setState as setError } = node.useState('error', null)
   { value as warning, setState as setWarning } = node.useState('warning', null)
-  { value as isCompiling, setState as setIsCompiling } = node.useState('isCompiling', false)
+  { value as isCompiling, setState as setIsCompiling } = node.useState<boolean>('isCompiling', false)
   
   def handleCodeChange(e) {
     setCode(e.target.value)

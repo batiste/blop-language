@@ -157,4 +157,39 @@ describe('Array element type inference', () => {
     `;
     expectCompilationError(code, /returns \(number \| string\)\[\]/i);
   });
+
+  test('spread of string[] in array literal infers string[], not (string[] | string)[]', () => {
+    // Regression: [...items, 'x'] where items: string[] should yield string[], not (string[] | string)[]
+    const code = `
+      def getItems(): string[] {
+        items = ['Apple', 'Banana', 'Cherry']
+        newItems = [...items, 'Dragon Fruit']
+        return newItems
+      }
+    `;
+    expectCompiles(code);
+  });
+
+  test('spread of number[] combined with number literal infers number[]', () => {
+    const code = `
+      def addNum(): number[] {
+        nums = [1, 2, 3]
+        more = [...nums, 4]
+        return more
+      }
+    `;
+    expectCompiles(code);
+  });
+
+  test('spread of string[] and number[] infers (string | number)[]', () => {
+    const code = `
+      def mixed() {
+        strs = ['a', 'b']
+        nums = [1, 2]
+        combined = [...strs, ...nums]
+        return combined
+      }
+    `;
+    expectCompiles(code);
+  });
 });

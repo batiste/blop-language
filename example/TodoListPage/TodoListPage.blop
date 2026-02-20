@@ -56,7 +56,7 @@ TodoStats = (attributes) => {
   </div>
 }
 
-TodoListPage = (attributes, _children, node): VNode => {
+TodoListPage = (attributes, _children, node: Component): VNode => {
   { todo } = attributes
   
   // Initialize todoList if it doesn't exist or is old format

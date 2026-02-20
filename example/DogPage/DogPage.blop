@@ -1,7 +1,7 @@
 import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
 
-def DogPage(attributes, _children, node) {
+def DogPage(attributes, _children, node: Component): VNode {
   { state } = attributes
   node.mount(async () => {
     // Using optional chaining to safely check nested property

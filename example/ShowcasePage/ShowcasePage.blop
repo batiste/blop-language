@@ -82,7 +82,7 @@ def CounterDemo(_attributes, _children, node: Component): VNode {
 }
 
 // Dynamic List with For Loops
-def ListDemo(_attributes, _children, node): VNode {
+def ListDemo(_attributes, _children, node: Component): VNode {
   { value as items, setState } = node.useState<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
   
   def addItem() {

@@ -28,7 +28,20 @@ function collectBodyElementTypes(bodyNode) {
     if (!current?.children) return;
     for (const child of current.children) {
       if (child.type === 'exp' && child.inference?.length > 0) {
-        elementTypes.push(child.inference[0]);
+        const inferredType = child.inference[0];
+        // Detect spread elements (exp whose first child is 'spread')
+        const isSpread = child.children?.some(c => c.type === 'spread');
+        if (isSpread) {
+          // Unwrap ArrayType: ...string[] contributes string elements, not string[]
+          if (inferredType instanceof ArrayType) {
+            elementTypes.push(inferredType.elementType);
+          } else {
+            // Unknown spread type — treat as any
+            elementTypes.push(AnyType);
+          }
+        } else {
+          elementTypes.push(inferredType);
+        }
       } else if (child.type === 'array_literal_body') {
         collect(child);
       }

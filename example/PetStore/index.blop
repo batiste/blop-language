@@ -30,7 +30,7 @@ def pagination(petStore) {
   </p>
 }
 
-def PetStore(attributes, _chilren, node) {
+def PetStore(attributes, _chilren, node: Component): VNode {
   { state } = attributes
   petStore = state.petStore
   pets = petStore.pets
