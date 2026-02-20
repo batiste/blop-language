@@ -15,6 +15,10 @@ def DogGame(attributes, children) {
 
   def check() {
     userGuess = input.elm.value
+    if typeof userGuess == 'undefined' {
+      userGuess
+      return
+    }
     normalizedGuess = normalizeBreed(userGuess)
     normalizedBreed = normalizeBreed(dog?.breed ?? '')
     

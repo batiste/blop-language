@@ -72,7 +72,7 @@ let builtinObjectTypes = {
     sel: Types.union([StringType, UndefinedType]),        // CSS selector string or undefined
     data: Types.alias('VNodeData'),                       // VNodeData (props, attrs, class, style, dataset, on, hooks, etc.)
     children: Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]),  // Array of VNode | string, or undefined
-    elm: Types.union([Types.alias('Node'), UndefinedType]),  // The actual DOM Node, or undefined
+    elm: AnyType, // Types.union([Types.alias('Node'), UndefinedType]),  // The actual DOM Node, or undefined
     text: Types.union([StringType, UndefinedType]),       // Text content, or undefined
     key: Types.union([Types.alias('PropertyKey'), UndefinedType]),  // PropertyKey (used for keyed elements), or undefined
   },

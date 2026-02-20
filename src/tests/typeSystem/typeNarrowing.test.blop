@@ -73,11 +73,31 @@ def handleMultiple(val: string | number | boolean): string {
 // Test 8: Works with else branch
 def useElseBranch(val: string | number): string {
   if typeof val == 'number' {
-    return 'number: 'val''
+    return 'number: 'val.toString()
   } else {
     return val.toUpperCase()
   }
 }
+
+// The type narrowing needs to persist AFTER the if block for code that follows, regardless of whether the if block returns. 
+
+// Test 9: TODO - Type narrowing with undefined guard
+// Note: Undefined type narrowing requires more complex scope tracking
+// def undefinedGuardBranch(val: string | undefined): string {
+//   if typeof val == 'undefined' {
+//     return ''
+//   }
+//   return val
+// }
+
+// Test 10: TODO - Type narrowing with number guard
+// def numberGuardBranch(val: string | number): string {
+//   if typeof val == 'number' {
+//     return val.toString()
+//   }
+//   return val
+// }
+
 
 test('typeof narrowing with string', () => {
   expect(processString('hello')).toBe('HELLO')
