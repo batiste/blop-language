@@ -22,6 +22,7 @@ function detectTypeofCheck(expNode) {
   let typeofVar = null;
   let comparisonType = null;
   let hasComparison = false;
+  let isNegated = false;
   
   // Walk the entire expression tree and collect pieces
   const checkNode = (node) => {
@@ -45,8 +46,9 @@ function detectTypeofCheck(expNode) {
     }
     
     // Check for comparison operator
-    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '!=')) {
+    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '!=' || node.value === '===' || node.value === '!==')) {
       hasComparison = true;
+      if (node.value === '!=' || node.value === '!==') isNegated = true;
     }
     
     // Recurse into children
@@ -58,7 +60,7 @@ function detectTypeofCheck(expNode) {
   checkNode(expNode);
   
   if (hasTypeof && typeofVar && comparisonType && hasComparison) {
-    return { variable: typeofVar, checkType: comparisonType };
+    return { variable: typeofVar, checkType: comparisonType, negated: isNegated };
   }
   
   return null;
@@ -238,6 +240,7 @@ function detectEqualityCheck(expNode) {
   let variableName = null;
   let comparedType = null;
   let hasEqualityCheck = false;
+  let isNegated = false;
   let hasTypeofKeyword = false;
 
   const checkNode = (node) => {
@@ -275,9 +278,10 @@ function detectEqualityCheck(expNode) {
       comparedType = new LiteralType(Number(node.value), NumberType);
     }
 
-    // Equality operator
-    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '===')) {
+    // Equality operator (including negated forms)
+    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '===' || node.value === '!=' || node.value === '!==')) {
       hasEqualityCheck = true;
+      if (node.value === '!=' || node.value === '!==') isNegated = true;
     }
 
     if (node.children) {
@@ -293,16 +297,126 @@ function detectEqualityCheck(expNode) {
   checkNode(expNode);
 
   if (!hasTypeofKeyword && hasEqualityCheck && variableName && comparedType) {
-    return { variable: variableName, checkType: comparedType };
+    return { variable: variableName, checkType: comparedType, negated: isNegated };
   }
 
   return null;
 }
 
+/**
+ * Detect truthiness checks: bare `if val { }` patterns.
+ * Returns { variable, truthiness: true } when the condition is a plain variable
+ * with no operators, enabling null/undefined exclusion in the if-branch.
+ * @param {Object} expNode - Expression node to analyze
+ * @returns {Object|null} Type guard info or null
+ */
+function detectTruthinessCheck(expNode) {
+  if (!expNode) return null;
+
+  let variableName = null;
+  let hasComplexity = false;
+
+  const checkNode = (node) => {
+    if (!node || hasComplexity) return;
+
+    // Any operator or typeof makes this a complex expression
+    if (
+      node.type === 'boolean_operator' ||
+      node.type === 'math_operator' ||
+      node.type === 'unary' ||
+      node.type === 'func_call' ||
+      (node.type === 'operand' && node.value?.includes('typeof'))
+    ) {
+      hasComplexity = true;
+      return;
+    }
+
+    // A name_exp with no access = plain variable reference
+    if (node.type === 'name_exp' && !node.named?.access && node.named?.name) {
+      variableName = node.named.name.value;
+      return; // don't recurse further into this subtree
+    }
+
+    if (node.children) node.children.forEach(checkNode);
+    if (node.named) {
+      Object.values(node.named).forEach(child => {
+        if (child && typeof child === 'object') checkNode(child);
+      });
+    }
+  };
+
+  checkNode(expNode);
+
+  if (!hasComplexity && variableName) {
+    return { variable: variableName, truthiness: true };
+  }
+
+  return null;
+}
+
+/**
+ * Exclude both null and undefined from a variable's type in scope.
+ * Used for truthiness narrowing in if-branches.
+ */
+function applyNullishExclusion(scope, variable, lookupVariable) {
+  applyExclusion(scope, variable, NullType, lookupVariable);
+  applyExclusion(scope, variable, UndefinedType, lookupVariable);
+}
+
+/**
+ * Apply the correct scope effect for the if/true branch of a type guard.
+ * - normal: narrows to the checked type
+ * - negated: excludes the checked type
+ * - truthiness: excludes null and undefined
+ */
+function applyIfBranchGuard(scope, typeGuard, lookupVariable) {
+  if (typeGuard.truthiness) {
+    applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
+  } else if (typeGuard.negated) {
+    applyExclusion(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  } else {
+    applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  }
+}
+
+/**
+ * Apply the correct scope effect for the else/false branch of a type guard.
+ * - normal: excludes the checked type
+ * - negated: narrows to the checked type
+ * - truthiness: no narrowing (falsy branch includes unknown falsy values)
+ */
+function applyElseBranchGuard(scope, typeGuard, lookupVariable) {
+  if (typeGuard.truthiness) {
+    // falsy branch: we don't know which falsy value it is — leave type unchanged
+  } else if (typeGuard.negated) {
+    applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  } else {
+    applyExclusion(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  }
+}
+
+/**
+ * Apply the correct scope effect to the outer scope after an early-return if guard.
+ * Same semantics as applyElseBranchGuard: code past the if block is the "false" path.
+ */
+function applyPostIfGuard(scope, typeGuard, lookupVariable) {
+  if (typeGuard.truthiness) {
+    // no narrowing — callers can only reach here when val was falsy (unknown)
+  } else if (typeGuard.negated) {
+    applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  } else {
+    applyExclusion(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  }
+}
+
 export {
   detectTypeofCheck,
   detectEqualityCheck,
+  detectTruthinessCheck,
   applyNarrowing,
   applyExclusion,
+  applyIfBranchGuard,
+  applyElseBranchGuard,
+  applyPostIfGuard,
   detectImpossibleComparison,
 };

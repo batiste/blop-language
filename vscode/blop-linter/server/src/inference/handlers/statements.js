@@ -7,7 +7,7 @@ import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
-import { detectTypeofCheck, detectEqualityCheck, applyNarrowing, applyExclusion, detectImpossibleComparison } from '../typeGuards.js';
+import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -436,7 +436,7 @@ function createStatementHandlers(getState) {
         );
       }
       
-      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp);
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
       const returnsBeforeIf = getReturnTypeCount(functionScope);
       
       // Visit condition expression
@@ -447,7 +447,7 @@ function createStatementHandlers(getState) {
       // Visit if branch (with type-narrowing scope when a type guard is present)
       if (typeGuard) {
         const ifScope = pushScope();
-        applyNarrowing(ifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+        applyIfBranchGuard(ifScope, typeGuard, lookupVariable);
         node.named.stats?.forEach(stat => visit(stat, node));
         popScope();
       } else {
@@ -465,7 +465,7 @@ function createStatementHandlers(getState) {
         
         if (typeGuard) {
           const elseScope = pushScope();
-          applyExclusion(elseScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          applyElseBranchGuard(elseScope, typeGuard, lookupVariable);
           elseNode.named.stats.forEach(stat => visit(stat, node));
           popScope();
         } else {
@@ -486,7 +486,7 @@ function createStatementHandlers(getState) {
         // Chained elseif — apply exclusion from this if's typeGuard before entering
         if (typeGuard) {
           const elseifScope = pushScope();
-          applyExclusion(elseifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          applyElseBranchGuard(elseifScope, typeGuard, lookupVariable);
           visit(elseNode, node);
           popScope();
         } else {
@@ -506,7 +506,7 @@ function createStatementHandlers(getState) {
         elseNode.named?.elseif
       );
       if (typeGuard && !elseHasContent && ifBranchAlwaysReturns) {
-        applyExclusion(getCurrentScope(), typeGuard.variable, typeGuard.checkType, lookupVariable);
+        applyPostIfGuard(getCurrentScope(), typeGuard, lookupVariable);
       }
       
       pushToParent(node, parent);
@@ -529,10 +529,10 @@ function createStatementHandlers(getState) {
       visit(node.named.exp, node);
 
       // Apply type narrowing for this elseif's own condition
-      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp);
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
       if (typeGuard) {
         const ifScope = pushScope();
-        applyNarrowing(ifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+        applyIfBranchGuard(ifScope, typeGuard, lookupVariable);
         node.named.stats?.forEach(stat => visit(stat, node));
         popScope();
       } else {
@@ -543,7 +543,7 @@ function createStatementHandlers(getState) {
       if (node.named.elseif) {
         if (typeGuard) {
           const elseScope = pushScope();
-          applyExclusion(elseScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          applyElseBranchGuard(elseScope, typeGuard, lookupVariable);
           visit(node.named.elseif, node);
           popScope();
         } else {

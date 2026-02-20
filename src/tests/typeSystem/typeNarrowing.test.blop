@@ -194,10 +194,32 @@ def nullBranchAccess(val: string | null): string {
   return val.toUpperCase()
 }
 
-// Test 17: null guard narrows in the if-branch too (val is null inside)
+// Test 17: equality guard — else branch sees narrowed-out type
 def shortIf(val: string | null): string {
   value = if val == null => 'null str' else val
   return value.toUpperCase()
+}
+
+// Test 18: typeof guard in short-if
+def shortIfTypeof(val: string | number): string {
+  value = if typeof val == 'number' => val.toString() else val.toUpperCase()
+  return value
+}
+
+// Test 19: undefined equality guard in short-if
+def shortIfUndefined(val: string | undefined): string {
+  value = if val == undefined => 'none' else val.toUpperCase()
+  return value
+}
+
+// Test 20: short-if used directly as return expression
+def shortIfReturn(val: string | null): string {
+  return if val == null => 'null str' else val.toUpperCase()
+}
+
+// Test 21: short-if without else branch (no-else form: if cond => expr)
+def shortIfNoElse(val: number): number {
+  return if val < 0 => 0 - val else val
 }
 
 test('equality narrowing: null guard early return', () => {
@@ -230,4 +252,96 @@ test('equality narrowing: null branch access', () => {
 test('equality narrowing in short-if else branch', () => {
   expect(shortIf('hello')).toBe('HELLO')
   expect(shortIf(null)).toBe('NULL STR')
+})
+
+test('typeof narrowing in short-if', () => {
+  expect(shortIfTypeof(42)).toBe('42')
+  expect(shortIfTypeof('hi')).toBe('HI')
+})
+
+test('undefined equality narrowing in short-if', () => {
+  expect(shortIfUndefined('world')).toBe('WORLD')
+  expect(shortIfUndefined(undefined)).toBe('none')
+})
+
+test('short-if used directly as return expression', () => {
+  expect(shortIfReturn('hello')).toBe('HELLO')
+  expect(shortIfReturn(null)).toBe('null str')
+})
+
+test('short-if without else branch', () => {
+  expect(shortIfNoElse(5)).toBe(5)
+  expect(shortIfNoElse(0 - 3)).toBe(3)
+})
+
+// ── Negated type guards (!= / !==) ──────────────────────────────────────────
+
+// Test 22: Negated typeof — if-branch is the non-checked type
+def notNumber(val: string | number): string {
+  if typeof val != 'number' {
+    return val.toUpperCase()
+  } else {
+    return val.toString()
+  }
+}
+
+// Test 23: Negated equality — val != null narrows if-branch to non-null
+def notNull(val: string | null): string {
+  if val != null {
+    return val.toUpperCase()
+  } else {
+    return 'was null'
+  }
+}
+
+// Test 24: Negated equality early return — after guard, val is null
+def notNullEarlyReturn(val: string | null): string {
+  if val != null {
+    return val.toUpperCase()
+  }
+  return 'was null'
+}
+
+// ── Truthiness narrowing (if val { }) ───────────────────────────────────────
+
+// Test 25: Truthiness — if-branch strips null, giving string
+def truthinessNarrowing(val: string | null): string {
+  if val {
+    return val.toUpperCase()
+  } else {
+    return 'falsy'
+  }
+}
+
+// Test 26: Truthiness with undefined + early return
+def truthinessEarlyReturn(val: string | undefined): string {
+  if val {
+    return val.toUpperCase()
+  }
+  return 'was falsy'
+}
+
+test('negated typeof guard', () => {
+  expect(notNumber('hello')).toBe('HELLO')
+  expect(notNumber(42)).toBe('42')
+})
+
+test('negated equality guard (else branch)', () => {
+  expect(notNull('world')).toBe('WORLD')
+  expect(notNull(null)).toBe('was null')
+})
+
+test('negated equality guard (early return)', () => {
+  expect(notNullEarlyReturn('hi')).toBe('HI')
+  expect(notNullEarlyReturn(null)).toBe('was null')
+})
+
+test('truthiness narrowing (if val)', () => {
+  expect(truthinessNarrowing('test')).toBe('TEST')
+  expect(truthinessNarrowing(null)).toBe('falsy')
+})
+
+test('truthiness narrowing with undefined early return', () => {
+  expect(truthinessEarlyReturn('foo')).toBe('FOO')
+  expect(truthinessEarlyReturn(undefined)).toBe('was falsy')
 })
