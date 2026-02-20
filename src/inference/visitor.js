@@ -423,16 +423,6 @@ function resolveTypes(node) {
   if (node.inference) {
     let types = node.inference;
     
-    // TODO: Left-side function returns in operations don't validate correctly.
-    // Example: num(5) + "10" should error but doesn't.
-    // Right-side works: "5" + num(10) correctly errors during inference.
-    // Root cause: During checking phase, types array is empty due to pushInference early returns.
-    // Rebuilding from children inferredTypes is attempted but operands don't have inferredType stamped.
-    // A future pass should either:
-    // - Ensure all operand expressions get inferredType stamped during inference
-    // - Allow selected duplication in checking phase for operation validation
-    // - Move operation validation entirely to inference phase with proper early exit logic
-    
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
 

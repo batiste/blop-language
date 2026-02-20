@@ -190,6 +190,28 @@ function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInfer
 }
 
 /**
+ * When access_or_operation contains both a function call (object_access) and a
+ * subsequent operation (e.g. num(5) + "10"), propagate the operation's inferred
+ * operand types and operator to the parent so that math/boolean validation runs.
+ */
+function pushSubsequentOperation(access, parent, pushInference) {
+  const subsequentOp = access.named?.op;
+  if (!subsequentOp) return;
+  // The operation's inference array already holds the right-operand type(s)
+  // because visitChildren(access) ran before this helper is called.
+  pushToParent(subsequentOp, parent);
+  if (subsequentOp.named?.math_op) {
+    pushInference(parent, subsequentOp.named.math_op);
+  }
+  if (subsequentOp.named?.boolean_op) {
+    pushInference(parent, subsequentOp.named.boolean_op);
+  }
+  if (subsequentOp.named?.nullish_op) {
+    pushInference(parent, subsequentOp.named.nullish_op);
+  }
+}
+
+/**
  * Handle function calls in name_exp with validation
  */
 function handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase }) {
@@ -203,17 +225,20 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   
   // Try array/builtin method calls first
   if (handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases })) {
+    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
   
   // Try builtin object method calls
   if (handleBuiltinMethodCall(name, access, parent, { pushInference })) {
+    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
   
   // Handle function-typed variables (e.g., arrow function assignments)
   if (definition && definition.type instanceof FunctionType) {
     if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
+      pushSubsequentOperation(access, parent, pushInference);
       return true;
     }
   }
@@ -225,6 +250,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     } else {
       handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase });
     }
+    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
   

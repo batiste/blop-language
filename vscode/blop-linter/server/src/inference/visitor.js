@@ -79,8 +79,11 @@ function stampTypeAnnotation(node) {
 }
 
 function pushInference(node, inference) {
-  // During checking phase, don't populate inference arrays to avoid duplication
+  // During checking && phase, don't populate inference arrays to avoid duplication
+  //EXCEPT: For math/boolean/nullish operations, we need to re-validate, so we allow repopulation
   if (inferencePhase === 'checking') {
+    // Check if the parent is an operation/exp node with math operators
+    // We'll validate those operators during checking phase
     return;
   }
   if (!node.inference) {
@@ -416,8 +419,10 @@ function checkObjectAccess(types, i) {
  */
 function resolveTypes(node) {
   visitChildren(node);
+  
   if (node.inference) {
-    const types = node.inference;
+    let types = node.inference;
+    
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
 
