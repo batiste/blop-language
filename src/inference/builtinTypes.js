@@ -19,14 +19,14 @@ export const builtinObjectTypes = {
   // Provides access to hooks like useState, useEffect, etc.
   Component: {
     // function useState(key, initialValue) {
-    //   return { value, setState: (newValue) => {}, getValue: () => value };
+    //   return { value, setState: (newValue) => {}, getState: () => value };
     // }
     useState: new FunctionType(
       [StringType, Types.alias('T')],
       Types.object(new Map([
         ['value',    { type: Types.alias('T'), optional: false }],
         ['setState', { type: new FunctionType([Types.alias('T')], UndefinedType, [], ['newValue']), optional: false }],
-        ['getValue', { type: new FunctionType([], Types.alias('T')), optional: false }],
+        ['getState', { type: new FunctionType([], Types.alias('T')), optional: false }],
       ])),
       ['T'],
       ['key', 'initialValue']

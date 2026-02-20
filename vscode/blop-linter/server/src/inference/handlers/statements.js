@@ -212,7 +212,10 @@ function createStatementHandlers(getState) {
         // Handle destructuring assignment: { total, text } = attributes
         visit(node.named.exp, node);
         const expNode = node.named.exp;
-        const valueType = expNode && expNode.inference && expNode.inference[0];
+        // The type may be on expNode.inference (when visited via resolveTypes) OR
+        // on node.inference (when the exp is a name_exp visited directly as a child,
+        // which pushes its result to the parent statement node).
+        const valueType = expNode?.inference?.[0] || node.inference?.[0];
         
         if (valueType && valueType !== AnyType) {
           const resolvedValueType = resolveTypeAlias(valueType, typeAliases);

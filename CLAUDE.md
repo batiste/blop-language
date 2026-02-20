@@ -13,3 +13,47 @@ Use camelCase for files.
 When you write md docs, avoid excessive emoticons. Use typescript as the code block language for proper coloration.
 
 For AST debugging during type inference investigations, use the reusable debug utilities in `src/tests/debugUtils.js`. Functions like `findNodes()`, `analyzeOperations()`, `printInferenceTree()` help explore AST structure and type inference without writing throwaway scripts.
+
+## Running debug scripts
+
+`compileSource` does NOT expose the AST. To inspect it, use `parser` and `inference` directly:
+
+```typescript
+import parser from '../parser.js';
+import { tokensDefinition } from '../tokensDefinition.js';
+import { inference } from '../inference/index.js';
+import { findNodes, printNode } from './debugUtils.js';
+
+const stream = parser.tokenize(tokensDefinition, src);
+const ast = parser.parse(stream);
+inference(ast, stream, 'debug.blop');
+// now ast nodes have .inferredType stamped on them
+```
+
+Run with: `node --experimental-vm-modules src/tests/yourDebugFile.js`
+
+## Grammar and AST structure
+
+The grammar is defined in `src/grammar.js`. The named key for a node in the AST matches the `:label` in the grammar rule. For example `type_arguments:type_args` means the node is stored at `.named.type_args`, NOT `.named.type_arguments`.
+
+`object_access` is recursive. Each grammar alternative consumes one "step", so chained calls nest: `node.useState<number>('count', 0)` produces:
+
+```
+access_or_operation
+  named.access → object_access (OUTER: '.' + name="useState")
+    child object_access (INNER: type_arguments + func_call)
+      named.type_args → type_arguments
+        named.args → type_argument_list
+          named.arg → type_expression
+```
+
+When looking for `type_arguments` in an `object_access`, check the **nested** child `object_access`, not the top-level one. The pattern is:
+
+```javascript
+const outerOA = access.children?.find(c => c.type === 'object_access');
+const methodName = outerOA?.children?.find(c => c.type === 'name')?.value;
+const innerOA = outerOA?.children?.find(c => c.type === 'object_access');
+const typeArgsNode = innerOA?.children?.find(c => c.type === 'type_arguments');
+```
+
+When in doubt about the structure of a specific expression, add a temporary `printNode(ne, 0, 6)` call in a debug script and read the output before writing any handler code.

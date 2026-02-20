@@ -94,9 +94,15 @@ function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, par
   if (!(defType instanceof TypeAlias) || !isBuiltinObjectType(defType.name)) return false;
 
   const builtinType = getBuiltinObjectType(defType.name);
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
-  const methodNode = objectAccess?.children?.find(child => child.type === 'name');
+
+  // For method calls like node.useState<T>(), the AST structure is:
+  //   access_or_operation
+  //     object_access (OUTER: contains '.', 'name=method', INNER object_access)
+  //       object_access (INNER: contains 'type_arguments', 'func_call')
+  const outerObjectAccess = access.children?.find(child => child.type === 'object_access');
+  const methodName = outerObjectAccess?.children?.find(child => child.type === 'name')?.value;
+  const methodNode = outerObjectAccess?.children?.find(child => child.type === 'name');
+  const innerObjectAccess = outerObjectAccess?.children?.find(child => child.type === 'object_access');
 
   if (!methodName || !builtinType) return false;
 
@@ -115,7 +121,9 @@ function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, par
   }
 
   if (methodDef.genericParams && methodDef.genericParams.length > 0) {
-    const typeArgsNode = objectAccess?.children?.find(child => child.type === 'type_arguments');
+    // type_arguments lives in the INNER object_access (one level deeper than the method name)
+    const typeArgsNode = innerObjectAccess?.children?.find(child => child.type === 'type_arguments')
+                      ?? innerObjectAccess?.named?.type_args;
     const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
 
     let substitutions = {};
