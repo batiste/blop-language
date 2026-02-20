@@ -81,59 +81,69 @@ export function parseTypeExpression(typeExprNode) {
 export function parseTypePrimary(typePrimaryNode) {
   if (!typePrimaryNode || !typePrimaryNode.named) return Types.any;
   
+  let baseType = Types.any;
+  
   // Check for object type
   if (typePrimaryNode.children && typePrimaryNode.children[0] && 
       typePrimaryNode.children[0].type === 'object_type') {
-    return parseObjectType(typePrimaryNode.children[0]);
-  }
+    baseType = parseObjectType(typePrimaryNode.children[0]);
+  } else
   
   // Check for string literal type
   if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'str') {
     // Strip quotes from the token value
     const rawValue = typePrimaryNode.named.literal.value.slice(1, -1);
-    return Types.literal(rawValue, StringType);
-  }
+    baseType = Types.literal(rawValue, StringType);
+  } else
   
   // Check for number literal type
   if (typePrimaryNode.named.literal && typePrimaryNode.named.literal.type === 'number') {
     const value = parseFloat(typePrimaryNode.named.literal.value);
-    return Types.literal(value, NumberType);
-  }
-  
-  const { name, type_args } = typePrimaryNode.named;
-  if (!name) return Types.any;
-  
-  // name is a type_name node, get its first child
-  const typeToken = name.children ? name.children[0] : name;
-  const typeName = typeToken.value;
-  
-  // Check if it's a generic type instantiation: Type<Args>
-  if (type_args) {
-    const typeArgs = parseTypeArguments(type_args);
-    const baseType = new TypeAlias(typeName);
-    
-    // Check if it's also an array: Type<Args>[]
-    const hasArrayBrackets = typePrimaryNode.children?.some((child, i) => 
-      child.value === '[' && typePrimaryNode.children[i + 1]?.value === ']'
-    );
-    
-    const genericType = Types.generic(baseType, typeArgs);
-    
-    if (hasArrayBrackets) {
-      return Types.array(genericType);
+    baseType = Types.literal(value, NumberType);
+  } else {
+    const { name, type_args } = typePrimaryNode.named;
+    if (name) {
+      // name is a type_name node, get its first child
+      const typeToken = name.children ? name.children[0] : name;
+      const typeName = typeToken.value;
+      
+      // Check if it's a generic type instantiation: Type<Args>
+      if (type_args) {
+        const typeArgs = parseTypeArguments(type_args);
+        baseType = Types.generic(new TypeAlias(typeName), typeArgs);
+      } else {
+        baseType = primitiveFromName(typeName);
+      }
     }
-    
-    return genericType;
   }
   
-  // Check if it's an array type (has [ ] after the name)
-  if (typePrimaryNode.children && typePrimaryNode.children.length > 1) {
-    const elementType = primitiveFromName(typeName);
-    return Types.array(elementType);
+  // Handle array_suffix for any base type (object, named, literal, generic)
+  // array_suffix appears in children array since it has no name label in grammar
+  const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
+  if (arraySuffixNode) {
+    return parseArraySuffix(baseType, arraySuffixNode);
   }
   
-  // Simple type name
-  return primitiveFromName(typeName);
+  return baseType;
+}
+
+/**
+ * Parse an array_suffix node to handle one or more [] pairs
+ * Multi-dimensional arrays recursively wrap the type
+ * @param {Type} elementType - The base type before array notation
+ * @param {Object} arraySuffixNode - The array_suffix AST node
+ * @returns {ArrayType}
+ */
+function parseArraySuffix(elementType, arraySuffixNode) {
+  let result = Types.array(elementType);
+  
+  // array_suffix recursively contains more array_suffix nodes via named.array_suffix
+  if (arraySuffixNode.named && arraySuffixNode.named.array_suffix) {
+    // This means we have [][] or more
+    return parseArraySuffix(result, arraySuffixNode.named.array_suffix);
+  }
+  
+  return result;
 }
 
 /**

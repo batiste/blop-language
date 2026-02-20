@@ -18,6 +18,10 @@ def test(a: number=1) {
     return a
 }
 
+def arrayFct(a: number=1): { a: number }[] {
+    return [{ a }, { a: a + 1 }, { a: a + 2 }]
+}
+
 def variableType(x: number, _y=5) {
     if (x > 10) {
         return "Greater than 10"

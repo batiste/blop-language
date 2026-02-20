@@ -121,3 +121,37 @@ test('array of object types', () => {
   expect(items[0].name).toBe('First')
   expect(items[1].id).toBe(2)
 })
+
+// Test 9: Inline object type with array notation
+inlineArraySimple: { value: number }[] = [{ value: 10 }, { value: 20 }]
+
+test('inline object type with array notation', () => {
+  expect(inlineArraySimple.length).toBe(2)
+  expect(inlineArraySimple[0].value).toBe(10)
+  expect(inlineArraySimple[1].value).toBe(20)
+})
+
+// Test 10: Complex inline object type with array notation
+complexArray: { id: number, name: string, active: boolean }[] = [
+  { id: 1, name: 'Alice', active: true },
+  { id: 2, name: 'Bob', active: false }
+]
+
+test('complex inline object type with array notation', () => {
+  expect(complexArray.length).toBe(2)
+  expect(complexArray[0].name).toBe('Alice')
+  expect(complexArray[1].active).toBe(false)
+})
+
+// Test 11: Multi-dimensional array of inline object types
+matrix: { x: number, y: number }[][] = [
+  [{ x: 1, y: 2 }, { x: 3, y: 4 }],
+  [{ x: 5, y: 6 }, { x: 7, y: 8 }]
+]
+
+test('multi-dimensional array of inline object types', () => {
+  expect(matrix.length).toBe(2)
+  expect(matrix[0].length).toBe(2)
+  expect(matrix[0][0].x).toBe(1)
+  expect(matrix[1][1].y).toBe(8)
+})

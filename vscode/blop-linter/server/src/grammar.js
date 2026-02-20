@@ -99,13 +99,15 @@ const grammar = {
     ['type_primary'],
   ],
   'type_primary': [
-    ['object_type'],
-    ['str:literal'],
-    ['number:literal'],
-    ['type_name:name', '<', 'type_arg_list:type_args', '>', '[', ']'],
+    ['object_type', 'array_suffix?'],
+    ['str:literal', 'array_suffix?'],
+    ['number:literal', 'array_suffix?'],
+    ['type_name:name', '<', 'type_arg_list:type_args', '>', 'array_suffix?'],
     ['type_name:name', '<', 'type_arg_list:type_args', '>'],
-    ['type_name:name', '[', ']'],
-    ['type_name:name'],
+    ['type_name:name', 'array_suffix?'],
+  ],
+  'array_suffix': [
+    ['[', ']', 'array_suffix?'],
   ],
   'type_arg_list': [
     ['type_expression:arg', ',', 'w', 'type_arg_list:rest'],
