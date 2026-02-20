@@ -81,6 +81,11 @@ def App(attributes) {
   </div>
 }
 
+def CounterDemo(_attributes, _children, node: Component): VNode {
+  { value } = node.useState<number>('count', 0)
+  return <div>value</div>
+}
+
 def ErrorIcon() {
   <span class="icon error">'❌'</span>
 }

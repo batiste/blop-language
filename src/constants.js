@@ -193,6 +193,7 @@ const BUILTIN_TYPES = new Set([
   'array',
   'function',
   'VNode',
+  'Component',
   
   // Legacy/alias types
   'int',

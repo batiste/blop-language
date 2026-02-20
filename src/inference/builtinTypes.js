@@ -6,6 +6,7 @@ import {
   Types,
   AnyType, StringType, NumberType, BooleanType, NullType, UndefinedType,
   ArrayType, UnionType,
+  FunctionType,
 } from './Type.js';
 
 /**
@@ -14,6 +15,24 @@ import {
  * This allows the type system to validate property access on native JS objects.
  */
 export const builtinObjectTypes = {
+  // Component type - injected context for component functions
+  // Provides access to hooks like useState, useEffect, etc.
+  Component: {
+    // function useState(key, initialValue) {
+    //   return { value, setState: (newValue) => {}, getValue: () => value };
+    // }
+    useState: new FunctionType(
+      [StringType, Types.alias('T')],
+      Types.object(new Map([
+        ['value',    { type: Types.alias('T'), optional: false }],
+        ['setState', { type: new FunctionType([Types.alias('T')], UndefinedType, [], ['newValue']), optional: false }],
+        ['getValue', { type: new FunctionType([], Types.alias('T')), optional: false }],
+      ])),
+      ['T'],
+      ['key', 'initialValue']
+    ),
+  },
+
   // Snabbdom VNode type
   VNode: {
     elm: AnyType,                                         // The DOM element

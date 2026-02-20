@@ -1,7 +1,7 @@
 // ShowcasePage - Interactive demonstration of Blop's strengths
 
 // Code Display Component
-def CodeBlock(attributes, _children): VNode {
+def CodeBlock(attributes: { code: string, title?: string }, _children): VNode {
   { code, title } = attributes
   
   borderRadius = '6px'
@@ -36,7 +36,7 @@ def CodeBlock(attributes, _children): VNode {
 }
 
 // Feature cards showing key advantages
-def FeatureCard(attributes, children): VNode {
+def FeatureCard(attributes: { icon: string, title: string, color: string }, children): VNode {
   { icon, title, color } = attributes
   
   <div class="col-md-4" style={ marginBottom: '1.5em' }>
@@ -53,8 +53,8 @@ def FeatureCard(attributes, children): VNode {
 }
 
 //  Interactive Counter Demo
-def CounterDemo(_attributes, _children, node): VNode {
-  { value as count, setState } = node.useState('count', 0)
+def CounterDemo(_attributes, _children, node: Component): VNode {
+  { value as count, setState } = node.useState<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em', margin: '0.3em 0', color: '#0d6efd', fontWeight: 'bold' }>count</h2>

@@ -42,10 +42,10 @@ def genericFunction<T>(arg: T): T {
 def identity<T>(arg: T): T {
     return arg
 }
-// identity<number>(5) + identity<string>("10")
-// 5 + "10"
-// 5 + identity<string>("10")
-// identity<number>(5) + "10"
+identity<number>(5) + identity<string>("10")
+5 + "10"
+5 + identity<string>("10")
+identity<number>(5) + "10"
 
 def text(t: string): string {
     return t
@@ -69,8 +69,8 @@ hello = "Hello"
 hello := "asdf"
 console.log(userAssignmentTest)
 
-def test1(_a: number=1): VNode {
-    <p>'hello'</p>
+def test1(a: number=1): VNode {
+    <p>a</p>
 }
 result_1 = test1()
 

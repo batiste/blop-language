@@ -886,7 +886,8 @@ export function substituteTypeParams(type, substitutions) {
     return new FunctionType(
       type.params.map(t => substituteTypeParams(t, substitutions)),
       substituteTypeParams(type.returnType, substitutions),
-      type.genericParams
+      type.genericParams,
+      type.paramNames
     );
   }
   

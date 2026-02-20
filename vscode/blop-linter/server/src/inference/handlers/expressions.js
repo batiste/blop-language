@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -83,6 +83,60 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
   }
   
   return false;
+}
+
+/**
+ * Handle method calls on variables whose type is a builtin object type
+ * (e.g. node.useState<number>('count', 0) where node: Component)
+ */
+function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
+  const defType = definition?.type;
+  if (!(defType instanceof TypeAlias) || !isBuiltinObjectType(defType.name)) return false;
+
+  const builtinType = getBuiltinObjectType(defType.name);
+  const objectAccess = access.children?.find(child => child.type === 'object_access');
+  const methodName = objectAccess?.children?.find(child => child.type === 'name')?.value;
+  const methodNode = objectAccess?.children?.find(child => child.type === 'name');
+
+  if (!methodName || !builtinType) return false;
+
+  const methodDef = builtinType[methodName];
+  if (!methodDef) return false;
+
+  if (!(methodDef instanceof FunctionType)) {
+    // Plain type property — just push as-is
+    pushInference(parent, methodDef);
+    return true;
+  }
+
+  // Stamp method node with full function type for hover
+  if (inferencePhase === 'inference' && methodNode && methodNode.inferredType === undefined) {
+    methodNode.inferredType = methodDef;
+  }
+
+  if (methodDef.genericParams && methodDef.genericParams.length > 0) {
+    const typeArgsNode = objectAccess?.children?.find(child => child.type === 'type_arguments');
+    const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
+
+    let substitutions = {};
+    if (explicitTypeArgs) {
+      for (let i = 0; i < Math.min(methodDef.genericParams.length, explicitTypeArgs.length); i++) {
+        substitutions[methodDef.genericParams[i]] = explicitTypeArgs[i];
+      }
+    } else {
+      const result = inferGenericArguments(methodDef.genericParams, methodDef.params, argTypes, typeAliases);
+      substitutions = result.substitutions;
+      if (result.errors.length > 0) result.errors.forEach(e => pushWarning(name, e));
+    }
+
+    let returnType = methodDef.returnType ?? AnyType;
+    returnType = substituteType(returnType, substitutions);
+    pushInference(parent, returnType);
+  } else {
+    pushInference(parent, methodDef.returnType ?? AnyType);
+  }
+
+  return true;
 }
 
 /**
@@ -229,8 +283,14 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
   
-  // Try builtin object method calls
+  // Try builtin object method calls (e.g. Math.cos())
   if (handleBuiltinMethodCall(name, access, parent, { pushInference })) {
+    pushSubsequentOperation(access, parent, pushInference);
+    return true;
+  }
+
+  // Handle method calls on variables typed as a builtin (e.g. node.useState<number>())
+  if (handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
