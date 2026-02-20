@@ -1,0 +1,19 @@
+def num(n: number): number {
+  return n
+}
+
+def text(t: string): string {
+  return t
+}
+
+// Test: Valid string concatenation
+test('string concatenation works', () => {
+  result = text("hello") + text("world")
+  expect(result).toBe("helloworld")
+})
+
+// Test: Valid number addition
+test('number addition works', () => {
+  result = num(5) + num(10)
+  expect(result).toBe(15)
+})

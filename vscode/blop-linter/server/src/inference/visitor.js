@@ -79,6 +79,7 @@ function stampTypeAnnotation(node) {
 }
 
 function pushInference(node, inference) {
+  // During checking phase, don't populate inference arrays to avoid duplication
   if (inferencePhase === 'checking') {
     return;
   }
