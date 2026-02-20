@@ -445,13 +445,62 @@ function createStatementHandlers(getState) {
           }
         }
       } else if (elseNode) {
-        // Chained elseif or empty else — visit without return tracking
-        visit(elseNode, node);
+        // Chained elseif — apply exclusion from this if's typeGuard before entering
+        if (typeGuard) {
+          const elseifScope = pushScope();
+          applyExclusion(elseifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          visit(elseNode, node);
+          popScope();
+        } else {
+          visit(elseNode, node);
+        }
       }
       
       pushToParent(node, parent);
     },
-    
+
+    else_if: (node, parent) => {
+      const { pushScope, popScope, lookupVariable } = getState();
+
+      // Simple else branch: no condition, just visit body
+      if (!node.named?.exp) {
+        node.named?.stats?.forEach(stat => visit(stat, node));
+        if (node.named?.elseif) {
+          visit(node.named.elseif, node);
+        }
+        pushToParent(node, parent);
+        return;
+      }
+
+      // Visit the elseif condition expression
+      visit(node.named.exp, node);
+
+      // Apply type narrowing for this elseif's own condition
+      const typeGuard = detectTypeofCheck(node.named.exp);
+      if (typeGuard) {
+        const ifScope = pushScope();
+        applyNarrowing(ifScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+        node.named.stats?.forEach(stat => visit(stat, node));
+        popScope();
+      } else {
+        node.named.stats?.forEach(stat => visit(stat, node));
+      }
+
+      // Visit chained else_if, applying exclusion from this branch's typeGuard
+      if (node.named.elseif) {
+        if (typeGuard) {
+          const elseScope = pushScope();
+          applyExclusion(elseScope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+          visit(node.named.elseif, node);
+          popScope();
+        } else {
+          visit(node.named.elseif, node);
+        }
+      }
+
+      pushToParent(node, parent);
+    },
+
     for_loop: (node, parent) => {
       const { pushScope, popScope, pushWarning, typeAliases } = getState();
       const scope = pushScope();

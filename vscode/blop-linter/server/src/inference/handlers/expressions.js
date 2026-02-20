@@ -617,9 +617,20 @@ function createExpressionHandlers(getState) {
           }
         }
         
-        // Unknown variable or couldn't validate
+        // Unknown variable or couldn't validate.
+        // If access contains a binary operation (e.g. value + 'a'), propagate the
+        // variable's type so the math/boolean type check fires on the parent.
+        // For function/property accesses that fell through, keep AnyType to avoid
+        // leaking the raw literal type (e.g. LiteralType(5) from index.toString()).
         visitChildren(access);
-        pushInference(parent, AnyType);
+        const hasOp = access.named?.op &&
+          (access.named.op.named?.math_op || access.named.op.named?.boolean_op || access.named.op.named?.nullish_op);
+        if (hasOp && definition && definition.type && !defTypeIsAny) {
+          pushInference(parent, definition.type);
+          pushToParent(access, parent);
+        } else {
+          pushInference(parent, AnyType);
+        }
         return;
       }
       
