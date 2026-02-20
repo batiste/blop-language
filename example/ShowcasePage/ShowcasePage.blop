@@ -83,7 +83,7 @@ def CounterDemo(_attributes, _children, node: Component): VNode {
 
 // Dynamic List with For Loops
 def ListDemo(_attributes, _children, node): VNode {
-  { value as items, setState } = node.useState('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
+  { value as items, setState } = node.useState<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
   
   def addItem() {
     itemNumber_ = items.length + 1
@@ -135,9 +135,9 @@ def ListDemo(_attributes, _children, node): VNode {
 }
 
 // Conditional Rendering Demo
-def ConditionalDemo(_attributes, _children, node): VNode {
-  { value as visible, setState as setVisible } = node.useState('visible', true)
-  { value as mood, setState as setMood } = node.useState('mood', 'happy')
+def ConditionalDemo(_attributes, _children, node: Component): VNode {
+  { value as visible, setState as setVisible } = node.useState<boolean>('visible', true)
+  { value as mood, setState as setMood } = node.useState<string>('mood', 'happy')
   
   moods = ['happy', 'sad', 'excited', 'confused', 'cool']
   emojis = { happy: '😊', sad: '😢', excited: '🎉', confused: '🤔', cool: '😎' }
@@ -193,9 +193,9 @@ def ConditionalDemo(_attributes, _children, node): VNode {
 }
 
 // Tabs component for different sections
-def ShowcasePage(attributes, _children, node): VNode {
+def ShowcasePage(attributes, _children, node: Component): VNode {
   { _state } = attributes
-  { value as activeTab, setState as setActiveTab } = node.useState('activeTab', 'overview')
+  { value as activeTab, setState as setActiveTab } = node.useState<string>('activeTab', 'overview')
   
   def switchTab(tab: string) {
     return (e) => {
@@ -345,8 +345,8 @@ def ShowcasePage(attributes, _children, node): VNode {
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
                 title="CounterDemo.blop"
-                code="def CounterDemo(_attributes, _children, node): VNode {
-  { value as count, setState } = node.useState('count', 0)
+                code="def CounterDemo(_attributes, _children, node: Component): VNode {
+  { value as count, setState } = node.useState<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em' }>count</h2>
@@ -392,8 +392,8 @@ def ShowcasePage(attributes, _children, node): VNode {
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
                 title="ListDemo.blop"
-                code="def ListDemo(_attributes, _children, node): VNode {
-  { value as items, setState } = node.useState('items', 
+                code="def ListDemo(_attributes, _children, node: Component): VNode {
+  { value as items, setState } = node.useState<string>('items', 
     ['Apple', 'Banana', 'Cherry'])
   
   def addItem() {
@@ -609,9 +609,9 @@ for key, value in myObject {
             <div class="row">
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
-                <CodeBlock code="def TodoItem(attributes, _children, node): VNode {
+                <CodeBlock code="def TodoItem(attributes, _children, node: Component): VNode {
   { todo } = attributes
-  { value as done, setState } = node.useState('done', false)
+  { value as done, setState } = node.useState<boolean>('done', false)
   
   classes = if done 'todo-item' else 'todo-item completed'
   

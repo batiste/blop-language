@@ -32,7 +32,7 @@ import { mount, Component } from 'blop'
 
 // A simple counter component
 Counter = (attributes, children, node) => {
-  { value, setState } = node.useState('count', 0)
+  { value, setState } = node.useState<number>('count', 0)
   
   <div>
     <h2>'Counter: 'value''</h2>

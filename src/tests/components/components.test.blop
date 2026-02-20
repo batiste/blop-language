@@ -86,6 +86,9 @@ def CounterDemo(_attributes, _children, node: Component): VNode {
   return <div>value</div>
 }
 
+// span1 = <span>1 + 'a'</span>
+span2 = <span>'a' + '1'</span> // should fail
+
 // test builtin functions
 clearInterval(1)
 
