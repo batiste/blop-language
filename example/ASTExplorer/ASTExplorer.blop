@@ -1,11 +1,13 @@
 import { compile } from '../../src/compile-browser.js'
 import { tokenize, parse } from '../../src/parser-browser.js'
 
+
+
 // Recursive TreeNode component for displaying AST nodes
-def TreeNode(attributes, _children, node): VNode {
+def TreeNode(attributes, _children, node: Component): VNode {
   { astNode, depth, path } = attributes
-  
-  { value as expanded, setState as setExpanded } = node.useState('expanded', depth < 2)
+
+  { value as expanded, setState as setExpanded } = node.useState<boolean>('expanded', depth < 2)
   
   def toggleExpand() {
     setExpanded(!expanded)
@@ -109,7 +111,7 @@ def TreeNode(attributes, _children, node): VNode {
   </div>
 }
 
-def ASTExplorer(_attributes, _children, node): VNode {
+def ASTExplorer(_attributes, _children, node: Component): VNode {
   defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
   
   { value as code, setState as setCode } = node.useState('code', defaultCode)

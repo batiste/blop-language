@@ -1329,9 +1329,11 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 	}
 	
 	// Convert Type object to string if needed
-	const typeString = typeof inferredType === 'string' 
-		? inferredType 
-		: inferredType.toString?.() || String(inferredType);
+	const typeString = typeof inferredType === 'string'
+		? inferredType
+		: (inferredType.kind === 'literal'
+			? (inferredType as any).baseType?.toString() ?? inferredType.toString()
+			: inferredType.toString?.() || String(inferredType));
 	
 	// Get the token range for highlighting
 	const token = stream[node.stream_index];

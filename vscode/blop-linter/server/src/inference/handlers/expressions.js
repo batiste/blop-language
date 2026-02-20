@@ -170,17 +170,29 @@ function handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushI
 /**
  * Handle built-in object method calls (e.g. Math.cos, Object.keys)
  */
-function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
+function handleBuiltinMethodCall(name, access, parent, { pushInference, inferencePhase }) {
   if (!isBuiltinObjectType(name.value)) return false;
   
-  const methodName = getObjectAccessMemberName(access);
-  if (!methodName) return false;
+  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  if (!memberName) return false;
   
   const builtinType = getBuiltinObjectType(name.value);
-  const rawReturn = builtinType?.[methodName];
+  const rawReturn = builtinType?.[memberName];
   const returnType = extractReturnType(rawReturn);
   
   pushInference(parent, returnType);
+
+  if (inferencePhase === 'inference') {
+    // Stamp the object name (e.g. 'Array' in Array.isArray(...))
+    if (name.inferredType === undefined) {
+      name.inferredType = new TypeAlias(name.value);
+    }
+    // Stamp the method name node with its full function type
+    if (memberNode && memberNode.inferredType === undefined && rawReturn) {
+      memberNode.inferredType = rawReturn;
+    }
+  }
+
   return true;
 }
 
@@ -397,7 +409,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   }
   
   // Try builtin object method calls (e.g. Math.cos())
-  if (handleBuiltinMethodCall(name, access, parent, { pushInference })) {
+  if (handleBuiltinMethodCall(name, access, parent, { pushInference, inferencePhase })) {
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
@@ -556,15 +568,28 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
 /**
  * Handle property access on built-in objects (e.g. Math.PI, Number.MAX_VALUE)
  */
-function handleBuiltinPropertyAccess(name, access, parent, { pushInference }) {
+function handleBuiltinPropertyAccess(name, access, parent, { pushInference, inferencePhase }) {
   if (!isBuiltinObjectType(name.value)) return false;
   
-  const propName = getObjectAccessMemberName(access);
-  if (!propName) return false;
+  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  if (!memberName) return false;
   
   const builtinType = getBuiltinObjectType(name.value);
-  const propType = extractReturnType(builtinType?.[propName]);
+  const rawPropType = builtinType?.[memberName];
+  const propType = extractReturnType(rawPropType);
   pushInference(parent, propType);
+
+  if (inferencePhase === 'inference') {
+    // Stamp the object name (e.g. 'Array' in Array.isArray) with a readable alias
+    if (name.inferredType === undefined) {
+      name.inferredType = new TypeAlias(name.value);
+    }
+    // Stamp the member name node (e.g. 'isArray') with its full type
+    if (memberNode && memberNode.inferredType === undefined && rawPropType) {
+      memberNode.inferredType = rawPropType;
+    }
+  }
+
   return true;
 }
 
@@ -581,6 +606,9 @@ function handleSimpleVariable(name, parent, definition, getState) {
       const aliasEntry = typeAliases[name.value];
       if (aliasEntry !== undefined) {
         name.inferredType = aliasEntry;
+      } else if (isBuiltinObjectType(name.value)) {
+        // Bare builtin reference (e.g. `Array`, `Math`) — show its name as type
+        name.inferredType = new TypeAlias(name.value);
       }
     }
     pushInference(parent, AnyType);
@@ -671,7 +699,7 @@ function createExpressionHandlers(getState) {
         }
         
         // Try built-in property access first
-        if (handleBuiltinPropertyAccess(name, access, parent, { pushInference })) {
+        if (handleBuiltinPropertyAccess(name, access, parent, { pushInference, inferencePhase })) {
           return;
         }
         
