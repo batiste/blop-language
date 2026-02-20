@@ -122,7 +122,7 @@ function createStatementHandlers(getState) {
     SCOPED_STATEMENTS: resolveTypes,
     
     SCOPED_STATEMENT: (node, parent) => {
-      const { getFunctionScope } = getState();
+      const { getFunctionScope, pushWarning, typeAliases, inferencePhase } = getState();
       
       // Check if this is a return statement by looking at the first child
       if (node.children && node.children[0] && node.children[0].type === 'return') {
@@ -133,13 +133,34 @@ function createStatementHandlers(getState) {
           
           // Find the exp child and get its type
           let returnType = UndefinedType;
+          let returnExpNode = null;
           for (const child of node.children) {
             if (child.type === 'exp') {
+              returnExpNode = child;
               if (child.inference && child.inference.length > 0) {
                 // Take the last inference value, which is the final result after all operations
                 returnType = child.inference[child.inference.length - 1];
               }
               break;
+            }
+          }
+
+          // Validate each return expression against the declared return type.
+          // Doing this per-statement avoids the problem where any-typed returns
+          // contaminate the end-of-function union check.
+          // Only check when the exp resolves to a single type: multi-item arrays
+          // indicate unresolved inline string interpolation whose final type can't
+          // be reliably inferred from the last element alone.
+          if (inferencePhase === 'checking' && returnExpNode) {
+            const declaredReturnType = functionScope.__declaredReturnType;
+            const singleType = returnExpNode.inference?.length === 1 ? returnType : null;
+            if (declaredReturnType && singleType && singleType !== AnyType) {
+              if (!isTypeCompatible(singleType, declaredReturnType, typeAliases)) {
+                pushWarning(
+                  returnExpNode,
+                  `returns ${singleType} but declared as ${declaredReturnType}`
+                );
+              }
             }
           }
           

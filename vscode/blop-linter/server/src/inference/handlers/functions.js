@@ -156,12 +156,21 @@ function createFunctionHandlers(getState) {
           Object.assign(scope, preLocals);
         }
       }
+
+      // Pre-parse declared return type so SCOPED_STATEMENT can validate each
+      // return expression individually during the checking phase.
+      const { annotation } = node.named;
+      if (annotation) {
+        stampTypeAnnotation(annotation);
+        const earlyDeclaredType = getAnnotationType(annotation);
+        if (earlyDeclaredType) {
+          scope.__declaredReturnType = earlyDeclaredType;
+        }
+      }
       
       visitChildren(node);
       
-      const { annotation } = node.named;
-      
-      // Stamp the return type annotation for hover support
+      // Stamp the return type annotation for hover support (idempotent)
       if (annotation) {
         stampTypeAnnotation(annotation);
       }

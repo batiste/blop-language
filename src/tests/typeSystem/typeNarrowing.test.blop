@@ -98,6 +98,15 @@ def numberGuardBranch(val: string | number): string {
 }
 
 
+// Test 11: Returning 1, should not be allowed
+// def undefinedValueGuardBranch(val: string | undefined): string {
+//   if true {
+//     return 1
+//   }
+//   return val.toUpperCase()
+// }
+
+
 test('typeof narrowing with string', () => {
   expect(processString('hello')).toBe('HELLO')
   expect(processString(42)).toBe('42')

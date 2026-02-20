@@ -3,7 +3,7 @@
 ## Quick Commands
 
 - **Build linter**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`)
-- **Run tests**: `npm test` or `npm run test:watch`
+- **Run tests**: `npm test`
 - **Debug AST**: `node --experimental-vm-modules src/tests/yourDebugFile.js`
 
 ## Development Principles

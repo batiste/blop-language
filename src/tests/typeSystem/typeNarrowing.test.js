@@ -54,6 +54,27 @@ describe('elseif type narrowing', () => {
   });
 });
 
+describe('return type checking', () => {
+  it('rejects return value incompatible with declared return type', () => {
+    expectCompilationError(`
+      def f(val: string | undefined): string {
+        if true {
+          return 1
+        }
+        return val
+      }
+    `, 'returns 1 but declared as string');
+  });
+
+  it('rejects returning a string in a number-declared function', () => {
+    expectCompilationError(`
+      def f(): number {
+        return 'hello'
+      }
+    `, 'returns "hello" but declared as number');
+  });
+});
+
 describe('binary op type checking on LiteralType variables', () => {
   it('inferred number literal + string fails', () => {
     expectCompilationError(`
