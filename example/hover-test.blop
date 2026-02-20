@@ -55,6 +55,9 @@ def num(n: number): number {
     return n
 }
 
+vt: number = 5
+result = vt.toString()
+
 // text("Hello") + num(5)
 // num(5) + text("Hello")
 // 5 + text("Hello")

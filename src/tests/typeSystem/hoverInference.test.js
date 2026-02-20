@@ -403,20 +403,23 @@ result_2 = Test()`;
 
   it('should normalize object literal property types to abstract types', () => {
     // Regression test for: object property with literal value should infer abstract type
+    // This tests that accessing a property returns the declared type, not the literal value type
     const code = `type Attempt = { attempt: number, count: number }
-obj: Attempt = { attempt: 1, count: 2 }`;
+obj: Attempt = { attempt: 1, count: 2 }
+result = obj.attempt`;
     
     const stream = parser.tokenize(tokensDefinition, code);
     const tree = parser.parse(stream);
     inference(tree, stream);
 
-    // Find 'attempt' property nodes in the object literal
-    const attemptNodes = findNodesWithValue(tree, ['attempt']);
-    expect(attemptNodes.length).toBeGreaterThan(0);
+    // Find 'result' variable - should get type from obj.attempt property access
+    const resultNodes = findNodesWithValue(tree, ['result']);
+    expect(resultNodes.length).toBeGreaterThan(0);
     
-    // The property should resolve to the type annotation, not literal
-    const typeAnnotNodes = attemptNodes.filter(n => n.inferredType && n.inferredType.toString().includes('number'));
-    expect(typeAnnotNodes.length).toBeGreaterThan(0);
+    const resultVar = resultNodes[0];
+    expect(resultVar.inferredType).toBeDefined();
+    // Should be number type from the Attempt.attempt property, not a literal
+    expect(resultVar.inferredType.toString()).toBe('number');
   });
 
   it('should handle chained method calls with correct types', () => {
