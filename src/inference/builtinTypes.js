@@ -123,27 +123,27 @@ let builtinObjectTypes = {
     trunc: NumberType,
   },
 
-  // JavaScript console object – all methods return undefined
+  // JavaScript console object – all methods are functions that return undefined
   console: {
-    log: UndefinedType,
-    info: UndefinedType,
-    warn: UndefinedType,
-    error: UndefinedType,
-    debug: UndefinedType,
-    trace: UndefinedType,
-    dir: UndefinedType,
-    dirxml: UndefinedType,
-    table: UndefinedType,
-    group: UndefinedType,
-    groupCollapsed: UndefinedType,
-    groupEnd: UndefinedType,
-    clear: UndefinedType,
-    count: NumberType,
-    countReset: UndefinedType,
-    assert: UndefinedType,
-    time: UndefinedType,
-    timeLog: UndefinedType,
-    timeEnd: UndefinedType,
+    log: new FunctionType([], UndefinedType, [], []),
+    info: new FunctionType([], UndefinedType, [], []),
+    warn: new FunctionType([], UndefinedType, [], []),
+    error: new FunctionType([], UndefinedType, [], []),
+    debug: new FunctionType([], UndefinedType, [], []),
+    trace: new FunctionType([], UndefinedType, [], []),
+    dir: new FunctionType([], UndefinedType, [], []),
+    dirxml: new FunctionType([], UndefinedType, [], []),
+    table: new FunctionType([], UndefinedType, [], []),
+    group: new FunctionType([], UndefinedType, [], []),
+    groupCollapsed: new FunctionType([], UndefinedType, [], []),
+    groupEnd: new FunctionType([], UndefinedType, [], []),
+    clear: new FunctionType([], UndefinedType, [], []),
+    count: new FunctionType([], NumberType, [], []),
+    countReset: new FunctionType([], UndefinedType, [], []),
+    assert: new FunctionType([], UndefinedType, [], []),
+    time: new FunctionType([], UndefinedType, [], []),
+    timeLog: new FunctionType([], UndefinedType, [], []),
+    timeEnd: new FunctionType([], UndefinedType, [], []),
   },
 
   // JavaScript JSON object
@@ -201,12 +201,12 @@ let builtinObjectTypes = {
     NEGATIVE_INFINITY: NumberType,
     NaN: NumberType,
     POSITIVE_INFINITY: NumberType,
-    isFinite: BooleanType,
-    isInteger: BooleanType,
-    isNaN: BooleanType,
-    isSafeInteger: BooleanType,
-    parseFloat: NumberType,
-    parseInt: NumberType,
+    isFinite: new FunctionType([AnyType], BooleanType, [], ['value']),
+    isInteger: new FunctionType([AnyType], BooleanType, [], ['value']),
+    isNaN: new FunctionType([AnyType], BooleanType, [], ['value']),
+    isSafeInteger: new FunctionType([AnyType], BooleanType, [], ['value']),
+    parseFloat: new FunctionType([StringType], NumberType, [], ['string']),
+    parseInt: new FunctionType([StringType], NumberType, [], ['string']),
   },
 
   // JavaScript String constructor
@@ -230,22 +230,22 @@ let builtinObjectTypes = {
   window: {
     document: AnyType,
     console: AnyType,
-    alert: UndefinedType,
-    confirm: BooleanType,
-    prompt: Types.union([StringType, NullType]),
-    setTimeout: AnyFunctionType,             // returns a timer id
-    setInterval: AnyFunctionType,            // returns a timer id
-    clearTimeout: AnyFunctionType,
-    clearInterval: AnyFunctionType,
-    fetch: AnyType,                     // returns Promise<Response>; typed as any until generics
+    alert: new FunctionType([StringType], UndefinedType, [], ['message']),
+    confirm: new FunctionType([StringType], BooleanType, [], ['message']),
+    prompt: new FunctionType([StringType], Types.union([StringType, NullType]), [], ['message']),
+    setTimeout: new FunctionType([AnyFunctionType, NumberType], NumberType, [], ['callback', 'delay']),
+    setInterval: new FunctionType([AnyFunctionType, NumberType], NumberType, [], ['callback', 'delay']),
+    clearTimeout: new FunctionType([NumberType], UndefinedType, [], ['id']),
+    clearInterval: new FunctionType([NumberType], UndefinedType, [], ['id']),
+    fetch: new FunctionType([StringType], AnyType, [], ['url']),  // returns Promise<Response>; typed as any until generics
     location: AnyType,
     history: AnyType,
     navigator: AnyType,
     screen: AnyType,
     localStorage: AnyType,
     sessionStorage: AnyType,
-    requestAnimationFrame: NumberType,  // returns a request id
-    cancelAnimationFrame: UndefinedType,
+    requestAnimationFrame: new FunctionType([AnyFunctionType], NumberType, [], ['callback']),
+    cancelAnimationFrame: new FunctionType([NumberType], UndefinedType, [], ['id']),
   },
 
   // Browser document object (common properties)
@@ -499,26 +499,22 @@ export const builtinGlobals = {
   false: { type: 'Value' },
   
   // Global functions
-  eval: { type: 'Function' },
-  uneval: { type: 'Function' },
-  isFinite: { type: 'Function' },
-  isNaN: { type: 'Function' },
-  parseFloat: { type: 'Function' },
-  parseInt: {
-    type: 'Function',
-    documentation: 'The parseInt() function parses a string argument and returns an integer of the specified radix (the base in mathematical numeral systems).',
-    detail: 'parseInt(string, radix);',
-  },
-  decodeURI: { type: 'Function' },
-  decodeURIComponent: { type: 'Function' },
-  encodeURI: { type: 'Function' },
-  encodeURIComponent: { type: 'Function' },
-  escape: { type: 'Function' },
-  unescape: { type: 'Function' },
+  eval: new FunctionType([StringType], AnyType, [], ['code']),
+  uneval: new FunctionType([AnyType], StringType, [], ['value']),
+  isFinite: new FunctionType([AnyType], BooleanType, [], ['value']),
+  isNaN: new FunctionType([AnyType], BooleanType, [], ['value']),
+  parseFloat: new FunctionType([StringType], NumberType, [], ['string']),
+  parseInt: new FunctionType([StringType, NumberType], NumberType, [], ['string', 'radix']),
+  decodeURI: new FunctionType([StringType], StringType, [], ['encodedURI']),
+  decodeURIComponent: new FunctionType([StringType], StringType, [], ['encodedURIComponent']),
+  encodeURI: new FunctionType([StringType], StringType, [], ['uri']),
+  encodeURIComponent: new FunctionType([StringType], StringType, [], ['uriComponent']),
+  escape: new FunctionType([StringType], StringType, [], ['string']),
+  unescape: new FunctionType([StringType], StringType, [], ['string']),
   
   // Jest API
-  test: { type: 'Function', detail: 'test(description, Function) { ... }' },
-  expect: { type: 'Function', detail: 'expect(expression).toBe(value)', documentation: 'https://jestjs.io/docs/en/expect' },
+  test: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['description', 'callback']),
+  expect: new FunctionType([AnyType], AnyType, [], ['value']),
   
   // Language keywords and object references
   // TODO: think about using inference for these 

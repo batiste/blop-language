@@ -94,6 +94,41 @@ describe('Primitive type method inference', () => {
         }
       `);
     });
+
+    test('Number.isInteger() returns boolean', () => {
+      expectCompiles(`
+        def test(x: any) {
+          result: boolean = Number.isInteger(x)
+        }
+      `);
+    });
+
+    test('Number.isFinite() returns boolean', () => {
+      expectCompiles(`
+        def test(x: any) {
+          result: boolean = Number.isFinite(x)
+        }
+      `);
+    });
+
+    test('Number.isSafeInteger() returns boolean', () => {
+      expectCompiles(`
+        def test(x: any) {
+          result: boolean = Number.isSafeInteger(x)
+        }
+      `);
+    });
+
+    test('Number.isNaN() result cannot be assigned to number', () => {
+      expectCompilationError(
+        `
+          def test(x: number) {
+            result: number = Number.isNaN(x)
+          }
+        `,
+        'Cannot assign boolean to number'
+      );
+    });
   });
 
   describe('number methods', () => {
@@ -122,6 +157,140 @@ describe('Primitive type method inference', () => {
         `,
         'does not exist'
       );
+    });
+  });
+
+  describe('console methods', () => {
+    test('console.log() returns undefined', () => {
+      expectCompiles(`
+        def test() {
+          result: undefined = console.log('message')
+        }
+      `);
+    });
+
+    test('console.error() returns undefined', () => {
+      expectCompiles(`
+        def test() {
+          result: undefined = console.error('error')
+        }
+      `);
+    });
+
+    test('console.warn() returns undefined', () => {
+      expectCompiles(`
+        def test() {
+          result: undefined = console.warn('warning')
+        }
+      `);
+    });
+  });
+
+  describe('global functions', () => {
+    test('isFinite() returns boolean', () => {
+      expectCompiles(`
+        def test(x: any) {
+          result: boolean = isFinite(x)
+        }
+      `);
+    });
+
+    test('isNaN() returns boolean', () => {
+      expectCompiles(`
+        def test(x: any) {
+          result: boolean = isNaN(x)
+        }
+      `);
+    });
+
+    test('parseInt() returns number', () => {
+      expectCompiles(`
+        def test(s: string) {
+          result: number = parseInt(s, 10)
+        }
+      `);
+    });
+
+    test('parseFloat() returns number', () => {
+      expectCompiles(`
+        def test(s: string) {
+          result: number = parseFloat(s)
+        }
+      `);
+    });
+  });
+
+  describe('browser APIs', () => {
+    test('setTimeout() returns number (timer id)', () => {
+      expectCompiles(`
+        def test(fn: any) {
+          result: number = setTimeout(fn, 1000)
+        }
+      `);
+    });
+
+    test('setInterval() returns number (timer id)', () => {
+      expectCompiles(`
+        def test(fn: any) {
+          result: number = setInterval(fn, 1000)
+        }
+      `);
+    });
+
+    test('clearTimeout() returns undefined', () => {
+      expectCompiles(`
+        def test(id: number) {
+          result: undefined = clearTimeout(id)
+        }
+      `);
+    });
+
+    test('clearInterval() returns undefined', () => {
+      expectCompiles(`
+        def test(id: number) {
+          result: undefined = clearInterval(id)
+        }
+      `);
+    });
+
+    test('alert() returns undefined', () => {
+      expectCompiles(`
+        def test() {
+          result: undefined = alert('message')
+        }
+      `);
+    });
+
+    test('confirm() returns boolean', () => {
+      expectCompiles(`
+        def test() {
+          result: boolean = confirm('Are you sure?')
+        }
+      `);
+    });
+
+    test('prompt() returns string | null', () => {
+      expectCompiles(`
+        def test() {
+          result: string | null = prompt('Enter text')
+        }
+      `);
+    });
+
+    test('requestAnimationFrame() returns number', () => {
+      expectCompiles(`
+        def test(fn: any) {
+          result: number = requestAnimationFrame(fn)
+        }
+      `);
+    });
+
+    test('cancelAnimationFrame() returns undefined', () => {
+      expectCompiles(`
+        def test(id: number) {
+          result: undefined = cancelAnimationFrame(id)
+        }
+      `);
     });
   });
 });

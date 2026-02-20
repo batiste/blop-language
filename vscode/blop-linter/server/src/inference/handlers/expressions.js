@@ -77,7 +77,13 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference }) {
   if (methodName) {
     const builtinType = getBuiltinObjectType(name.value);
     const rawReturn = builtinType?.[methodName];
-    const returnType = rawReturn ?? AnyType;
+    
+    // If the property is a FunctionType, extract the return type
+    let returnType = rawReturn ?? AnyType;
+    if (rawReturn instanceof FunctionType) {
+      returnType = rawReturn.returnType;
+    }
+    
     pushInference(parent, returnType);
     return true;
   }
