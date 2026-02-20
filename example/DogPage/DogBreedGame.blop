@@ -1,6 +1,5 @@
 import { getNewDog } from './services.blop'
 
-
 def DogGame(attributes, children) {
   { page, state } = attributes
   dog = page?.choice

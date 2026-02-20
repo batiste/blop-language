@@ -1,7 +1,6 @@
 import User from "./types.blop"
 import { Post, Profile, choices } from "./types.blop"
 
-
 user: User = {
     name: "Alice",
     id: 1

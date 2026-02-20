@@ -13,6 +13,7 @@ import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
 import { AnyType, AnyFunctionType } from '../Type.js';
+import { runBindingPhase } from '../symbolTable.js';
 
 /**
  * Extract import names from destructuring_values node
@@ -247,17 +248,26 @@ function createStatementHandlers(getState) {
           // Generate backend to extract type definitions
           const result = backend.generateCode(tree, tokenStream, importedSource, resolvedPath);
           
+          // Run binding phase on imported tree to get function definitions
+          const importedSymbolTable = runBindingPhase(tree);
+          const importedFunctions = importedSymbolTable.getAllSymbols().functions;
+
           if (result.typeAliases) {
             // Check what's being imported
             if (node.named.dest_values) {
               // import { User, Post } from './types.blop'
               // Only import specific types
               const importNames = extractImportNames(node.named.dest_values);
+              const { getCurrentScope } = getState();
+              const scope = getCurrentScope();
               importNames.forEach(name => {
                 if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
                   // Parse the type definition for use in inference
                   const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
                   typeAliases[name] = aliasType;
+                } else if (importedFunctions[name]) {
+                  // Register imported function in current scope for hover + lookupVariable
+                  scope[name] = importedFunctions[name];
                 }
               });
             } else if (node.named.name && !node.named.module) {
@@ -266,6 +276,9 @@ function createStatementHandlers(getState) {
               if (result.typeAliases[name] && result.typeAliases[name].typeNode) {
                 const aliasType = parseTypeExpression(result.typeAliases[name].typeNode);
                 typeAliases[name] = aliasType;
+              } else if (importedFunctions[name]) {
+                const { getCurrentScope } = getState();
+                getCurrentScope()[name] = importedFunctions[name];
               }
             } else {
               // import './types.blop' - import all types

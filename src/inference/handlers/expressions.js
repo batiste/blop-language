@@ -572,8 +572,17 @@ function handleBuiltinPropertyAccess(name, access, parent, { pushInference }) {
  * Handle simple variable reference without property access
  */
 function handleSimpleVariable(name, parent, definition, getState) {
-  const { pushInference } = getState();  
+  const { pushInference, typeAliases } = getState();  
   if (!definition) {
+    // Check if the identifier is a known type alias (e.g. `User` or `choices` used
+    // standalone). The inference engine's typeAliases object includes imported aliases,
+    // so stamp inferredType here for hover support.
+    if (name.inferredType === undefined) {
+      const aliasEntry = typeAliases[name.value];
+      if (aliasEntry !== undefined) {
+        name.inferredType = aliasEntry;
+      }
+    }
     pushInference(parent, AnyType);
     return;
   }
@@ -582,7 +591,16 @@ function handleSimpleVariable(name, parent, definition, getState) {
     pushInference(parent, AnyFunctionType);
     const { inferencePhase } = getState();
     if (inferencePhase === 'inference' && name.inferredType === undefined) {
-      name.inferredType = definition.type ?? AnyFunctionType;
+      // Build the full function signature for hover support
+      const funcType = definition.params
+        ? new FunctionType(
+            definition.params,
+            definition.type ?? AnyType,
+            definition.genericParams ?? [],
+            definition.paramNames ?? []
+          )
+        : AnyFunctionType;
+      name.inferredType = funcType;
     }
   } else {
     pushInference(parent, definition.type);
@@ -617,7 +635,15 @@ function createExpressionHandlers(getState) {
         if (definition && definition.type) {
           if (definition.source === 'func_def') {
             if (inferencePhase === 'inference' && name.inferredType === undefined) {
-              name.inferredType = definition.type ?? AnyFunctionType;
+              const funcType = definition.params
+                ? new FunctionType(
+                    definition.params,
+                    definition.type ?? AnyType,
+                    definition.genericParams ?? [],
+                    definition.paramNames ?? []
+                  )
+                : AnyFunctionType;
+              name.inferredType = funcType;
             }
           } else {
             if (name.inferredType === undefined) {
