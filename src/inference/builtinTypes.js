@@ -66,14 +66,15 @@ let builtinObjectTypes = {
     ),
   },
 
-  // Snabbdom VNode type
+  // Snabbdom VNode type – represents a virtual DOM node
+  // See: https://github.com/snabbdom/snabbdom/blob/master/src/vnode.ts
   VNode: {
-    elm: AnyType,                                         // The DOM element
-    data: AnyType,                                        // VNode data (props, style, etc)
-    children: AnyType,                                    // Child VNodes
-    text: Types.union([StringType, UndefinedType]),       // Text content
-    key: AnyType,                                         // VNode key
-    sel: Types.union([StringType, UndefinedType]),        // Selector
+    sel: Types.union([StringType, UndefinedType]),        // CSS selector string or undefined
+    data: Types.alias('VNodeData'),                       // VNodeData (props, attrs, class, style, dataset, on, hooks, etc.)
+    children: Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]),  // Array of VNode | string, or undefined
+    elm: Types.union([Types.alias('Node'), UndefinedType]),  // The actual DOM Node, or undefined
+    text: Types.union([StringType, UndefinedType]),       // Text content, or undefined
+    key: Types.union([Types.alias('PropertyKey'), UndefinedType]),  // PropertyKey (used for keyed elements), or undefined
   },
 
   // JavaScript Math object – all methods return number

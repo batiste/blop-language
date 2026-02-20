@@ -506,6 +506,19 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     }
   }
   
+  // Handle built-in object type aliases (e.g. VNode, Math, console, etc)
+  if (resolvedType instanceof TypeAlias && isBuiltinObjectType(resolvedType.name)) {
+    const { memberName: propName, memberNode: propNode } = getObjectAccessMemberInfo(access);
+    if (propName) {
+      const builtinType = getBuiltinObjectType(resolvedType.name);
+      const propType = extractReturnType(builtinType?.[propName]);
+      if (propNode) propNode.inferredType = propType;
+      name.inferredType = resolvedType;
+      pushInference(parent, propType);
+      return true;
+    }
+  }
+  
   // Validate property access for object types and primitive scalar types
   const isPrimitiveType = isValidPrimitiveType(resolvedType);
   const isObjectType = resolvedType instanceof ObjectType;

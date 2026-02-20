@@ -14,6 +14,7 @@
 - Use tests to clarify complex logic rather than inferring from code
 - Execute tests frequently to validate assumptions
 - Check for refactoring opportunities to reduce complexity
+- When you finally fix a bug, ALWAYS write a test to prevent regressions
 
 ### Naming & Format
 - Use camelCase for filenames

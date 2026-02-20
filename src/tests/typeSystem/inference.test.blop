@@ -20,8 +20,9 @@ def scoped() {
   return hello
 }
 
-backLink = <p>1</p>
-content: string = backLink.elm
+backLink = <p>'<< back'</p>
+content = backLink.elm
+children = backLink.children
 page = { attempt: 1, success: 0 }
 
 page.attempt = page.attempt + 1
