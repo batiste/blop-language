@@ -21,11 +21,6 @@ mockWindow = {
   history: { pushState: () => {} }
 }
 
-class Test {
-  def constructor() {
-    this.router = []
-  }
-}
 
 class Router {
 
