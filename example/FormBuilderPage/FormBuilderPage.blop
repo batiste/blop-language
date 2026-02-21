@@ -35,6 +35,7 @@ def validateEmail(email: string): string {
   if !email.includes('@') {
     return 'Invalid email format'
   }
+  return ''
 }
 
 def validatePassword(password: string): string {
@@ -44,6 +45,7 @@ def validatePassword(password: string): string {
   if password.length < 8 {
      return 'Password must be at least 8 characters'
   }
+  return ''
 }
 
 FormBuilderPage = (_attributes, _children, node: Component): VNode => {
