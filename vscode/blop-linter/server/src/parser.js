@@ -4668,12 +4668,18 @@ let class_func_def_0 = (stream, index) => {
     named['name'] = stream[i];
     children.push(stream[i]); i++;
   }
+  const _rule_3 = generic_params(stream, i);
+  if (_rule_3) {
+    children.push(_rule_3);
+    named['generic_params'] = _rule_3;
+    i = _rule_3.last_index;
+  }
 
   if (stream[i].type !== '(') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4687,7 +4693,7 @@ let class_func_def_0 = (stream, index) => {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4696,18 +4702,18 @@ let class_func_def_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_5 = annotation(stream, i);
-  if (_rule_5) {
-    children.push(_rule_5);
-    named['annotation'] = _rule_5;
-    i = _rule_5.last_index;
+  const _rule_6 = annotation(stream, i);
+  if (_rule_6) {
+    children.push(_rule_6);
+    named['annotation'] = _rule_6;
+    i = _rule_6.last_index;
   }
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4716,11 +4722,11 @@ let class_func_def_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_7 = func_body(stream, i);
-  if (!_rule_7) return false;
-  named['body'] = _rule_7;
-  children.push(_rule_7);
-  i = _rule_7.last_index;
+  const _rule_8 = func_body(stream, i);
+  if (!_rule_8) return false;
+  named['body'] = _rule_8;
+  children.push(_rule_8);
+  i = _rule_8.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -4757,12 +4763,18 @@ let class_func_def_1 = (stream, index) => {
     named['name'] = stream[i];
     children.push(stream[i]); i++;
   }
+  const _rule_3 = generic_params(stream, i);
+  if (_rule_3) {
+    children.push(_rule_3);
+    named['generic_params'] = _rule_3;
+    i = _rule_3.last_index;
+  }
 
   if (stream[i].type !== '(') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4771,17 +4783,17 @@ let class_func_def_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_4 = func_def_params(stream, i);
-  if (!_rule_4) return false;
-  named['params'] = _rule_4;
-  children.push(_rule_4);
-  i = _rule_4.last_index;
+  const _rule_5 = func_def_params(stream, i);
+  if (!_rule_5) return false;
+  named['params'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
 
   if (stream[i].type !== ')') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4790,18 +4802,18 @@ let class_func_def_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_6 = annotation(stream, i);
-  if (_rule_6) {
-    children.push(_rule_6);
-    named['annotation'] = _rule_6;
-    i = _rule_6.last_index;
+  const _rule_7 = annotation(stream, i);
+  if (_rule_7) {
+    children.push(_rule_7);
+    named['annotation'] = _rule_7;
+    i = _rule_7.last_index;
   }
 
   if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_func_def', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 8,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4810,11 +4822,11 @@ let class_func_def_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_8 = func_body(stream, i);
-  if (!_rule_8) return false;
-  named['body'] = _rule_8;
-  children.push(_rule_8);
-  i = _rule_8.last_index;
+  const _rule_9 = func_body(stream, i);
+  if (!_rule_9) return false;
+  named['body'] = _rule_9;
+  children.push(_rule_9);
+  i = _rule_9.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };

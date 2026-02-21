@@ -46,6 +46,11 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
 
   if (methodNode.named?.params) collectParams(methodNode.named.params);
 
+  // Generic parameters declared on this method
+  const genericParams = methodNode.named?.generic_params
+    ? parseGenericParams(methodNode.named.generic_params)
+    : [];
+
   // Return type from annotation if present, otherwise AnyType placeholder
   let returnType = AnyType;
   if (methodNode.named?.annotation) {
@@ -54,7 +59,7 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
     if (resolved) returnType = resolved;
   }
 
-  return new FunctionType(params, returnType, [], paramNames);
+  return new FunctionType(params, returnType, genericParams, paramNames);
 }
 
 function createFunctionHandlers(getState) {
@@ -358,6 +363,17 @@ function createFunctionHandlers(getState) {
       scope.__returnTypes = [];
       scope.__isClassMethod = true;
 
+      // Parse and register generic parameters if present
+      const genericParams = node.named.generic_params
+        ? parseGenericParams(node.named.generic_params)
+        : [];
+      if (genericParams.length > 0) {
+        scope.__genericParams = genericParams;
+        for (const param of genericParams) {
+          scope[param] = { type: param, isGenericParam: true };
+        }
+      }
+
       // Inject `this` so method bodies can type-check this.prop / this.method()
       if (classType) {
         scope['this'] = { type: classType, source: 'class_this' };
@@ -404,7 +420,7 @@ function createFunctionHandlers(getState) {
         node.named.name.inferredType = new FunctionType(
           scope.__currentFctParams,
           declaredType ?? inferredType,
-          [],
+          genericParams,
           scope.__currentFctParamNames
         );
       }
