@@ -28,3 +28,46 @@ test('class method', () => {
   expect(test2.blop()).toBe(3)
   expect(test2.blip()).toBe(2)
 })
+
+class Counter {
+  def init(start) {
+    this.value = start
+    return this
+  }
+  def increment() {
+    this.value = this.value + 1
+    return this
+  }
+  def doubled() {
+    return this.double(this.value)
+  }
+  def double(x) {
+    return x * 2
+  }
+  def get() {
+    return this.value
+  }
+}
+
+test('this.method() delegation at runtime', () => {
+  c = new Counter()
+  c.init(5)
+  c.increment()
+  c.increment()
+  expect(c.get()).toBe(7)
+  expect(c.doubled()).toBe(14)
+})
+
+class Shape {
+  def area(): number {
+    return 0
+  }
+  def describe(): string {
+    return 'shape with area '(this.area())''
+  }
+}
+
+test('this.method() return value used in string interpolation', () => {
+  s = new Shape()
+  expect(s.describe()).toBe('shape with area 0')
+})

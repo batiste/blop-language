@@ -29,14 +29,16 @@ function resolveGenericType(type, aliasMap) {
     } else {
       baseName = type.baseType.toString();
     }
-    return aliasMap.instantiate(baseName, type.typeArgs);
+    const instantiated = aliasMap.instantiate(baseName, type.typeArgs);
+    return instantiated !== undefined ? instantiated : type;
   }
   return type;
 }
 
 function resolveAliasType(type, aliasMap) {
   if (type instanceof TypeAlias) {
-    return aliasMap.resolve(type);
+    const resolved = aliasMap.resolve(type);
+    return resolved !== undefined ? resolved : type;
   }
   return type;
 }
@@ -62,6 +64,24 @@ export function isTypeCompatible(valueType, targetType, aliases) {
 
   const resolvedValue = resolveAliasType(resolveGenericType(valueType, aliasMap), aliasMap);
   const resolvedTarget = resolveAliasType(resolveGenericType(targetType, aliasMap), aliasMap);
+  
+  // Defensive check: ensure resolved types are proper Type objects
+  if (!resolvedValue || typeof resolvedValue.isCompatibleWith !== 'function') {
+    throw new Error(
+      `isTypeCompatible: resolvedValue is not a valid Type object. ` +
+      `resolvedValue=${resolvedValue}, ` +
+      `valueType=${valueType}, ` +
+      `targetType=${targetType}`
+    );
+  }
+  if (!resolvedTarget || typeof resolvedTarget.isCompatibleWith !== 'function') {
+    throw new Error(
+      `isTypeCompatible: resolvedTarget is not a valid Type object. ` +
+      `resolvedTarget=${resolvedTarget}, ` +
+      `valueType=${valueType}, ` +
+      `targetType=${targetType}`
+    );
+  }
   
   return resolvedValue.isCompatibleWith(resolvedTarget, aliasMap);
 }
@@ -502,6 +522,11 @@ export function checkObjectStructuralCompatibility(valueType, targetType, aliase
       errors.push(`Missing property '${key}'`);
     } else if (valueType.properties.has(key)) {
       const valueProp = valueType.properties.get(key);
+      // Defensive check: ensure valueProp.type is a proper Type object
+      if (!valueProp.type || typeof valueProp.type.isCompatibleWith !== 'function') {
+        errors.push(`Property '${key}' has invalid type definition`);
+        continue;
+      }
       if (!valueProp.type.isCompatibleWith(targetProp.type, aliasMap)) {
         errors.push(
           `Property '${key}' has type ${typeToString(valueProp.type)} but expected ${typeToString(targetProp.type)}`

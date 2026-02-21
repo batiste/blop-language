@@ -187,7 +187,23 @@ let builtinObjectTypes = {
   },
 
   Symbol: AnyType,
-  RegExp: AnyType,
+  RegExp: {
+    // Properties
+    source: StringType,
+    flags: StringType,
+    global: BooleanType,
+    ignoreCase: BooleanType,
+    multiline: BooleanType,
+    sticky: BooleanType,
+    unicode: BooleanType,
+    dotAll: BooleanType,
+    hasIndices: BooleanType,
+    lastIndex: NumberType,
+    // Methods
+    test: new FunctionType([StringType], BooleanType, [], ['str']),
+    exec: new FunctionType([StringType], Types.union([Types.array(StringType), NullType]), [], ['str']),
+    toString: new FunctionType([], StringType, [], []),
+  },
   Error: AnyType,
   Proxy: AnyType,
 
@@ -403,14 +419,15 @@ export const builtinPrimitiveTypes = {
 /**
  * Get the element-type-aware return type for an array member access or call.
  *
- * Some array methods have return types that depend on the element type T of the
- * array (e.g. `pop()` returns `T | undefined`, `map()` returns `T[]`).
+ * Some array methods have return types AND/OR parameter types that depend on the 
+ * element type T of the array (e.g. `pop()` returns `T | undefined`, `push(T)` 
+ * accepts T, `map()` returns `T[]`).
  * This function resolves those instead of falling back to the generic `AnyType`
  * entries in `builtinPrimitiveTypes.array`.
  *
  * @param {ArrayType} arrayType  - The concrete array type (e.g. `number[]`)
  * @param {string}   memberName - The method or property name
- * @returns {import('./Type.js').Type}  The resolved return type
+ * @returns {import('./Type.js').Type}  The resolved return type or FunctionType
  */
 export function getArrayMemberType(arrayType, memberName) {
   if (!(arrayType instanceof ArrayType)) {
@@ -419,9 +436,37 @@ export function getArrayMemberType(arrayType, memberName) {
 
   const T = arrayType.elementType;
 
-  // Methods / properties whose return type depends on T
+  // Methods with parameters that depend on element type T
   switch (memberName) {
-    // Returns T | undefined
+    // push(T): number
+    // unshift(T): number
+    case 'push':
+    case 'unshift':
+      return new FunctionType([T], NumberType, [], ['elements']);
+    
+    // fill(T): T[]
+    case 'fill':
+      return new FunctionType([T], new ArrayType(T), [], ['value']);
+    
+    // concat(T[]): T[]
+    case 'concat':
+      return new FunctionType([new ArrayType(T)], new ArrayType(T), [], ['items']);
+    
+    // indexOf(T): number
+    // lastIndexOf(T): number
+    case 'indexOf':
+    case 'lastIndexOf':
+      return new FunctionType([T], NumberType, [], ['searchElement']);
+    
+    // includes(T): boolean
+    case 'includes':
+      return new FunctionType([T], BooleanType, [], ['searchElement']);
+    
+    // with(number, T): T[]
+    case 'with':
+      return new FunctionType([NumberType, T], new ArrayType(T), [], ['index', 'value']);
+
+    // pop(): T | undefined
     case 'pop':
     case 'shift':
     case 'find':
@@ -432,24 +477,19 @@ export function getArrayMemberType(arrayType, memberName) {
     // Returns T[]  (new array of same element type)
     case 'reverse':
     case 'sort':
-    case 'fill':
-    case 'copyWithin':
     case 'filter':
     case 'slice':
     case 'flat':
     case 'toReversed':
     case 'toSorted':
     case 'toSpliced':
-    case 'with':
       return new ArrayType(T);
 
-    // map / flatMap return a different element type (unknown at this stage → any[])
-    // but concat merges arrays of the same type
-    case 'concat':
-      return new ArrayType(T);
-
-    // Returns T (safe – splice returns the removed elements)
+    // splice(): T[]
     case 'splice':
+      return new ArrayType(T);
+
+    case 'copyWithin':
       return new ArrayType(T);
 
     default:

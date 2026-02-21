@@ -127,19 +127,45 @@ function handleTypedMethodCall(
 }
 
 /**
- * Handle array instance method calls (e.g. items.map(), nums.filter(), arr.pop())
+ * Handle array instance method calls (e.g. items.map(), nums.filter(), arr.push())
+ * Validates parameters and return type
  */
-function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases }) {
-  return handleTypedMethodCall(
-    name,
-    access,
-    definition,
-    parent,
-    (type) => type instanceof ArrayType,
-    getArrayMemberType,
-    null, // no extra filter needed
-    { pushInference, typeAliases }
-  );
+function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, pushWarning, typeAliases }) {
+  const resolvedDefType = resolveTypeAlias(definition?.type, typeAliases);
+  
+  if (!definition || !(resolvedDefType instanceof ArrayType)) {
+    return false;
+  }
+
+  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  if (!memberName) {
+    return false;
+  }
+
+  const methodDef = getArrayMemberType(resolvedDefType, memberName);
+  if (!methodDef) {
+    return false;
+  }
+
+  // Extract arguments for parameter validation
+  const argTypes = access.children
+    ?.find(child => child.type === 'object_access')
+    ?.children?.find(child => child.type === 'func_call')
+    ?.inference || [];
+  
+  // If methodDef is a FunctionType (parameterized method like push(T)), validate parameters
+  if (methodDef instanceof FunctionType && argTypes.length > 0) {
+    const result = TypeChecker.checkFunctionCall(argTypes, methodDef.params, memberName, typeAliases);
+    if (!result.valid) {
+      result.warnings.forEach(warning => pushWarning(name, warning));
+    }
+  }
+
+  const finalType = extractReturnType(methodDef);
+
+  if (memberNode) memberNode.inferredType = finalType;
+  pushInference(parent, finalType);
+  return true;
 }
 
 /**
@@ -438,7 +464,20 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
-  
+
+  // Handle method calls on user-defined ObjectType instances (e.g. this.double(x))
+  if (definition && definition.type instanceof ObjectType) {
+    const { memberName } = getObjectAccessMemberInfo(access);
+    if (memberName) {
+      const methodType = getPropertyType(definition.type, memberName, typeAliases);
+      if (methodType instanceof FunctionType) {
+        pushInference(parent, methodType.returnType ?? AnyType);
+        pushSubsequentOperation(access, parent, pushInference);
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
@@ -532,7 +571,24 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     }
   }
   
-  // Validate property access for object types and primitive scalar types
+  // For class instance types: they only expose method signatures — constructor-
+  // assigned properties (this.x = ...) are not tracked yet.  Resolve known
+  // methods to their type; treat unknown properties as any without warning.
+  if (resolvedType instanceof ObjectType && resolvedType.isClassInstance) {
+    const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+    name.inferredType = resolvedType;
+    if (memberName) {
+      const propType = getPropertyType(resolvedType, memberName, typeAliases);
+      if (memberNode) memberNode.inferredType = propType ?? AnyType;
+      pushInference(parent, propType ?? AnyType);
+    } else {
+      visitChildren(access);
+      pushInference(parent, AnyType);
+    }
+    return true;
+  }
+
+  // Validate property access for object types and primitive scalar types.
   const isPrimitiveType = isValidPrimitiveType(resolvedType);
   const isObjectType = resolvedType instanceof ObjectType;
   
@@ -754,10 +810,70 @@ function createExpressionHandlers(getState) {
         pushInference(parent, node.named.access);
       }
     },
-    new: (node, parent) => {
-      const { pushInference } = getState();
+    new_expression: (node, parent) => {
+      const { pushInference, lookupVariable } = getState();
       resolveTypes(node);
-      pushInference(parent, ObjectType);
+      
+      // Get the expression being constructed from the properly named exp child
+      const expNode = node.named?.exp;
+      
+      let constructorType = new ObjectType();
+      
+      // Try to extract constructor name and check if it's a built-in
+      let constructorName = null;
+      
+      if (expNode && expNode.type === 'access_or_operation') {
+        // expNode is an access_or_operation with a name_exp child
+        const nameExp = expNode.named?.name_exp;
+        if (nameExp) {
+          const nameNode = nameExp.named?.name;
+          if (nameNode) {
+            constructorName = nameNode.value;
+          }
+        }
+      } else if (expNode && expNode.type === 'name_exp') {
+        // expNode directly is a name_exp
+        const nameNode = expNode.named?.name;
+        if (nameNode) {
+          constructorName = nameNode.value;
+        }
+      } else if (expNode && expNode.children) {
+        // Navigate through children to find the name
+        for (const child of expNode.children) {
+          if (child.type === 'name_exp') {
+            const nameNode = child.named?.name;
+            if (nameNode) {
+              constructorName = nameNode.value;
+              break;
+            }
+          }
+        }
+      }
+      
+      // If we have a constructor name and it's a built-in, use TypeAlias for it
+      if (constructorName && isBuiltinObjectType(constructorName)) {
+        constructorType = new TypeAlias(constructorName);
+      } else if (constructorName) {
+        // Check if it's a user-defined class in scope
+        const classDef = lookupVariable(constructorName);
+        if (classDef && classDef.source === 'class_def' && classDef.type) {
+          constructorType = classDef.type;
+        } else if (expNode && expNode.inference && expNode.inference.length > 0) {
+          // Fall back to inferred type from the exp node
+          const inferredType = expNode.inference[0];
+          if (inferredType && !(inferredType instanceof ObjectType && inferredType.properties.size === 0) && inferredType !== AnyType) {
+            constructorType = inferredType;
+          }
+        }
+      } else if (expNode && expNode.inference && expNode.inference.length > 0) {
+        // Otherwise, use the inferred type from the exp node if available
+        const inferredType = expNode.inference[0];
+        if (inferredType && !(inferredType instanceof ObjectType && inferredType.properties.size === 0) && inferredType !== AnyType) {
+          constructorType = inferredType;
+        }
+      }
+      
+      pushInference(parent, constructorType);
     },
 
     short_if_expression: (node, parent) => {

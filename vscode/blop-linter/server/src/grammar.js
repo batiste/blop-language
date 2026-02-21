@@ -162,11 +162,15 @@ const grammar = {
     ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
   ],
   'class_func_def': [
-    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
-    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+  ],
+  'class_member_def': [
+    ['name:name', 'annotation:annotation'],
   ],
   'CLASS_STATEMENT': [
     ['newline', 'w?', 'W?', 'class_func_def', 'wcomment?'],
+    ['newline', 'w?', 'W?', 'class_member_def', 'wcomment?'],
     ['newline', 'w?', 'W?', 'scomment?'],
   ],
   'array_literal': [
@@ -294,6 +298,9 @@ const grammar = {
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
   ],
+  'new_expression': [
+    ['new', 'exp:exp'],
+  ],
   'exp': [
     // ['optional_chaining'],
     ['str_expression'],
@@ -316,7 +323,7 @@ const grammar = {
     ['await', 'exp'],
     ['virtual_node_assign'],
     ['virtual_node_exp'],
-    ['new', 'exp'],
+    ['new_expression'],
     ['delete', 'exp'],
     ['spread', 'exp'],
     ['short_if_expression'],

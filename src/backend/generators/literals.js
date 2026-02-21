@@ -10,7 +10,27 @@ function createLiteralGenerators(context) {
       if (lines.length > 1) {
         return [`\`${str}\``];
       }
-      return [`'${str}'`];
+      // Escape only unescaped single quotes (not already preceded by odd number of backslashes)
+      let escaped = '';
+      for (let i = 0; i < str.length; i++) {
+        if (str[i] === "'") {
+          // Count preceding backslashes
+          let numBackslashes = 0;
+          for (let j = i - 1; j >= 0 && str[j] === '\\'; j--) {
+            numBackslashes++;
+          }
+          // If even number of backslashes (or zero), the quote is unescaped and needs escaping
+          if (numBackslashes % 2 === 0) {
+            escaped += "\\'";
+          } else {
+            // Quote is already escaped by preceding backslashes, don't add another escape
+            escaped += "'";
+          }
+        } else {
+          escaped += str[i];
+        }
+      }
+      return [`'${escaped}'`];
     },
     'str_expression': (node) => {
       // Handle simplified syntax with name and empty string - just return the name

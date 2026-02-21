@@ -347,6 +347,9 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
 
   if (resolvedType instanceof ObjectType) {
     if (!propertyName) return AnyType;
+    // Class instance types only track method signatures — constructor-assigned
+    // properties (this.x = ...) are not tracked, so suppress false positives.
+    if (resolvedType.isClassInstance) return AnyType;
     const propertyType = getPropertyType(objectType, propertyName, typeAliases);
     if (propertyType === null) {
       pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);

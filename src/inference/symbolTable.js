@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { getAnnotationType, parseGenericParams, parseTypeExpression } from './typeSystem.js';
-import { AnyType } from './Type.js';
+import { AnyType, FunctionType, ObjectType } from './Type.js';
 
 /**
  * Symbol table for storing all bindings in the first pass
@@ -14,6 +14,7 @@ class SymbolTable {
     this.typeAliases = {};
     this.globalFunctions = {};
     this.globalVariables = {};
+    this.globalClasses = {}; // className → { source, type: ObjectType, node }
     this.functionLocals = new Map(); // funcName → { varName → { type, node } }
   }
 
@@ -53,6 +54,18 @@ class SymbolTable {
   }
 
   /**
+   * Add a class definition to the symbol table
+   * @param {string} name - Class name
+   * @param {Object} info - { type: ObjectType, node }
+   */
+  addClass(name, info) {
+    this.globalClasses[name] = {
+      source: 'class_def',
+      ...info,
+    };
+  }
+
+  /**
    * Add a local variable (annotated) inside a function body to the symbol table
    * @param {string} funcName - The enclosing function name
    * @param {string} varName - Variable name
@@ -75,6 +88,15 @@ class SymbolTable {
       variables: this.globalVariables,
       functionLocals: this.functionLocals,
     };
+  }
+
+  /**
+   * Get all class definitions (kept separate from getAllSymbols to avoid
+   * polluting the inference scope with a 'classes' key that would shadow
+   * any user variable named 'classes').
+   */
+  getClasses() {
+    return this.globalClasses;
   }
 }
 
@@ -123,6 +145,10 @@ function createBindingHandlers() {
 
         case 'func_def':
           this.handleFunctionDef(node);
+          break;
+
+        case 'class_def':
+          this.handleClassDef(node);
           break;
 
         case 'SCOPED_STATEMENT':
@@ -195,6 +221,71 @@ function createBindingHandlers() {
       if (node.named?.body) {
         this.collectFunctionLocals(functionName, node.named.body);
       }
+    },
+
+    /**
+     * Handle class definition - build ObjectType for the class instance
+     */
+    handleClassDef(node) {
+      const className = node.named?.name?.value;
+      if (!className) return;
+
+      const members = new Map();
+
+      for (const stat of node.named?.stats ?? []) {
+        // class_func_def: a method
+        const methodNode =
+          stat.children?.find(c => c.type === 'class_func_def') ??
+          (stat.type === 'class_func_def' ? stat : null);
+        if (methodNode) {
+          const methodName = methodNode.named?.name?.value;
+          if (methodName) {
+            // Build param types from annotations (no stampTypeAnnotation needed here)
+            const params = [];
+            const paramNames = [];
+            function collectParams(n) {
+              if (!n) return;
+              if (n.type === 'func_def') return;
+              if (n.type === 'func_def_params') {
+                const t = n.named?.annotation ? (getAnnotationType(n.named.annotation) ?? AnyType) : AnyType;
+                params.push(t);
+                paramNames.push(n.named?.name?.value ?? '_');
+              }
+              if (n.children) n.children.forEach(collectParams);
+            }
+            if (methodNode.named?.params) collectParams(methodNode.named.params);
+            const returnType = methodNode.named?.annotation
+              ? (getAnnotationType(methodNode.named.annotation) ?? AnyType)
+              : AnyType;
+            const genericParams = methodNode.named?.generic_params
+              ? parseGenericParams(methodNode.named.generic_params)
+              : [];
+            members.set(methodName, {
+              type: new FunctionType(params, returnType, genericParams, paramNames),
+              optional: false,
+            });
+          }
+        }
+
+        // class_member_def: a typed property
+        const memberNode =
+          stat.children?.find(c => c.type === 'class_member_def') ??
+          (stat.type === 'class_member_def' ? stat : null);
+        if (memberNode) {
+          const memberName = memberNode.named?.name?.value;
+          const annotation = memberNode.named?.annotation;
+          if (memberName && annotation) {
+            const memberType = getAnnotationType(annotation);
+            if (memberType) {
+              members.set(memberName, { type: memberType, optional: false });
+            }
+          }
+        }
+      }
+
+      const classType = new ObjectType(members, className);
+      classType.isClassInstance = true;
+      symbolTable.addClass(className, { type: classType, node });
     },
 
     /**

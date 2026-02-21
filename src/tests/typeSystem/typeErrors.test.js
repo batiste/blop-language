@@ -218,7 +218,35 @@ describe('Type inference - negative tests', () => {
     `;
     expectCompilationError(code, /string|number/);
   });
+
+  test('rejects function with if declared to return string but can return undefined', () => {
+    const code = `
+      def validatePassword(password: string): string {
+        if !password {
+          return 'Password is required'
+        }
+      }
+      validatePassword('test')
+    `;
+    expectCompilationError(code, /undefined|declared as string/);
+  });
+
+  test('rejects function with if else declared to return string but can return undefined', () => {
+    const code = `
+      def validatePassword(password: string): string {
+        if !password {
+          return 'Password is required'
+        } else {
+          1 + 1
+        }
+      }
+      validatePassword('test')
+    `;
+    expectCompilationError(code, /undefined|declared as string/);
+  });
 });
+
+
 
 describe('Math operation type validation - negative tests', () => {
   test('rejects multiplication of number and string', () => {

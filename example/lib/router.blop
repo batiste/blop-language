@@ -1,6 +1,18 @@
 
 import { register } from './navigation.blop'
 
+type Route = {
+  path: string,
+  name: string,
+  handler?: Function,
+  reg?: RegExp,
+  params?: string[]
+}
+
+// TODO: This should not be allowed
+// r: Route[] = []
+// r.push(1)
+
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }
@@ -21,7 +33,10 @@ mockWindow = {
   history: { pushState: () => {} }
 }
 
+
 class Router {
+  routes: Route[]
+
   def constructor(initial, state, global=mockWindow) {
     this.routes = []
     this.state = state
@@ -40,7 +55,7 @@ class Router {
   def init() {
     this.go(this.global.location.pathname, false)
   }
-  def add(route) {
+  def add(route: Route) {
     { regexp, names } = createRegExp(route.path)
     route.reg = new RegExp(regexp)
     route.params = names
@@ -81,9 +96,7 @@ class Router {
     }
     this.state.route = { name: m.route.name, params: m.params }
     if m.route.handler {
-      this.state.loading = true
       await m.route.handler(m.params, this.state)
-      this.state.loading = false
     }
   }
 }

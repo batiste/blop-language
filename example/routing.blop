@@ -1,8 +1,5 @@
 import { Router } from './lib/router.blop'
 
-async def indexHandler(_params, _state) {
-}
-
 async def dogPageIndexHandler(_params, _state) {
 }
 
@@ -31,7 +28,8 @@ def createRouter(state, global) {
   router.add({ path: '/ast', name: 'ast', handler: astExplorerPageHandler })
   router.add({ path: '/showcase', name: 'showcase', handler: showcasePageHandler })
   router.add({ path: '/playground', name: 'playground', handler: playgroundPageHandler })
-  router.add({ path: '/', name: 'root', handler: indexHandler })
+  router.add({ path: '/form', name: 'form' })
+  router.add({ path: '/', name: 'root' })
 
   router.init()
   return router

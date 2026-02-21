@@ -276,7 +276,9 @@ function createStatementHandlers(getState) {
           
           // Run binding phase on imported tree to get function definitions
           const importedSymbolTable = runBindingPhase(tree);
-          const importedFunctions = importedSymbolTable.getAllSymbols().functions;
+          const importedSymbols = importedSymbolTable.getAllSymbols();
+          const importedFunctions = importedSymbols.functions;
+          const importedClasses = importedSymbolTable.getClasses();
 
           if (result.typeAliases) {
             // Check what's being imported
@@ -303,6 +305,13 @@ function createStatementHandlers(getState) {
                       ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
                       : AnyFunctionType;
                   }
+                } else if (importedClasses[name]) {
+                  // Register imported class in current scope
+                  const def = importedClasses[name];
+                  scope[name] = def;
+                  if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                    nameNode.inferredType = def.type;
+                  }
                 }
               });
             } else if (node.named.name && !node.named.module) {
@@ -324,6 +333,13 @@ function createStatementHandlers(getState) {
                   nameNode.inferredType = def.params
                     ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
                     : AnyFunctionType;
+                }
+              } else if (importedClasses[name]) {
+                const def = importedClasses[name];
+                const { getCurrentScope } = getState();
+                getCurrentScope()[name] = def;
+                if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                  nameNode.inferredType = def.type;
                 }
               }
             } else {
@@ -432,26 +448,36 @@ function createStatementHandlers(getState) {
                   currentType = nextType;
                 }
 
-                // Use getPropertyType to validate and get the final property type
-                const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
+                // For class instances, check if the property is explicitly declared.
+                // If it is, validate the assignment; otherwise, allow it (constructor-assigned).
+                const resolvedObjType = resolveTypeAlias(objectDef.type, typeAliases);
+                const shouldSkipValidation = 
+                  resolvedObjType.isClassInstance && 
+                  propertyChain.length > 0 &&
+                  !resolvedObjType.properties.has(propertyChain[0]);
                 
-                if (expectedType === null) {
-                  // Property doesn't exist
-                  const fullPropertyPath = propertyChain.join('.');
-                  pushWarning(
-                    node,
-                    `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
-                  );
-                } else {
-                  // Property exists, check type compatibility
-                  const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                if (!shouldSkipValidation) {
+                  // Use getPropertyType to validate and get the final property type
+                  const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                   
-                  if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                  if (expectedType === null) {
+                    // Property doesn't exist
                     const fullPropertyPath = propertyChain.join('.');
                     pushWarning(
                       node,
-                      `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
+                      `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
                     );
+                  } else {
+                    // Property exists, check type compatibility
+                    const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                    
+                    if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                      const fullPropertyPath = propertyChain.join('.');
+                      pushWarning(
+                        node,
+                        `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
+                      );
+                    }
                   }
                 }
               }
@@ -512,16 +538,14 @@ function createStatementHandlers(getState) {
       } else {
         node.named.stats?.forEach(stat => visit(stat, node));
       }
-      
+
       const returnsAfterIf = getReturnTypeCount(functionScope);
-      
-      // Handle else/elseif branch
+
+      // Visit else/elseif branch with type narrowing
       const elseNode = node.named.elseif;
       const isSimpleElse = elseNode && !elseNode.named?.exp && elseNode.named?.stats?.length > 0;
-      
+
       if (isSimpleElse) {
-        const returnsBeforeElse = getReturnTypeCount(functionScope);
-        
         if (typeGuard) {
           const elseScope = pushScope();
           applyElseBranchGuard(elseScope, typeGuard, lookupVariable);
@@ -530,19 +554,7 @@ function createStatementHandlers(getState) {
         } else {
           visit(elseNode, node);
         }
-        
-        const returnsAfterElse = getReturnTypeCount(functionScope);
-        
-        // If not all branches return, the if/else may complete without returning
-        const ifBranchReturns = returnsAfterIf > returnsBeforeIf;
-        const elseBranchReturns = returnsAfterElse > returnsBeforeElse;
-        if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
-          if (!functionScope.__returnTypes.includes(UndefinedType)) {
-            functionScope.__returnTypes.push(UndefinedType);
-          }
-        }
       } else if (elseNode) {
-        // Chained elseif — apply exclusion from this if's typeGuard before entering
         if (typeGuard) {
           const elseifScope = pushScope();
           applyElseBranchGuard(elseifScope, typeGuard, lookupVariable);
