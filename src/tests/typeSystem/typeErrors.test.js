@@ -219,14 +219,25 @@ describe('Type inference - negative tests', () => {
     expectCompilationError(code, /string|number/);
   });
 
-  test('rejects function declared to return string but can return undefined', () => {
+  test('rejects function with if declared to return string but can return undefined', () => {
     const code = `
       def validatePassword(password: string): string {
         if !password {
           return 'Password is required'
         }
-        if password.length < 8 {
-          return 'Password must be at least 8 characters'
+      }
+      validatePassword('test')
+    `;
+    expectCompilationError(code, /undefined|declared as string/);
+  });
+
+  test('rejects function with if else declared to return string but can return undefined', () => {
+    const code = `
+      def validatePassword(password: string): string {
+        if !password {
+          return 'Password is required'
+        } else {
+          1 + 1
         }
       }
       validatePassword('test')
@@ -234,6 +245,8 @@ describe('Type inference - negative tests', () => {
     expectCompilationError(code, /undefined|declared as string/);
   });
 });
+
+
 
 describe('Math operation type validation - negative tests', () => {
   test('rejects multiplication of number and string', () => {

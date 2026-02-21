@@ -152,6 +152,8 @@ function createFunctionHandlers(getState) {
         if (functionScope && functionScope.__returnTypes && node.named.exp.inference) {
           const returnType = node.named.exp.inference[0] ?? UndefinedType;
           functionScope.__returnTypes.push(returnType);
+          // An expression body is always an unconditional implicit return.
+          functionScope.__hasTopLevelReturn = true;
         }
       } else {
         // Regular block body
@@ -222,6 +224,11 @@ function createFunctionHandlers(getState) {
       const scope = pushScope();
       scope.__currentFctParams = [];
       scope.__returnTypes = [];
+      // This is hacky solution to track whether a function has any unconditional returns. 
+      // If all returns are inside conditionals, the function can fall through 
+      // returning undefined, even if there are explicit return statements.
+      scope.__conditionalDepth = 0;
+      scope.__hasTopLevelReturn = false;
       
       // Parse generic parameters if present
       const genericParams = registerGenericParams(scope, node.named.generic_params);
@@ -241,6 +248,15 @@ function createFunctionHandlers(getState) {
       setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
       
       visitChildren(node);
+
+      // If the function has no top-level (unconditional) return and all returns are conditional
+      // (e.g. inside an if without else), the function can fall through returning undefined.
+      if (!scope.__hasTopLevelReturn) {
+        const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
+        if (explicitReturns.length > 0 && !scope.__returnTypes.includes(UndefinedType)) {
+          scope.__returnTypes.push(UndefinedType);
+        }
+      }
       
       // Stamp the return type annotation for hover support (idempotent)
       if (annotation) {
