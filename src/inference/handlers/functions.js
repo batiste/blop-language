@@ -106,6 +106,43 @@ function collectReturnType(returnTypes) {
     : union;
 }
 
+/**
+ * Pure structural check: does every code path through `stats` end with an
+ * unconditional return, throw, or implicit VNode return?
+ * Operates on arrays of SCOPED_STATEMENTS nodes (the `named.stats` arrays
+ * produced by func_body, condition, and else_if grammar rules).
+ */
+function alwaysReturns(stats) {
+  for (const scopedStatements of stats ?? []) {
+    const stmt = scopedStatements?.children?.find(c => c.type === 'SCOPED_STATEMENT');
+    if (!stmt) continue;
+    const first = stmt.children?.[0];
+    if (!first) continue;
+    if (first.type === 'return' || first.type === 'throw') return true;
+    if (first.type === 'virtual_node' || first.type === 'virtual_node_exp') return true;
+    if (first.type === 'condition' && conditionAlwaysReturns(first)) return true;
+  }
+  return false;
+}
+
+function conditionAlwaysReturns(condNode) {
+  const elseNode = condNode.named?.elseif;
+  if (!elseNode) return false;
+  if (!alwaysReturns(condNode.named?.stats)) return false;
+  return elseIfAlwaysReturns(elseNode);
+}
+
+function elseIfAlwaysReturns(elseIfNode) {
+  if (!elseIfNode.named?.exp) {
+    // Terminal else branch — must return on all its own paths
+    return alwaysReturns(elseIfNode.named?.stats ?? []);
+  }
+  // Chained elseif — this branch AND the remaining chain must both always return
+  if (!alwaysReturns(elseIfNode.named?.stats)) return false;
+  if (!elseIfNode.named?.elseif) return false; // no terminal else, can fall through
+  return elseIfAlwaysReturns(elseIfNode.named.elseif);
+}
+
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
@@ -152,8 +189,6 @@ function createFunctionHandlers(getState) {
         if (functionScope && functionScope.__returnTypes && node.named.exp.inference) {
           const returnType = node.named.exp.inference[0] ?? UndefinedType;
           functionScope.__returnTypes.push(returnType);
-          // An expression body is always an unconditional implicit return.
-          functionScope.__hasTopLevelReturn = true;
         }
       } else {
         // Regular block body
@@ -224,11 +259,6 @@ function createFunctionHandlers(getState) {
       const scope = pushScope();
       scope.__currentFctParams = [];
       scope.__returnTypes = [];
-      // This is hacky solution to track whether a function has any unconditional returns. 
-      // If all returns are inside conditionals, the function can fall through 
-      // returning undefined, even if there are explicit return statements.
-      scope.__conditionalDepth = 0;
-      scope.__hasTopLevelReturn = false;
       
       // Parse generic parameters if present
       const genericParams = registerGenericParams(scope, node.named.generic_params);
@@ -249,9 +279,11 @@ function createFunctionHandlers(getState) {
       
       visitChildren(node);
 
-      // If the function has no top-level (unconditional) return and all returns are conditional
-      // (e.g. inside an if without else), the function can fall through returning undefined.
-      if (!scope.__hasTopLevelReturn) {
+      // If not every code path returns, the function can fall through with implicit undefined.
+      // alwaysReturns is a pure AST check — no type information needed.
+      const bodyNode = node.named.body;
+      const isExpressionBody = bodyNode?.type === 'func_body_fat' && bodyNode.named?.exp;
+      if (!isExpressionBody && !alwaysReturns(bodyNode?.named?.stats)) {
         const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
         if (explicitReturns.length > 0 && !scope.__returnTypes.includes(UndefinedType)) {
           scope.__returnTypes.push(UndefinedType);

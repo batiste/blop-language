@@ -215,10 +215,6 @@ function createLiteralHandlers(getState) {
     const functionScope = getFunctionScope();
     if (functionScope?.__returnTypes) {
       functionScope.__returnTypes.push(VNodeType);
-      // A VNode at depth 0 (not inside any conditional) is an unconditional implicit return.
-      if ((functionScope.__conditionalDepth || 0) === 0) {
-        functionScope.__hasTopLevelReturn = true;
-      }
     }
   }
 

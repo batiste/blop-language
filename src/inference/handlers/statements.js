@@ -192,10 +192,6 @@ function createStatementHandlers(getState) {
           }
           
           functionScope.__returnTypes.push(returnType);
-          // A return at depth 0 (not inside any conditional) guarantees the function returns.
-          if ((functionScope.__conditionalDepth || 0) === 0) {
-            functionScope.__hasTopLevelReturn = true;
-          }
           pushToParent(node, parent);
           return;
         }
@@ -518,7 +514,6 @@ function createStatementHandlers(getState) {
       }
       
       // Visit if branch (with type-narrowing scope when a type guard is present)
-      if (functionScope) functionScope.__conditionalDepth = (functionScope.__conditionalDepth || 0) + 1;
       if (typeGuard) {
         const ifScope = pushScope();
         applyIfBranchGuard(ifScope, typeGuard, lookupVariable);
@@ -527,18 +522,14 @@ function createStatementHandlers(getState) {
       } else {
         node.named.stats?.forEach(stat => visit(stat, node));
       }
-      if (functionScope) functionScope.__conditionalDepth--;
-      
+
       const returnsAfterIf = getReturnTypeCount(functionScope);
-      
-      // Handle else/elseif branch
+
+      // Visit else/elseif branch with type narrowing
       const elseNode = node.named.elseif;
       const isSimpleElse = elseNode && !elseNode.named?.exp && elseNode.named?.stats?.length > 0;
-      
+
       if (isSimpleElse) {
-        const returnsBeforeElse = getReturnTypeCount(functionScope);
-        
-        if (functionScope) functionScope.__conditionalDepth = (functionScope.__conditionalDepth || 0) + 1;
         if (typeGuard) {
           const elseScope = pushScope();
           applyElseBranchGuard(elseScope, typeGuard, lookupVariable);
@@ -547,27 +538,7 @@ function createStatementHandlers(getState) {
         } else {
           visit(elseNode, node);
         }
-        if (functionScope) functionScope.__conditionalDepth--;
-        
-        const returnsAfterElse = getReturnTypeCount(functionScope);
-        
-        // If not all branches return, the if/else may complete without returning
-        const ifBranchReturns = returnsAfterIf > returnsBeforeIf;
-        const elseBranchReturns = returnsAfterElse > returnsBeforeElse;
-        if (functionScope && (!ifBranchReturns || !elseBranchReturns)) {
-          if (!functionScope.__returnTypes.includes(UndefinedType)) {
-            functionScope.__returnTypes.push(UndefinedType);
-          }
-        } else if (functionScope && ifBranchReturns && elseBranchReturns) {
-          // Both branches always return — this if/else fully covers all code paths
-          functionScope.__hasTopLevelReturn = true;
-        }
       } else if (elseNode) {
-        // Chained elseif — reset chain coverage before visiting, then check after
-        if (functionScope) functionScope.__elseChainFullyCovered = undefined;
-        const returnsBeforeChain = getReturnTypeCount(functionScope);
-        
-        // Chained elseif — apply exclusion from this if's typeGuard before entering
         if (typeGuard) {
           const elseifScope = pushScope();
           applyElseBranchGuard(elseifScope, typeGuard, lookupVariable);
@@ -575,15 +546,6 @@ function createStatementHandlers(getState) {
           popScope();
         } else {
           visit(elseNode, node);
-        }
-        
-        const returnsAfterChain = getReturnTypeCount(functionScope);
-        // If the if branch returned and the entire elseif/else chain was fully covered
-        // (all branches returned, ending with a terminal else), the function is covered.
-        const ifBranchReturnsForChain = returnsAfterIf > returnsBeforeIf;
-        const chainReturns = returnsAfterChain > returnsBeforeChain;
-        if (functionScope && ifBranchReturnsForChain && chainReturns && functionScope.__elseChainFullyCovered) {
-          functionScope.__hasTopLevelReturn = true;
         }
       }
       
@@ -606,20 +568,11 @@ function createStatementHandlers(getState) {
     },
 
     else_if: (node, parent) => {
-      const { pushScope, popScope, lookupVariable, getFunctionScope } = getState();
-      const elseIfFnScope = getFunctionScope();
+      const { pushScope, popScope, lookupVariable } = getState();
 
       // Simple else branch: no condition, just visit body
       if (!node.named?.exp) {
-        const elseReturnsBefore = getReturnTypeCount(elseIfFnScope);
-        if (elseIfFnScope) elseIfFnScope.__conditionalDepth = (elseIfFnScope.__conditionalDepth || 0) + 1;
         node.named?.stats?.forEach(stat => visit(stat, node));
-        if (elseIfFnScope) elseIfFnScope.__conditionalDepth--;
-        const elseReturnsAfter = getReturnTypeCount(elseIfFnScope);
-        // Mark whether the terminal else (or empty else placeholder) returned.
-        if (elseIfFnScope) {
-          elseIfFnScope.__elseChainFullyCovered = elseReturnsAfter > elseReturnsBefore;
-        }
         if (node.named?.elseif) {
           visit(node.named.elseif, node);
         }
@@ -632,8 +585,6 @@ function createStatementHandlers(getState) {
 
       // Apply type narrowing for this elseif's own condition
       const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
-      const elseifReturnsBefore = getReturnTypeCount(elseIfFnScope);
-      if (elseIfFnScope) elseIfFnScope.__conditionalDepth = (elseIfFnScope.__conditionalDepth || 0) + 1;
       if (typeGuard) {
         const ifScope = pushScope();
         applyIfBranchGuard(ifScope, typeGuard, lookupVariable);
@@ -642,9 +593,6 @@ function createStatementHandlers(getState) {
       } else {
         node.named.stats?.forEach(stat => visit(stat, node));
       }
-      if (elseIfFnScope) elseIfFnScope.__conditionalDepth--;
-      const elseifReturnsAfter = getReturnTypeCount(elseIfFnScope);
-      const thisElseifBranchReturns = elseifReturnsAfter > elseifReturnsBefore;
 
       // Visit chained else_if, applying exclusion from this branch's typeGuard
       if (node.named.elseif) {
@@ -656,13 +604,6 @@ function createStatementHandlers(getState) {
         } else {
           visit(node.named.elseif, node);
         }
-        // Sub-chain set __elseChainFullyCovered. If THIS branch didn't return, chain is not covered.
-        if (elseIfFnScope && !thisElseifBranchReturns) {
-          elseIfFnScope.__elseChainFullyCovered = false;
-        }
-      } else {
-        // No further else/elseif — the chain has no terminal else, not fully covered.
-        if (elseIfFnScope) elseIfFnScope.__elseChainFullyCovered = false;
       }
 
       pushToParent(node, parent);
