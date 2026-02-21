@@ -127,19 +127,45 @@ function handleTypedMethodCall(
 }
 
 /**
- * Handle array instance method calls (e.g. items.map(), nums.filter(), arr.pop())
+ * Handle array instance method calls (e.g. items.map(), nums.filter(), arr.push())
+ * Validates parameters and return type
  */
-function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases }) {
-  return handleTypedMethodCall(
-    name,
-    access,
-    definition,
-    parent,
-    (type) => type instanceof ArrayType,
-    getArrayMemberType,
-    null, // no extra filter needed
-    { pushInference, typeAliases }
-  );
+function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, pushWarning, typeAliases }) {
+  const resolvedDefType = resolveTypeAlias(definition?.type, typeAliases);
+  
+  if (!definition || !(resolvedDefType instanceof ArrayType)) {
+    return false;
+  }
+
+  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  if (!memberName) {
+    return false;
+  }
+
+  const methodDef = getArrayMemberType(resolvedDefType, memberName);
+  if (!methodDef) {
+    return false;
+  }
+
+  // Extract arguments for parameter validation
+  const argTypes = access.children
+    ?.find(child => child.type === 'object_access')
+    ?.children?.find(child => child.type === 'func_call')
+    ?.inference || [];
+  
+  // If methodDef is a FunctionType (parameterized method like push(T)), validate parameters
+  if (methodDef instanceof FunctionType && argTypes.length > 0) {
+    const result = TypeChecker.checkFunctionCall(argTypes, methodDef.params, memberName, typeAliases);
+    if (!result.valid) {
+      result.warnings.forEach(warning => pushWarning(name, warning));
+    }
+  }
+
+  const finalType = extractReturnType(methodDef);
+
+  if (memberNode) memberNode.inferredType = finalType;
+  pushInference(parent, finalType);
+  return true;
 }
 
 /**

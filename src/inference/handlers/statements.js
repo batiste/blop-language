@@ -432,10 +432,15 @@ function createStatementHandlers(getState) {
                   currentType = nextType;
                 }
 
-                // Class instance types only track method signatures — skip property
-                // existence / type-compatibility checks for constructor-assigned props.
+                // For class instances, check if the property is explicitly declared.
+                // If it is, validate the assignment; otherwise, allow it (constructor-assigned).
                 const resolvedObjType = resolveTypeAlias(objectDef.type, typeAliases);
-                if (!resolvedObjType.isClassInstance) {
+                const shouldSkipValidation = 
+                  resolvedObjType.isClassInstance && 
+                  propertyChain.length > 0 &&
+                  !resolvedObjType.properties.has(propertyChain[0]);
+                
+                if (!shouldSkipValidation) {
                   // Use getPropertyType to validate and get the final property type
                   const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                   

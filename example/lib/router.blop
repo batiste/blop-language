@@ -9,6 +9,9 @@ type Route = {
   params?: string[]
 }
 
+r: Route[] = []
+r.push(1)
+
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }
@@ -31,8 +34,7 @@ mockWindow = {
 
 
 class Router {
-  // TODO: allow types
-  // routes: Route[]
+  routes: Route[]
 
   def constructor(initial, state, global=mockWindow) {
     this.routes = []

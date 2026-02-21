@@ -317,21 +317,36 @@ function createFunctionHandlers(getState) {
       const { getCurrentScope, pushScope, popScope, stampTypeAnnotation, inferencePhase } = getState();
       const parentScope = getCurrentScope();
 
-      // Build the class instance type from method signatures
+      // Build the class instance type from method signatures and member declarations
       const members = new Map();
       for (const stat of node.named?.stats ?? []) {
-        // stat is CLASS_STATEMENT, class_func_def is an unlabeled child
+        // stat is CLASS_STATEMENT, which can contain class_func_def or class_member_def
         const methodNode = stat.children?.find(c => c.type === 'class_func_def') ?? (stat.type === 'class_func_def' ? stat : null);
-        if (!methodNode) continue;
-        const methodName = methodNode.named?.name?.value;
-        if (!methodName) continue;
-        const sig = prescanMethodSignature(methodNode, { stampTypeAnnotation });
-        members.set(methodName, { type: sig, optional: false });
+        if (methodNode) {
+          const methodName = methodNode.named?.name?.value;
+          if (!methodName) continue;
+          const sig = prescanMethodSignature(methodNode, { stampTypeAnnotation });
+          members.set(methodName, { type: sig, optional: false });
+        }
+
+        // Process class member declarations (e.g., routes: Route[])
+        const memberNode = stat.children?.find(c => c.type === 'class_member_def') ?? (stat.type === 'class_member_def' ? stat : null);
+        if (memberNode) {
+          const memberName = memberNode.named?.name?.value;
+          const annotation = memberNode.named?.annotation;
+          if (!memberName || !annotation) continue;
+          
+          stampTypeAnnotation(annotation);
+          const memberType = getAnnotationType(annotation);
+          if (memberType) {
+            members.set(memberName, { type: memberType, optional: false });
+          }
+        }
       }
       const classType = new ObjectType(members);
-      // Class types only track method signatures; constructor-assigned properties
-      // (this.x = ...) are not yet tracked, so mark as open to suppress false
-      // "property does not exist" warnings on class instances.
+      // Class types now track both method signatures and declared member types.
+      // Constructor-assigned properties (this.x = ...) are still not tracked,
+      // so mark as open to suppress false "property does not exist" warnings.
       classType.isClassInstance = true;
 
       // Register the class name in the enclosing scope
@@ -411,6 +426,21 @@ function createFunctionHandlers(getState) {
       }
 
       popScope();
+    },
+
+    // -------------------------------------------------------------------------
+    // Class member: stamp type annotation for hover support
+    // -------------------------------------------------------------------------
+    class_member_def: (node) => {
+      const { stampTypeAnnotation, inferencePhase } = getState();
+      const annotation = node.named?.annotation;
+      if (!annotation) return;
+      
+      stampTypeAnnotation(annotation);
+      const memberType = getAnnotationType(annotation);
+      if (memberType && inferencePhase === 'inference' && node.named.name?.inferredType === undefined) {
+        node.named.name.inferredType = memberType;
+      }
     },
   };
 }

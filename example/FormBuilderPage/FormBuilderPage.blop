@@ -47,15 +47,19 @@ def validatePassword(password: string): string {
 }
 
 FormBuilderPage = (_attributes, _children, node: Component): VNode => {
-  { value as formData, setState as setFormData } = node.useState<{ email: string, password: string, confirmPassword: string }>('formData', {
+  { value as formData, setState as setFormData } = node.useState<{ email: string,
+      password: string, confirmPassword: string }>('formData', {
     email: '',
     password: '',
     confirmPassword: ''
   })
   
-  { value as touched, setState as setTouched } = node.useState('touched', { email: false, password: false, confirmPassword: false })
-  { value as submitted, setState as setSubmitted } = node.useState<boolean>('submitted', false)
-  { value as isLoading, setState as setIsLoading } = node.useState<boolean>('isLoading', false)
+  { value as touched, setState as setTouched
+    } = node.useState('touched', { email: false, password: false, confirmPassword: false })
+  { value as submitted, setState as setSubmitted
+    } = node.useState<boolean>('submitted', false)
+  { value as isLoading, setState as setIsLoading
+    } = node.useState<boolean>('isLoading', false)
   
   def updateField(fieldName: string) {
     return (e) => {

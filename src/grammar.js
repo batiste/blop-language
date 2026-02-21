@@ -165,8 +165,12 @@ const grammar = {
     ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
     ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
   ],
+  'class_member_def': [
+    ['name:name', 'annotation:annotation'],
+  ],
   'CLASS_STATEMENT': [
     ['newline', 'w?', 'W?', 'class_func_def', 'wcomment?'],
+    ['newline', 'w?', 'W?', 'class_member_def', 'wcomment?'],
     ['newline', 'w?', 'W?', 'scomment?'],
   ],
   'array_literal': [
