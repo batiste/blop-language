@@ -9,6 +9,7 @@ import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompat
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
+import TypeChecker from '../typeChecker.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import backend from '../../backend.js';
@@ -607,6 +608,64 @@ function createStatementHandlers(getState) {
         } else {
           visit(node.named.elseif, node);
         }
+      }
+
+      pushToParent(node, parent);
+    },
+
+    assign_op: (node, parent) => {
+      const { lookupVariable, pushWarning, typeAliases, inferencePhase } = getState();
+
+      // Always visit children so that expression inference is populated
+      visitChildren(node);
+
+      // Type-checking only happens in the checking phase.
+      // Also skip property-access variants (e.g. obj.prop += 1) — those
+      // require resolving the property type from the object, which is handled
+      // by the property-access validators elsewhere.
+      if (inferencePhase !== 'checking' || node.named.access) {
+        pushToParent(node, parent);
+        return;
+      }
+
+      const varName = node.named.name?.value;
+      const expNode = node.named.exp;
+
+      if (!varName || !expNode) {
+        pushToParent(node, parent);
+        return;
+      }
+
+      // Find the assign_operator token (e.g. '+=', '-=', '*=', '/=')
+      const assignOperator = node.children?.find(c => c.type === 'assign_operator');
+      if (!assignOperator) {
+        pushToParent(node, parent);
+        return;
+      }
+
+      // Strip the trailing '=' to get the base arithmetic operator
+      const opChar = assignOperator.value.slice(0, -1); // '+=' -> '+'
+
+      // Look up the variable's current type
+      const varDef = lookupVariable(varName);
+      if (!varDef || !varDef.type) {
+        pushToParent(node, parent);
+        return;
+      }
+
+      const varType = resolveTypeAlias(varDef.type, typeAliases);
+      const rhsType = expNode.inference?.[0];
+
+      if (!rhsType || rhsType === AnyType || varType === AnyType) {
+        pushToParent(node, parent);
+        return;
+      }
+
+      // Validate the compound assignment using the same math-operation rules
+      const result = TypeChecker.checkMathOperation(varType, rhsType, opChar);
+      if (!result.valid) {
+        const msgs = result.warning ? [result.warning] : (result.warnings ?? []);
+        msgs.forEach(msg => pushWarning(node, msg));
       }
 
       pushToParent(node, parent);

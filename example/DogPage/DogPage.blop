@@ -1,6 +1,7 @@
 import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
 
+
 def DogPage(attributes, _children, node: Component): VNode {
   { state } = attributes
   node.mount(async () => {

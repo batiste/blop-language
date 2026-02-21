@@ -87,7 +87,11 @@ const ERROR_MESSAGES = {
   
   // Source map errors
   SOURCEMAP_WITHOUT_FILENAME: () => 
-    `Cannot generate a source map without a filename.`
+    `Cannot generate a source map without a filename.`,
+
+  // Context errors
+  INVALID_CONTEXT: (name, ctx) =>
+    `"${name}" is only available inside a ${ctx} body.`
 };
 
 /**

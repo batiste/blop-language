@@ -8,6 +8,7 @@ import {
   ArrayType, UnionType,
   FunctionType,
   AnyFunctionType,
+  ObjectType,
 } from './Type.js';
 
 /**
@@ -522,17 +523,26 @@ export const builtinGlobals = {
   test: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['description', 'callback']),
   expect: new FunctionType([AnyType], AnyType, [], ['value']),
   
-  // Language keywords and object references
-  // TODO: think about using inference for these 
-  // instead of hardcoding as globals 
-  // (e.g. `this` type depends on context, 
-  // `super` only valid in classes)
-  arguments: { type: 'Object' },
-  this: { type: 'Reference' },
-  super: { type: 'Function' },
-  
   // Environment specific
   __dirname: { type: 'String' },
+};
+
+// ============================================================================
+// Context-scoped built-ins (only valid in certain AST contexts)
+// ============================================================================
+
+/**
+ * Keywords that are only valid in specific scopes.
+ * context: 'function' → valid inside any func_def or class_func_def body
+ * context: 'class'    → valid inside a class_func_def body only
+ *
+ * NOTE: `this` type inference (e.g. this.methodName) is a future task.
+ * For now these all resolve to AnyType at the inference level.
+ */
+export const builtinContextuals = {
+  arguments: { type: ObjectType,    context: 'function' },
+  this:      { type: ObjectType, context: 'function' },
+  super:     { type: AnyFunctionType,  context: 'class' },
 };
 
 /**
@@ -560,6 +570,11 @@ export function getGlobalMetadata() {
   
   // Add globals with their metadata
   Object.entries(builtinGlobals).forEach(([name, info]) => {
+    metadata[name] = info;
+  });
+
+  // Add context-scoped built-ins
+  Object.entries(builtinContextuals).forEach(([name, info]) => {
     metadata[name] = info;
   });
   

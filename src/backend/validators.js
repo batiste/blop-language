@@ -3,8 +3,8 @@ import fs from 'fs';
 import { createRequire } from 'module';
 import parser from '../parser.js';
 import { tokensDefinition } from '../tokensDefinition.js';
-import { getGlobalNames } from '../inference/builtinTypes.js';
-import { ERROR_MESSAGES } from '../constants.js';
+import { getGlobalNames, builtinContextuals } from '../inference/builtinTypes.js';
+import { ERROR_MESSAGES, SCOPE_TYPES, SCOPE_DEPTH } from '../constants.js';
 import { streamContext } from '../errorMessages.js';
 
 function createValidators(context) {
@@ -62,6 +62,18 @@ function createValidators(context) {
     if (globalNames.has(name) || configGlobals[name]) {
       return;
     }
+
+    // Context-scoped built-ins: only valid in specific scope types
+    const contextual = builtinContextuals[name];
+    if (contextual) {
+      const fnScopes = scopes.filter(SCOPE_TYPES.FUNCTION);
+      const insideFunction = fnScopes.length > SCOPE_DEPTH.MIN_FUNCTION_DEPTH;
+      if (contextual.context === 'function' && insideFunction) return;
+      if (contextual.context === 'class' && fnScopes.some(s => s._isClassMethod)) return;
+      generateError(node, ERROR_MESSAGES.INVALID_CONTEXT(name, contextual.context));
+      return;
+    }
+
     let defined = false;
     scopes.blocks().reverse().forEach((scope) => {
       if (scope.names[name]) {

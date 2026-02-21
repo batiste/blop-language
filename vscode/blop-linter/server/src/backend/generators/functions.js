@@ -135,6 +135,7 @@ function createFunctionGenerators(context) {
     'class_func_def': (node) => {
       const output = [];
       const scope = addScopeFCT();
+      scope._isClassMethod = true;
       scope.names[node.named.name.value] = {
         node, hoist: false, token: node.named.name, used: true,
       };
