@@ -187,7 +187,23 @@ let builtinObjectTypes = {
   },
 
   Symbol: AnyType,
-  RegExp: AnyType,
+  RegExp: {
+    // Properties
+    source: StringType,
+    flags: StringType,
+    global: BooleanType,
+    ignoreCase: BooleanType,
+    multiline: BooleanType,
+    sticky: BooleanType,
+    unicode: BooleanType,
+    dotAll: BooleanType,
+    hasIndices: BooleanType,
+    lastIndex: NumberType,
+    // Methods
+    test: new FunctionType([StringType], BooleanType, [], ['str']),
+    exec: new FunctionType([StringType], Types.union([Types.array(StringType), NullType]), [], ['str']),
+    toString: new FunctionType([], StringType, [], []),
+  },
   Error: AnyType,
   Proxy: AnyType,
 

@@ -50,7 +50,7 @@ class Router {
   def init() {
     this.go(this.global.location.pathname, false)
   }
-  def add(route: any) {
+  def add(route: Route) {
     { regexp, names } = createRegExp(route.path)
     route.reg = new RegExp(regexp)
     route.params = names
