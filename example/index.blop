@@ -42,10 +42,10 @@ def navigation(state): VNode {
   def navItem(pageType, handler, name) {
     classes = "nav-item"
     if state.route.name == pageType {
-      classes := ""classes" active"
+      classes := classes" active"
     }
     <li class=classes>
-      <a href="/"pageType"" class="nav-link" on={ click: handler }>
+      <a href="/"pageType class="nav-link" on={ click: handler }>
         = name
       </a>
     </li>

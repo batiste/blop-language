@@ -211,13 +211,15 @@ export class ArrayType extends Type {
  * Object types: { name: string, age: number }
  */
 export class ObjectType extends Type {
-  constructor(properties = new Map()) {
+  constructor(properties = new Map(), name = null) {
     super();
     this.kind = 'object';
     this.properties = properties; // Map<string, {type: Type, optional: boolean}>
+    this.name = name; // Optional class name for display (e.g. 'Router')
   }
   
   toString() {
+    if (this.name) return this.name;
     if (this.properties.size === 0) return '{}';
     
     const props = Array.from(this.properties.entries())

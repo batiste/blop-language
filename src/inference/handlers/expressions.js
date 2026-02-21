@@ -811,7 +811,7 @@ function createExpressionHandlers(getState) {
       }
     },
     new_expression: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, lookupVariable } = getState();
       resolveTypes(node);
       
       // Get the expression being constructed from the properly named exp child
@@ -853,6 +853,18 @@ function createExpressionHandlers(getState) {
       // If we have a constructor name and it's a built-in, use TypeAlias for it
       if (constructorName && isBuiltinObjectType(constructorName)) {
         constructorType = new TypeAlias(constructorName);
+      } else if (constructorName) {
+        // Check if it's a user-defined class in scope
+        const classDef = lookupVariable(constructorName);
+        if (classDef && classDef.source === 'class_def' && classDef.type) {
+          constructorType = classDef.type;
+        } else if (expNode && expNode.inference && expNode.inference.length > 0) {
+          // Fall back to inferred type from the exp node
+          const inferredType = expNode.inference[0];
+          if (inferredType && !(inferredType instanceof ObjectType && inferredType.properties.size === 0) && inferredType !== AnyType) {
+            constructorType = inferredType;
+          }
+        }
       } else if (expNode && expNode.inference && expNode.inference.length > 0) {
         // Otherwise, use the inferred type from the exp node if available
         const inferredType = expNode.inference[0];

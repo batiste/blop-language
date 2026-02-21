@@ -391,7 +391,8 @@ function createFunctionHandlers(getState) {
           }
         }
       }
-      const classType = new ObjectType(members);
+      const className = node.named?.name?.value ?? null;
+      const classType = new ObjectType(members, className);
       // Class types now track both method signatures and declared member types.
       // Constructor-assigned properties (this.x = ...) are still not tracked,
       // so mark as open to suppress false "property does not exist" warnings.

@@ -276,7 +276,9 @@ function createStatementHandlers(getState) {
           
           // Run binding phase on imported tree to get function definitions
           const importedSymbolTable = runBindingPhase(tree);
-          const importedFunctions = importedSymbolTable.getAllSymbols().functions;
+          const importedSymbols = importedSymbolTable.getAllSymbols();
+          const importedFunctions = importedSymbols.functions;
+          const importedClasses = importedSymbolTable.getClasses();
 
           if (result.typeAliases) {
             // Check what's being imported
@@ -303,6 +305,13 @@ function createStatementHandlers(getState) {
                       ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
                       : AnyFunctionType;
                   }
+                } else if (importedClasses[name]) {
+                  // Register imported class in current scope
+                  const def = importedClasses[name];
+                  scope[name] = def;
+                  if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                    nameNode.inferredType = def.type;
+                  }
                 }
               });
             } else if (node.named.name && !node.named.module) {
@@ -324,6 +333,13 @@ function createStatementHandlers(getState) {
                   nameNode.inferredType = def.params
                     ? new FunctionType(def.params, def.type ?? AnyType, def.genericParams ?? [], def.paramNames ?? [])
                     : AnyFunctionType;
+                }
+              } else if (importedClasses[name]) {
+                const def = importedClasses[name];
+                const { getCurrentScope } = getState();
+                getCurrentScope()[name] = def;
+                if (inferencePhase === 'inference' && nameNode.inferredType === undefined) {
+                  nameNode.inferredType = def.type;
                 }
               }
             } else {
