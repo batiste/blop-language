@@ -62,6 +62,50 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
   return new FunctionType(params, returnType, genericParams, paramNames);
 }
 
+/**
+ * Parse generic params from a node and register them in the given scope as
+ * valid type placeholders. Returns the parsed param name array.
+ */
+function registerGenericParams(scope, genericParamsNode) {
+  if (!genericParamsNode) return [];
+  const genericParams = parseGenericParams(genericParamsNode);
+  if (genericParams.length > 0) {
+    scope.__genericParams = genericParams;
+    for (const param of genericParams) {
+      scope[param] = { type: param, isGenericParam: true };
+    }
+  }
+  return genericParams;
+}
+
+/**
+ * Read the declared return type annotation (if any), stamp it for hover
+ * support, and store it on the scope for return-statement validation.
+ * Returns the resolved type or null.
+ */
+function setupDeclaredReturnType(scope, annotation, stampTypeAnnotation) {
+  if (!annotation) return null;
+  stampTypeAnnotation(annotation);
+  const declaredType = getAnnotationType(annotation);
+  if (declaredType) scope.__declaredReturnType = declaredType;
+  return declaredType ?? null;
+}
+
+/**
+ * Derive the effective return type from the types collected by return
+ * statements during body traversal. Mirrors the union-building logic used
+ * in both func_def and class_func_def.
+ */
+function collectReturnType(returnTypes) {
+  if (!returnTypes?.length) return UndefinedType;
+  const explicitReturns = returnTypes.filter(t => t && t !== UndefinedType);
+  if (!explicitReturns.length) return UndefinedType;
+  const union = createUnion(explicitReturns);
+  return returnTypes.some(t => t === UndefinedType)
+    ? createUnion([union, UndefinedType])
+    : union;
+}
+
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
@@ -180,21 +224,7 @@ function createFunctionHandlers(getState) {
       scope.__returnTypes = [];
       
       // Parse generic parameters if present
-      const genericParams = node.named.generic_params 
-        ? parseGenericParams(node.named.generic_params)
-        : [];
-      
-      // Store generic params in scope so they're recognized as valid types
-      if (genericParams.length > 0) {
-        scope.__genericParams = genericParams;
-        // Mark each generic parameter as a valid type in this scope
-        for (const param of genericParams) {
-          scope[param] = {
-            type: param,
-            isGenericParam: true,
-          };
-        }
-      }
+      const genericParams = registerGenericParams(scope, node.named.generic_params);
 
       // Pre-populate scope with type-annotated locals from binding phase
       const functionName = node.named?.name?.value;
@@ -208,13 +238,7 @@ function createFunctionHandlers(getState) {
       // Pre-parse declared return type so SCOPED_STATEMENT can validate each
       // return expression individually during the checking phase.
       const { annotation } = node.named;
-      if (annotation) {
-        stampTypeAnnotation(annotation);
-        const earlyDeclaredType = getAnnotationType(annotation);
-        if (earlyDeclaredType) {
-          scope.__declaredReturnType = earlyDeclaredType;
-        }
-      }
+      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
       
       visitChildren(node);
       
@@ -226,25 +250,7 @@ function createFunctionHandlers(getState) {
       const declaredType = annotation ? getAnnotationType(annotation) : null;
       
       // Infer return type from actual returns (Type objects from inference stack)
-      let inferredType = UndefinedType; // Default to undefined for empty function bodies
-      if (scope.__returnTypes && scope.__returnTypes.length > 0) {
-        // Filter out empty/undefined returns unless they're all undefined
-        const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
-        
-        if (explicitReturns.length > 0) {
-          // Create union type from all return types
-          inferredType = createUnion(explicitReturns);
-          
-          // If there were also undefined returns, add undefined to the union
-          const hasUndefined = scope.__returnTypes.some(t => t === UndefinedType);
-          if (hasUndefined) {
-            inferredType = createUnion([inferredType, UndefinedType]);
-          }
-        } else {
-          // All returns are undefined (bare return or no return)
-          inferredType = UndefinedType;
-        }
-      }
+      const inferredType = collectReturnType(scope.__returnTypes);
       
       // Anonymous functions as expressions should infer as a function type with proper signature
       if (parent && !node.named.name) {
@@ -364,15 +370,7 @@ function createFunctionHandlers(getState) {
       scope.__isClassMethod = true;
 
       // Parse and register generic parameters if present
-      const genericParams = node.named.generic_params
-        ? parseGenericParams(node.named.generic_params)
-        : [];
-      if (genericParams.length > 0) {
-        scope.__genericParams = genericParams;
-        for (const param of genericParams) {
-          scope[param] = { type: param, isGenericParam: true };
-        }
-      }
+      const genericParams = registerGenericParams(scope, node.named.generic_params);
 
       // Inject `this` so method bodies can type-check this.prop / this.method()
       if (classType) {
@@ -381,11 +379,7 @@ function createFunctionHandlers(getState) {
 
       // Pre-parse declared return type for return-statement validation
       const { annotation } = node.named;
-      if (annotation) {
-        stampTypeAnnotation(annotation);
-        const earlyDeclaredType = getAnnotationType(annotation);
-        if (earlyDeclaredType) scope.__declaredReturnType = earlyDeclaredType;
-      }
+      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
 
       visitChildren(node);
 
@@ -393,16 +387,7 @@ function createFunctionHandlers(getState) {
       const declaredType = annotation ? getAnnotationType(annotation) : null;
 
       // Infer return type from collected return expressions
-      let inferredType = UndefinedType;
-      if (scope.__returnTypes?.length > 0) {
-        const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
-        if (explicitReturns.length > 0) {
-          inferredType = createUnion(explicitReturns);
-          if (scope.__returnTypes.some(t => t === UndefinedType)) {
-            inferredType = createUnion([inferredType, UndefinedType]);
-          }
-        }
-      }
+      const inferredType = collectReturnType(scope.__returnTypes);
 
       // Validate declared vs inferred return type (mirrors func_def)
       if (declaredType && inferredType !== AnyType) {
