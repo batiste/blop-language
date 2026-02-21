@@ -3,6 +3,7 @@ import { ASTExplorer } from './ASTExplorer/ASTExplorer.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
+import { FormBuilderPage } from './FormBuilderPage/FormBuilderPage.blop'
 // import { saveState } from './services.blop'
 import './style.css' as style
 import { go } from './lib/navigation.blop'
@@ -28,7 +29,11 @@ def navigationLinks() {
     go('/playground')
     e.preventDefault()
   }
-  return { dogPage, todoPage, astExplorerPage, playgroundPage, indexPage }
+  def formPage(e) {
+    go('/form')
+    e.preventDefault()
+  }
+  return { dogPage, todoPage, astExplorerPage, playgroundPage, indexPage, formPage }
 }
 
 def navigation(state): VNode {
@@ -61,6 +66,7 @@ def navigation(state): VNode {
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         = navItem('playground', links.playgroundPage, '🎮 Playground')
+        = navItem('form', links.formPage, '📋 Form Builder')
         = navItem('dog', links.dogPage, '🐕 Breed game')
         = navItem('todo', links.todoPage, '📝 Advanced Todo')
         = navItem('ast', links.astExplorerPage, '🌳 AST Explorer')
@@ -86,11 +92,14 @@ def navigation(state): VNode {
 Index = (state): VNode => {
   <div>
     = navigation(state)
+    console.log('Rendering page with state 'state.route.name)
     <div class=''style.container' container'>
       if state.route.name == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
       } elseif state.route.name == 'playground' {
         <PlaygroundPage state=state></PlaygroundPage>
+      } elseif state.route.name == 'form' {
+        <FormBuilderPage></FormBuilderPage>
       } elseif state.route.name == 'doggy' || state.route.name == 'dog' {
         <DogPage state=state></DogPage>
       } elseif state.route.name == 'todo' {

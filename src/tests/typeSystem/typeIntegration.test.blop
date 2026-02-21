@@ -82,6 +82,8 @@ def complexExample(input: string | number | null): object {
   }
 }
 
+input = <input placeholder="Enter 'value" />
+
 // Demonstrating nullish coalescing with union types
 def handleOptionalValue(val: string | null | undefined): string {
   result = val ?? 'default value'

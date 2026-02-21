@@ -63,6 +63,8 @@ export function isTypeCompatible(valueType, targetType, aliases) {
   const resolvedValue = resolveAliasType(resolveGenericType(valueType, aliasMap), aliasMap);
   const resolvedTarget = resolveAliasType(resolveGenericType(targetType, aliasMap), aliasMap);
   
+  // console.log('Resolved value type:', resolvedValue);
+  // console.log('Resolved target type:', resolvedTarget);
   return resolvedValue.isCompatibleWith(resolvedTarget, aliasMap);
 }
 

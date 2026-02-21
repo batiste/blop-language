@@ -10,7 +10,9 @@ function createLiteralGenerators(context) {
       if (lines.length > 1) {
         return [`\`${str}\``];
       }
-      return [`'${str}'`];
+      // Escape single quotes in the string content
+      const escaped = str.replace(/'/g, "\\'");
+      return [`'${escaped}'`];
     },
     'str_expression': (node) => {
       // Handle simplified syntax with name and empty string - just return the name
