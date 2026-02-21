@@ -294,6 +294,9 @@ const grammar = {
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
   ],
+  'new_expression': [
+    ['new', 'exp:exp'],
+  ],
   'exp': [
     // ['optional_chaining'],
     ['str_expression'],
@@ -316,7 +319,7 @@ const grammar = {
     ['await', 'exp'],
     ['virtual_node_assign'],
     ['virtual_node_exp'],
-    ['new', 'exp'],
+    ['new_expression'],
     ['delete', 'exp'],
     ['spread', 'exp'],
     ['short_if_expression'],

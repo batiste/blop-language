@@ -522,6 +522,11 @@ export function checkObjectStructuralCompatibility(valueType, targetType, aliase
       errors.push(`Missing property '${key}'`);
     } else if (valueType.properties.has(key)) {
       const valueProp = valueType.properties.get(key);
+      // Defensive check: ensure valueProp.type is a proper Type object
+      if (!valueProp.type || typeof valueProp.type.isCompatibleWith !== 'function') {
+        errors.push(`Property '${key}' has invalid type definition`);
+        continue;
+      }
       if (!valueProp.type.isCompatibleWith(targetProp.type, aliasMap)) {
         errors.push(
           `Property '${key}' has type ${typeToString(valueProp.type)} but expected ${typeToString(targetProp.type)}`

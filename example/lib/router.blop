@@ -31,6 +31,8 @@ mockWindow = {
 
 
 class Router {
+  // TODO: allow types
+  // routes: Route[]
 
   def constructor(initial, state, global=mockWindow) {
     this.routes = []

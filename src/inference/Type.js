@@ -278,8 +278,14 @@ export class ObjectType extends Type {
         }
         
         const thisProp = this.properties.get(key);
-        if (thisProp && !thisProp.type.isCompatibleWith(targetProp.type, aliases)) {
-          return false; // Property type mismatch
+        if (thisProp) {
+          // Defensive check: ensure thisProp.type is a proper Type object
+          if (!thisProp.type || typeof thisProp.type.isCompatibleWith !== 'function') {
+            return false; // Invalid property type
+          }
+          if (!thisProp.type.isCompatibleWith(targetProp.type, aliases)) {
+            return false; // Property type mismatch
+          }
         }
       }
       

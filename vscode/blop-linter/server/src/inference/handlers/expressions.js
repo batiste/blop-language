@@ -784,10 +784,58 @@ function createExpressionHandlers(getState) {
         pushInference(parent, node.named.access);
       }
     },
-    new: (node, parent) => {
+    new_expression: (node, parent) => {
       const { pushInference } = getState();
       resolveTypes(node);
-      pushInference(parent, ObjectType);
+      
+      // Get the expression being constructed from the properly named exp child
+      const expNode = node.named?.exp;
+      
+      let constructorType = new ObjectType();
+      
+      // Try to extract constructor name and check if it's a built-in
+      let constructorName = null;
+      
+      if (expNode && expNode.type === 'access_or_operation') {
+        // expNode is an access_or_operation with a name_exp child
+        const nameExp = expNode.named?.name_exp;
+        if (nameExp) {
+          const nameNode = nameExp.named?.name;
+          if (nameNode) {
+            constructorName = nameNode.value;
+          }
+        }
+      } else if (expNode && expNode.type === 'name_exp') {
+        // expNode directly is a name_exp
+        const nameNode = expNode.named?.name;
+        if (nameNode) {
+          constructorName = nameNode.value;
+        }
+      } else if (expNode && expNode.children) {
+        // Navigate through children to find the name
+        for (const child of expNode.children) {
+          if (child.type === 'name_exp') {
+            const nameNode = child.named?.name;
+            if (nameNode) {
+              constructorName = nameNode.value;
+              break;
+            }
+          }
+        }
+      }
+      
+      // If we have a constructor name and it's a built-in, use TypeAlias for it
+      if (constructorName && isBuiltinObjectType(constructorName)) {
+        constructorType = new TypeAlias(constructorName);
+      } else if (expNode && expNode.inference && expNode.inference.length > 0) {
+        // Otherwise, use the inferred type from the exp node if available
+        const inferredType = expNode.inference[0];
+        if (inferredType && !(inferredType instanceof ObjectType && inferredType.properties.size === 0) && inferredType !== AnyType) {
+          constructorType = inferredType;
+        }
+      }
+      
+      pushInference(parent, constructorType);
     },
 
     short_if_expression: (node, parent) => {
