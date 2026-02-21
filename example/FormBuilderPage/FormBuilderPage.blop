@@ -1,0 +1,183 @@
+// FormBuilderPage.blop - Demonstrates type-safe forms with real-time validation
+
+def FormField(attributes: {
+    label: string, type: string, value: string,
+    error: string | null, onChange: Function | undefined }, _children): VNode {
+
+  { label, type, value, error, onChange } = attributes
+  
+  hasError = error && error.length > 0
+  borderColor = if hasError => '#dc3545' else '#dee2e6'
+  
+  <div class="mb-3">
+    <label class="form-label" style={ fontWeight: 'bold', marginBottom: '0.5em' }>
+      = label
+    </label>
+    <input
+      type=type
+      class="form-control"
+      value=value
+      style={ borderColor, borderWidth: '1px' }
+      on={ input: onChange }
+      placeholder="Enter label" />
+    if hasError {
+      <small class="form-text" style={ color: '#dc3545', display: 'block', marginTop: '0.25em' }>
+        = error
+      </small>
+    }
+  </div>
+}
+
+def validateEmail(email: string): string {
+  if !email {
+    return 'Email is required'
+  }
+  if !email.includes('@') {
+    return 'Invalid email format'
+  }
+}
+
+def validatePassword(password: string): string {
+  if !password {
+     return 'Password is required'
+  }
+  if password.length < 8 {
+     return 'Password must be at least 8 characters'
+  }
+}
+
+FormBuilderPage = (_attributes, _children, node: Component): VNode => {
+  { value as formData, setState as setFormData } = node.useState<{ email: string, password: string, confirmPassword: string }>('formData', {
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  
+  { value as touched, setState as setTouched } = node.useState('touched', { email: false, password: false, confirmPassword: false })
+  { value as submitted, setState as setSubmitted } = node.useState<boolean>('submitted', false)
+  { value as isLoading, setState as setIsLoading } = node.useState<boolean>('isLoading', false)
+  
+  def updateField(fieldName: string) {
+    return (e) => {
+      newData = { ...formData }
+      newData[fieldName] = e.target.value
+      setFormData(newData)
+    }
+  }
+  
+  def markTouched(fieldName: string) {
+    return () => {
+      newTouched = { ...touched }
+      newTouched[fieldName] = true
+      setTouched(newTouched)
+    }
+  }
+  
+  def getFieldError(fieldName: string): string | null {
+    if !touched[fieldName] && !submitted {
+         return null
+    }
+    if fieldName == 'email' {
+        return validateEmail(formData.email)
+    }
+    if fieldName == 'password' {
+        return validatePassword(formData.password)
+    }
+    if fieldName == 'confirmPassword' && !formData.confirmPassword {
+        return 'Please confirm password'
+    }
+    if formData.confirmPassword != formData.password {
+        return 'Passwords do not match'
+    }
+    return null
+  }
+  
+  def isFormValid(): boolean {
+    emailErr = validateEmail(formData.email)
+    passwordErr = validatePassword(formData.password)
+    confirmErr = if formData.confirmPassword != formData.password => 'Mismatch' else null
+    
+    return !emailErr && !passwordErr && !confirmErr
+  }
+  
+  def handleSubmit(e) {
+    e.preventDefault()
+    setSubmitted(true)
+    
+    if isFormValid() {
+      setIsLoading(true)
+      // Simulate API call
+      setTimeout(() => {
+        setIsLoading(false)
+        console.log('Form submitted:', formData)
+        // Reset form
+        setFormData({ email: '', password: '', confirmPassword: '' })
+        setTouched({ email: false, password: false, confirmPassword: false })
+        setSubmitted(false)
+      }, 1500)
+    }
+  }
+  
+  <div class="container" style={ maxWidth: '500px', marginTop: '3em', marginBottom: '3em' }>
+    <div class="card">
+      <div class="card-header" style={ backgroundColor: '#667eea', color: 'white', fontWeight: 'bold', fontSize: '1.1em' }>
+        '📋 User Registration Form'
+      </div>
+      <div class="card-body" style={ padding: '2em' }>
+        <p style={ color: '#6c757d', marginBottom: '1.5em', fontSize: '0.95em' }>
+          'This form demonstrates:'
+        </p>
+        <ul style={ color: '#6c757d', marginBottom: '2em', fontSize: '0.9em' }>
+          <li>'Type-safe form state management'</li>
+          <li>'Real-time validation'</li>
+          <li>'Dependent field validation'</li>
+          <li>'Reactive error handling'</li>
+        </ul>
+        
+        <form on={ submit: handleSubmit }>
+          = FormField({
+            label: 'Email Address',
+            type: 'email',
+            value: formData.email,
+            error: getFieldError('email'),
+            onChange: updateField('email')
+          })
+          
+          = FormField({
+            label: 'Password',
+            type: 'password',
+            value: formData.password,
+            error: getFieldError('password'),
+            onChange: updateField('password')
+          })
+          
+          = FormField({
+            label: 'Confirm Password',
+            type: 'password',
+            value: formData.confirmPassword,
+            error: getFieldError('confirmPassword'),
+            onChange: updateField('confirmPassword')
+          })
+          
+          <button
+            type="submit"
+            class="btn btn-primary w-100"
+            style={ marginTop: '1em' }
+            disabled=isLoading>
+            if isLoading {
+              <span>'Creating account...'</span>
+            } else {
+              <span>'Register'</span>
+            }
+          </button>
+        </form>
+        
+        if submitted && isFormValid() {
+          <div class="alert alert-success" style={ marginTop: '1em' }>
+            '✓ Account created successfully!'
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
