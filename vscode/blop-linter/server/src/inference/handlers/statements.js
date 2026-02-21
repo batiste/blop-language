@@ -432,26 +432,31 @@ function createStatementHandlers(getState) {
                   currentType = nextType;
                 }
 
-                // Use getPropertyType to validate and get the final property type
-                const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
-                
-                if (expectedType === null) {
-                  // Property doesn't exist
-                  const fullPropertyPath = propertyChain.join('.');
-                  pushWarning(
-                    node,
-                    `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
-                  );
-                } else {
-                  // Property exists, check type compatibility
-                  const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                // Class instance types only track method signatures — skip property
+                // existence / type-compatibility checks for constructor-assigned props.
+                const resolvedObjType = resolveTypeAlias(objectDef.type, typeAliases);
+                if (!resolvedObjType.isClassInstance) {
+                  // Use getPropertyType to validate and get the final property type
+                  const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
                   
-                  if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                  if (expectedType === null) {
+                    // Property doesn't exist
                     const fullPropertyPath = propertyChain.join('.');
                     pushWarning(
                       node,
-                      `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
+                      `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
                     );
+                  } else {
+                    // Property exists, check type compatibility
+                    const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                    
+                    if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                      const fullPropertyPath = propertyChain.join('.');
+                      pushWarning(
+                        node,
+                        `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
+                      );
+                    }
                   }
                 }
               }

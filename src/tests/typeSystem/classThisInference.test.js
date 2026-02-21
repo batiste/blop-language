@@ -103,4 +103,41 @@ describe('this type inference inside class methods', () => {
     `);
   });
 
+  // ---------------------------------------------------------------------------
+  // Constructor-assigned properties (this.x = ...) must not produce false
+  // "property does not exist" warnings — they are not tracked in the class type
+  // ---------------------------------------------------------------------------
+
+  test('constructor-assigned property accessed in another method does not warn', () => {
+    expectCompiles(`
+      class Counter {
+        def constructor() {
+          this.count = 0
+          this.label = 'hits'
+        }
+        def increment() {
+          this.count = this.count + 1
+        }
+        def getLabel() {
+          return this.label
+        }
+      }
+    `);
+  });
+
+  test('constructor-assigned property accessed on instance does not warn', () => {
+    expectCompiles(`
+      class Box {
+        def constructor(value) {
+          this.value = value
+        }
+        def get() {
+          return this.value
+        }
+      }
+      b = new Box(42)
+      x = b.get()
+    `);
+  });
+
 });
