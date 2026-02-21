@@ -4699,6 +4699,7 @@ let class_func_def_0 = (stream, index) => {
   const _rule_5 = annotation(stream, i);
   if (_rule_5) {
     children.push(_rule_5);
+    named['annotation'] = _rule_5;
     i = _rule_5.last_index;
   }
 
@@ -4792,6 +4793,7 @@ let class_func_def_1 = (stream, index) => {
   const _rule_6 = annotation(stream, i);
   if (_rule_6) {
     children.push(_rule_6);
+    named['annotation'] = _rule_6;
     i = _rule_6.last_index;
   }
 

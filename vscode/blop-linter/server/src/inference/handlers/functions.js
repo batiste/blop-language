@@ -11,8 +11,51 @@ import {
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
+
+/**
+ * Pre-scan a class_func_def node's signature without visiting its body.
+ * Collects param types from annotations and the declared return type.
+ * Used by class_def to build the class instance ObjectType before method
+ * bodies are traversed, so `this.method()` can be typed correctly.
+ */
+function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
+  const params = [];
+  const paramNames = [];
+
+  // Recursively collect func_def_params nodes, stopping at nested func_defs
+  function collectParams(node) {
+    if (!node) return;
+    if (node.type === 'func_def') return; // don't cross into nested lambdas
+    if (node.type === 'func_def_params') {
+      let paramType = AnyType;
+      if (node.named?.annotation) {
+        stampTypeAnnotation(node.named.annotation);
+        const resolved = getAnnotationType(node.named.annotation);
+        if (resolved) paramType = resolved;
+      }
+      params.push(paramType);
+      paramNames.push(node.named?.name?.value ?? '_');
+      // still recurse for chained params in children
+    }
+    if (node.children) {
+      for (const child of node.children) collectParams(child);
+    }
+  }
+
+  if (methodNode.named?.params) collectParams(methodNode.named.params);
+
+  // Return type from annotation if present, otherwise AnyType placeholder
+  let returnType = AnyType;
+  if (methodNode.named?.annotation) {
+    stampTypeAnnotation(methodNode.named.annotation);
+    const resolved = getAnnotationType(methodNode.named.annotation);
+    if (resolved) returnType = resolved;
+  }
+
+  return new FunctionType(params, returnType, [], paramNames);
+}
 
 function createFunctionHandlers(getState) {
   return {
@@ -252,6 +295,120 @@ function createFunctionHandlers(getState) {
           genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
       }
+      popScope();
+    },
+
+    // -------------------------------------------------------------------------
+    // Class definition: pre-scan all methods to build the instance ObjectType,
+    // then visit children so method bodies are inferred with `this` typed.
+    // -------------------------------------------------------------------------
+    class_def: (node) => {
+      const { getCurrentScope, pushScope, popScope, stampTypeAnnotation, inferencePhase } = getState();
+      const parentScope = getCurrentScope();
+
+      // Build the class instance type from method signatures
+      const members = new Map();
+      for (const stat of node.named?.stats ?? []) {
+        // stat is CLASS_STATEMENT, class_func_def is an unlabeled child
+        const methodNode = stat.children?.find(c => c.type === 'class_func_def') ?? (stat.type === 'class_func_def' ? stat : null);
+        if (!methodNode) continue;
+        const methodName = methodNode.named?.name?.value;
+        if (!methodName) continue;
+        const sig = prescanMethodSignature(methodNode, { stampTypeAnnotation });
+        members.set(methodName, { type: sig, optional: false });
+      }
+      const classType = new ObjectType(members);
+      // Class types only track method signatures; constructor-assigned properties
+      // (this.x = ...) are not yet tracked, so mark as open to suppress false
+      // "property does not exist" warnings on class instances.
+      classType.isClassInstance = true;
+
+      // Register the class name in the enclosing scope
+      if (node.named?.name) {
+        parentScope[node.named.name.value] = {
+          source: 'class_def',
+          type: classType,
+          node,
+        };
+        if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
+          node.named.name.inferredType = classType;
+        }
+      }
+
+      // Push a scope for the class body so __currentClassType is scoped
+      const scope = pushScope();
+      scope.__currentClassType = classType;
+      visitChildren(node);
+      popScope();
+    },
+
+    // -------------------------------------------------------------------------
+    // Class method: mirrors func_def but injects `this` typed as the class
+    // instance ObjectType so `this.method()` / `this.prop` resolve correctly.
+    // -------------------------------------------------------------------------
+    class_func_def: (node) => {
+      const { getCurrentScope, pushScope, popScope, pushWarning, stampTypeAnnotation, inferencePhase } = getState();
+
+      // The class scope (pushed by class_def) holds __currentClassType
+      const classType = getCurrentScope().__currentClassType;
+
+      const scope = pushScope();
+      scope.__currentFctParams = [];
+      scope.__currentFctParamNames = [];
+      scope.__returnTypes = [];
+      scope.__isClassMethod = true;
+
+      // Inject `this` so method bodies can type-check this.prop / this.method()
+      if (classType) {
+        scope['this'] = { type: classType, source: 'class_this' };
+      }
+
+      // Pre-parse declared return type for return-statement validation
+      const { annotation } = node.named;
+      if (annotation) {
+        stampTypeAnnotation(annotation);
+        const earlyDeclaredType = getAnnotationType(annotation);
+        if (earlyDeclaredType) scope.__declaredReturnType = earlyDeclaredType;
+      }
+
+      visitChildren(node);
+
+      if (annotation) stampTypeAnnotation(annotation);
+      const declaredType = annotation ? getAnnotationType(annotation) : null;
+
+      // Infer return type from collected return expressions
+      let inferredType = UndefinedType;
+      if (scope.__returnTypes?.length > 0) {
+        const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
+        if (explicitReturns.length > 0) {
+          inferredType = createUnion(explicitReturns);
+          if (scope.__returnTypes.some(t => t === UndefinedType)) {
+            inferredType = createUnion([inferredType, UndefinedType]);
+          }
+        }
+      }
+
+      // Validate declared vs inferred return type (mirrors func_def)
+      if (declaredType && inferredType !== AnyType) {
+        const { typeAliases } = getState();
+        if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+          pushWarning(
+            node.named.name,
+            `Method '${node.named.name?.value}' returns ${inferredType} but declared as ${declaredType}`
+          );
+        }
+      }
+
+      // Stamp hover type on the method name node
+      if (inferencePhase === 'inference' && node.named.name?.inferredType === undefined) {
+        node.named.name.inferredType = new FunctionType(
+          scope.__currentFctParams,
+          declaredType ?? inferredType,
+          [],
+          scope.__currentFctParamNames
+        );
+      }
+
       popScope();
     },
   };

@@ -438,7 +438,20 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
-  
+
+  // Handle method calls on user-defined ObjectType instances (e.g. this.double(x))
+  if (definition && definition.type instanceof ObjectType) {
+    const { memberName } = getObjectAccessMemberInfo(access);
+    if (memberName) {
+      const methodType = getPropertyType(definition.type, memberName, typeAliases);
+      if (methodType instanceof FunctionType) {
+        pushInference(parent, methodType.returnType ?? AnyType);
+        pushSubsequentOperation(access, parent, pushInference);
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
@@ -532,7 +545,24 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     }
   }
   
-  // Validate property access for object types and primitive scalar types
+  // For class instance types: they only expose method signatures — constructor-
+  // assigned properties (this.x = ...) are not tracked yet.  Resolve known
+  // methods to their type; treat unknown properties as any without warning.
+  if (resolvedType instanceof ObjectType && resolvedType.isClassInstance) {
+    const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+    name.inferredType = resolvedType;
+    if (memberName) {
+      const propType = getPropertyType(resolvedType, memberName, typeAliases);
+      if (memberNode) memberNode.inferredType = propType ?? AnyType;
+      pushInference(parent, propType ?? AnyType);
+    } else {
+      visitChildren(access);
+      pushInference(parent, AnyType);
+    }
+    return true;
+  }
+
+  // Validate property access for object types and primitive scalar types.
   const isPrimitiveType = isValidPrimitiveType(resolvedType);
   const isObjectType = resolvedType instanceof ObjectType;
   

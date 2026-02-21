@@ -162,8 +162,8 @@ const grammar = {
     ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
   ],
   'class_func_def': [
-    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?', 'w', 'func_body:body'],
-    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
+    ['async?:async', 'def', 'name?:name', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
   ],
   'CLASS_STATEMENT': [
     ['newline', 'w?', 'W?', 'class_func_def', 'wcomment?'],
