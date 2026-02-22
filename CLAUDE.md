@@ -6,7 +6,7 @@ Blop is a typed language for the Web that generates Virtual DOM. It has a gramma
 
 - **Run tests**: `npx vitest run`
 - **Debug AST**: `node --experimental-vm-modules src/tests/yourDebugFile.js`
-- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`)
+- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`). Do not do it, the user should not have to worry about it.
 
 ## Development Principles
 

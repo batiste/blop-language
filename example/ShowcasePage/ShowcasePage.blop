@@ -512,7 +512,7 @@ def ShowcasePage(ctx: Component): VNode {
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Natural For Loops'</h5>
                 <CodeBlock code="<ul>
   for index, item of items {
-    <li>
+    <li key=index>
       <strong>'#'index</strong>
       = ' 'item.name
     </li>

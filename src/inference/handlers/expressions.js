@@ -493,6 +493,9 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
           const arrayMethodNode = innerOA.children?.find(c => c.type === 'name');
           if (arrayMethodName) {
             const arrayMethodDef = getArrayMemberType(resolvedMethodType, arrayMethodName);
+            if (arrayMethodDef === AnyType) {
+              pushWarning(innerOA, `Property '${arrayMethodName}' does not exist on type ${resolvedMethodType}`);
+            }
             if (arrayMethodDef) {
               const finalType = extractReturnType(arrayMethodDef);
               if (memberNode) memberNode.inferredType = resolvedMethodType;
@@ -517,6 +520,8 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
   let currentType = getBaseTypeOfLiteral(definition.type);
   let validatedPath = [];
   let invalidProperty = null;
+  let invalidPropertyNode = null;
+  let invalidPropertyType = null;
   
   for (let i = 0; i < properties.length; i++) {
     const { name: propName, node: propNode } = properties[i];
@@ -536,8 +541,12 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
     }
     
     const nextType = getPropertyType(currentType, propName, typeAliases);
-    if (nextType === null) {
+    // getArrayMemberType returns AnyType (not null) for unknown members, so treat
+    // AnyType result on an ArrayType as an unknown property
+    if (nextType === null || (resolvedCurrent instanceof ArrayType && nextType === AnyType)) {
       invalidProperty = propName;
+      invalidPropertyNode = propNode;
+      invalidPropertyType = resolvedCurrent;
       validatedPath.push(propName);
       break;
     }
@@ -548,7 +557,7 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
     currentType = getBaseTypeOfLiteral(nextType);
   }
   
-  return { currentType, validatedPath, invalidProperty };
+  return { currentType, validatedPath, invalidProperty, invalidPropertyNode, invalidPropertyType };
 }
 
 /**
@@ -580,6 +589,9 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     const { memberName: propName, memberNode: propNode } = getObjectAccessMemberInfo(access);
     if (propName) {
       const memberType = getArrayMemberType(resolvedType, propName);
+      if (memberType === AnyType) {
+        pushWarning(access, `Property '${propName}' does not exist on type ${definition.type}`);
+      }
       if (propNode) propNode.inferredType = memberType;
       name.inferredType = resolvedType;
       pushInference(parent, memberType);
@@ -601,19 +613,44 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
   }
   
   // For class instance types: they only expose method signatures — constructor-
-  // assigned properties (this.x = ...) are not tracked yet.  Resolve known
-  // methods to their type; treat unknown properties as any without warning.
+  // assigned properties (this.x = ...) are not tracked yet. Validate the full
+  // access chain starting from any known declared property; suppress warnings
+  // only when the very first property is unknown (may be constructor-assigned).
   if (resolvedType instanceof ObjectType && resolvedType.isClassInstance) {
-    const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+    const properties = extractPropertyNodesFromAccess(access);
     name.inferredType = resolvedType;
-    if (memberName) {
-      const propType = getPropertyType(resolvedType, memberName, typeAliases);
-      if (memberNode) memberNode.inferredType = propType ?? AnyType;
-      pushInference(parent, propType ?? AnyType);
-    } else {
-      visitChildren(access);
-      pushInference(parent, AnyType);
+
+    if (properties.length > 0) {
+      const firstPropType = getPropertyType(resolvedType, properties[0].name, typeAliases);
+      if (firstPropType === null) {
+        // Unknown first property — likely constructor-assigned, suppress warning
+        visitChildren(access);
+        pushInference(parent, AnyType);
+        return true;
+      }
+
+      // First property is declared — validate the full chain at arbitrary depth
+      const { currentType, validatedPath, invalidProperty, invalidPropertyNode, invalidPropertyType } = validatePropertyChain(
+        properties,
+        definition,
+        typeAliases,
+        { pushInference, pushWarning, access }
+      );
+
+      if (invalidProperty) {
+        const onType = invalidPropertyType ?? definition.type;
+        pushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
+        visitChildren(access);
+        pushInference(parent, AnyType);
+        return true;
+      }
+
+      pushInference(parent, currentType);
+      return true;
     }
+
+    visitChildren(access);
+    pushInference(parent, AnyType);
     return true;
   }
 
@@ -627,7 +664,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     if (properties.length > 0) {
       name.inferredType = resolvedType;
       
-      const { currentType, validatedPath, invalidProperty } = validatePropertyChain(
+      const { currentType, validatedPath, invalidProperty, invalidPropertyNode, invalidPropertyType } = validatePropertyChain(
         properties,
         definition,
         typeAliases,
@@ -635,8 +672,8 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
       );
       
       if (invalidProperty) {
-        const fullPropertyPath = validatedPath.join('.');
-        pushWarning(access, `Property '${fullPropertyPath}' does not exist on type ${definition.type}`);
+        const onType = invalidPropertyType ?? definition.type;
+        pushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
         visitChildren(access);
         pushInference(parent, AnyType);
         return true;

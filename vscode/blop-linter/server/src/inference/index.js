@@ -57,7 +57,18 @@ function inference(node, _stream, filename) {
   const symbolTable = runBindingPhase(node);
   
   const typeAliases = symbolTable.getAllSymbols().typeAliases;
-  
+
+  // Merge class instance types into typeAliases so that TypeAlias('ClassName')
+  // can be resolved by resolveTypeAlias everywhere in the chain validators.
+  // Without this, chains like this.route.test.bad where test: SomeClass would
+  // silently break out of validatePropertyChain when it hit the unresolved alias.
+  const classes = symbolTable.getClasses();
+  for (const [className, classInfo] of Object.entries(classes)) {
+    if (!typeAliases[className]) {
+      typeAliases[className] = classInfo.type;
+    }
+  }
+
   // Create and set handlers
   const nodeHandlers = createNodeHandlers();
   setHandlers(nodeHandlers);
