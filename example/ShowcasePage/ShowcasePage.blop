@@ -514,7 +514,7 @@ def ShowcasePage(ctx: Component): VNode {
   for index, item of items {
     <li>
       <strong>'#'index</strong>
-      ' 'item.name
+      = ' 'item.name
     </li>
   }
 </ul>
@@ -554,7 +554,7 @@ for key, value in myObject {
   userName = user?.name ?? 'Guest'
   isAdmin = user?.role == 'admin'
   
-  <h1>'Welcome, 'userName'!'</h1>
+  <h1>'Welcome, 'userName</h1>
   
   // Natural if/elseif/else
   if isAdmin {
@@ -582,7 +582,7 @@ for key, value in myObject {
     
     return (
       <>
-        <h1>Welcome, {userName}!</h1>
+        <h1>Welcome, {userName}</h1>
         
         {/* Nested ternaries get messy */}
         {isAdmin ? (
@@ -614,15 +614,14 @@ for key, value in myObject {
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
                 <CodeBlock code="def TodoItem(ctx: Component): VNode {
   { attributes } = ctx
-  { todo } = attributes
   { value as done, setState } = ctx.useState<boolean>('done', false)
   
-  classes = if done 'todo-item' else 'todo-item completed'
+  classes = if done => 'todo-item' else 'todo-item completed'
   
   <li 
     class=classes 
     on={ click: () => setState(!done) }>
-      <span>todo.title</span>
+      <span>attributes.todo.title</span>
       if done {
         <span class=\"check\">'✓'</span>
       }

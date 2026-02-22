@@ -64,7 +64,7 @@ def Header(state) {
   
   <header>
     <h1>pageTitle</h1>
-    <div>'Welcome, 'username''</div>
+    <div>'Welcome, 'username</div>
   </header>
 }
 ```
