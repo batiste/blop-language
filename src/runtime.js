@@ -43,7 +43,7 @@ class Component {
     }
     this.componentsChildren = [];
     this.listeners = [];
-    this.life = { mount: [], unmount: [] };
+    this.life = { mount: [], unmount: [], mountCleanup: [] };
     this.vnode = null;
     this.parent = currentNode;
     this.stateMap = {};
@@ -180,6 +180,9 @@ class Component {
 
   _unmount() {
     this.onUnmount();
+    // Call cleanup functions from mount in reverse order
+    this.life.mountCleanup.reverse().forEach(fct => fct());
+    this.life.mountCleanup = [];
     this.life.unmount.forEach(fct => fct());
     this.mounted = false;
     this.life.unmount = [];
@@ -191,7 +194,12 @@ class Component {
       return;
     }
     this.onMount();
-    this.life.mount.forEach(fct => fct());
+    this.life.mount.forEach(fct => {
+      const cleanup = fct();
+      if (typeof cleanup === 'function') {
+        this.life.mountCleanup.push(cleanup);
+      }
+    });
     this.mounted = true;
     this.life.mount = [];
   }

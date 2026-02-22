@@ -315,3 +315,72 @@ describe('Component.onChange', () => {
     expect(callback).not.toHaveBeenCalled();
   });
 });
+
+describe('Component mount cleanup', () => {
+  let component;
+
+  beforeEach(() => {
+    component = new Component(() => {}, {}, [], 'test');
+  });
+
+  test('cleanup functions returned from mount are called on unmount', () => {
+    const cleanup = vi.fn();
+    
+    component.mount(() => {
+      return cleanup;
+    });
+    
+    component._mount();
+    expect(cleanup).not.toHaveBeenCalled();
+    
+    component._unmount();
+    expect(cleanup).toHaveBeenCalled();
+  });
+
+  test('multiple cleanup functions are called in reverse order', () => {
+    const order = [];
+    
+    component.mount(() => {
+      return () => order.push('cleanup1');
+    });
+    component.mount(() => {
+      return () => order.push('cleanup2');
+    });
+    component.mount(() => {
+      return () => order.push('cleanup3');
+    });
+    
+    component._mount();
+    component._unmount();
+    
+    // Should be called in LIFO order
+    expect(order).toEqual(['cleanup3', 'cleanup2', 'cleanup1']);
+  });
+
+  test('non-function return values are ignored', () => {
+    const cleanup = vi.fn();
+    
+    component.mount(() => {
+      return 'not a function'; // Should be ignored
+    });
+    component.mount(() => {
+      return cleanup;
+    });
+    
+    component._mount();
+    component._unmount();
+    
+    expect(cleanup).toHaveBeenCalled();
+  });
+
+  test('cleanup functions are cleared after unmounting', () => {
+    component.mount(() => {
+      return () => {};
+    });
+    
+    component._mount();
+    component._unmount();
+    
+    expect(component.life.mountCleanup).toEqual([]);
+  });
+});
