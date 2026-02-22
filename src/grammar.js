@@ -140,6 +140,8 @@ const grammar = {
     ['false'],
   ],
   'func_def_params': [
+    ['object_destructuring:destructuring', 'annotation?:annotation', ',', 'w', 'func_def_params'],
+    ['object_destructuring:destructuring', 'annotation?:annotation'],
     ['name:name', 'annotation?:annotation', '=', 'exp', ',', 'w', 'func_def_params'],
     ['name:name', 'annotation?:annotation', '=', 'exp'],
     ['name:name', 'annotation?:annotation', ',', 'w', 'func_def_params'],

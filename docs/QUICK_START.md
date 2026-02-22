@@ -18,7 +18,7 @@ npm install blop-language
 Create a file called `hello.blop`:
 
 ```typescript
-def Hello(attributes, children) {
+def Hello(ctx: Component) {
   name = attributes.name || 'World'
   <div>
     <h1>'Hello 'name'!'</h1>
@@ -65,14 +65,14 @@ Update your `hello.blop` to mount the app:
 ```typescript
 import { mount } from 'blop'
 
-def Hello(attributes, children) {
-  name = attributes.name || 'World'
+def Hello(ctx: Component) {
+  name = ctx.attributes.name || 'World'
   <div>
     <h1>'Hello 'name'!'</h1>
   </div>
 }
 
-def App() {
+def App(ctx: Component) {
   <div>
     <Hello name="Blop"></Hello>
   </div>

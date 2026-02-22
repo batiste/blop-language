@@ -82,8 +82,8 @@ All three are equivalent.
 **Function components** are simpler:
 
 ```typescript
-Counter = (attributes, children, node) => {
-  <button>attributes.label</button>
+Counter = (ctx: Component) => {
+  <button>ctx.attributes.label</button>
 }
 ```
 
@@ -114,13 +114,13 @@ Use function components for most cases. Use class components when you need more 
 **Component Context:**
 
 ```typescript
-ParentComponent = (attributes, children, node) => {
-  { setContext } = node.useContext('theme', 'dark')
+ParentComponent = (ctx: Component) => {
+  { setContext } = ctx.useContext('theme', 'dark')
   <ChildComponent />
 }
 
-ChildComponent = (attributes, children, node) => {
-  { value as theme } = node.useContext('theme')
+ChildComponent = (ctx: Component) => {
+  { value as theme } = ctx.useContext('theme')
   <div>theme</div>
 }
 ```

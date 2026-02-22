@@ -31,8 +31,8 @@ npm start
 import { mount, Component } from 'blop'
 
 // A simple counter component
-Counter = (attributes, children, node) => {
-  { value, setState } = node.useState<number>('count', 0)
+Counter = (ctx: Component) => {
+  { value, setState } = ct.useState<number>('count', 0)
   
   <div>
     <h2>'Counter: 'value''</h2>

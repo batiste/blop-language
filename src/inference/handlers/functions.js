@@ -11,8 +11,9 @@ import {
   inferGenericArguments,
   substituteType,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
+import { getBuiltinObjectType } from '../builtinTypes.js';
 
 /**
  * Pre-scan a class_func_def node's signature without visiting its body.
@@ -36,6 +37,7 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
         if (resolved) paramType = resolved;
       }
       params.push(paramType);
+      // For destructuring params, use '_' as the synthetic param name
       paramNames.push(node.named?.name?.value ?? '_');
       // still recurse for chained params in children
     }
@@ -198,18 +200,63 @@ function createFunctionHandlers(getState) {
       if (annotation) {
         stampTypeAnnotation(annotation);
         const resolved = getAnnotationType(annotation);
-        if (resolved) {
-          scope[node.named.name.value] = { type: resolved };
-          paramType = resolved;
-        }
+        if (resolved) paramType = resolved;
       }
 
-      scope.__currentFctParams.push(paramType);
-      scope.__currentFctParamNames.push(node.named.name.value);
-      if (inferencePhase === 'inference' && node.named.name) {
-        node.named.name.inferredType = resolveTypeAlias(paramType, typeAliases);
+      if (node.named.destructuring) {
+        // Destructuring parameter: { a, b }: TypeAnnotation
+        // Register each destructured name with its resolved property type
+        const annotationType = paramType;
+
+        function regDestrName(v) {
+          if (!v) return;
+          const localName = v.named.rename ? v.named.rename.value : v.named.name.value;
+          const sourceName = v.named.name.value;
+          const token = v.named.rename || v.named.name;
+
+          // Look up the property type from the annotation type if possible
+          let propType = AnyType;
+          if (annotationType !== AnyType) {
+            const resolved = resolveTypeAlias(annotationType, typeAliases);
+            if (resolved instanceof ObjectType) {
+              const prop = resolved.getPropertyType(sourceName);
+              if (prop) propType = prop;
+            } else if (annotationType instanceof TypeAlias) {
+              const builtinMembers = getBuiltinObjectType(annotationType.name);
+              if (builtinMembers && builtinMembers[sourceName] !== undefined) {
+                propType = builtinMembers[sourceName];
+              }
+            }
+          }
+
+          scope[localName] = { type: propType };
+          if (inferencePhase === 'inference') {
+            token.inferredType = resolveTypeAlias(propType, typeAliases);
+          }
+          regDestrName(v.named.more);
+        }
+
+        const valNode = node.named.destructuring.named.values;
+        regDestrName(valNode);
+
+        scope.__currentFctParams.push(paramType);
+        scope.__currentFctParamNames.push('_destructured_');
+
+        // Visit annotation (for hover) and other children (e.g. next func_def_params)
+        visitChildren(node);
+      } else {
+        // Normal named parameter
+        if (paramType !== AnyType) {
+          scope[node.named.name.value] = { type: paramType };
+        }
+
+        scope.__currentFctParams.push(paramType);
+        scope.__currentFctParamNames.push(node.named.name.value);
+        if (inferencePhase === 'inference' && node.named.name) {
+          node.named.name.inferredType = resolveTypeAlias(paramType, typeAliases);
+        }
+        visitChildren(node);
       }
-      visitChildren(node);
     },
     
     func_body_fat: (node, parent) => {

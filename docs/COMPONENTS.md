@@ -21,7 +21,8 @@ Components are reusable building blocks for your UI. In Blop, a component can be
 The simplest way to create a component:
 
 ```typescript
-Input = (attributes, children, node) => {
+Input = (ctx: Component) => {
+  { attributes } = ctx
   <label>
     = attributes.label
     <input
@@ -32,7 +33,7 @@ Input = (attributes, children, node) => {
   </label>
 }
 
-LoginForm = (attributes, children, node) => {
+LoginForm = (ctx: Component) => {
   <form>
     <Input label='Username' name='username' value='' />
     <Input label='Password' name='password' type='password' value='' />
@@ -42,11 +43,38 @@ LoginForm = (attributes, children, node) => {
 
 ### Component Parameters
 
-Every component function receives 3 parameters:
+Every component receives a single `ctx` parameter of type `Component`. It carries:
 
-1. **`attributes`** - Object containing all element attributes
-2. **`children`** - Array of child elements (empty if none)
-3. **`node`** - Component instance (provides hooks and state management)
+- **`ctx.attributes`** - object containing all element attributes passed to the component
+- **`ctx.children`** - array of child VNodes (empty array if none)
+- **Hooks** - `ctx.useState`, `ctx.mount`, `ctx.unmount`, `ctx.onChange`, `ctx.useContext`
+
+The idiomatic way to access attributes and children is by destructuring at the top of the function body:
+
+```typescript
+def Card(ctx: Component) {
+  { attributes, children } = ctx
+  // use attributes.title, children, etc.
+}
+```
+
+#### Inline Parameter Destructuring
+
+For pure display components that don't need hooks, you can destructure directly in the parameter list:
+
+```typescript
+def Badge({ attributes }: Component) {
+  <span class=attributes.variant>attributes.text</span>
+}
+
+def Layout({ attributes, children }: Component) {
+  <div class=attributes.layout>
+    = children
+  </div>
+}
+```
+
+> **Note:** When using inline destructuring, the `ctx` binding is not available inside the function body. This means hooks such as `useState`, `mount`, `unmount`, and `onChange` cannot be called. Use the `def Foo(ctx: Component)` form for any stateful or lifecycle-aware component.
 
 ### Using Components
 
@@ -61,7 +89,7 @@ Components are used like HTML elements:
 </Button>
 
 // Components are just functions, so this is equivalent:
-= Input({ label: 'Email', name: 'email', type: 'email' }, [])
+= Input({ attributes: { label: 'Email', name: 'email', type: 'email' } })
 ```
 
 ## Function Components
@@ -69,13 +97,14 @@ Components are used like HTML elements:
 Function components are the simplest form:
 
 ```typescript
-// Simple component
-Greeting = (attributes) => {
+// Simple display component — inline destructuring
+Greeting = ({ attributes }: Component) => {
   <h1>'Hello 'attributes.name'!'</h1>
 }
 
 // With children
-Card = (attributes, children) => {
+Card = (ctx: Component) => {
+  { attributes, children } = ctx
   <div class=attributes.class>
     <h2>attributes.title</h2>
     <div class='card-body'>
@@ -84,9 +113,9 @@ Card = (attributes, children) => {
   </div>
 }
 
-// With node for state/lifecycle
-Counter = (attributes, children, node) => {
-  { value, setState } = node.useState('count', 0)
+// Stateful component — needs ctx for hooks
+Counter = (ctx: Component) => {
+  { value, setState } = ctx.useState('count', 0)
   
   <div>
     <button on={ click: () => setState(value - 1) }>'-'</button>
@@ -143,7 +172,7 @@ The `Component` class provides these methods:
 ```typescript
 class MyComponent extends Component {
   // Required: render the component
-  render(attributes, children, this) { ... }
+  render(attributes, children) { ... }
 
   // Schedule a re-render
   this.refresh()
@@ -168,9 +197,9 @@ class MyComponent extends Component {
 Use `useState` to maintain component-local state:
 
 ```typescript
-Counter = (attributes, children, node) => {
+Counter = (ctx: Component) => {
   // Initialize state with name and initial value
-  { value as counter, setState } = node.useState('counter', 0)
+  { value as counter, setState } = ctx.useState('counter', 0)
   
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
@@ -195,9 +224,9 @@ Counter = (attributes, children, node) => {
 ### Multiple State Values
 
 ```typescript
-TodoList = (attributes, children, node) => {
-  { value as items, setState as setItems } = node.useState('items', [])
-  { value as input, setState as setInput } = node.useState('input', '')
+TodoList = (ctx: Component) => {
+  { value as items, setState as setItems } = ctx.useState('items', [])
+  { value as input, setState as setInput } = ctx.useState('input', '')
   
   addItem = () => {
     setItems([...items, input])
@@ -223,18 +252,18 @@ TodoList = (attributes, children, node) => {
 
 Context allows parent components to pass data to deeply nested children without prop drilling.
 
-**Signature:** `node.useContext(name: string, initial: any): { value: any, setContext: Function }`
+**Signature:** `ctx.useContext(name: string, initial: any): { value: any, setContext: Function }`
 
 ```typescript
 // Child component - consumes context
-ContextConsumer = (attributes, children, node) => {
-  { value } = node.useContext('specialNumber')
+ContextConsumer = (ctx: Component) => {
+  { value } = ctx.useContext('specialNumber')
   <p>'Value from context: 'value''</p>
 }
 
 // Parent component - provides context
-ContextHolder = (attributes, children, node) => {
-  { setContext } = node.useContext('specialNumber', Math.random())
+ContextHolder = (ctx: Component) => {
+  { setContext } = ctx.useContext('specialNumber', Math.random())
   
   changeValue = () => setContext(Math.random())
   
@@ -254,8 +283,8 @@ ContextHolder = (attributes, children, node) => {
 ### Example: Theme Context
 
 ```typescript
-ThemeButton = (attributes, children, node) => {
-  { value as theme } = node.useContext('theme')
+ThemeButton = (ctx: Component) => {
+  { value as theme } = ctx.useContext('theme')
   className = theme == 'dark' ? 'btn-dark' : 'btn-light'
   
   <button class=className>
@@ -263,8 +292,8 @@ ThemeButton = (attributes, children, node) => {
   </button>
 }
 
-App = (attributes, children, node) => {
-  { value as theme, setContext as setTheme } = node.useContext('theme', 'light')
+App = (ctx: Component) => {
+  { value as theme, setContext as setTheme } = ctx.useContext('theme', 'light')
   
   toggleTheme = () => {
     setTheme(theme == 'light' ? 'dark' : 'light')
@@ -306,8 +335,8 @@ def useWindowWidth(node) {
 }
 
 // Using the custom hook
-WidthReactive = (attributes, children, node) => {
-  width = useWindowWidth(node)
+WidthReactive = (ctx: Component) => {
+  width = useWindowWidth(ctx)
   <p>'Window width: 'width'px'</p>
 }
 ```
@@ -317,8 +346,8 @@ WidthReactive = (attributes, children, node) => {
 #### Interval/Timer
 
 ```typescript
-Timer = (attributes, children, node) => {
-  { value as seconds, setState as setSeconds } = node.useState('seconds', 0)
+Timer = (ctx: Component) => {
+  { value as seconds, setState as setSeconds } = ctx.useState('seconds', 0)
   
   node.mount(() => {
     intervalId = setInterval(() => {
@@ -336,11 +365,11 @@ Timer = (attributes, children, node) => {
 #### Fetch on Mount
 
 ```typescript
-DataLoader = (attributes, children, node) => {
-  { value as data, setState as setData } = node.useState('data', null)
-  { value as loading, setState as setLoading } = node.useState('loading', true)
+DataLoader = (ctx: Component) => {
+  { value as data, setState as setData } = ctx.useState('data', null)
+  { value as loading, setState as setLoading } = ctx.useState('loading', true)
   
-  node.mount(async () => {
+  ctx.mount(async () => {
     response = await fetch(attributes.url)
     json = await response.json()
     setData(json)
@@ -391,10 +420,10 @@ class FetchOnURLChange extends Component {
 }
 
 // Usage
-DataDisplay = (attributes, children, node) => {
-  { value as counter, setState } = node.useState('counter', 0)
+DataDisplay = (ctx: Component) => {
+  { value as counter, setState } = ctx.useState('counter', 0)
   
-  node.mount(() => {
+  ctx.mount(() => {
     setInterval(() => setState(counter + 1), 5000)
   })
   
@@ -458,8 +487,8 @@ def useFetch(node, url) {
 }
 
 // Use in components
-UserProfile = (attributes, children, node) => {
-  { data, error } = useFetch(node, `/api/users/`attributes.userId``)
+UserProfile = (ctx: Component) => {
+  { data, error } = useFetch(ctx, `/api/users/`ctx.attributes.userId``)
   
   <div>
     if error {
@@ -477,16 +506,16 @@ UserProfile = (attributes, children, node) => {
 
 ```typescript
 // ❌ Don't do this - creates infinite loop
-BadCounter = (attributes, children, node) => {
-  { value, setState } = node.useState('count', 0)
+BadCounter = (ctx: Component) => {
+  { value, setState } = ctx.useState('count', 0)
   setState(value + 1)  // ❌ Called every render!
   
   <div>value</div>
 }
 
 // ✅ Update state in event handlers
-GoodCounter = (attributes, children, node) => {
-  { value, setState } = node.useState('count', 0)
+GoodCounter = (ctx: Component) => {
+  { value, setState } = ctx.useState('count', 0)
   
   <div>
     <button on={ click: () => setState(value + 1) }>'Increment'</button>

@@ -249,6 +249,7 @@ function createBindingHandlers() {
               if (n.type === 'func_def_params') {
                 const t = n.named?.annotation ? (getAnnotationType(n.named.annotation) ?? AnyType) : AnyType;
                 params.push(t);
+                // For destructuring params, use '_' as the synthetic param name
                 paramNames.push(n.named?.name?.value ?? '_');
               }
               if (n.children) n.children.forEach(collectParams);

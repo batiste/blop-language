@@ -283,3 +283,29 @@ test('container with mixed children', () => {
   expect(vnode.children[0].sel).toBe('h2')
   expect(vnode.children.length >= 2).toBe(true)
 })
+
+// Destructuring parameter syntax
+
+def Badge({ attributes }: Component) {
+  <span class=attributes.variant>attributes.text</span>
+}
+
+def WelcomePanel({ attributes, children }: Component) {
+  <div class="welcome">
+    <h1>attributes.title</h1>
+    = children
+  </div>
+}
+
+test('destructuring param - attributes only', () => {
+  vnode = Badge({ attributes: { variant: 'success', text: 'OK' } })
+  expect(vnode.sel).toBe('span')
+  expect(vnode.data.attrs['class']).toBe('success')
+})
+
+test('destructuring param - attributes and children', () => {
+  child = <p>'Hello'</p>
+  vnode = WelcomePanel({ attributes: { title: 'Welcome' }, children: [child] })
+  expect(vnode.sel).toBe('div')
+  expect(vnode.children[0].sel).toBe('h1')
+})

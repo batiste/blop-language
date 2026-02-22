@@ -156,17 +156,61 @@ function createFunctionGenerators(context) {
     },
     'func_def_params': (node) => {
       const scope = scopes.currentBlock();
-      registerName(node.named.name.value, node.named.name);
-      scope.names[node.named.name.value] = {
-        node,
-        hoist: false,
-        token: node.named.name,
-        annotation: node.named.annotation,
-      };
       const output = [];
-      for (let i = 0; i < node.children.length; i++) {
-        output.push(...generateCode(node.children[i]));
+
+      if (node.named.destructuring) {
+        // Destructuring parameter: { a, b }: TypeAnnotation
+        const valNode = node.named.destructuring.named.values;
+
+        // Register all destructured names in scope
+        function regDestr(v) {
+          if (!v) return;
+          const localName = v.named.rename ? v.named.rename.value : v.named.name.value;
+          const token = v.named.rename || v.named.name;
+          registerName(localName, token);
+          scope.names[localName] = { node, hoist: false, token, annotation: node.named.annotation };
+          regDestr(v.named.more);
+        }
+        regDestr(valNode);
+
+        // Generate just the destructuring pattern (no `let`): { a, b: bRenamed }
+        output.push('{');
+        function genDestrVals(v) {
+          if (!v) return;
+          if (v.named.rename) {
+            output.push(` ${v.named.name.value}: ${v.named.rename.value}`);
+          } else {
+            output.push(` ${v.named.name.value}`);
+          }
+          if (v.named.more) {
+            output.push(',');
+            genDestrVals(v.named.more);
+          }
+        }
+        genDestrVals(valNode);
+        output.push(' }');
+
+        // Handle any subsequent params
+        for (const child of node.children) {
+          if (child.type === 'func_def_params') {
+            output.push(', ');
+            output.push(...generateCode(child));
+          }
+        }
+      } else {
+        // Normal named parameter
+        registerName(node.named.name.value, node.named.name);
+        scope.names[node.named.name.value] = {
+          node,
+          hoist: false,
+          token: node.named.name,
+          annotation: node.named.annotation,
+        };
+        for (let i = 0; i < node.children.length; i++) {
+          output.push(...generateCode(node.children[i]));
+        }
       }
+
       return output;
     },
     'func_body': (node) => {

@@ -107,8 +107,8 @@ npm run test:ui
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from 'blop'
 
-Counter = (attributes, children, node) => {
-  { value, setState } = node.useState('count', attributes.initial || 0)
+Counter = (ctx: Component) => {
+  { value, setState } = ctx.useState('count', ctx.attributes.initial || 0)
   
   <div>
     <span data-testid="count">value</span>
