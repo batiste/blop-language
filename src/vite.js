@@ -43,10 +43,15 @@ function blopPlugin(options = {}) {
         // Add runtime import at the top
         const finalCode = `import * as blop from '${runtimePath}';\n${result.code}`;
 
-        return {
-          code: finalCode,
-          map: null,
-        };
+        // Shift source map by 1 line to account for the prepended import.
+        // In VLQ source maps each ';' represents a new line, so a leading ';'
+        // inserts a blank generated line 1 and pushes all existing mappings
+        // (which use relative offsets) to lines 2+ without changing any values.
+        const map = result.map
+          ? { ...result.map, mappings: `;${result.map.mappings}` }
+          : null;
+
+        return { code: finalCode, map };
       } catch (error) {
         this.error(error.message);
         return null;

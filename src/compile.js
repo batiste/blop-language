@@ -53,6 +53,7 @@ function compileSource(source, filename = false, enableInference = false) {
       // Treat type inference warnings as compilation errors
       return {
         code: result.code,
+        map: result.map,
         success: false,
         errors: warnings,
         warnings: result.warnings || [],
@@ -63,6 +64,7 @@ function compileSource(source, filename = false, enableInference = false) {
 
   return { 
     code: result.code,
+    map: result.map,
     success: result.success,
     errors: result.errors || [],
     warnings: result.warnings || [],

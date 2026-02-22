@@ -88,19 +88,20 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     return function dec(node) {
       const output = func(node);
       if (node.line_start !== undefined) {
-        rootSource.add(new sourceMap.SourceNode(
+        const sn = new sourceMap.SourceNode(
           node.line_start || 1,
-          node.column_start + 1,
+          node.column_start,
           _filename,
-          output.join(''),
-        ));
+          output,
+        );
+        return [sn];
       }
       return output;
     };
   }
 
   let generateCode;
-  if (rootSource) {
+  if (_filename) {
     generateCode = sourceMapDecorator(_generateCode);
   } else {
     generateCode = _generateCode;
@@ -144,7 +145,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       if (hoistKeys.length > 0) {
         final.push(`let ${hoistKeys.join(', ')};\n`);
       }
-      final.push(module.join(''));
+      final.push(...module);
       
       // Generate exports in ESM format
       // NOTE: Types are tracked in exportObjects but not exported at runtime (yet)
@@ -160,8 +161,20 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   };
 
   const output = generateCode(node);
+  let code, map;
+  if (_filename) {
+    const rootSN = new sourceMap.SourceNode(null, null, _filename, output);
+    const sm = rootSN.toStringWithSourceMap({ file: _filename });
+    code = sm.code;
+    sm.map.setSourceContent(_filename, input);
+    map = sm.map.toJSON();
+  } else {
+    code = output.join('');
+    map = null;
+  }
   return {
-    code: output.join(''),
+    code,
+    map,
     success: errors.length === 0,
     perfect: errors.length === 0 && warnings.length === 0,
     dependencies,
