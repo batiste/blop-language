@@ -103,8 +103,7 @@ Greeting = ({ attributes }: Component) => {
 }
 
 // With children
-Card = (ctx: Component) => {
-  { attributes, children } = ctx
+Card = ({ attributes, children }) => {
   <div class=attributes.class>
     <h2>attributes.title</h2>
     <div class='card-body'>
@@ -172,7 +171,12 @@ The `Component` class provides these methods:
 ```typescript
 class MyComponent extends Component {
   // Required: render the component
-  render(attributes, children) { ... }
+  render(attributes, children) : VNode { 
+    // Return a VNode tree. In blop, your simply write HTML in the render method, and it gets compiled to VNodes.
+    <div>
+      = children
+    </div>
+  }
 
   // Schedule a re-render
   this.refresh()
