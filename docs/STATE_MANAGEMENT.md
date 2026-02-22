@@ -358,11 +358,12 @@ export def deletePost(state, postId) {
 // Usage in components
 import { loadPosts, createPost } from './actions.blop'
 
-PostList = (state) => {
+PostList = (ctx: Component) => {
+  { attributes } = ctx
   { init } = mount(document.getElementById('app'), render)
   
   // Load on mount
-  node.mount(() => loadPosts(state))
+  ctx.mount(() => loadPosts(state))
   
   handleCreate = () => {
     post = { title: 'New Post', content: 'Content here' }

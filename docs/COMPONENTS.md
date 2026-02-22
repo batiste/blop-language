@@ -214,9 +214,9 @@ Counter = (ctx: Component) => {
 
 ### How useState Works
 
-**Signature:** `node.useState(name: string, initial: any): { value: any, setState: Function }`
+**Signature:** `ctx.useState(name: string, initial: any): { value: any, setState: Function }`
 
-- State is stored internally on `node.state`
+- State is stored internally on the component instance
 - Calling `setState` triggers a re-render of the component
 - State persists as long as the component is mounted
 - When component unmounts, state is lost
@@ -311,22 +311,22 @@ App = (ctx: Component) => {
 Components have mount and unmount hooks for side effects.
 
 **Signature:**
-- `node.mount(callback: Function)`
-- `node.unmount(callback: Function)`
+- `ctx.mount(callback: Function)`
+- `ctx.unmount(callback: Function)`
 
 ```typescript
 // Custom hook pattern
-def useWindowWidth(node) {
-  { value as width, setState as setWidth } = node.useState('width', window.innerWidth)
+def useWindowWidth(ctx) {
+  { value as width, setState as setWidth } = ctx.useState('width', window.innerWidth)
   
   handleResize = () => setWidth(window.innerWidth)
   
-  node.mount(() => {
+  ctx.mount(() => {
     console.log('Listening to window resize')
     window.addEventListener('resize', handleResize)
   })
   
-  node.unmount(() => {
+  ctx.unmount(() => {
     console.log('Cleanup resize listener')
     window.removeEventListener('resize', handleResize)
   })
@@ -349,7 +349,7 @@ WidthReactive = (ctx: Component) => {
 Timer = (ctx: Component) => {
   { value as seconds, setState as setSeconds } = ctx.useState('seconds', 0)
   
-  node.mount(() => {
+  ctx.mount(() => {
     intervalId = setInterval(() => {
       setSeconds(seconds + 1)
     }, 1000)
@@ -448,16 +448,16 @@ DataDisplay = (ctx: Component) => {
 
 ```typescript
 // ❌ Too large
-BigComponent = (attributes) => {
+BigComponent = (ctx: Component) => {
   // 300 lines of code...
 }
 
 // ✅ Break into smaller pieces
-Header = (attributes) => { ... }
-Sidebar = (attributes) => { ... }
-Content = (attributes) => { ... }
+Header = ({ attributes }: Component) => { ... }
+Sidebar = ({ attributes }: Component) => { ... }
+Content = ({ attributes }: Component) => { ... }
 
-Page = (attributes) => {
+Page = ({ attributes }: Component) => {
   <div>
     <Header />
     <Sidebar />
@@ -470,11 +470,11 @@ Page = (attributes) => {
 
 ```typescript
 // Reusable hook
-def useFetch(node, url) {
-  { value as data, setState as setData } = node.useState('data', null)
-  { value as error, setState as setError } = node.useState('error', null)
+def useFetch(ctx, url) {
+  { value as data, setState as setData } = ctx.useState('data', null)
+  { value as error, setState as setError } = ctx.useState('error', null)
   
-  node.mount(async () => {
+  ctx.mount(async () => {
     try {
       response = await fetch(url)
       setData(await response.json())

@@ -427,10 +427,11 @@ it('test login', () => { ... })
 ```typescript
 import { describe, it, expect, waitFor } from 'vitest'
 
-DataLoader = (attributes) => {
-  { value as data, setState as setData } = node.useState('data', null)
+DataLoader = (ctx: Component) => {
+  { attributes } = ctx
+  { value as data, setState as setData } = ctx.useState('data', null)
   
-  node.mount(async () => {
+  ctx.mount(async () => {
     response = await fetch(attributes.url)
     json = await response.json()
     setData(json)
