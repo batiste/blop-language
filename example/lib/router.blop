@@ -1,21 +1,17 @@
 
 import { register } from './navigation.blop'
 
-// type Test = {
-//     toUpperCase: () => string,
-// }
-
 type Route = {
   path: string,
   name: string,
-  handler?: Function,
+  handler?: (params: object, state: object) => void,
   reg?: RegExp,
   params?: string[]
 }
 
-// TODO: This should not be allowed
-// _routes: Route[] = []
-// _routes.push(1)
+def add(route: Route) {
+  return route
+}
 
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')

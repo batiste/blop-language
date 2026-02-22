@@ -1,4 +1,4 @@
-import { Router } from './lib/router.blop'
+import { Router, add } from './lib/router.blop'
 
 async def dogPageIndexHandler(_params, _state) {
   console.log('dog page index')

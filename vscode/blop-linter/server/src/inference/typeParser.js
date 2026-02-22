@@ -6,7 +6,7 @@ import {
   Type, Types, TypeAlias, UnionType, IntersectionType, ArrayType, ObjectType,
   GenericType, LiteralType, PrimitiveType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
-  AnyFunctionType
+  AnyFunctionType, FunctionType
 } from './Type.js';
 
 /**
@@ -81,6 +81,23 @@ export function parseTypeExpression(typeExprNode) {
 export function parseTypePrimary(typePrimaryNode) {
   if (!typePrimaryNode || !typePrimaryNode.named) return Types.any;
   
+  // Check for function type: (params) => ReturnType
+  if (typePrimaryNode.named.return) {
+    const returnType = parseTypeExpression(typePrimaryNode.named.return);
+    const paramTypes = [];
+    const paramNames = [];
+
+    function collectFuncTypeParams(node) {
+      if (!node || !node.named) return;
+      if (node.named.name) paramNames.push(node.named.name.value);
+      if (node.named.type) paramTypes.push(parseTypeExpression(node.named.type));
+      if (node.named.rest) collectFuncTypeParams(node.named.rest);
+    }
+
+    collectFuncTypeParams(typePrimaryNode.named.params || null);
+    return new FunctionType(paramTypes, returnType, [], paramNames);
+  }
+
   let baseType = Types.any;
   
   // Check for object type
