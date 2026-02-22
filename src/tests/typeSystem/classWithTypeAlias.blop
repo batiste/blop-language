@@ -1,0 +1,14 @@
+type Item = {
+  id: number,
+  label: string
+}
+
+class Store {
+  def add(item: Item) {
+    item.id
+  }
+
+  def getLabel(item: Item) {
+    return item.label
+  }
+}

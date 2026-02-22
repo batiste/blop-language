@@ -472,10 +472,19 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
 
   // Handle method calls on user-defined ObjectType instances (e.g. this.double(x))
   if (definition && definition.type instanceof ObjectType) {
-    const { memberName } = getObjectAccessMemberInfo(access);
+    const { memberName, memberNode } = getObjectAccessMemberInfo(access);
     if (memberName) {
       const methodType = getPropertyType(definition.type, memberName, typeAliases);
       if (methodType instanceof FunctionType) {
+        if (methodType.params !== null && argTypes.length > 0) {
+          const result = TypeChecker.checkFunctionCall(argTypes, methodType.params, memberName, typeAliases);
+          if (!result.valid) {
+            result.warnings.forEach(warning => pushWarning(name, warning));
+          }
+        }
+        if (memberNode && memberNode.inferredType === undefined) {
+          memberNode.inferredType = methodType;
+        }
         pushInference(parent, methodType.returnType ?? AnyType);
         pushSubsequentOperation(access, parent, pushInference);
         return true;

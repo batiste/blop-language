@@ -114,11 +114,11 @@ def TreeNode(attributes, _children, node: Component): VNode {
 def ASTExplorer(_attributes, _children, node: Component): VNode {
   defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
   
-  { value as code, setState as setCode } = node.useState('code', defaultCode)
+  { value as code, setState as setCode } = node.useState<string>('code', defaultCode)
   { value as ast, setState as setAst } = node.useState('ast', null)
-  { value as error, setState as setError } = node.useState('error', null)
-  { value as showTokens, setState as setShowTokens } = node.useState('showTokens', false)
-  { value as tokens, setState as setTokens } = node.useState('tokens', null)
+  { value as error, setState as setError } = node.useState<string | null>('error', null)
+  { value as showTokens, setState as setShowTokens } = node.useState<boolean>('showTokens', false)
+  { value as tokens, setState as setTokens } = node.useState<any>('tokens', null)
   
   def handleCodeChange(e) {
     setCode(e.target.value)

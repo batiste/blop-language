@@ -1,4 +1,4 @@
-import { Router, add } from './lib/router.blop'
+import { Router } from './lib/router.blop'
 
 async def dogPageIndexHandler(_params, _state) {
   console.log('dog page index')
@@ -33,8 +33,8 @@ def createRouter(state, global) {
   router.add({ path: '/ast', name: 'ast', handler: astExplorerPageHandler })
   router.add({ path: '/showcase', name: 'showcase', handler: showcasePageHandler })
   router.add({ path: '/playground', name: 'playground', handler: playgroundPageHandler })
-  router.add({ path: '/form', name: 'form' })
-  router.add({ path: '/', name: 'root' })
+  router.add({ path: '/form', name: 'form', handler: (_p1, _p2) => console.log('form page') })
+  router.add({ path: '/', name: 'root', handler: (_p1, _p2) => console.log('root page') })
 
   router.init()
   return router

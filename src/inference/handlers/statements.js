@@ -347,6 +347,17 @@ function createStatementHandlers(getState) {
               // or import './types.blop' as types - can't use types directly
               // For now, skip these cases
             }
+
+            // Always merge all type aliases from the imported file into the
+            // current file's typeAliases so that signatures of imported
+            // functions/classes that reference them (e.g. Route in add(route: Route))
+            // can be fully resolved in the consuming file.
+            const importedTypeAliases = importedSymbolTable.getAllSymbols().typeAliases;
+            for (const [aliasName, aliasValue] of Object.entries(importedTypeAliases)) {
+              if (!typeAliases[aliasName]) {
+                typeAliases[aliasName] = aliasValue;
+              }
+            }
           }
         }
       } catch (error) {
