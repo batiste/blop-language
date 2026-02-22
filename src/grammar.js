@@ -65,8 +65,9 @@ const grammar = {
     ['name:name', 'object_access:access', 'w', 'assign_operator', 'w', 'exp:exp'],
   ],
   'for_loop': [
-    ['for', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['for', 'name:value', 'w', 'in:in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['for', 'name:value', 'w', 'of:of', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
+    // ['for', 'name:value', 'w', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
     ['for', 'name:key', 'annotation?:keyannotation', ',', 'w', 'name:value', 'w', 'of:of', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
