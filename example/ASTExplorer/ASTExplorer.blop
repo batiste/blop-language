@@ -8,7 +8,7 @@ def TreeNode(ctx: Component): VNode {
   { attributes } = ctx
   { astNode, depth, path } = attributes
 
-  { value as expanded, setState as setExpanded } = ctx.useState<boolean>('expanded', depth < 2)
+  { value as expanded, setState as setExpanded } = ctx.state<boolean>('expanded', depth < 2)
   
   def toggleExpand() {
     setExpanded(!expanded)
@@ -115,11 +115,11 @@ def TreeNode(ctx: Component): VNode {
 def ASTExplorer(ctx: Component): VNode {
   defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
   
-  { value as code, setState as setCode } = ctx.useState<string>('code', defaultCode)
-  { value as ast, setState as setAst } = ctx.useState('ast', null)
-  { value as error, setState as setError } = ctx.useState<string | null>('error', null)
-  { value as showTokens, setState as setShowTokens } = ctx.useState<boolean>('showTokens', false)
-  { value as tokens, setState as setTokens } = ctx.useState<any>('tokens', null)
+  { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
+  { value as ast, setState as setAst } = ctx.state('ast', null)
+  { value as error, setState as setError } = ctx.state<string | null>('error', null)
+  { value as showTokens, setState as setShowTokens } = ctx.state<boolean>('showTokens', false)
+  { value as tokens, setState as setTokens } = ctx.state<any>('tokens', null)
   
   def handleCodeChange(e) {
     setCode(e.target.value)

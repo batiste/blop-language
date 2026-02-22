@@ -411,18 +411,23 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
     
     if (!paramType || !argType) continue;
     
+    // Widen literal types during generic inference (e.g. 0 → number, 'x' → string)
+    // This matches TypeScript behaviour: ctx.state('count', 0) infers T=number, not T=0
+    const widenedArgType = argType instanceof LiteralType ? argType.baseType : argType;
+    
     // Direct type parameter
     if (paramType instanceof TypeAlias && genericParams.includes(paramType.name)) {
-      mergeSubstitution(substitutions, paramType.name, argType, aliasMap, errors);
+      mergeSubstitution(substitutions, paramType.name, widenedArgType, aliasMap, errors);
       continue;
     }
     
     // Array type: T[] with number[] => T = number
     if (paramType instanceof ArrayType && argType instanceof ArrayType) {
       const paramElement = paramType.elementType;
+      const widenedElement = argType.elementType instanceof LiteralType ? argType.elementType.baseType : argType.elementType;
       
       if (paramElement instanceof TypeAlias && genericParams.includes(paramElement.name)) {
-        mergeSubstitution(substitutions, paramElement.name, argType.elementType, aliasMap, errors, '[]');
+        mergeSubstitution(substitutions, paramElement.name, widenedElement, aliasMap, errors, '[]');
       }
       continue;
     }
@@ -433,21 +438,21 @@ export function inferGenericArguments(genericParams, paramTypes, argTypes, alias
         if (unionMember instanceof TypeAlias && genericParams.includes(unionMember.name)) {
           const paramName = unionMember.name;
           const otherMembers = paramType.types.filter(t => !t.equals(unionMember));
-          const matchesOther = otherMembers.some(t => argType.isCompatibleWith(t, aliasMap));
+          const matchesOther = otherMembers.some(t => widenedArgType.isCompatibleWith(t, aliasMap));
           
           if (!matchesOther) {
             if (substitutions.has(paramName)) {
               const existing = substitutions.get(paramName);
-              if (!existing.equals(argType)) {
-                if (!argType.isCompatibleWith(existing, aliasMap) && 
-                    !existing.isCompatibleWith(argType, aliasMap)) {
+              if (!existing.equals(widenedArgType)) {
+                if (!widenedArgType.isCompatibleWith(existing, aliasMap) && 
+                    !existing.isCompatibleWith(widenedArgType, aliasMap)) {
                   errors.push(
-                    `Type parameter ${paramName} inferred as both ${typeToString(existing)} and ${typeToString(argType)}`
+                    `Type parameter ${paramName} inferred as both ${typeToString(existing)} and ${typeToString(widenedArgType)}`
                   );
                 }
               }
             } else {
-              substitutions.set(paramName, argType);
+              substitutions.set(paramName, widenedArgType);
             }
           }
         }

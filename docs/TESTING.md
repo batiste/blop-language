@@ -108,7 +108,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from 'blop'
 
 Counter = (ctx: Component) => {
-  { value, setState } = ctx.useState('count', ctx.attributes.initial || 0)
+  { value, setState } = ctx.state('count', ctx.attributes.initial || 0)
   
   <div>
     <span data-testid="count">value</span>
@@ -429,7 +429,7 @@ import { describe, it, expect, waitFor } from 'vitest'
 
 DataLoader = (ctx: Component) => {
   { attributes } = ctx
-  { value as data, setState as setData } = ctx.useState('data', null)
+  { value as data, setState as setData } = ctx.state('data', null)
   
   ctx.mount(async () => {
     response = await fetch(attributes.url)

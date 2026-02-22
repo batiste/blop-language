@@ -226,7 +226,7 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference, inferenc
 
 /**
  * Handle method calls on variables whose type is a builtin object type
- * (e.g. node.useState<number>('count', 0) where node: Component)
+ * (e.g. node.state<number>('count', 0) where node: Component)
  */
 function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
   const defType = definition?.type;
@@ -234,7 +234,7 @@ function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, par
 
   const builtinType = getBuiltinObjectType(defType.name);
 
-  // For method calls like node.useState<T>(), the AST structure is:
+  // For method calls like node.state<T>(), the AST structure is:
   //   access_or_operation
   //     object_access (OUTER: contains '.', 'name=method', INNER object_access)
   //       object_access (INNER: contains 'type_arguments', 'func_call')
@@ -445,7 +445,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
 
-  // Handle method calls on variables typed as a builtin (e.g. node.useState<number>())
+  // Handle method calls on variables typed as a builtin (e.g. node.state<number>())
   if (handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
     pushSubsequentOperation(access, parent, pushInference);
     return true;

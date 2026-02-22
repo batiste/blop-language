@@ -605,8 +605,8 @@ def ChartComponent(attributes) {
 class TodoApp extends blop.Component {
 
   def render(attributes, _children, component) {
-    { value, setState } = component.useState('input', '')
-    { value: todos, setState: setTodos } = component.useState('todos', [])
+    { value, setState } = component.state('input', '')
+    { value: todos, setState: setTodos } = component.state('todos', [])
     
     def addTodo() {
       if value.trim() {

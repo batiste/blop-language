@@ -1,5 +1,6 @@
 import { getNewDog } from './services.blop'
 
+
 def DogGame(ctx: Component) {
   { attributes, children } = ctx
   { page, state } = attributes

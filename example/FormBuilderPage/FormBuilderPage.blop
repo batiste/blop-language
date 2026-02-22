@@ -124,7 +124,7 @@ def PasswordField(ctx): VNode {
 }
 
 FormBuilderPage = (ctx: Component): VNode => {
-  { value as formData, setState as setFormData } = ctx.useState<{ name: string, email: string,
+  { value as formData, setState as setFormData } = ctx.state<{ name: string, email: string,
       password: string, confirmPassword: string }>('formData', {
     name: '',
     email: '',
@@ -133,15 +133,15 @@ FormBuilderPage = (ctx: Component): VNode => {
   })
   
   { value as touched, setState as setTouched
-    } = ctx.useState<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
+    } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
   { value as submitted, setState as setSubmitted
-    } = ctx.useState<boolean>('submitted', false)
+    } = ctx.state<boolean>('submitted', false)
   { value as isLoading, setState as setIsLoading
-    } = ctx.useState<boolean>('isLoading', false)
+    } = ctx.state<boolean>('isLoading', false)
   { value as success, setState as setSuccess
-    } = ctx.useState<boolean>('success', false)
+    } = ctx.state<boolean>('success', false)
   { value as showPassword, setState as setShowPassword
-    } = ctx.useState<boolean>('showPassword', false)
+    } = ctx.state<boolean>('showPassword', false)
   
   def updateField(fieldName: string) {
     return (e) => {

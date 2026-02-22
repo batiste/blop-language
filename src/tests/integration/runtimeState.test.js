@@ -1,13 +1,13 @@
 /**
  * Runtime State Management Tests
  * 
- * Tests for useState, useContext, and component lifecycle
+ * Tests for state, context, and component lifecycle
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { Component } from '../../runtime.js';
 
-describe('Component.useState', () => {
+describe('Component.state', () => {
   let component;
 
   beforeEach(() => {
@@ -15,22 +15,22 @@ describe('Component.useState', () => {
   });
 
   test('initializes state with initial value', () => {
-    const { value, setState, getState } = component.useState('count', 0);
+    const { value, setState, getState } = component.state('count', 0);
     
     expect(value).toBe(0);
     expect(getState()).toBe(0);
   });
 
   test('returns same value on subsequent calls with same name', () => {
-    const first = component.useState('count', 0);
-    const second = component.useState('count', 99);
+    const first = component.state('count', 0);
+    const second = component.state('count', 99);
     
     expect(first.value).toBe(0);
     expect(second.value).toBe(0); // Should not reinitialize
   });
 
   test('setState updates state value', () => {
-    const { setState, getState } = component.useState('count', 0);
+    const { setState, getState } = component.state('count', 0);
     
     setState(5);
     expect(getState()).toBe(5);
@@ -41,65 +41,65 @@ describe('Component.useState', () => {
 
   test('handles falsy values correctly (bug fix test)', () => {
     // This test verifies the fix from || to ??
-    const { setState, getState } = component.useState('visible', true);
+    const { setState, getState } = component.state('visible', true);
     
     setState(false);
     expect(getState()).toBe(false);
     
-    // Re-call useState - should maintain false, not reset to true
-    const { value } = component.useState('visible', true);
+    // Re-call state - should maintain false, not reset to true
+    const { value } = component.state('visible', true);
     expect(value).toBe(false);
     expect(getState()).toBe(false);
   });
 
   test('handles zero value correctly', () => {
-    const { setState, getState } = component.useState('count', 10);
+    const { setState, getState } = component.state('count', 10);
     
     setState(0);
     expect(getState()).toBe(0);
     
-    // Re-call useState - should maintain 0
-    const { value } = component.useState('count', 10);
+    // Re-call state - should maintain 0
+    const { value } = component.state('count', 10);
     expect(value).toBe(0);
   });
 
   test('handles empty string correctly', () => {
-    const { setState, getState } = component.useState('text', 'initial');
+    const { setState, getState } = component.state('text', 'initial');
     
     setState('');
     expect(getState()).toBe('');
     
-    // Re-call useState - should maintain empty string
-    const { value } = component.useState('text', 'initial');
+    // Re-call state - should maintain empty string
+    const { value } = component.state('text', 'initial');
     expect(value).toBe('');
   });
 
   test('handles null value correctly', () => {
-    const { setState, getState } = component.useState('data', { test: true });
+    const { setState, getState } = component.state('data', { test: true });
     
     setState(null);
     expect(getState()).toBe(null);
     
-    // Re-call useState - should reinitialize with null to initial value
-    const { value } = component.useState('data', { test: true });
+    // Re-call state - should reinitialize with null to initial value
+    const { value } = component.state('data', { test: true });
     expect(value).toEqual({ test: true });
   });
 
   test('handles undefined value correctly', () => {
-    const { setState, getState } = component.useState('data', 'initial');
+    const { setState, getState } = component.state('data', 'initial');
     
     setState(undefined);
     expect(getState()).toBe(undefined);
     
-    // Re-call useState - should reinitialize with undefined to initial value
-    const { value } = component.useState('data', 'initial');
+    // Re-call state - should reinitialize with undefined to initial value
+    const { value } = component.state('data', 'initial');
     expect(value).toBe('initial');
   });
 
   test('supports multiple independent states', () => {
-    const count = component.useState('count', 0);
-    const text = component.useState('text', 'hello');
-    const visible = component.useState('visible', true);
+    const count = component.state('count', 0);
+    const text = component.state('text', 'hello');
+    const visible = component.state('visible', true);
     
     expect(count.value).toBe(0);
     expect(text.value).toBe('hello');
@@ -115,7 +115,7 @@ describe('Component.useState', () => {
   });
 
   test('setState updates internal state immediately', () => {
-    const { setState, getState } = component.useState('count', 0);
+    const { setState, getState } = component.state('count', 0);
     
     setState(5);
     // State should be updated immediately (scheduleRender happens async for DOM)
@@ -126,7 +126,7 @@ describe('Component.useState', () => {
   });
 
   test('getState returns current value even after closure capture', () => {
-    const { value, setState, getState } = component.useState('count', 0);
+    const { value, setState, getState } = component.state('count', 0);
     
     // Simulate closure capture (this is what happens in event handlers)
     const capturedValue = value;
@@ -144,14 +144,14 @@ describe('Component.useState', () => {
 
   test('handles object state updates', () => {
     const initialState = { count: 0, name: 'test' };
-    const { setState, getState } = component.useState('obj', initialState);
+    const { setState, getState } = component.state('obj', initialState);
     
     setState({ count: 5, name: 'updated' });
     expect(getState()).toEqual({ count: 5, name: 'updated' });
   });
 
   test('handles array state updates', () => {
-    const { setState, getState } = component.useState('items', [1, 2, 3]);
+    const { setState, getState } = component.state('items', [1, 2, 3]);
     
     setState([4, 5, 6]);
     expect(getState()).toEqual([4, 5, 6]);
@@ -163,7 +163,7 @@ describe('Component.useState', () => {
   });
 });
 
-describe('Component.useContext', () => {
+describe('Component.context', () => {
   let parent;
   let child;
 
@@ -174,12 +174,12 @@ describe('Component.useContext', () => {
   });
 
   test('initializes context with initial value', () => {
-    const { value } = parent.useContext('theme', 'dark');
+    const { value } = parent.context('theme', 'dark');
     expect(value).toBe('dark');
   });
 
   test('setContext updates context value', () => {
-    const { setContext, getContext } = parent.useContext('theme', 'dark');
+    const { setContext, getContext } = parent.context('theme', 'dark');
     
     setContext('light');
     expect(getContext()).toBe('light');
@@ -187,16 +187,16 @@ describe('Component.useContext', () => {
 
   test('child can access parent context', () => {
     // Set up parent context
-    const parentCtx = parent.useContext('theme', 'dark');
+    const parentCtx = parent.context('theme', 'dark');
     parentCtx.setContext('light');
     
     // Child should be able to read it
-    const childCtx = child.useContext('theme');
+    const childCtx = child.context('theme');
     expect(childCtx.value).toBe('light');
   });
 
   test('handles undefined context gracefully', () => {
-    const { value, getContext } = child.useContext('nonexistent');
+    const { value, getContext } = child.context('nonexistent');
     
     expect(value).toBeUndefined();
     expect(getContext()).toBeUndefined();
@@ -267,15 +267,15 @@ describe('Component lifecycle', () => {
   });
 
   test('_destroy cleans up component state', () => {
-    component.state = { test: 'data' };
-    component.context = { theme: 'dark' };
+    component.stateMap = { test: 'data' };
+    component.contextMap = { theme: 'dark' };
     component.children = ['child1'];
     
     component._destroy();
     
     expect(component.destroyed).toBe(true);
-    expect(component.state).toEqual({});
-    expect(component.context).toEqual({});
+    expect(component.stateMap).toEqual({});
+    expect(component.contextMap).toEqual({});
     expect(component.children).toEqual([]);
     expect(component.parent).toBeNull();
   });

@@ -489,7 +489,7 @@ Paths are dot-separated with no leading dot, matching the keys as written in sta
 
 ## See Also
 
-- [Components](./COMPONENTS.md) - Component-level state with `useState`
+- [Components](./COMPONENTS.md) - Component-level state with `ctx.state`
 - [Routing](./ROUTING.md) - Integrate routing with state
 - [Examples](../example/) - Full application examples
 - [Syntax Reference](./SYNTAX_REFERENCE.md) - Language basics

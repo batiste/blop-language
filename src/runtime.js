@@ -46,8 +46,8 @@ class Component {
     this.life = { mount: [], unmount: [] };
     this.vnode = null;
     this.parent = currentNode;
-    this.state = {};
-    this.context = {};
+    this.stateMap = {};
+    this.contextMap = {};
     this.onChangeRegistry = {};
     this.mounted = false;
     this.destroyed = false;
@@ -116,23 +116,23 @@ class Component {
     return this;
   }
 
-  useState(name, initialValue) {
-    this.state[name] = this.state[name] ?? initialValue;
-    const value = this.state[name];
+  state(name, initialValue) {
+    this.stateMap[name] = this.stateMap[name] ?? initialValue;
+    const value = this.stateMap[name];
     const setState = (newState) => {
-      this.state[name] = newState;
+      this.stateMap[name] = newState;
       scheduleRender(this);
     };
-    return { value, setState, getState: () => this.state[name] };
+    return { value, setState, getState: () => this.stateMap[name] };
   }
 
-  useContext(name, initialValue) {
+  context(name, initialValue) {
     this.listeners[name] = [];
-    if (initialValue && this.context[name] === undefined) {
-      this.context[name] = initialValue;
+    if (initialValue && this.contextMap[name] === undefined) {
+      this.contextMap[name] = initialValue;
     }
     const setContext = (value) => {
-      this.context[name] = value;
+      this.contextMap[name] = value;
       this.listeners[name].forEach((node) => {
         scheduleRender(node);
       });
@@ -141,11 +141,11 @@ class Component {
       let node = this;
       const requestingNode = currentNode;
       while (node) {
-        if (node.context[name] !== undefined) {
+        if (node.contextMap[name] !== undefined) {
           if (!node.listeners[name].includes(requestingNode) && requestingNode !== node) {
             node.listeners[name].push(requestingNode);
           }
-          return node.context[name];
+          return node.contextMap[name];
         }
         node = node.parent;
       }
@@ -201,9 +201,9 @@ class Component {
     this._unmount();
     this.parent = null;
     this.children = [];
-    this.state = {};
+    this.stateMap = {};
     // delete cache[this.name];
-    this.context = {};
+    this.contextMap = {};
     this.componentsChildren = [];
   }
 }

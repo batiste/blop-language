@@ -115,12 +115,12 @@ Use function components for most cases. Use class components when you need more 
 
 ```typescript
 ParentComponent = (ctx: Component) => {
-  { setContext } = ctx.useContext('theme', 'dark')
+  { setContext } = ctx.context('theme', 'dark')
   <ChildComponent />
 }
 
 ChildComponent = (ctx: Component) => {
-  { value as theme } = ctx.useContext('theme')
+  { value as theme } = ctx.context('theme')
   <div>theme</div>
 }
 ```
@@ -132,9 +132,9 @@ state = createState({ count: 0 })
 <Component state=state />
 ```
 
-### When should I use useState vs global state?
+### When should I use ctx.state vs global state?
 
-**Use `useState` for:**
+**Use `ctx.state` for:**
 - Component-local state (UI state, input values)
 - State that doesn't need to persist
 - Temporary data
@@ -199,7 +199,7 @@ The assignment operator (`=`) inserts content into Virtual DOM:
 
 No! The state management library is optional. You can use:
 - Any state management library (Redux, MobX, Zustand)
-- Component-local state with `useState`
+- Component-local state with `ctx.state`
 - Just pass props down
 
 ### How do I prevent infinite render loops?

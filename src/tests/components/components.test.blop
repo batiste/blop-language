@@ -65,6 +65,14 @@ def Counter(ctx: Component) {
   </div>
 }
 
+def TestLiteralTypeWidening(ctx: Component): VNode {
+  { value as count, setState } = ctx.state('count', 0)
+  
+  <button on={ click: () => setState(count + 1) }>
+    'Increment'
+  </button>
+}
+
 def List(ctx: Component) {
   { attributes, children } = ctx
   { items } = attributes
@@ -90,7 +98,7 @@ def App(ctx: Component) {
 }
 
 def CounterDemo(ctx: Component): VNode {
-  { value } = ctx.useState<number>('count', 0)
+  { value } = ctx.state<number>('count', 0)
   return <div>value</div>
 }
 

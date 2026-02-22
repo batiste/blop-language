@@ -18,10 +18,10 @@ describe('Binary operator order - debugging', () => {
     expectCompilationError(code, 'Cannot apply');
   });
 
-  it('with useState - number + string should fail', () => {
+  it('with state - number + string should fail', () => {
     const code = `
       def CounterDemo(ctx: Component): VNode {
-        { value } = ctx.useState<number>('count', 0)
+        { value } = ctx.state<number>('count', 0)
         result = value + 'a'
         return <div>value</div>
       }
@@ -29,10 +29,10 @@ describe('Binary operator order - debugging', () => {
     expectCompilationError(code, 'Cannot apply');
   });
 
-  it('with useState - string + number should fail', () => {
+  it('with state - string + number should fail', () => {
     const code = `
       def CounterDemo(ctx: Component): VNode {
-        { value } = ctx.useState<number>('count', 0)
+        { value } = ctx.state<number>('count', 0)
         result = 'a' + value
         return <div>value</div>
       }

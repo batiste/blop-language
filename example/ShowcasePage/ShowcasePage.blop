@@ -56,7 +56,7 @@ def FeatureCard(ctx: Component): VNode {
 
 //  Interactive Counter Demo
 def CounterDemo(ctx: Component): VNode {
-  { value as count, setState } = ctx.useState<number>('count', 0)
+  { value as count, setState } = ctx.state<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em', margin: '0.3em 0', color: '#0d6efd', fontWeight: 'bold' }>count</h2>
@@ -85,7 +85,7 @@ def CounterDemo(ctx: Component): VNode {
 
 // Dynamic List with For Loops
 def ListDemo(ctx: Component): VNode {
-  { value as items, setState } = ctx.useState<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
+  { value as items, setState } = ctx.state<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
   
   def addItem() {
     itemNumber_ = items.length + 1
@@ -138,8 +138,8 @@ def ListDemo(ctx: Component): VNode {
 
 // Conditional Rendering Demo
 def ConditionalDemo(ctx: Component): VNode {
-  { value as visible, setState as setVisible } = ctx.useState<boolean>('visible', true)
-  { value as mood, setState as setMood } = ctx.useState<string>('mood', 'happy')
+  { value as visible, setState as setVisible } = ctx.state<boolean>('visible', true)
+  { value as mood, setState as setMood } = ctx.state<string>('mood', 'happy')
   
   moods = ['happy', 'sad', 'excited', 'confused', 'cool']
   emojis = { happy: '😊', sad: '😢', excited: '🎉', confused: '🤔', cool: '😎' }
@@ -198,7 +198,7 @@ def ConditionalDemo(ctx: Component): VNode {
 def ShowcasePage(ctx: Component): VNode {
   { attributes } = ctx
   { _state } = attributes
-  { value as activeTab, setState as setActiveTab } = ctx.useState<string>('activeTab', 'overview')
+  { value as activeTab, setState as setActiveTab } = ctx.state<string>('activeTab', 'overview')
   
   def switchTab(tab: string) {
     return (e) => {
@@ -340,7 +340,7 @@ def ShowcasePage(ctx: Component): VNode {
             '🔢 Interactive Counter'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            'Simple, reactive state management with ctx.useState()'
+            'Simple, reactive state management with ctx.state()'
           </p>
           
           <div class="row">
@@ -349,7 +349,7 @@ def ShowcasePage(ctx: Component): VNode {
               <CodeBlock
                 title="CounterDemo.blop"
                 code="def CounterDemo(ctx: Component): VNode {
-  { value as count, setState } = ctx.useState<number>('count', 0)
+  { value as count, setState } = ctx.state<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em' }>count</h2>
@@ -396,7 +396,7 @@ def ShowcasePage(ctx: Component): VNode {
               <CodeBlock
                 title="ListDemo.blop"
                 code="def ListDemo(ctx: Component): VNode {
-  { value as items, setState } = ctx.useState<string>('items', 
+  { value as items, setState } = ctx.state<string>('items', 
     ['Apple', 'Banana', 'Cherry'])
   
   def addItem() {
@@ -459,7 +459,7 @@ def ShowcasePage(ctx: Component): VNode {
                 title="ConditionalDemo.blop"
                 code="def ConditionalDemo(ctx: Component): VNode {
   { value as visible, setState as setVisible } = 
-    ctx.useState('visible', true)
+    ctx.state('visible', true)
   
   <div style={ padding: '1em' }>
     // Simple if/else for button class and text
@@ -614,7 +614,7 @@ for key, value in myObject {
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
                 <CodeBlock code="def TodoItem(ctx: Component): VNode {
   { attributes } = ctx
-  { value as done, setState } = ctx.useState<boolean>('done', false)
+  { value as done, setState } = ctx.state<boolean>('done', false)
   
   classes = if done => 'todo-item' else 'todo-item completed'
   

@@ -26,10 +26,10 @@ let builtinObjectTypes = {
     // children - array of child VNodes passed to the component
     children: Types.array(AnyType),
 
-    // function useState(key, initialValue) {
+    // function state(key, initialValue) {
     //   return { value, setState: (newValue) => {}, getState: () => value };
     // }
-    useState: new FunctionType(
+    state: new FunctionType(
       [StringType, Types.alias('T')],
       Types.object(new Map([
         ['value',    { type: Types.alias('T'), optional: false }],
@@ -58,10 +58,10 @@ let builtinObjectTypes = {
     // function refresh() { ... }
     refresh: new FunctionType([], UndefinedType, [], []),
 
-    // function useContext(name, initialValue) {
+    // function context(name, initialValue) {
     //   return { setContext, getContext, value };
     // }
-    useContext: new FunctionType(
+    context: new FunctionType(
       [StringType, Types.alias('T')],
       Types.object(new Map([
         ['setContext', { type: new FunctionType([Types.alias('T')], UndefinedType, [], ['value']), optional: false }],

@@ -9,7 +9,7 @@ Learn how to build and use components in Blop.
 - [Class Components](#class-components)
 - [Component State](#component-state)
 - [Component Context](#component-context)
-- [Lifecycle Hooks](#lifecycle-hooks)
+- [Lifecycle Methods](#lifecycle-methods)
 - [Reacting to Attribute Changes](#reacting-to-attribute-changes)
 
 ## What are Blop Components?
@@ -47,7 +47,7 @@ Every component receives a single `ctx` parameter of type `Component`. It carrie
 
 - **`ctx.attributes`** - object containing all element attributes passed to the component
 - **`ctx.children`** - array of child VNodes (empty array if none)
-- **Hooks** - `ctx.useState`, `ctx.mount`, `ctx.unmount`, `ctx.onChange`, `ctx.useContext`
+- **Component methods** - `ctx.state`, `ctx.mount`, `ctx.unmount`, `ctx.onChange`, `ctx.context`
 
 The idiomatic way to access attributes and children is by destructuring at the top of the function body:
 
@@ -74,7 +74,7 @@ def Layout({ attributes, children }: Component) {
 }
 ```
 
-> **Note:** When using inline destructuring, the `ctx` binding is not available inside the function body. This means hooks such as `useState`, `mount`, `unmount`, and `onChange` cannot be called. Use the `def Foo(ctx: Component)` form for any stateful or lifecycle-aware component.
+> **Note:** When using inline destructuring, the `ctx` binding is not available inside the function body. This means component methods such as `state`, `mount`, `unmount`, and `onChange` cannot be called. Use the `def Foo(ctx: Component)` form for any stateful or lifecycle-aware component.
 
 ### Using Components
 
@@ -113,9 +113,9 @@ Card = (ctx: Component) => {
   </div>
 }
 
-// Stateful component — needs ctx for hooks
+// Stateful component — needs ctx
 Counter = (ctx: Component) => {
-  { value, setState } = ctx.useState('count', 0)
+  { value, setState } = ctx.state('count', 0)
   
   <div>
     <button on={ click: () => setState(value - 1) }>'-'</button>
@@ -177,15 +177,15 @@ class MyComponent extends Component {
   // Schedule a re-render
   this.refresh()
 
-  // Lifecycle hooks
+  // Lifecycle methods
   onMount() { ... }
   onUnmount() { ... }
 
   // State management
-  useState(name, initialValue) { ... }
+  state(name, initialValue) { ... }
   
   // Context management
-  useContext(name, initialValue) { ... }
+  context(name, initialValue) { ... }
 
   // React to attribute changes
   onChange(attribute, callback) { ... }
@@ -194,12 +194,12 @@ class MyComponent extends Component {
 
 ## Component State
 
-Use `useState` to maintain component-local state:
+Use `ctx.state` to maintain component-local state:
 
 ```typescript
 Counter = (ctx: Component) => {
   // Initialize state with name and initial value
-  { value as counter, setState } = ctx.useState('counter', 0)
+  { value as counter, setState } = ctx.state('counter', 0)
   
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
@@ -212,9 +212,9 @@ Counter = (ctx: Component) => {
 }
 ```
 
-### How useState Works
+### How ctx.state Works
 
-**Signature:** `ctx.useState(name: string, initial: any): { value: any, setState: Function }`
+**Signature:** `ctx.state(name: string, initial: any): { value: any, setState: Function }`
 
 - State is stored internally on the component instance
 - Calling `setState` triggers a re-render of the component
@@ -225,8 +225,8 @@ Counter = (ctx: Component) => {
 
 ```typescript
 TodoList = (ctx: Component) => {
-  { value as items, setState as setItems } = ctx.useState('items', [])
-  { value as input, setState as setInput } = ctx.useState('input', '')
+  { value as items, setState as setItems } = ctx.state('items', [])
+  { value as input, setState as setInput } = ctx.state('input', '')
   
   addItem = () => {
     setItems([...items, input])
@@ -252,18 +252,18 @@ TodoList = (ctx: Component) => {
 
 Context allows parent components to pass data to deeply nested children without prop drilling.
 
-**Signature:** `ctx.useContext(name: string, initial: any): { value: any, setContext: Function }`
+**Signature:** `ctx.context(name: string, initial: any): { value: any, setContext: Function }`
 
 ```typescript
 // Child component - consumes context
 ContextConsumer = (ctx: Component) => {
-  { value } = ctx.useContext('specialNumber')
+  { value } = ctx.context('specialNumber')
   <p>'Value from context: 'value''</p>
 }
 
 // Parent component - provides context
 ContextHolder = (ctx: Component) => {
-  { setContext } = ctx.useContext('specialNumber', Math.random())
+  { setContext } = ctx.context('specialNumber', Math.random())
   
   changeValue = () => setContext(Math.random())
   
@@ -284,7 +284,7 @@ ContextHolder = (ctx: Component) => {
 
 ```typescript
 ThemeButton = (ctx: Component) => {
-  { value as theme } = ctx.useContext('theme')
+  { value as theme } = ctx.context('theme')
   className = theme == 'dark' ? 'btn-dark' : 'btn-light'
   
   <button class=className>
@@ -293,7 +293,7 @@ ThemeButton = (ctx: Component) => {
 }
 
 App = (ctx: Component) => {
-  { value as theme, setContext as setTheme } = ctx.useContext('theme', 'light')
+  { value as theme, setContext as setTheme } = ctx.context('theme', 'light')
   
   toggleTheme = () => {
     setTheme(theme == 'light' ? 'dark' : 'light')
@@ -306,18 +306,18 @@ App = (ctx: Component) => {
 }
 ```
 
-## Lifecycle Hooks
+## Lifecycle Methods
 
-Components have mount and unmount hooks for side effects.
+Components have mount and unmount methods for registering side effects.
 
 **Signature:**
 - `ctx.mount(callback: Function)`
 - `ctx.unmount(callback: Function)`
 
 ```typescript
-// Custom hook pattern
+// Reusable helper function
 def useWindowWidth(ctx) {
-  { value as width, setState as setWidth } = ctx.useState('width', window.innerWidth)
+  { value as width, setState as setWidth } = ctx.state('width', window.innerWidth)
   
   handleResize = () => setWidth(window.innerWidth)
   
@@ -334,7 +334,7 @@ def useWindowWidth(ctx) {
   return width
 }
 
-// Using the custom hook
+// Using the helper
 WidthReactive = (ctx: Component) => {
   width = useWindowWidth(ctx)
   <p>'Window width: 'width'px'</p>
@@ -347,7 +347,7 @@ WidthReactive = (ctx: Component) => {
 
 ```typescript
 Timer = (ctx: Component) => {
-  { value as seconds, setState as setSeconds } = ctx.useState('seconds', 0)
+  { value as seconds, setState as setSeconds } = ctx.state('seconds', 0)
   
   ctx.mount(() => {
     intervalId = setInterval(() => {
@@ -366,8 +366,8 @@ Timer = (ctx: Component) => {
 
 ```typescript
 DataLoader = (ctx: Component) => {
-  { value as data, setState as setData } = ctx.useState('data', null)
-  { value as loading, setState as setLoading } = ctx.useState('loading', true)
+  { value as data, setState as setData } = ctx.state('data', null)
+  { value as loading, setState as setLoading } = ctx.state('loading', true)
   
   ctx.mount(async () => {
     response = await fetch(attributes.url)
@@ -421,7 +421,7 @@ class FetchOnURLChange extends Component {
 
 // Usage
 DataDisplay = (ctx: Component) => {
-  { value as counter, setState } = ctx.useState('counter', 0)
+  { value as counter, setState } = ctx.state('counter', 0)
   
   ctx.mount(() => {
     setInterval(() => setState(counter + 1), 5000)
@@ -466,13 +466,13 @@ Page = ({ attributes }: Component) => {
 }
 ```
 
-### 2. Use Custom Hooks
+### 2. Use Reusable Helpers
 
 ```typescript
-// Reusable hook
+// Reusable helper function
 def useFetch(ctx, url) {
-  { value as data, setState as setData } = ctx.useState('data', null)
-  { value as error, setState as setError } = ctx.useState('error', null)
+  { value as data, setState as setData } = ctx.state('data', null)
+  { value as error, setState as setError } = ctx.state('error', null)
   
   ctx.mount(async () => {
     try {
@@ -507,7 +507,7 @@ UserProfile = (ctx: Component) => {
 ```typescript
 // ❌ Don't do this - creates infinite loop
 BadCounter = (ctx: Component) => {
-  { value, setState } = ctx.useState('count', 0)
+  { value, setState } = ctx.state('count', 0)
   setState(value + 1)  // ❌ Called every render!
   
   <div>value</div>
@@ -515,7 +515,7 @@ BadCounter = (ctx: Component) => {
 
 // ✅ Update state in event handlers
 GoodCounter = (ctx: Component) => {
-  { value, setState } = ctx.useState('count', 0)
+  { value, setState } = ctx.state('count', 0)
   
   <div>
     <button on={ click: () => setState(value + 1) }>'Increment'</button>
