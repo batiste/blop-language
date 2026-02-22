@@ -29,15 +29,33 @@ function blopPlugin(options = {}) {
         return null;
       }
 
+      // Helper: return a throwing module so the file stays visible in DevTools
+      // Sources (a 500 from this.error() removes the file from the Sources panel).
+      const errorModule = (msg, line, col) => {
+        const safeMsg = JSON.stringify(msg);
+        const throwingCode = `throw new Error(${safeMsg});\n`;
+        const map = {
+          version: 3,
+          file: id,
+          sources: [id],
+          sourcesContent: [code],
+          // Single segment: generated col 0 → source line (line-1, 0-based), col 0
+          mappings: 'AAAA',
+          names: [],
+        };
+        return { code: throwingCode, map };
+      };
+
       try {
         const result = compileSource(code, id, inference);
 
         if (!result.success) {
-          const errorMsg = result.errors.length > 0 
-            ? result.errors[0].message || 'Compilation failed'
-            : 'Compilation failed';
-          this.error(errorMsg);
-          return null;
+          const firstError = result.errors[0];
+          const errorMsg = firstError?.message || 'Compilation failed';
+          const token = firstError?.token;
+          const line = token ? (token.line_start ?? 0) + 1 : 1;
+          const col  = token ? (token.column_start ?? 0)  : 0;
+          return errorModule(errorMsg, line, col);
         }
 
         // Add runtime import at the top
@@ -53,8 +71,7 @@ function blopPlugin(options = {}) {
 
         return { code: finalCode, map };
       } catch (error) {
-        this.error(error.message);
-        return null;
+        return errorModule(error.message, error.blopLine ?? 1, error.blopColumn ?? 0);
       }
     },
 

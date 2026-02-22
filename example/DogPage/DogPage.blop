@@ -17,3 +17,6 @@ def DogPage(ctx: Component): VNode {
     = 'Dog breed game'
   </DogGame>
 }
+
+hello = 1
+hello.asdf
