@@ -13,22 +13,86 @@ def DogGame(ctx: Component) {
     return breedName.toLowerCase().replace(/[\s\-]/g, ' ')
   }
 
+  def scoreGuess(breedName: string, userGuess: string): number {
+    if !breedName || !userGuess {
+      return 0
+    }
+    
+    normalizedGuess = normalizeBreed(userGuess).trim()
+    normalizedBreed = normalizeBreed(breedName).trim()
+    
+    // Exact match (full point)
+    if normalizedGuess == normalizedBreed {
+      return 1
+    }
+    
+    // Parse breed into parts
+    breedParts = normalizedBreed.split(' ').filter((word) => word.length > 0)
+    guessParts = normalizedGuess.split(' ').filter((word) => word.length > 0)
+    
+    // Single word breed: only full/no partial match on that word
+    if breedParts.length == 1 {
+      if guessParts.length > 0 && breedParts[0] == guessParts[0] {
+        return 1
+      }
+      return 0
+    }
+    
+    // Multi-word breed: check if all breed parts are in guess (flexible order, full point)
+    allMatch = true
+    for part in breedParts {
+      found = false
+      for guessPart in guessParts {
+        if part == guessPart {
+          found := true
+        }
+      }
+      if !found {
+        allMatch := false
+      }
+    }
+    if allMatch {
+      return 1
+    }
+    
+    // Partial match (at least one word correct, half point)
+    oneMatch = false
+    for part in breedParts {
+      for guessPart in guessParts {
+        if part == guessPart {
+          oneMatch := true
+        }
+      }
+    }
+    if oneMatch {
+      return 0.5
+    }
+    
+    return 0
+  }
+
   def check() {
     elm = input.elm
     userGuess = elm.value
-    normalizedGuess = normalizeBreed(userGuess)
-    normalizedBreed = normalizeBreed(dog?.breed ?? '')
     
-    input.elm = ''
+    if !userGuess || userGuess.trim().length == 0 {
+      return
+    }
+    
+    input.elm.value = ''
     page.attempt = (page.attempt ?? 0) + 1
     
-    if normalizedGuess == normalizedBreed {
-      delete page.lastMistake
-      page.success = (page.success ?? 0) + 1
+    score = scoreGuess(dog?.breed ?? '', userGuess)
+    page.success = (page.success ?? 0) + score
+    
+    if score == 1 {
+      page.lastResult = { result: 'correct', breed: dog?.breed, guess: userGuess }
+    } elseif score == 0.5 {
+      page.lastResult = { result: 'partial', breed: dog?.breed, guess: userGuess }
     } else {
-      // Storing additional metadata with the mistake
-      page.lastMistake = { breed: dog?.breed, guess: userGuess }
+      page.lastResult = { result: 'wrong', breed: dog?.breed, guess: userGuess }
     }
+    
     getNewDog(state)
   }
 
@@ -46,17 +110,39 @@ def DogGame(ctx: Component) {
     if attempt > 0 {
       percent := Math.floor(100 * (success / attempt))
     }
-    <p>'Correct answers: 'success' / 'attempt' ('percent'%)'</p>
+    <p>'Score: 'success' / 'attempt' ('percent'%)'</p>
 
-    if page.lastMistake {
-      <p>
-        <span style={ color: 'red' }>'Wrong'</span>
-        = ' the breed was '
-        <b>page.lastMistake.breed</b>
-        = ' and you guessed "'
-        <b>page.lastMistake.guess</b>
-        = '"'
-      </p>
+
+
+    if page.lastResult {
+      <div style={ marginTop: '1em', padding: '1em', borderRadius: '0.5em', marginBottom: '1em' }>
+        if page.lastResult.result == 'correct' {
+          <p style={ color: '#28a745', fontSize: '1.1em', fontWeight: 'bold', margin: '0' }>
+            '✓ Correct! The breed is 'page.lastResult.breed'!'
+          </p>
+        } elseif page.lastResult.result == 'partial' {
+          <p style={ color: '#ffc107', fontSize: '1em', fontWeight: 'bold', margin: '0 0 0.5em 0' }>
+            '◑ Partial credit! You got one part right.'
+          </p>
+          <p style={ color: '#666', margin: '0', fontSize: '0.9em' }>
+            'The correct answer is '
+            <b>page.lastResult.breed</b>
+            = ' (you said "'
+            = page.lastResult.guess
+            = '")'
+          </p>
+        } else {
+          <p style={ color: '#dc3545', fontSize: '1em', fontWeight: 'bold', margin: '0 0 0.5em 0' }>
+            '✗ Not quite! The correct breed is '
+            <b>page.lastResult.breed</b>
+          </p>
+          <p style={ color: '#666', margin: '0', fontSize: '0.9em' }>
+            'You guessed "'
+            = page.lastResult.guess
+            = '" – give the next one a try!'
+          </p>
+        }
+      </div>
     }
 
     <form on={ submit: (e) => {
