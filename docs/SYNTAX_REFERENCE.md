@@ -12,6 +12,9 @@ A practical reference for writing Blop code. Each section explains the syntax, s
 - [Strings](#strings)
 - [Objects and Arrays](#objects-and-arrays)
 - [Classes](#classes)
+- [Type Aliases](#type-aliases)
+- [try / catch / throw](#try--catch--throw)
+- [Compound Assignment](#compound-assignment)
 - [Virtual DOM](#virtual-dom)
 - [Modern Features](#modern-features)
 
@@ -49,6 +52,9 @@ name = 'Alice'
 
 // Destructuring
 { x, y, z as depth } = { x: 1, y: 2, z: 100.0 }
+
+// Type annotation
+count: number = 0
 ```
 
 **Reassignment** requires the `:=` operator. Using `=` on an already-declared variable is an error:
@@ -97,21 +103,17 @@ Iterate over arrays or objects. You can optionally capture the index/key as a fi
 ```typescript
 petList = ['cat', 'dog', 'goldfish']
 
-// Values only
+// Iterate over values only
 for pet in petList {
   console.log(pet)
 }
 
-// Index + value
-for index, pet in petList { // Use Object.keys on petList to get indices for objects
+// Get a numerical index for arrays with `for … of`
+for index, pet of petList { 
   console.log(index, pet)
 }
 
-for index, pet of petList { // Use numerical indices for arrays
-  console.log(index, pet)
-}
-
-// Key + value for objects
+// Iterate over object keys and values
 user = { name: 'Alice', age: 30 }
 for key, value in user {
   console.log(key, value)
@@ -149,7 +151,7 @@ def renderPage(state) {
 ### Ternary
 
 ```typescript
-result = condition ? 'yes' : 'no'
+result = if condition => 'yes' else 'no'
 ```
 
 ---
@@ -160,25 +162,33 @@ Strings can be delimited with `"`, `'`, or `` ` `` — all three are equivalent.
 
 ### Concatenation
 
-Place strings and expressions side by side to concatenate them:
+Place a string and expression **immediately adjacent** (no spaces) to concatenate:
 
 ```typescript
-whitespace = ' '
-greeting   = 'hello'
-name       = 'world'
+name = 'World'
 
-message = greeting whitespace name      // "hello world"
-console.log('hello' whitespace `world`) // hello world
+// string + variable + string
+message  = 'Hello, 'name'!'   // "Hello, World!"
+
+// variable + string + variable
+greeting = 'hello'
+result   = greeting' 'name    // "hello world"
+
+// Mix any quote style
+mixed    = "Hello, "name`!`   // "Hello, World!"
 ```
 
-### Embedding expressions
+### Inline expressions
 
-Wrap the expression in the same quote character used to open the string:
+Put the expression directly against the string without whitespace:
 
 ```typescript
 count   = 42
-message = 'The answer is 'count''  // "The answer is 42"
-url     = `https://api.example.com/`id``
+message = 'The answer is 'count     // "The answer is 42"
+url     = `https://api.example.com/`id
+
+// Computed expressions in-line
+text = 'Result: '(a + b)''           // "Result: 3"
 ```
 
 ---
@@ -199,9 +209,8 @@ person = {
 numbers = [1, 2, 3, 4, 5]
 mixed   = [1, 'two', { three: 3 }]
 
-// Destructuring
-{ name, age }            = person
-[first, second, ...rest] = numbers
+// Object destructuring
+{ name, age } = person
 
 // Object spread — later keys override earlier ones
 defaults = { timeout: 5000, retries: 3 }
@@ -220,6 +229,8 @@ Classes follow the ES6 pattern. Use `def` for methods and `this` for instance pr
 
 ```typescript
 class ExampleClass {
+  routes: number[]
+
   def constructor(something=false) {
     this.routes = [1, 2, 3]
     this.state  = { hello: 1, world: 2 }
@@ -241,6 +252,78 @@ class ExampleClass {
 }
 
 instance = new ExampleClass(true)
+```
+
+---
+
+## Type Aliases
+
+Use `type` to name a type for reuse across annotations.
+
+```typescript
+// Primitive alias
+type UserId   = number
+type Username = string
+
+// Object type
+type User = {
+  id:       number,
+  name:     string,
+  role?:    'Admin' | 'User'
+}
+
+// Union alias
+type StringOrNumber = string | number
+
+// Generic alias
+type Pair<A, B> = { first: A, second: B }
+```
+
+Annotate variables and function parameters with a type alias:
+
+```typescript
+user: User = { id: 1, name: 'Alice', role: 'Admin' }
+
+def greet(u: User): string {
+  return 'Hello, 'u.name
+}
+```
+
+---
+
+## try / catch / throw
+
+```typescript
+try {
+  response = await fetch('/api/data')
+  data     = await response.json()
+} catch error {
+  console.log('Request failed:', error)
+}
+
+// Throw an error
+throw new Error('Something went wrong')
+```
+
+> `catch` binds the error to the name you provide — there is no optional binding.
+
+---
+
+## Compound Assignment
+
+Shorthand operators update a variable in place.
+
+```typescript
+count  = 0
+count += 1    // 1
+count -= 1    // 0
+count *= 4    // 0  (0 * 4)
+count  = 10
+count /= 2    // 5
+
+// Works on properties too
+obj = { value: 10 }
+obj.value += 5   // 15
 ```
 
 ---

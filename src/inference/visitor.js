@@ -27,12 +27,9 @@ const popScope = () => functionScopes.pop();
  * @returns {Object|undefined} Variable definition or undefined
  */
 function lookupVariable(name) {
-  const scopes = functionScopes.slice().reverse();
-  for (let i = 0; i < scopes.length; i++) {
-    const definition = scopes[i][name];
-    if (definition) {
-      return definition;
-    }
+  for (let i = functionScopes.length - 1; i >= 0; i--) {
+    const definition = functionScopes[i][name];
+    if (definition) return definition;
   }
 }
 
@@ -113,22 +110,14 @@ function pushWarning(node, message) {
  * Extract the first property name from an object_access node  
  */
 function extractPropertyNameFromAccess(accessNode) {
-  if (!accessNode?.children) return null;
-  for (const child of accessNode.children) {
-    if (child.type === 'name') return child.value;
-  }
-  return null;
+  return accessNode?.children?.find(child => child.type === 'name')?.value ?? null;
 }
 
 /**
  * Check if an access node is bracket notation (array indexing)
  */
 function isBracketAccess(accessNode) {
-  if (!accessNode?.children) return false;
-  for (const child of accessNode.children) {
-    if (child.value === '[') return true;
-  }
-  return false;
+  return accessNode?.children?.some(child => child.value === '[') ?? false;
 }
 
 /**
@@ -143,22 +132,19 @@ function isOptionalChainAccess(accessNode) {
  */
 function emitMathWarnings(leftType, rightType, operatorNode) {
   const result = TypeChecker.checkMathOperation(leftType, rightType, operatorNode.value);
-  // Only emit warnings for actually invalid operations, not for style warnings
-  if (!result.valid && (result.warning || result.warnings)) {
+  // Only emit warnings for invalid operations; valid-but-warned cases (e.g. style
+  // hints like "use template strings") are intentionally suppressed here.
+  if (!result.valid) {
     if (result.warning) {
       const error = new Error(result.warning);
-      const token = stream[operatorNode.stream_index];
-      error.token = token;
+      error.token = stream[operatorNode.stream_index];
       warnings.push(error);
     }
-    if (result.warnings) {
-      result.warnings.forEach(w => {
-        const error = new Error(w);
-        const token = stream[operatorNode.stream_index];
-        error.token = token;
-        warnings.push(error);
-      });
-    }
+    result.warnings?.forEach(w => {
+      const error = new Error(w);
+      error.token = stream[operatorNode.stream_index];
+      warnings.push(error);
+    });
   }
   return result;
 }

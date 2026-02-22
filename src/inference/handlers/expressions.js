@@ -46,15 +46,6 @@ function extractExplicitTypeArguments(typeArgsNode) {
 }
 
 /**
- * Get the member name from an object access node
- * (e.g. 'foo' from obj.foo or obj.foo())
- */
-function getObjectAccessMemberName(access) {
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  return objectAccess?.children?.find(child => child.type === 'name')?.value;
-}
-
-/**
  * Get the member name and its AST node from an object access node
  * Used when we need to annotate the node with inferred type
  */
@@ -726,7 +717,6 @@ function handleSimpleVariable(name, parent, definition, getState) {
     }
   } else {
     pushInference(parent, definition.type);
-    // console.log('handleSimpleVariable', name.value, 'inferred type:', definition.type);
     const { typeAliases } = getState();
     if (name.inferredType === undefined) {
       name.inferredType = resolveTypeAlias(definition.type, typeAliases);

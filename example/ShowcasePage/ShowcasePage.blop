@@ -519,7 +519,6 @@ def ShowcasePage(ctx: Component): VNode {
   }
 </ul>
 
-// Object iteration (no annotation)
 for key, value in myObject {
   <div>key': 'value</div>
 }" />

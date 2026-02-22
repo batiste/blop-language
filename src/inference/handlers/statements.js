@@ -42,31 +42,6 @@ function extractImportNameNodes(node) {
 }
 
 /**
- * Extract import names from destructuring_values node
- * @param {Object} node - destructuring_values AST node  
- * @returns {Array<string>} Array of imported names
- */
-function extractImportNames(node) {
-  const names = [];
-  
-  function traverse(n) {
-    if (!n) return;
-    
-    if (n.type === 'destructuring_values') {
-      if (n.named.name) {
-        names.push(n.named.name.value);
-      }
-      if (n.named.more) {
-        traverse(n.named.more);
-      }
-    }
-  }
-  
-  traverse(node);
-  return names;
-}
-
-/**
  * Widen literal types to their abstract base types
  * For LiteralType, returns baseType; for UnionType, widens each member
  */
