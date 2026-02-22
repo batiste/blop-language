@@ -9,6 +9,10 @@ type Route = {
   params?: string[]
 }
 
+// test: Route[] = []
+// result = test.find((route) => route.path == '/test/:id')
+// result && result.path
+
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }

@@ -140,4 +140,53 @@ describe('this type inference inside class methods', () => {
     `);
   });
 
+  // ---------------------------------------------------------------------------
+  // Array methods called on declared class member arrays (this.arr.find etc.)
+  // ---------------------------------------------------------------------------
+
+  test('this.arr.find() inside a class method compiles without error', () => {
+    expectCompiles(`
+      type Item = { id: number, name: string }
+      class Store {
+        items: Item[]
+        def constructor() {
+          this.items = []
+        }
+        def findById(id: number) {
+          return this.items.find((item) => item.id == id)
+        }
+      }
+    `);
+  });
+
+  test('this.arr.filter() inside a class method compiles without error', () => {
+    expectCompiles(`
+      type Item = { id: number, name: string }
+      class Store {
+        items: Item[]
+        def constructor() {
+          this.items = []
+        }
+        def getAll() {
+          return this.items.filter((item) => item.id > 0)
+        }
+      }
+    `);
+  });
+
+  test('this.arr.push() inside a class method compiles without error', () => {
+    expectCompiles(`
+      type Route = { path: string, name: string }
+      class Router {
+        routes: Route[]
+        def constructor() {
+          this.routes = []
+        }
+        def add(route: Route) {
+          this.routes.push(route)
+        }
+      }
+    `);
+  });
+
 });

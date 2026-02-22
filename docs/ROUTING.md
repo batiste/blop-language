@@ -229,6 +229,7 @@ async def productHandler(params, state) {
     state.error = error.message
   }
 }
+```
 
 ## Navigation
 
@@ -253,7 +254,7 @@ def NavigationMenu(state) {
     <a href="/users/123" on={ click: goToUser(123) }>'User 123'</a>
   </nav>
 }
-```
+``` 
 
 ### Using Links
 
@@ -262,7 +263,7 @@ For proper handling with `preventDefault`:
 ```typescript
 import { go } from './lib/navigation.blop'
 
-def Links(_state) {
+def Links() {
   def navigateTo(path) {
     return (e) => {
       e.preventDefault()

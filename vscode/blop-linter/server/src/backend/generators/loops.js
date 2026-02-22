@@ -22,60 +22,28 @@ function createLoopGenerators(context) {
         node: node.named.value,
         export: false, hoist: false, token: node.named.value,
       };
+      
+      const f_uid = uid();
+      output.push(`let ${f_uid} = `);
+      output.push(...generateCode(node.named.exp));
 
-      //generate a different type of loop using annotation
-      // Extract type from annotation structure (handles both old and new format)
-      const getAnnotationType = (annotation) => {
-        if (!annotation) return null;
-        // New format: annotation.named.type.children[0] (type_primary) has named.name
-        if (annotation.named && annotation.named.type) {
-          const typeExp = annotation.named.type;
-          if (typeExp.children && typeExp.children[0]) {
-            const typePrimary = typeExp.children[0];
-            if (typePrimary.named && typePrimary.named.name) {
-              // type_name node - get first child (the actual token)
-              const typeName = typePrimary.named.name;
-              if (typeName.children && typeName.children[0]) {
-                return typeName.children[0].value;
-              }
-              return typeName.value;
-            }
-          }
-        }
-        // Old format fallback: annotation.children[2] is the name token
-        if (annotation.children && annotation.children[2]) {
-          return annotation.children[2].value;
-        }
-        return null;
-      };
-      
-      const keyAnnotationType = getAnnotationType(node.named.keyannotation);
-      const isArray = (keyAnnotationType === 'int') || !!node.named.of;
-      
       // an proper array is expected
-      if (isArray) {
-        const f_uid = uid();
-        output.push(`let ${f_uid} = `);
-        output.push(...generateCode(node.named.exp));
+      if (node.named.of) {
+        // use for ... of for arrays to preserve correct this binding and handle sparse arrays
         output.push(`; let ${key}=0; for(; ${key} < ${f_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
-        node.named.stats ? node.named.stats.forEach(
-          stat => output.push(...generateCode(stat)),
-        ) : null;
-        output.push('};');
-      // any other objects
+        // output.push(`; for(let ${key} of ${f_uid}) { let ${value} = ${f_uid}[${key}];`);
       } else {
-        const f_uid = uid();
-        const k_uid = uid();
-        const i_uid = uid();
-        output.push(`let ${f_uid} = `);
-        output.push(...generateCode(node.named.exp));
-        output.push(`; let ${k_uid} = Object.keys(${f_uid}); let ${key}; `);
-        output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
-        node.named.stats ? node.named.stats.forEach(
-          stat => output.push(...generateCode(stat)),
-        ) : null;
-        output.push('};');
+        // const k_uid = uid();
+        // const i_uid = uid();
+        // output.push(`; let ${k_uid} = Object.keys(${f_uid}); let ${key}; `);
+        // output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
+        // use for ... in for objects to preserve non-enumerable properties and correct this binding
+        output.push(`; for(let ${key} in ${f_uid}) { let ${value} = ${f_uid}[${key}];`);
       }
+      node.named.stats ? node.named.stats.forEach(
+        stat => output.push(...generateCode(stat)),
+      ) : null;
+      output.push('};');
       popScopeLOOP();
       return output;
     },

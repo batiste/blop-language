@@ -1605,6 +1605,7 @@ let for_loop_0 = (stream, index) => {
     return false;
   }
 
+  named['in'] = stream[i];
   children.push(stream[i]); i++;
   const _rule_4 = exp(stream, i);
   if (!_rule_4) return false;

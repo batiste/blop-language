@@ -489,6 +489,30 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
         pushSubsequentOperation(access, parent, pushInference);
         return true;
       }
+
+      // Handle chained array method calls on class instance properties
+      // e.g. this.routes.find(...) where routes: Route[]
+      // The outer OA holds the property name ('routes'), the inner OA holds the method call ('.find(...)')
+      const resolvedMethodType = resolveTypeAlias(methodType, typeAliases);
+      if (resolvedMethodType instanceof ArrayType) {
+        const outerOA = access.children?.find(c => c.type === 'object_access');
+        const innerOA = outerOA?.children?.find(c => c.type === 'object_access');
+        if (innerOA) {
+          const arrayMethodName = innerOA.children?.find(c => c.type === 'name')?.value;
+          const arrayMethodNode = innerOA.children?.find(c => c.type === 'name');
+          if (arrayMethodName) {
+            const arrayMethodDef = getArrayMemberType(resolvedMethodType, arrayMethodName);
+            if (arrayMethodDef) {
+              const finalType = extractReturnType(arrayMethodDef);
+              if (memberNode) memberNode.inferredType = resolvedMethodType;
+              if (arrayMethodNode) arrayMethodNode.inferredType = finalType;
+              pushInference(parent, finalType);
+              pushSubsequentOperation(access, parent, pushInference);
+              return true;
+            }
+          }
+        }
+      }
     }
   }
 

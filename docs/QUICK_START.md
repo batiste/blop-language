@@ -19,7 +19,7 @@ Create a file called `hello.blop`:
 
 ```typescript
 def Hello(ctx: Component) {
-  name = attributes.name || 'World'
+  name = ctx.attributes.name || 'World'
   <div>
     <h1>'Hello 'name'!'</h1>
   </div>
