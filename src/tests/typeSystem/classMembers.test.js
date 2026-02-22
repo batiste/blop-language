@@ -214,3 +214,43 @@ describe('class member type annotations', () => {
   });
 
 });
+
+describe('class instance method call argument validation', () => {
+  test('accepts a correctly typed argument to a class method', () => {
+    expectCompiles(`
+      type Item = { id: number }
+      class Store {
+        def add(item: Item) {
+          item.id
+        }
+      }
+      s = new Store()
+      s.add({ id: 1 })
+    `);
+  });
+
+  test('rejects a wrong type passed to a class method after new', () => {
+    expectCompilationError(`
+      type Item = { id: number }
+      class Store {
+        def add(item: Item) {
+          item.id
+        }
+      }
+      s = new Store()
+      s.add(1)
+    `, 'add');
+  });
+
+  test('rejects a string passed to a method expecting a number', () => {
+    expectCompilationError(`
+      class Counter {
+        def increment(by: number) {
+          by
+        }
+      }
+      c = new Counter()
+      c.increment('a lot')
+    `, 'increment');
+  });
+});

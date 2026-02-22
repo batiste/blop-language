@@ -9,10 +9,6 @@ type Route = {
   params?: string[]
 }
 
-def add(route: Route) {
-  return route
-}
-
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
 }
