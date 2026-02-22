@@ -232,7 +232,7 @@ console.log(userAssignmentTest)`;
     expect(varNodes[1].inferredType).toBeDefined();
     // Definition site shows the type alias name, usage site shows expanded type
     expect(varNodes[0].inferredType.toString()).toBe('User');
-    expect(varNodes[1].inferredType.toString()).toBe('{id: number, name: string}');
+    expect(varNodes[1].inferredType.toString()).toBe('{name: string, id: number, userType?: "Admin" | "User"}');
   });
 
   it('should infer the correct type for arrow function returning VNode', () => {

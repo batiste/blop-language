@@ -233,63 +233,6 @@ function createFunctionHandlers(getState) {
       }
     },
     
-    named_func_call: (node, parent) => {
-      const { lookupVariable, pushInference, pushWarning, typeAliases } = getState();
-      visitChildren(node);
-      const { name } = node.named;
-      const def = lookupVariable(name.value);
-      
-      if (def && def.params) {
-        // Check if this is a generic function
-        if (def.genericParams && def.genericParams.length > 0) {
-          // Infer generic type arguments from call site
-          // Arguments are in the func_call child node's inference
-          const funcCallNode = node.children?.find(child => child.type === 'func_call');
-          const argTypes = funcCallNode?.inference || node.inference || [];
-          const paramTypes = def.params || [];
-          
-          const { substitutions, errors } = inferGenericArguments(
-            def.genericParams,
-            paramTypes,
-            argTypes,
-            typeAliases
-          );
-          
-          // Report type parameter inference errors
-          if (errors.length > 0) {
-            errors.forEach(error => pushWarning(name, error));
-          }
-          
-          // Substitute type parameters in return type
-          let returnType = def.type;
-          if (returnType) {
-            returnType = substituteType(returnType, substitutions);
-            pushInference(parent, returnType);
-          }
-          
-         // Also check parameter types with substituted generics
-          if (argTypes.length > 0) {
-            const substitutedParams = paramTypes.map(p => substituteType(p, substitutions));
-            const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, name.value, typeAliases);
-            if (!result.valid) {
-              result.warnings.forEach(warning => pushWarning(name, warning));
-            }
-          }
-        } else {
-          // Non-generic function - existing behavior
-          if (node.inference) {
-            const result = TypeChecker.checkFunctionCall(node.inference, def.params, name.value, typeAliases);
-            if (!result.valid) {
-              result.warnings.forEach(warning => pushWarning(name, warning));
-            }
-          }
-          if (def.type) {
-            pushInference(parent, def.type);
-          }
-        }
-      }
-    },
-    
     func_def: (node, parent) => {
       const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation, symbolTable } = getState();
       const parentScope = getCurrentScope();

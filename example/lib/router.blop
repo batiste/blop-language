@@ -1,6 +1,11 @@
 
 import { register } from './navigation.blop'
 
+// type Test = {
+//     // toUpperCase: () => string,
+//     b: string
+// }
+
 type Route = {
   path: string,
   name: string,

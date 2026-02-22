@@ -22,14 +22,6 @@ function createExpressionGenerators(context) {
       }
       return output;
     },
-    'named_func_call': (node) => {
-      const output = [];
-      shouldBeDefined(node.named.name.value, node);
-      for (let i = 0; i < node.children.length; i++) {
-        output.push(...generateCode(node.children[i]));
-      }
-      return output;
-    },
     'boolean_operator': (node) => {
       if (node.value === OPERATORS.LOOSE_EQUALITY) {
         return [OPERATORS.STRICT_EQUALITY];

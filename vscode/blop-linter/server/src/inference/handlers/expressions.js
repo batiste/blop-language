@@ -147,10 +147,12 @@ function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { push
     return false;
   }
 
-  // Extract arguments for parameter validation
+  // Extract arguments for parameter validation.
+  // The path is: access(wrapper) → middleOA(['.', name, innerOA]) → innerOA → func_call
   const argTypes = access.children
-    ?.find(child => child.type === 'object_access')
-    ?.children?.find(child => child.type === 'func_call')
+    ?.find(child => child.type === 'object_access')  // middleOA
+    ?.children?.find(child => child.type === 'object_access')  // innerOA
+    ?.children?.find(child => child.type === 'func_call')  // func_call
     ?.inference || [];
   
   // If methodDef is a FunctionType (parameterized method like push(T)), validate parameters
@@ -417,13 +419,16 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   visitChildren(access);
   
   const definition = lookupVariable(name.value);
-  const argTypes = access.children
-    ?.find(child => child.type === 'object_access')
-    ?.children?.find(child => child.type === 'func_call')
-    ?.inference || [];
+  const middleOA = access.children?.find(child => child.type === 'object_access');
+  // Try 3-level path: method call like r.push(1) → middleOA('.', name, innerOA) → innerOA → func_call
+  // Fall back to 2-level path: direct call like identity<T>(x) → middleOA(type_args?, func_call)
+  const funcCallNode =
+    middleOA?.children?.find(c => c.type === 'object_access')?.children?.find(c => c.type === 'func_call')
+    ?? middleOA?.children?.find(c => c.type === 'func_call');
+  const argTypes = funcCallNode?.inference || [];
   
   // Try array/builtin method calls first
-  if (handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, typeAliases })) {
+  if (handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, pushWarning, typeAliases })) {
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }

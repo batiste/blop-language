@@ -1,6 +1,7 @@
 import { Router } from './lib/router.blop'
 
 async def dogPageIndexHandler(_params, _state) {
+  console.log('dog page index')
 }
 
 def dogPageHandler(params, state) {
@@ -8,15 +9,19 @@ def dogPageHandler(params, state) {
 }
 
 def todoPageHandler(_params, _state) {
+  console.log('todo page')
 }
 
 async def astExplorerPageHandler(_params, _state) {
+  console.log('ast explorer page')
 }
 
 def showcasePageHandler(_params, _state) {
+  console.log('showcase page')
 }
 
 def playgroundPageHandler(_params, _state) {
+  console.log('playground page')
 }
 
 def createRouter(state, global) {
