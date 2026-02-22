@@ -1,7 +1,8 @@
 import { mount } from 'blop'
 
 // Simple test component
-def KeyedComponent(attributes) {
+def KeyedComponent(ctx: Component) {
+  { attributes } = ctx
   { id, label } = attributes
   <div class="keyed" data-id=id>label</div>
 }

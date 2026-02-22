@@ -38,7 +38,19 @@ function resolveGenericType(type, aliasMap) {
 function resolveAliasType(type, aliasMap) {
   if (type instanceof TypeAlias) {
     const resolved = aliasMap.resolve(type);
-    return resolved !== undefined ? resolved : type;
+    // If resolved from user-defined aliases, return that
+    if (resolved !== type) return resolved;
+    // Special case: Component is used as a structural type for direct component calls (e.g. in tests).
+    // Build an ObjectType with all properties optional so plain objects { attributes, children } pass.
+    if (type.name === 'Component' && isBuiltinObjectType(type.name)) {
+      const builtinMembers = getBuiltinObjectType(type.name);
+      const props = new Map();
+      for (const [key, val] of Object.entries(builtinMembers)) {
+        props.set(key, { type: val, optional: true });
+      }
+      return new ObjectType(props, type.name);
+    }
+    return type;
   }
   return type;
 }

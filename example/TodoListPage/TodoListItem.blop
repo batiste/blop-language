@@ -1,5 +1,6 @@
 
-TodoListItem = (attributes: object, _children: array): VNode => {
+TodoListItem = (ctx: Component): VNode => {
+  { attributes } = ctx
   { value,
     changeItem as change,
     removeItem,

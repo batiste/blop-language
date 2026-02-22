@@ -1,11 +1,13 @@
 import { mount } from 'blop'
 
 
-def SimpleComponent(_attributes, children) {
+def SimpleComponent(ctx: Component) {
+  { children } = ctx
   <div class="simple">children</div>
 }
 
-def Card(attributes) {
+def Card(ctx: Component) {
+  { attributes } = ctx
   { title, content, footer } = attributes
   <div class="card">
     <h2>title</h2>
@@ -16,7 +18,8 @@ def Card(attributes) {
   </div>
 }
 
-Button = (attributes, children) => {
+Button = (ctx: Component) => {
+  { attributes, children } = ctx
   { label, variant } = attributes
   className = 'btn-'variant''
   <button class=className>
@@ -25,7 +28,8 @@ Button = (attributes, children) => {
   </button>
 }
 
-def Header(attributes) {
+def Header(ctx: Component) {
+  { attributes } = ctx
   { title } = attributes
   <header>
     <h1>title</h1>
@@ -42,7 +46,8 @@ def Footer() {
   <footer>'Footer content'</footer>
 }
 
-def Page(attributes) {
+def Page(ctx: Component) {
+  { attributes } = ctx
   { title } = attributes
   <div class="page">
     <Header title />
@@ -51,7 +56,8 @@ def Page(attributes) {
   </div>
 }
 
-def Counter(attributes) {
+def Counter(ctx: Component) {
+  { attributes } = ctx
   { count, onIncrement } = attributes
   <div class="counter">
     <span>'Count: 'count</span>
@@ -59,7 +65,8 @@ def Counter(attributes) {
   </div>
 }
 
-def List(attributes, children) {
+def List(ctx: Component) {
+  { attributes, children } = ctx
   { items } = attributes
   <ul>
     for item in items {
@@ -69,7 +76,8 @@ def List(attributes, children) {
   </ul>
 }
 
-def App(attributes) {
+def App(ctx: Component) {
+  { attributes } = ctx
   { user } = attributes
   <div class="app">
     <Header title=user.name />
@@ -81,8 +89,8 @@ def App(attributes) {
   </div>
 }
 
-def CounterDemo(_attributes, _children, node: Component): VNode {
-  { value } = node.useState<number>('count', 0)
+def CounterDemo(ctx: Component): VNode {
+  { value } = ctx.useState<number>('count', 0)
   return <div>value</div>
 }
 
@@ -103,7 +111,8 @@ def SuccessIcon() {
   <span class="icon success">'✓'</span>
 }
 
-def Message(attributes) {
+def Message(ctx: Component) {
+  { attributes } = ctx
   { msgType, text } = attributes
   if msgType == 'error' {
     <div class="error">
@@ -120,7 +129,8 @@ def Message(attributes) {
   }
 }
 
-def TableRow(attributes) {
+def TableRow(ctx: Component) {
+  { attributes } = ctx
   { name, value } = attributes
   <tr>
     <td>name</td>
@@ -128,7 +138,8 @@ def TableRow(attributes) {
   </tr>
 }
 
-def Table(attributes) {
+def Table(ctx: Component) {
+  { attributes } = ctx
   { rows } = attributes
   <table>
     <thead>
@@ -145,23 +156,26 @@ def Table(attributes) {
   </table>
 }
 
-def Link(attributes) {
+def Link(ctx: Component) {
+  { attributes } = ctx
   { href, text } = attributes
   <a href>text</a>
 }
 
-def Navigation(attributes) {
+def Navigation(ctx: Component) {
+  { attributes } = ctx
   { links } = attributes
   <nav>
     for link in links {
       // Using component as a function
-      = Link({ href: link.href, text: link.text })
+      = Link({ attributes: { href: link.href, text: link.text }, children: [] })
     }
   </nav>
 }
 
 // Component with mixed children types
-def Container(attributes, children) {
+def Container(ctx: Component) {
+  { attributes, children } = ctx
   <div class="container">
     <h2>attributes.title</h2>
     for child in children {
@@ -171,7 +185,7 @@ def Container(attributes, children) {
 }
 
 test('simple component', () => {
-  vnode = SimpleComponent({}, ['Hello'])
+  vnode = SimpleComponent({ attributes: {}, children: ['Hello'] })
   expect(vnode.sel).toBe('div')
   expect(vnode.data.attrs['class']).toBe('simple')
   expect(vnode.children[0].text).toBe('Hello')
@@ -179,22 +193,24 @@ test('simple component', () => {
 
 test('component with attributes', () => {
   vnode = Card({
-    title: 'Test Card',
-    content: 'Card content',
-    footer: 'Card footer'
+    attributes: {
+      title: 'Test Card',
+      content: 'Card content',
+      footer: 'Card footer'
+    }
   })
   expect(vnode.sel).toBe('div')
   expect(vnode.children[0].sel).toBe('h2')
 })
 
 test('arrow function component', () => {
-  vnode = Button({ label: 'Click', variant: 'primary' }, [])
+  vnode = Button({ attributes: { label: 'Click', variant: 'primary' }, children: [] })
   expect(vnode.sel).toBe('button')
   expect(vnode.data.attrs['class']).toBe('btn-primary')
 })
 
 test('nested components', () => {
-  vnode = Page({ title: 'Test Page' })
+  vnode = Page({ attributes: { title: 'Test Page' } })
   expect(vnode.sel).toBe('div')
   expect(vnode.data.attrs['class']).toBe('page')
   // Check that child components are rendered
@@ -206,35 +222,35 @@ test('component with counter', () => {
   increment = () => {
     count := count + 1
   }
-  vnode = Counter({ count, onIncrement: increment })
+  vnode = Counter({ attributes: { count, onIncrement: increment } })
   expect(vnode.sel).toBe('div')
   expect(vnode.data.attrs['class']).toBe('counter')
 })
 
 test('component with list', () => {
   items = ['Item 1', 'Item 2', 'Item 3']
-  vnode = List({ items }, [])
+  vnode = List({ attributes: { items }, children: [] })
   expect(vnode.sel).toBe('ul')
   expect(vnode.children.length).toBe(3)
 })
 
 test('composed components', () => {
   user = { name: 'Alice' }
-  vnode = App({ user })
+  vnode = App({ attributes: { user } })
   expect(vnode.sel).toBe('div')
   expect(vnode.data.attrs['class']).toBe('app')
 })
 
 test('conditional component rendering', () => {
-  vnode1 = Message({ msgType: 'error', text: 'Error!' })
+  vnode1 = Message({ attributes: { msgType: 'error', text: 'Error!' } })
   expect(vnode1.sel).toBe('div')
   expect(vnode1.data.attrs['class']).toBe('error')
   
-  vnode2 = Message({ msgType: 'success', text: 'Success!' })
+  vnode2 = Message({ attributes: { msgType: 'success', text: 'Success!' } })
   expect(vnode2.sel).toBe('div')
   expect(vnode2.data.attrs['class']).toBe('success')
   
-  vnode3 = Message({ msgType: 'info', text: 'Info' })
+  vnode3 = Message({ attributes: { msgType: 'info', text: 'Info' } })
   expect(vnode3.sel).toBe('div')
   expect(vnode3.data.attrs['class']).toBe('info')
 })
@@ -244,7 +260,7 @@ test('table with component rows', () => {
     { name: 'First', value: 1 },
     { name: 'Second', value: 2 }
   ]
-  vnode = Table({ rows })
+  vnode = Table({ attributes: { rows } })
   expect(vnode.sel).toBe('table')
   expect(vnode.children[1].sel).toBe('tbody')
 })
@@ -254,7 +270,7 @@ test('component used as function', () => {
     { href: '/home', text: 'Home' },
     { href: '/about', text: 'About' }
   ]
-  vnode = Navigation({ links })
+  vnode = Navigation({ attributes: { links } })
   expect(vnode.sel).toBe('nav')
   expect(vnode.children.length).toBe(2)
 })
@@ -262,7 +278,7 @@ test('component used as function', () => {
 test('container with mixed children', () => {
   child1 = <span>'Child 1'</span>
   child2 = <span>'Child 2'</span>
-  vnode = Container({ title: 'Mixed' }, [child1, child2])
+  vnode = Container({ attributes: { title: 'Mixed' }, children: [child1, child2] })
   expect(vnode.sel).toBe('div')
   expect(vnode.children[0].sel).toBe('h2')
   expect(vnode.children.length >= 2).toBe(true)

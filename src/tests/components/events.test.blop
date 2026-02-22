@@ -6,7 +6,8 @@ inputValue = ''
 changeEvent = undefined
 customData = undefined
 
-def Button(attributes, children) {
+def Button(ctx: Component) {
+  { attributes, children } = ctx
   handleClick = (event) => {
     clickCount := clickCount + 1
     if attributes.onClick {
@@ -17,7 +18,8 @@ def Button(attributes, children) {
   <button class=attributes['class'] on={ click: handleClick }>children</button>
 }
 
-def Input(attributes) {
+def Input(ctx: Component) {
+  { attributes } = ctx
   handleChange = (event) => {
     inputValue := event.target.value
     changeEvent := event
@@ -26,7 +28,7 @@ def Input(attributes) {
   <input type="text" value=attributes.value on={ change: handleChange } />
 }
 
-def MultiEvent(_attributes) {
+def MultiEvent(ctx: Component) {
   _mouseX = 0
   _mouseY = 0
   
@@ -42,12 +44,14 @@ def MultiEvent(_attributes) {
   <div on={ click: handleClick, mousemove: handleMouseMove }>'Multi-event element'</div>
 }
 
-def ClickableItem(attributes) {
+def ClickableItem(ctx: Component) {
+  { attributes } = ctx
   { onClick, label } = attributes
   <div class="item" on={ click: onClick }>label</div>
 }
 
-def ButtonList(attributes) {
+def ButtonList(ctx: Component) {
+  { attributes } = ctx
   { items } = attributes
   <div>
     for item in items {
@@ -56,7 +60,8 @@ def ButtonList(attributes) {
   </div>
 }
 
-def FocusableInput(attributes) {
+def FocusableInput(ctx: Component) {
+  { attributes } = ctx
   input = undefined
   
   handleFocus = (_event) => {
@@ -71,7 +76,8 @@ def FocusableInput(attributes) {
   <div>input</div>
 }
 
-def ConditionalButton(attributes) {
+def ConditionalButton(ctx: Component) {
+  { attributes } = ctx
   { show, message } = attributes
   handleClick = () => {
     clickCount := clickCount + 10
@@ -92,23 +98,23 @@ mockEvent = {
 }
 
 test('button click event', () => {
-  Button({ class: 'btn', onClick: () => {
+  Button({ attributes: { class: 'btn', onClick: () => {
     clickCount := clickCount + 5
     }
-  }, ['Click me'])
+  }, children: ['Click me'] })
   // Simulate clicking would increase clickCount
   expect(clickCount).toBe(0) // Would be incremented on actual click
 })
 
 test('component structure with events', () => {
-  vnode = Button({ class: 'primary' }, ['Test'])
+  vnode = Button({ attributes: { class: 'primary' }, children: ['Test'] })
   expect(vnode.sel).toBe('button')
   expect(vnode.data.attrs['class']).toBe('primary')
   expect(typeof vnode.data.on.click).toBe('function')
 })
 
 test('multiple events on same element', () => {
-  vnode = MultiEvent({})
+  vnode = MultiEvent({ attributes: {} })
   expect(typeof vnode.data.on.click).toBe('function')
   expect(typeof vnode.data.on.mousemove).toBe('function')
 })
@@ -117,7 +123,7 @@ test('events passed through attributes', () => {
   handler = () => {
     clickCount := clickCount + 1
 }
-  vnode = ClickableItem({ onClick: handler, label: 'Click' })
+  vnode = ClickableItem({ attributes: { onClick: handler, label: 'Click' } })
   expect(vnode.sel).toBe('div')
   expect(typeof vnode.data.on.click).toBe('function')
 })

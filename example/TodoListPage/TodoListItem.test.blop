@@ -12,7 +12,8 @@ test('Virtual DOM content', () => {
   expect(node.children[0].text).toBe(content)
 })
 
-def SomeComponent(attributes, children: array) {
+def SomeComponent(ctx: Component) {
+  { attributes, children } = ctx
   <div>
     = attributes.content
     = children

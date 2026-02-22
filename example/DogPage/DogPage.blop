@@ -2,9 +2,10 @@ import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
 
 
-def DogPage(attributes, _children, node: Component): VNode {
+def DogPage(ctx: Component): VNode {
+  { attributes } = ctx
   { state } = attributes
-  node.mount(async () => {
+  ctx.mount(async () => {
     // Using optional chaining to safely check nested property
     if (!state.dogPage?.choice) {
       await getNewDog(state)

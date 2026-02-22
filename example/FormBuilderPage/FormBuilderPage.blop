@@ -1,9 +1,7 @@
 // FormBuilderPage.blop - Demonstrates type-safe forms with real-time validation
 
-def FormField(attributes: {
-    label: string, type: string, value: string,
-    error: string | null, onChange: Function | undefined }, _children): VNode {
-
+def FormField(ctx): VNode {
+  { attributes } = ctx
   { label, type, value, error, onChange } = attributes
   
   hasError = error && error.length > 0
@@ -48,8 +46,8 @@ def validatePassword(password: string): string {
   return ''
 }
 
-FormBuilderPage = (_attributes, _children, node: Component): VNode => {
-  { value as formData, setState as setFormData } = node.useState<{ email: string,
+FormBuilderPage = (ctx: Component): VNode => {
+  { value as formData, setState as setFormData } = ctx.useState<{ email: string,
       password: string, confirmPassword: string }>('formData', {
     email: '',
     password: '',
@@ -57,11 +55,11 @@ FormBuilderPage = (_attributes, _children, node: Component): VNode => {
   })
   
   { value as touched, setState as setTouched
-    } = node.useState('touched', { email: false, password: false, confirmPassword: false })
+    } = ctx.useState('touched', { email: false, password: false, confirmPassword: false })
   { value as submitted, setState as setSubmitted
-    } = node.useState<boolean>('submitted', false)
+    } = ctx.useState<boolean>('submitted', false)
   { value as isLoading, setState as setIsLoading
-    } = node.useState<boolean>('isLoading', false)
+    } = ctx.useState<boolean>('isLoading', false)
   
   def updateField(fieldName: string) {
     return (e) => {
@@ -141,29 +139,29 @@ FormBuilderPage = (_attributes, _children, node: Component): VNode => {
         </ul>
         
         <form on={ submit: handleSubmit }>
-          = FormField({
+          = FormField({ attributes: {
             label: 'Email Address',
             type: 'email',
             value: formData.email,
             error: getFieldError('email'),
             onChange: updateField('email')
-          })
+          } })
           
-          = FormField({
+          = FormField({ attributes: {
             label: 'Password',
             type: 'password',
             value: formData.password,
             error: getFieldError('password'),
             onChange: updateField('password')
-          })
+          } })
           
-          = FormField({
+          = FormField({ attributes: {
             label: 'Confirm Password',
             type: 'password',
             value: formData.confirmPassword,
             error: getFieldError('confirmPassword'),
             onChange: updateField('confirmPassword')
-          })
+          } })
           
           <button
             type="submit"

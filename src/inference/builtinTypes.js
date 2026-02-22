@@ -17,9 +17,15 @@ import {
  * This allows the type system to validate property access on native JS objects.
  */
 let builtinObjectTypes = {
-  // Component type - injected context for component functions
-  // Provides access to hooks like useState, useEffect, etc.
+  // Component type - context object for single-ctx component functions.
+  // When using: def Foo(ctx: Component): VNode { { attributes, children } = ctx }
+  // ctx has shape { attributes, children }.
   Component: {
+    // attributes - object containing all element attributes passed to the component
+    attributes: AnyType,
+    // children - array of child VNodes passed to the component
+    children: Types.array(AnyType),
+
     // function useState(key, initialValue) {
     //   return { value, setState: (newValue) => {}, getState: () => value };
     // }

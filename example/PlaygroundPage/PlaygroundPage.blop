@@ -4,14 +4,14 @@ import { compile } from '../../src/compile-browser.js'
 import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
 
-def PlaygroundPage(_attributes, _children, node: Component): VNode {
+def PlaygroundPage(ctx: Component): VNode {
   defaultCode = 'def Greeting(attributes, _children): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
   
-  { value as code, setState as setCode } = node.useState<string>('code', defaultCode)
-  { value as output, setState as setOutput } = node.useState<string>('output', '')
-  { value as error, setState as setError } = node.useState<string | null>('error', null)
-  { value as warning, setState as setWarning } = node.useState<string | null>('warning', null)
-  { value as isCompiling, setState as setIsCompiling } = node.useState<boolean>('isCompiling', false)
+  { value as code, setState as setCode } = ctx.useState<string>('code', defaultCode)
+  { value as output, setState as setOutput } = ctx.useState<string>('output', '')
+  { value as error, setState as setError } = ctx.useState<string | null>('error', null)
+  { value as warning, setState as setWarning } = ctx.useState<string | null>('warning', null)
+  { value as isCompiling, setState as setIsCompiling } = ctx.useState<boolean>('isCompiling', false)
   
   def handleCodeChange(e) {
     setCode(e.target.value)
@@ -224,19 +224,19 @@ def PlaygroundPage(_attributes, _children, node: Component): VNode {
                 examples = [
                   {
                     name: 'Simple Component',
-                    code: 'def Greeting(attributes, _children): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
+                    code: 'def Greeting(ctx: Component): VNode {\n  { attributes } = ctx\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
                   },
                   {
                     name: 'Counter with State',
-                    code: 'def Counter(_attributes, _children, node): VNode {\n  { value as count, setState } = node.useState(\'count\', 0)\n  \n  <div style={ textAlign: \'center\' }>\n    <h2>count</h2>\n    <button on={ click: () => setState(count + 1) }>\n      \'Increment\'\n    </button>\n  </div>\n}'
+                    code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.useState(\'count\', 0)\n  \n  <div style={ textAlign: \'center\' }>\n    <h2>count</h2>\n    <button on={ click: () => setState(count + 1) }>\n      \'Increment\'\n    </button>\n  </div>\n}'
                   },
                   {
                     name: 'List with For Loop',
-                    code: 'def ItemList(attributes, _children): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
+                    code: 'def ItemList(ctx: Component): VNode {\n  { attributes } = ctx\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
                   },
                   {
                     name: 'Conditional Rendering',
-                    code: 'def StatusMessage(attributes, _children): VNode {\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
+                    code: 'def StatusMessage(ctx: Component): VNode {\n  { attributes } = ctx\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
                   }
                 ]
                 

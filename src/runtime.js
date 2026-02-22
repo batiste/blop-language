@@ -76,7 +76,7 @@ class Component {
 
   renderComponent() {
     try {
-      const node = this.componentFct(this.attributes, this.children, this);
+      const node = this.componentFct(this);
       this._checkOnChange();
       return node;
     } catch (e) {

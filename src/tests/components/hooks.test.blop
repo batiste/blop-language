@@ -8,7 +8,7 @@ removeCalled = false
 postpatchCalled = false
 vnodeData = undefined
 
-def WithInsertHook(_attributes) {
+def WithInsertHook(ctx: Component) {
   hooks = {
     insert: (vnode) => {
       insertCalled := true
@@ -19,7 +19,8 @@ def WithInsertHook(_attributes) {
   <div hooks class="insert-test">'Insert hook test'</div>
 }
 
-def WithMultipleHooks(attributes) {
+def WithMultipleHooks(ctx: Component) {
+  { attributes } = ctx
   _localUpdate = false
   
   hooks = {
@@ -45,7 +46,8 @@ def WithMultipleHooks(attributes) {
   <div hooks class=attributes.class>attributes.text</div>
 }
 
-def AutoFocusInput(attributes) {
+def AutoFocusInput(ctx: Component) {
+  { attributes } = ctx
   hooks = {
     insert: (vnode) => {
       vnode.elm.focus()
@@ -56,7 +58,8 @@ def AutoFocusInput(attributes) {
   <input hooks type="text" value=attributes.value />
 }
 
-def Container(_attributes, children) {
+def Container(ctx: Component) {
+  { children } = ctx
   hooks = {
     insert: (_vnode) => {
       insertCalled := true
@@ -66,7 +69,8 @@ def Container(_attributes, children) {
   <div hooks class="container">children</div>
 }
 
-def ConditionalHook(attributes) {
+def ConditionalHook(ctx: Component) {
+  { attributes } = ctx
   { show } = attributes
   hooks = {
     insert: (_vnode) => {
@@ -84,7 +88,8 @@ def ConditionalHook(attributes) {
   }
 }
 
-def HookedButton(attributes) {
+def HookedButton(ctx: Component) {
+  { attributes } = ctx
   hooks = {
     insert: (vnode) => {
       insertCalled := true
@@ -99,7 +104,8 @@ def HookedButton(attributes) {
   <button hooks on={ click: handleClick }>attributes.label</button>
 }
 
-def HookedList(attributes) {
+def HookedList(ctx: Component) {
+  { attributes } = ctx
   { items } = attributes
   <ul>
     for item in items {
@@ -113,7 +119,8 @@ def HookedList(attributes) {
   </ul>
 }
 
-def UpdateTracker(attributes) {
+def UpdateTracker(ctx: Component) {
+  { attributes } = ctx
   hooks = {
     postpatch: (oldVnode, vnode) => {
       postpatchCalled := true
@@ -128,13 +135,13 @@ def UpdateTracker(attributes) {
 }
 
 test('insert hook structure', () => {
-  vnode = WithInsertHook({})
+  vnode = WithInsertHook({ attributes: {} })
   expect(vnode.sel).toBe('div')
   expect(typeof vnode.data.hook.insert).toBe('function')
 })
 
 test('multiple hooks structure', () => {
-  vnode = WithMultipleHooks({ class: 'test', text: 'Hello' })
+  vnode = WithMultipleHooks({ attributes: { class: 'test', text: 'Hello' } })
   expect(typeof vnode.data.hook.insert).toBe('function')
   expect(typeof vnode.data.hook.update).toBe('function')
   expect(typeof vnode.data.hook.destroy).toBe('function')
@@ -143,7 +150,7 @@ test('multiple hooks structure', () => {
 })
 
 test('auto-focus input with hook', () => {
-  vnode = AutoFocusInput({ value: 'test' })
+  vnode = AutoFocusInput({ attributes: { value: 'test' } })
   expect(vnode.sel).toBe('input')
   expect(typeof vnode.data.hook.insert).toBe('function')
   expect(vnode.data.props.value).toBe('test')
@@ -151,18 +158,18 @@ test('auto-focus input with hook', () => {
 
 test('container with hooks and children', () => {
   child = <span>'Child'</span>
-  vnode = Container({}, [child])
+  vnode = Container({ attributes: {}, children: [child] })
   expect(vnode.sel).toBe('div')
   expect(vnode.children.length).toBe(1)
   expect(typeof vnode.data.hook.insert).toBe('function')
 })
 
 test('hooks with conditional rendering', () => {
-  vnode1 = ConditionalHook({ show: true })
+  vnode1 = ConditionalHook({ attributes: { show: true } })
   expect(vnode1.sel).toBe('div')
   expect(typeof vnode1.data.hook.insert).toBe('function')
   
-  vnode2 = ConditionalHook({ show: false })
+  vnode2 = ConditionalHook({ attributes: { show: false } })
   expect(vnode2.sel).toBe('span')
   // Note: prepatch hook may be added automatically by snabbdom
   expect(vnode2.data.hook.insert).toBe(undefined)
@@ -170,7 +177,7 @@ test('hooks with conditional rendering', () => {
 
 test('hooks combined with events', () => {
   onClick = () => {}
-  vnode = HookedButton({ onClick, label: 'Click' })
+  vnode = HookedButton({ attributes: { onClick, label: 'Click' } })
   expect(typeof vnode.data.hook.insert).toBe('function')
   expect(typeof vnode.data.on.click).toBe('function')
 })
@@ -180,7 +187,7 @@ test('hooks in loop', () => {
     { id: '1', name: 'First' },
     { id: '2', name: 'Second' }
   ]
-  vnode = HookedList({ items })
+  vnode = HookedList({ attributes: { items } })
   expect(vnode.sel).toBe('ul')
   expect(vnode.children.length).toBe(2)
   expect(typeof vnode.children[0].data.hook.insert).toBe('function')

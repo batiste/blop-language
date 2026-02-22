@@ -1,7 +1,8 @@
 // ShowcasePage - Interactive demonstration of Blop's strengths
 
 // Code Display Component
-def CodeBlock(attributes: { code: string, title?: string }, _children): VNode {
+def CodeBlock(ctx: Component): VNode {
+  { attributes } = ctx
   { code, title } = attributes
   
   borderRadius = '6px'
@@ -36,7 +37,8 @@ def CodeBlock(attributes: { code: string, title?: string }, _children): VNode {
 }
 
 // Feature cards showing key advantages
-def FeatureCard(attributes: { icon: string, title: string, color: string }, children): VNode {
+def FeatureCard(ctx: Component): VNode {
+  { attributes, children } = ctx
   { icon, title, color } = attributes
   
   <div class="col-md-4" style={ marginBottom: '1.5em' }>
@@ -53,8 +55,8 @@ def FeatureCard(attributes: { icon: string, title: string, color: string }, chil
 }
 
 //  Interactive Counter Demo
-def CounterDemo(_attributes, _children, node: Component): VNode {
-  { value as count, setState } = node.useState<number>('count', 0)
+def CounterDemo(ctx: Component): VNode {
+  { value as count, setState } = ctx.useState<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em', margin: '0.3em 0', color: '#0d6efd', fontWeight: 'bold' }>count</h2>
@@ -82,8 +84,8 @@ def CounterDemo(_attributes, _children, node: Component): VNode {
 }
 
 // Dynamic List with For Loops
-def ListDemo(_attributes, _children, node: Component): VNode {
-  { value as items, setState } = node.useState<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
+def ListDemo(ctx: Component): VNode {
+  { value as items, setState } = ctx.useState<string[]>('items', ['Apple', 'Banana', 'Cherry', 'Dragon Fruit'])
   
   def addItem() {
     itemNumber_ = items.length + 1
@@ -135,9 +137,9 @@ def ListDemo(_attributes, _children, node: Component): VNode {
 }
 
 // Conditional Rendering Demo
-def ConditionalDemo(_attributes, _children, node: Component): VNode {
-  { value as visible, setState as setVisible } = node.useState<boolean>('visible', true)
-  { value as mood, setState as setMood } = node.useState<string>('mood', 'happy')
+def ConditionalDemo(ctx: Component): VNode {
+  { value as visible, setState as setVisible } = ctx.useState<boolean>('visible', true)
+  { value as mood, setState as setMood } = ctx.useState<string>('mood', 'happy')
   
   moods = ['happy', 'sad', 'excited', 'confused', 'cool']
   emojis = { happy: '😊', sad: '😢', excited: '🎉', confused: '🤔', cool: '😎' }
@@ -193,9 +195,10 @@ def ConditionalDemo(_attributes, _children, node: Component): VNode {
 }
 
 // Tabs component for different sections
-def ShowcasePage(attributes, _children, node: Component): VNode {
+def ShowcasePage(ctx: Component): VNode {
+  { attributes } = ctx
   { _state } = attributes
-  { value as activeTab, setState as setActiveTab } = node.useState<string>('activeTab', 'overview')
+  { value as activeTab, setState as setActiveTab } = ctx.useState<string>('activeTab', 'overview')
   
   def switchTab(tab: string) {
     return (e) => {
@@ -337,7 +340,7 @@ def ShowcasePage(attributes, _children, node: Component): VNode {
             '🔢 Interactive Counter'
           </h2>
           <p class="text-center" style={ fontSize: '1.1em', color: '#6c757d', marginBottom: '2em' }>
-            'Simple, reactive state management with node.useState()'
+            'Simple, reactive state management with ctx.useState()'
           </p>
           
           <div class="row">
@@ -345,8 +348,8 @@ def ShowcasePage(attributes, _children, node: Component): VNode {
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
                 title="CounterDemo.blop"
-                code="def CounterDemo(_attributes, _children, node: Component): VNode {
-  { value as count, setState } = node.useState<number>('count', 0)
+                code="def CounterDemo(ctx: Component): VNode {
+  { value as count, setState } = ctx.useState<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
     <h2 style={ fontSize: '4em' }>count</h2>
@@ -392,8 +395,8 @@ def ShowcasePage(attributes, _children, node: Component): VNode {
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
                 title="ListDemo.blop"
-                code="def ListDemo(_attributes, _children, node: Component): VNode {
-  { value as items, setState } = node.useState<string>('items', 
+                code="def ListDemo(ctx: Component): VNode {
+  { value as items, setState } = ctx.useState<string>('items', 
     ['Apple', 'Banana', 'Cherry'])
   
   def addItem() {
@@ -454,9 +457,9 @@ def ShowcasePage(attributes, _children, node: Component): VNode {
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
                 title="ConditionalDemo.blop"
-                code="def ConditionalDemo(_attributes, _children, node): VNode {
+                code="def ConditionalDemo(ctx: Component): VNode {
   { value as visible, setState as setVisible } = 
-    node.useState('visible', true)
+    ctx.useState('visible', true)
   
   <div style={ padding: '1em' }>
     // Simple if/else for button class and text
@@ -609,9 +612,10 @@ for key, value in myObject {
             <div class="row">
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
-                <CodeBlock code="def TodoItem(attributes, _children, node: Component): VNode {
+                <CodeBlock code="def TodoItem(ctx: Component): VNode {
+  { attributes } = ctx
   { todo } = attributes
-  { value as done, setState } = node.useState<boolean>('done', false)
+  { value as done, setState } = ctx.useState<boolean>('done', false)
   
   classes = if done 'todo-item' else 'todo-item completed'
   

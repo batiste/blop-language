@@ -51,7 +51,8 @@ def loop2(array) {
   </div>
 }
 
-def Test(attributes) {
+def Test(ctx: Component) {
+  { attributes } = ctx
   <span>attributes.value</span>
 }
 
@@ -60,8 +61,9 @@ def loop3(array) {
 }
 
 lifeCycleContent = []
-def TestLifecycle(attributes, _children, node) {
-  node.mount(() => {
+def TestLifecycle(ctx: Component) {
+  { attributes } = ctx
+  ctx.mount(() => {
     lifeCycleContent.push(attributes.value)
   })
   <span>attributes.value</span>
@@ -134,11 +136,11 @@ test('attribut with dash', () => {
 })
 
 lifeCycleCalled = 0
-def TestLifecycle2(_attributes, _children, node) {
-  node.mount(() => {
+def TestLifecycle2(ctx: Component) {
+  ctx.mount(() => {
     lifeCycleCalled := lifeCycleCalled + 1
   })
-  node.mount(() => {
+  ctx.mount(() => {
     lifeCycleCalled := lifeCycleCalled + 2
   })
   <span>1</span>

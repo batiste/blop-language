@@ -4,10 +4,11 @@ import { tokenize, parse } from '../../src/parser-browser.js'
 
 
 // Recursive TreeNode component for displaying AST nodes
-def TreeNode(attributes, _children, node: Component): VNode {
+def TreeNode(ctx: Component): VNode {
+  { attributes } = ctx
   { astNode, depth, path } = attributes
 
-  { value as expanded, setState as setExpanded } = node.useState<boolean>('expanded', depth < 2)
+  { value as expanded, setState as setExpanded } = ctx.useState<boolean>('expanded', depth < 2)
   
   def toggleExpand() {
     setExpanded(!expanded)
@@ -111,14 +112,14 @@ def TreeNode(attributes, _children, node: Component): VNode {
   </div>
 }
 
-def ASTExplorer(_attributes, _children, node: Component): VNode {
+def ASTExplorer(ctx: Component): VNode {
   defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
   
-  { value as code, setState as setCode } = node.useState<string>('code', defaultCode)
-  { value as ast, setState as setAst } = node.useState('ast', null)
-  { value as error, setState as setError } = node.useState<string | null>('error', null)
-  { value as showTokens, setState as setShowTokens } = node.useState<boolean>('showTokens', false)
-  { value as tokens, setState as setTokens } = node.useState<any>('tokens', null)
+  { value as code, setState as setCode } = ctx.useState<string>('code', defaultCode)
+  { value as ast, setState as setAst } = ctx.useState('ast', null)
+  { value as error, setState as setError } = ctx.useState<string | null>('error', null)
+  { value as showTokens, setState as setShowTokens } = ctx.useState<boolean>('showTokens', false)
+  { value as tokens, setState as setTokens } = ctx.useState<any>('tokens', null)
   
   def handleCodeChange(e) {
     setCode(e.target.value)
@@ -144,7 +145,7 @@ def ASTExplorer(_attributes, _children, node: Component): VNode {
     }
   }
   
-  node.mount(() => {
+  ctx.mount(() => {
     parseCode()
   })
   

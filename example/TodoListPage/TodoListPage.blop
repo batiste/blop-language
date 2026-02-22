@@ -4,21 +4,23 @@ import { TodoListItem } from './TodoListItem.blop'
 // Type definition for todo items
 // type TodoItem = { text: string, completed: boolean, id: number }
 
-AutoFocusInput = (state) => {
+AutoFocusInput = (ctx: Component) => {
+  { attributes } = ctx
   hooks = { insert: (vnode) => vnode.elm.focus() }
   <input
     hooks
     type="text"
-    value=state.value
+    value=attributes.value
     class="form-control"
-    on=state.on
+    on=attributes.on
     autofocus=true
     placeholder="What needs to be done?"
     style={ fontSize: '16px', padding: '0.5em' } />
 }
 
 // Filter tabs component
-FilterTabs = (attributes) => {
+FilterTabs = (ctx: Component) => {
+  { attributes } = ctx
   { currentFilter, setFilter } = attributes
   
   def filterButton(filter, label) {
@@ -43,7 +45,8 @@ FilterTabs = (attributes) => {
 }
 
 // Statistics component
-TodoStats = (attributes) => {
+TodoStats = (ctx: Component) => {
+  { attributes } = ctx
   { total, active, completed } = attributes
   
   alertStyle = { padding: '0.75em', marginBottom: '1em' }
@@ -56,7 +59,8 @@ TodoStats = (attributes) => {
   </div>
 }
 
-TodoListPage = (attributes, _children, node: Component): VNode => {
+TodoListPage = (ctx: Component): VNode => {
+  { attributes } = ctx
   { todo } = attributes
   
   // Initialize todoList if it doesn't exist or is old format
@@ -83,7 +87,7 @@ TodoListPage = (attributes, _children, node: Component): VNode => {
     }
   }
 
-  node.mount(() => {
+  ctx.mount(() => {
     console.log('mount TodoListPage')
     document.addEventListener('click', unselect)
   }).unmount(() => {

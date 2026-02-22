@@ -20,8 +20,8 @@ describe('Binary operator order - debugging', () => {
 
   it('with useState - number + string should fail', () => {
     const code = `
-      def CounterDemo(_attributes, _children, node: Component): VNode {
-        { value } = node.useState<number>('count', 0)
+      def CounterDemo(ctx: Component): VNode {
+        { value } = ctx.useState<number>('count', 0)
         result = value + 'a'
         return <div>value</div>
       }
@@ -31,8 +31,8 @@ describe('Binary operator order - debugging', () => {
 
   it('with useState - string + number should fail', () => {
     const code = `
-      def CounterDemo(_attributes, _children, node: Component): VNode {
-        { value } = node.useState<number>('count', 0)
+      def CounterDemo(ctx: Component): VNode {
+        { value } = ctx.useState<number>('count', 0)
         result = 'a' + value
         return <div>value</div>
       }

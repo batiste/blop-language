@@ -30,7 +30,8 @@ def pagination(petStore) {
   </p>
 }
 
-def PetStore(attributes, _chilren, node: Component): VNode {
+def PetStore(ctx: Component): VNode {
+  { attributes } = ctx
   { state } = attributes
   petStore = state.petStore
   pets = petStore.pets
@@ -39,12 +40,12 @@ def PetStore(attributes, _chilren, node: Component): VNode {
   page = petStore.pets.slice(start, (pageIndex + 1) * pageSize)
   controller = null
 
-  node.mount(() => {
+  ctx.mount(() => {
     console.log('mount PetStore')
     controller := getPets(state)
   })
 
-  node.unmount(() => {
+  ctx.unmount(() => {
     console.log('unmount PetStore')
     if controller => controller.abort()
   })
