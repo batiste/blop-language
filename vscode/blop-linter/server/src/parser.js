@@ -3409,25 +3409,45 @@ let object_type_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_1 = single_space_or_newline(stream, i);
+  const _rule_1 = wcomment(stream, i);
   if (!_rule_1) return false;
   children.push(_rule_1);
   i = _rule_1.last_index;
-  const _rule_2 = object_type_properties(stream, i);
-  if (!_rule_2) return false;
-  named['properties'] = _rule_2;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  const _rule_3 = single_space_or_newline(stream, i);
-  if (!_rule_3) return false;
-  children.push(_rule_3);
-  i = _rule_3.last_index;
+
+  if (stream[i].type !== 'newline') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  if (stream[i].type === 'W') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_5 = object_type_properties(stream, i);
+  if (!_rule_5) return false;
+  named['properties'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  const _rule_6 = single_space_or_newline(stream, i);
+  if (!_rule_6) return false;
+  children.push(_rule_6);
+  i = _rule_6.last_index;
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 7,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3464,12 +3484,25 @@ let object_type_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
+  const _rule_1 = single_space_or_newline(stream, i);
+  if (!_rule_1) return false;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  const _rule_2 = object_type_properties(stream, i);
+  if (!_rule_2) return false;
+  named['properties'] = _rule_2;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  const _rule_3 = single_space_or_newline(stream, i);
+  if (!_rule_3) return false;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3484,9 +3517,52 @@ let object_type_1 = (stream, index) => {
 object_type_1 = memoize('object_type_1', object_type_1);
 
 
+let object_type_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_type',
+    sub_rule_index: 2, type: 'object_type', named,
+  };
+
+  if (stream[i].type !== '{') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== '}') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_type_2 = memoize('object_type_2', object_type_2);
+
+
 function object_type(stream, index) {
   return object_type_0(stream, index)
-    || object_type_1(stream, index);
+    || object_type_1(stream, index)
+    || object_type_2(stream, index);
 }
 let object_type_properties_0 = (stream, index) => {
   let i = index;
@@ -3514,14 +3590,19 @@ let object_type_properties_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_2 = single_space_or_newline(stream, i);
-  if (!_rule_2) return false;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-  const _rule_3 = object_type_properties(stream, i);
+  const _rule_2 = wcomment(stream, i);
+  if (_rule_2) {
+    children.push(_rule_2);
+    i = _rule_2.last_index;
+  }
+  const _rule_3 = single_space_or_newline(stream, i);
   if (!_rule_3) return false;
   children.push(_rule_3);
   i = _rule_3.last_index;
+  const _rule_4 = object_type_properties(stream, i);
+  if (!_rule_4) return false;
+  children.push(_rule_4);
+  i = _rule_4.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -3540,8 +3621,10 @@ let object_type_properties_1 = (stream, index) => {
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
-  if (stream[i].type === ',') {
-    children.push(stream[i]); i++;
+  const _rule_1 = wcomment(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
   }
   node.success = i === stream.length; node.last_index = i;
   return node;
@@ -4301,20 +4384,25 @@ let func_body_fat_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_1 = SCOPED_STATEMENTS(stream, i);
-  while (_rule_1) {
-    named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_1);
+  const _rule_1 = wcomment(stream, i);
+  if (_rule_1) {
     children.push(_rule_1);
     i = _rule_1.last_index;
-    _rule_1 = SCOPED_STATEMENTS(stream, i);
+  }
+  let _rule_2 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_2) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_2);
+    children.push(_rule_2);
+    i = _rule_2.last_index;
+    _rule_2 = SCOPED_STATEMENTS(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'func_body_fat', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4374,20 +4462,25 @@ let func_body_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_1 = SCOPED_STATEMENTS(stream, i);
-  while (_rule_1) {
-    named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_1);
+  const _rule_1 = wcomment(stream, i);
+  if (_rule_1) {
     children.push(_rule_1);
     i = _rule_1.last_index;
-    _rule_1 = SCOPED_STATEMENTS(stream, i);
+  }
+  let _rule_2 = SCOPED_STATEMENTS(stream, i);
+  while (_rule_2) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_2);
+    children.push(_rule_2);
+    i = _rule_2.last_index;
+    _rule_2 = SCOPED_STATEMENTS(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'func_body', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);

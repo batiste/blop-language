@@ -2,8 +2,7 @@
 import { register } from './navigation.blop'
 
 // type Test = {
-//     // toUpperCase: () => string,
-//     b: string
+//     toUpperCase: () => string,
 // }
 
 type Route = {
@@ -15,8 +14,8 @@ type Route = {
 }
 
 // TODO: This should not be allowed
-// r: Route[] = []
-// r.push(1)
+// _routes: Route[] = []
+// _routes.push(1)
 
 def escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')

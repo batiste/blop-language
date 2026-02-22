@@ -114,12 +114,13 @@ const grammar = {
     ['type_expression:arg'],
   ],
   'object_type': [
+    ['{', 'wcomment', 'newline', 'w?', 'W?', 'object_type_properties:properties', 'single_space_or_newline', '}'],
     ['{', 'single_space_or_newline', 'object_type_properties:properties', 'single_space_or_newline', '}'],
     ['{', '}'],
   ],
   'object_type_properties': [
     ['object_type_property', ',', 'wcomment?', 'single_space_or_newline', 'object_type_properties'],
-    ['object_type_property'],
+    ['object_type_property', 'wcomment?'],
   ],
   'object_type_property': [
     ['name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
@@ -148,11 +149,11 @@ const grammar = {
     ['exp'],
   ],
   'func_body_fat': [
-    ['{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['{', 'wcomment?', 'SCOPED_STATEMENTS*:stats', '}'],
     ['exp:exp'],
   ],
   'func_body': [
-    ['{', 'SCOPED_STATEMENTS*:stats', '}'],
+    ['{', 'wcomment?', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'class_def': [
     ['clazz', 'name:name', 'w', 'extends', 'name:extends', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
