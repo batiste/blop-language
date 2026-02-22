@@ -132,6 +132,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
         if (imp.type === 'default') {
           final.push(`import * as ${imp.as} from '${imp.path}';\n`);
         } else if (imp.type === 'destructured') {
+          if (imp.names.length === 0) return; // all names were type-only
           const specifiers = imp.names.map(n => 
             n.source !== n.local ? `${n.source} as ${n.local}` : n.source
           ).join(', ');

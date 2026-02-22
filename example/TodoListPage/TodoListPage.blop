@@ -60,11 +60,12 @@ TodoStats = (ctx: Component) => {
 }
 
 TodoListPage = (ctx: Component): VNode => {
+  { value as inputValue, setState as setInputValue } = ctx.state('input', '')
   { attributes } = ctx
   { todo } = attributes
   
   // Initialize todoList if it doesn't exist or is old format
-  if !todo.todoList || typeof todo.todoList[0] == 'string' {
+  if !todo.todoList {
     todo.todoList = []
   }
   
@@ -97,18 +98,17 @@ TodoListPage = (ctx: Component): VNode => {
 
   addItem = (e) => {
     e.preventDefault()
-    // Using optional chaining with nullish coalescing
-    inputValue = todo.inputValue?.trim() ?? ''
-    if (inputValue) {
-      newTodo = { id: todo.nextId, text: inputValue, completed: false }
-      todo.nextId = todo.nextId + 1
+    value = inputValue.trim()
+    if (value) {
+      nextId = Math.max(...todoList.map((item) => item.id)) + 1
+      newTodo = { id: nextId, text: value, completed: false }
       todoList.push(newTodo)
-      todo.inputValue = ''
+      setInputValue('')
     }
   }
   
   change = (e) => {
-    todo.inputValue = e.target.value
+    setInputValue(e.target.value)
   }
 
   editItem = (index: number) => (e) => {
@@ -208,7 +208,14 @@ TodoListPage = (ctx: Component): VNode => {
             shouldRender = todo.filter == 'all' || (todo.filter == 'active' && !item.completed) || (todo.filter == 'completed' && item.completed)
             
             if shouldRender {
-              <TodoListItem removeItem=remove(index) editItem=editItem(index) changeItem=changeItem(index) toggleComplete=toggleComplete(index) editMode=todo.editItemIndex == index completed=item.completed value=item.text />
+              <TodoListItem removeItem=remove(index)
+                key=item.id
+                editItem=editItem(index)
+                changeItem=changeItem(index)
+                toggleComplete=toggleComplete(index)
+                editMode=todo.editItemIndex == index
+                completed=item.completed
+                value=item.text />
             }
           }
         </ul>

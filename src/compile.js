@@ -39,7 +39,9 @@ function compileSource(source, filename = false, enableInference = false) {
   }
 
   // Generate code - always use ESM format
-  const result = backend.generateCode(tree, stream, source, filename, null, false, 'vite');
+  // resolve=true enables import key validation (including type-only import stripping).
+  // resolveImport already guards against missing filenames, so this is safe.
+  const result = backend.generateCode(tree, stream, source, filename, null, true, 'vite');
 
   if (!result.success) {
     displayBackendError(stream, result.errors[0]);

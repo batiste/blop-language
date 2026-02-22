@@ -1,7 +1,7 @@
 import path from 'path';
 
 function createImportGenerators(context) {
-  const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename } = context;
+  const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename, scopes } = context;
   const { registerName, resolveImport, getExports } = validators;
 
   function destructuringValues(node, exportKeys) {
@@ -112,6 +112,25 @@ function createImportGenerators(context) {
       
       if (importedFilename) {
         resolveImport(importedFilename, fileNode, importedKeys, context.resolve);
+        
+        // Strip type-only names (e.g. `type State`) from the JS import — they
+        // have no runtime export and would cause a browser SyntaxError.
+        if (importInfo.type === 'destructured') {
+          const typeOnlyKeys = new Set(
+            importedKeys.filter(k => k.isType).map(k => k.key)
+          );
+          if (typeOnlyKeys.size > 0) {
+            importInfo.names = importInfo.names.filter(n => !typeOnlyKeys.has(n.source));
+            // Also mark the scope entries as type-only so they're excluded from
+            // the file's export { } statement.
+            const scope = scopes.currentBlock();
+            for (const name of typeOnlyKeys) {
+              if (scope.names[name]) {
+                scope.names[name].isType = true;
+              }
+            }
+          }
+        }
         
         // If importing from a .blop file, mark that we have blop imports
         // This allows type validation to be more lenient

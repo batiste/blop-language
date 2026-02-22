@@ -8,14 +8,14 @@ type State = {
   route: { name: string, params: object },
   memes: string[],
   loading: boolean,
-  todoList: string[]
+  todoList: { text: string, completed: boolean, id: number }[]
 }
 
 state: State = {
   todoList: [
-    'Buy some milk',
-    'Take out the trash',
-    'Recycle'
+    { text: 'Buy some milk', completed: false, id: 1 },
+    { text: 'Take out the trash', completed: false, id: 2 },
+    { text: 'Recycle', completed: false, id: 3 }
   ],
   dogPage: { score: 0, attempt: 0, success: 0 },
   petStore: { pets: [], pageIndex: 0 },

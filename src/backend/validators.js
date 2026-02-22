@@ -127,23 +127,29 @@ function createValidators(context) {
     const exports = getExports(filename);
     for (let i = 0; i < importedKeys.length; i++) {
       const { key, node } = importedKeys[i];
-      if (!exports.objects[key]) {
+      if (exports.typeAliases && exports.typeAliases[key]) {
+        // Type-only import — valid at the type level, but has no runtime export.
+        // Mark it so the code generator can strip it from the JS import statement.
+        importedKeys[i].isType = true;
+      } else if (!exports.objects[key]) {
         generateError(node, ERROR_MESSAGES.IMPORT_KEY_NOT_EXPORTED(key, filename));
       }
     }
   }
 
   function resolveImport(name, node, importedKeys, resolve) {
-    if (!checkFilename || resolve !== true) {
+    if (!checkFilename || resolve !== true || !path.isAbsolute(checkFilename)) {
       return;
     }
     let filename;
     try {
-      // Create require function for module resolution
-      const requireFn = createRequire(checkFilename);
       if (name.startsWith('.')) {
-        filename = requireFn.resolve(name, { paths: [path.dirname(checkFilename)] });
+        // Relative import — resolve directly with path.resolve
+        // (createRequire rejects .blop extensions and would throw)
+        filename = path.resolve(path.dirname(checkFilename), name);
       } else {
+        // Package import — use Node module resolution
+        const requireFn = createRequire(checkFilename);
         filename = requireFn.resolve(name, { paths: [path.dirname(checkFilename)] });
       }
       if (filename.endsWith('.blop')) {

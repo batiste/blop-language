@@ -50,7 +50,7 @@ TodoListItem = (ctx: Component): VNode => {
     transition: 'all 0.2s ease'
   }
 
-  <div class="card" style=cardStyle>
+  <div class="card" style=cardStyle key=attributes.key>
     <div class="card-body" style={ padding: '10px' }>
       <div class="form-row align-items-center">
         <div class="col-auto">
