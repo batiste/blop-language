@@ -90,7 +90,7 @@ multiply = (a, b) => {
 
 ## Loops
 
-### `for … in`
+### `for … in`, `for … of`
 
 Iterate over arrays or objects. You can optionally capture the index/key as a first variable.
 
@@ -103,7 +103,11 @@ for pet in petList {
 }
 
 // Index + value
-for index, pet in petList {
+for index, pet in petList { // Use Object.keys on petList to get indices for objects
+  console.log(index, pet)
+}
+
+for index, pet of petList { // Use numerical indices for arrays
   console.log(index, pet)
 }
 

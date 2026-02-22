@@ -57,7 +57,9 @@ function createLoopGenerators(context) {
         const f_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
+        // use for ... of for arrays to preserve correct this binding and handle sparse arrays
         output.push(`; let ${key}=0; for(; ${key} < ${f_uid}.length; ${key}++) { let ${value} = ${f_uid}[${key}];`);
+        // output.push(`; for(let ${key} of ${f_uid}) { let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;
@@ -69,8 +71,10 @@ function createLoopGenerators(context) {
         const i_uid = uid();
         output.push(`let ${f_uid} = `);
         output.push(...generateCode(node.named.exp));
-        output.push(`; let ${k_uid} = Object.keys(${f_uid}); let ${key}; `);
-        output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
+        // output.push(`; let ${k_uid} = Object.keys(${f_uid}); let ${key}; `);
+        // output.push(`for(let ${i_uid}=0; ${i_uid} < ${k_uid}.length; ${i_uid}++) { ${key} = ${k_uid}[${i_uid}]; let ${value} = ${f_uid}[${key}];`);
+        // use for ... in for objects to preserve non-enumerable properties and correct this binding
+        output.push(`; for(let ${key} in ${f_uid}) { let ${value} = ${f_uid}[${key}];`);
         node.named.stats ? node.named.stats.forEach(
           stat => output.push(...generateCode(stat)),
         ) : null;

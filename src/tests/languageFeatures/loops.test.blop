@@ -19,16 +19,16 @@ c = 0
 myobject = {}
 outkey = undefined
 hello = undefined
-for key, value of [1, 10, 100, 1000, 10000] {
+for index, value of [1, 10, 100, 1000, 10000] {
   hello := 12
-  outkey := key
+  outkey := index
   if value > 9999 {
     break
   }
   if value > 99 {
-    myobject['m'key] = value
+    myobject['m'index] = value
   }
-  c := key
+  c := index
 }
 
 newArray = []
