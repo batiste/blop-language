@@ -5,6 +5,7 @@ import { getNewDog } from './services.blop'
 def DogPage(ctx: Component): VNode {
   { attributes } = ctx
   { state } = attributes
+
   ctx.mount(async () => {
     // Using optional chaining to safely check nested property
     if (!state.dogPage?.choice) {

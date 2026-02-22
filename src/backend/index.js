@@ -89,7 +89,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       const output = func(node);
       if (node.line_start !== undefined) {
         const sn = new sourceMap.SourceNode(
-          node.line_start || 1,
+          node.line_start + 1,
           node.column_start,
           _filename,
           output,
