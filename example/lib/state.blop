@@ -14,14 +14,15 @@ def joinPath(base, prop) {
   return base'.'prop
 }
 
+
 def create(state, options={ readOnly: false }) {
   modifications = []
   callbacks = []
   { readOnly } = options
-  hasBeenFlushed = false
+  hasNeverBeenFlushed = true
   def flush() {
     modifications.splice(0, modifications.length) // retain the ref. on the array
-    hasBeenFlushed := true
+    hasNeverBeenFlushed := false
   }
   def listen(callback) {
     callbacks.push(callback)
@@ -38,8 +39,8 @@ def create(state, options={ readOnly: false }) {
   }
   def handler(currentState, path='') {
     def hasChanged(extrapath='') {
-      // just to return true on the first time
-      if !hasBeenFlushed {
+      // just to return true the first time
+      if hasNeverBeenFlushed {
         return true
       }
       completePath = joinPath(path, extrapath)

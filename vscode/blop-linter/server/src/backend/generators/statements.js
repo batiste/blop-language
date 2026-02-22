@@ -160,6 +160,9 @@ function createStatementGenerators(context) {
           // Register in function scope for hoisting so variable is declared
           const funcScope = scopes.type(SCOPE_TYPES.FUNCTION);
           funcScope.names[node.named.name.value] = { node, token: node.named.name, hoist: true };
+        } else {
+          // Explicit reassignment (:=) — mark the outer-scope binding as used
+          shouldBeDefined(node.named.name.value, node.named.name);
         }
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {
