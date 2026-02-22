@@ -5,7 +5,7 @@ import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
 
 def PlaygroundPage(ctx: Component): VNode {
-  defaultCode = 'def Greeting(attributes, _children): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
+  defaultCode = 'def Greeting({ attributes }: Component): VNode {\n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'attributes.name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
   
   { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
   { value as output, setState as setOutput } = ctx.state<string>('output', '')
@@ -224,7 +224,7 @@ def PlaygroundPage(ctx: Component): VNode {
                 examples = [
                   {
                     name: 'Simple Component',
-                    code: 'def Greeting(ctx: Component): VNode {\n  { attributes } = ctx\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
+                    code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
                   },
                   {
                     name: 'Counter with State',
@@ -232,11 +232,11 @@ def PlaygroundPage(ctx: Component): VNode {
                   },
                   {
                     name: 'List with For Loop',
-                    code: 'def ItemList(ctx: Component): VNode {\n  { attributes } = ctx\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
+                    code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
                   },
                   {
                     name: 'Conditional Rendering',
-                    code: 'def StatusMessage(ctx: Component): VNode {\n  { attributes } = ctx\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
+                    code: 'def StatusMessage({ attributes }: Component): VNode {\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
                   }
                 ]
                 

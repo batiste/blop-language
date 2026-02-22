@@ -613,7 +613,6 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
                 <CodeBlock code="def TodoItem(ctx: Component): VNode {
-  { attributes } = ctx
   { value as done, setState } = ctx.state<boolean>('done', false)
   
   classes = if done => 'todo-item' else 'todo-item completed'
@@ -621,7 +620,7 @@ for key, value in myObject {
   <li 
     class=classes 
     on={ click: () => setState(!done) }>
-      <span>attributes.todo.title</span>
+      <span>ctx.attributes.todo.title</span>
       if done {
         <span class=\"check\">'✓'</span>
       }
