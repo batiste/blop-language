@@ -207,14 +207,13 @@ function handleNullishOperator(types, i) {
 function handleAssignment(types, i, assignNode) {
   const { annotation, name, explicit_assign, destructuring } = assignNode.named;
   const valueType = types[i - 1];
+  // Parse annotation type once, used both for type-checking and scope registration
+  const annotationType = annotation ? getAnnotationType(annotation) : null;
 
-  if (annotation && valueType && valueType !== AnyType) {
-    const annotationType = getAnnotationType(annotation);
-    if (annotationType) {
-      const result = TypeChecker.checkAssignment(valueType, annotationType, typeAliases);
-      if (!result.valid) {
-        pushWarning(assignNode, result.warning);
-      }
+  if (annotationType && valueType && valueType !== AnyType) {
+    const result = TypeChecker.checkAssignment(valueType, annotationType, typeAliases);
+    if (!result.valid) {
+      pushWarning(assignNode, result.warning);
     }
   }
   
@@ -318,15 +317,12 @@ function handleAssignment(types, i, assignNode) {
       } else if (!result.definition) {
         const scope = getCurrentScope();
         scope[name.value] = {
-          type: valueType,
+          type: annotationType ?? valueType,
           node: assignNode,
         };
       }
       // Stamp definition site for hover — prefer declared annotation type if available
       if (inferencePhase === 'inference' && name.inferredType === undefined) {
-        const annotationType = assignNode.named.annotation
-          ? getAnnotationType(assignNode.named.annotation)
-          : null;
         name.inferredType = annotationType ?? valueType;
       }
     }
