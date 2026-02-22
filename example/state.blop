@@ -1,6 +1,17 @@
 import create from './lib/state.blop'
 
-state: object = {
+type State = {
+  dogPage: { score: number, attempt: number, success: number,
+    choice?: { url: string, breed: string, image: string }
+  },
+  petStore: { pets: string[], pageIndex: number },
+  route: { name: string, params: object },
+  memes: string[],
+  loading: boolean,
+  todoList: string[]
+}
+
+state: State = {
   todoList: [
     'Buy some milk',
     'Take out the trash',

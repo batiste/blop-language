@@ -52,4 +52,34 @@ describe('Object type structural validation - negative tests', () => {
     `;
     expectCompiles(code);
   });
+
+  test('accepts nested object type assignment', () => {
+    // Regression: nested object type properties (e.g. score inside dogPage) were
+    // being hoisted to the top-level of the parent type, causing false positives.
+    const code = `
+      type State = {
+        dogPage: { score: number }
+      }
+
+      test: State = {
+        dogPage: { score: 0 }
+      }
+      test
+    `;
+    expectCompiles(code);
+  });
+
+  test('rejects nested object with wrong property type', () => {
+    const code = `
+      type State = {
+        dogPage: { score: number }
+      }
+
+      test: State = {
+        dogPage: { score: 'not-a-number' }
+      }
+      test
+    `;
+    expectCompilationError(code, 'score');
+  });
 });

@@ -1,4 +1,6 @@
-async def getNewDog(state) {
+import { State } from '../state.blop'
+
+async def getNewDog(state: State) {
   state.loading = true
   try {
     response = await fetch(`https://dog.ceo/api/breeds/image/random`)

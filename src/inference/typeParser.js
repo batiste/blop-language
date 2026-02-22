@@ -189,6 +189,11 @@ export function parseObjectType(objectTypeNode) {
       if (key) {
         properties.set(key, { type: valueType, optional });
       }
+      // Do NOT recurse into this property's children — valueType is already
+      // handled by parseTypeExpression above. Recursing would hoist nested
+      // object properties (e.g. score inside dogPage:{score:number}) to the
+      // top level, corrupting the outer object type.
+      return;
     }
     
     // Recursively process children
