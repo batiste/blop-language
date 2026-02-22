@@ -4,7 +4,8 @@
 
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary } from './typeSystem.js';
-import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType } from './Type.js';
+import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType } from './Type.js';
+import { isBuiltinObjectType } from './builtinTypes.js';
 
 // Module state
 let warnings;
@@ -210,8 +211,23 @@ function handleAssignment(types, i, assignNode) {
     // Extract destructured variable names from the destructuring node
     const destructuredBindings = extractDestructuredNames(destructuring);
     
-    // If the value is an object type, infer property types for each destructured variable
-    if (resolvedValueType instanceof ObjectType) {
+    // Record<K, V>: every destructured key gets the value type V
+    if (resolvedValueType instanceof RecordType) {
+      const valueTypeForKey = resolvedValueType.valueType;
+      for (const { varName, node: varNode } of destructuredBindings) {
+        const scope = getCurrentScope();
+        scope[varName] = { type: valueTypeForKey, node: assignNode };
+        if (varNode.inferredType === undefined) {
+          varNode.inferredType = valueTypeForKey;
+        }
+      }
+    }
+
+    // If the value is an object type (or a built-in type alias like Component),
+    // infer property types for each destructured variable
+    const isDestructurable = resolvedValueType instanceof ObjectType ||
+      (resolvedValueType instanceof TypeAlias && isBuiltinObjectType(resolvedValueType.name));
+    if (isDestructurable) {
       for (const { propertyName, varName, node: varNode } of destructuredBindings) {
         // Look up property on the object using the PROPERTY NAME
         const propertyType = getPropertyType(valueType, propertyName, typeAliases);

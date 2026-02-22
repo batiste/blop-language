@@ -700,7 +700,10 @@ function displayError(stream, tokensDefinition, grammar, bestFailure) {
   //   fullMessage += chalk.dim(`\n  Token type: ${token.type}\n`);
   // }
   
-  throw new Error(fullMessage);
+  const err = new Error(fullMessage);
+  err.blopLine = positions.lineNumber + 1; // 1-based
+  err.blopColumn = positions.charNumber;   // 0-based
+  throw err;
 }
 
 
@@ -710,13 +713,16 @@ function displayBackendError(stream, error) {
   const positions = tokenPosition(token);
   const unexpected = chalk.yellow(noNewline(token.value));
   const firstLine = chalk.red(`Backend error at line ${positions.lineNumber + 1} char ${positions.charNumber} to ${positions.end}`);
-  throw new Error(`
+  const err = new Error(`
   ${firstLine}
   ${error.message} ${unexpected}
   token "${unexpected}"
   Context:
 ${streamContext(error.token, token, stream)}
 `);
+  err.blopLine = positions.lineNumber + 1; // 1-based
+  err.blopColumn = positions.charNumber;   // 0-based
+  throw err;
 }
 
 

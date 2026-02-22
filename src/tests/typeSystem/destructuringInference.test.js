@@ -195,4 +195,59 @@ processResponse = (resp: Response) => {
     expect(destructuredStatus).toBeDefined();
     expect(destructuredStatus.inferredType.toString()).toBe('number');
   });
+
+  it('should infer types when destructuring from a builtin type alias (Component)', () => {
+    // Regression: { attributes } = ctx where ctx: Component was not getting hover types
+    // because the destructuring handler only handled ObjectType, not TypeAlias.
+    const code = `
+def MyComp(ctx: Component): VNode {
+  { attributes, children } = ctx
+  <div />
+}
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream, 'test.blop');
+
+    // 'attributes' should be inferred as Record<string, any>
+    const attrNodes = findNodesWithValue(tree, ['attributes']);
+    const destructuredAttr = attrNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'Record<string, any>'
+    );
+    expect(destructuredAttr).toBeDefined();
+    expect(destructuredAttr.inferredType.toString()).toBe('Record<string, any>');
+
+    // 'children' should be inferred as any[]
+    const childrenNodes = findNodesWithValue(tree, ['children']);
+    const destructuredChildren = childrenNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'any[]'
+    );
+    expect(destructuredChildren).toBeDefined();
+    expect(destructuredChildren.inferredType.toString()).toBe('any[]');
+  });
+
+  it('should infer value type (any) when destructuring from a Record<string, any>', () => {
+    // Regression: { state } = attributes where attributes: Record<string, any>
+    // was not stamping inferredType on 'state', so hover showed nothing.
+    const code = `
+def MyComp(ctx: Component): VNode {
+  { attributes } = ctx
+  { state } = attributes
+  <div />
+}
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream, 'test.blop');
+
+    // 'state' destructured from Record<string, any> should get inferredType = any
+    const stateNodes = findNodesWithValue(tree, ['state']);
+    const destructuredState = stateNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'any'
+    );
+    expect(destructuredState).toBeDefined();
+    expect(destructuredState.inferredType.toString()).toBe('any');
+  });
 });

@@ -9,6 +9,7 @@ import {
   FunctionType,
   AnyFunctionType,
   ObjectType,
+  RecordType,
 } from './Type.js';
 
 /**
@@ -21,8 +22,8 @@ let builtinObjectTypes = {
   // When using: def Foo(ctx: Component): VNode { { attributes, children } = ctx }
   // ctx has shape { attributes, children }.
   Component: {
-    // attributes - object containing all element attributes passed to the component
-    attributes: AnyType,
+    // attributes - Record<string, any>: open map of attribute name → value
+    attributes: new RecordType(StringType, AnyType),
     // children - array of child VNodes passed to the component
     children: Types.array(AnyType),
 

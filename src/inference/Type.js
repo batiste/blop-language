@@ -271,6 +271,17 @@ export class ObjectType extends Type {
       return this.isCompatibleWith(resolved, aliases);
     }
     
+    // An ObjectType is compatible with a RecordType if all its property values
+    // are compatible with the record's value type (structural index match)
+    if (target instanceof RecordType) {
+      for (const [, prop] of this.properties) {
+        if (!prop.type.isCompatibleWith(target.valueType, aliases)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     // Check structural compatibility
     if (target instanceof ObjectType) {
       // Check all required properties in target exist in this object
@@ -329,6 +340,77 @@ export class ObjectType extends Type {
       }
     }
     return excess;
+  }
+}
+
+/**
+ * Record types: Record<K, V> — an object with an open index signature where
+ * every key is of type K (typically `string` or `number`) and every value
+ * is of type V.  This is the structured equivalent of `{ [key: K]: V }`.
+ */
+export class RecordType extends Type {
+  constructor(keyType, valueType) {
+    super();
+    this.kind = 'record';
+    this.keyType = keyType;     // typically StringType or NumberType
+    this.valueType = valueType; // value type, e.g. AnyType or StringType
+  }
+
+  toString() {
+    return `Record<${this.keyType.toString()}, ${this.valueType.toString()}>`;
+  }
+
+  equals(other) {
+    return (
+      other instanceof RecordType &&
+      this.keyType.equals(other.keyType) &&
+      this.valueType.equals(other.valueType)
+    );
+  }
+
+  isCompatibleWith(target, aliases) {
+    if (target instanceof PrimitiveType && target.name === 'any') return true;
+
+    // Resolve aliases
+    if (target instanceof TypeAlias) {
+      const resolved = aliases.resolve(target);
+      if (resolved === target) return false;
+      return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // A Record<K,V> is compatible with another Record<K,V> if value types are compatible
+    if (target instanceof RecordType) {
+      return (
+        this.keyType.isCompatibleWith(target.keyType, aliases) &&
+        this.valueType.isCompatibleWith(target.valueType, aliases)
+      );
+    }
+
+    // A Record<string, V> is compatible with an ObjectType if all its known
+    // required property value types are compatible with V
+    if (target instanceof ObjectType) {
+      for (const [, prop] of target.properties) {
+        if (!prop.optional && !this.valueType.isCompatibleWith(prop.type, aliases)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Check union
+    if (target instanceof UnionType) {
+      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    }
+
+    return false;
+  }
+
+  /**
+   * Look up the value type for a given key (always returns valueType for records).
+   * @returns {Type}
+   */
+  getValueType() {
+    return this.valueType;
   }
 }
 
@@ -960,5 +1042,9 @@ export const Types = {
   
   alias(name) {
     return new TypeAlias(name);
+  },
+
+  record(keyType, valueType) {
+    return new RecordType(keyType, valueType);
   }
 };
