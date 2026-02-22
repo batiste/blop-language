@@ -16,8 +16,6 @@ def inference2(c: number, d: number): number {
 
 def scoped() {
   return 1 + inference2()
-  hello: number = 1
-  return hello
 }
 
 backLink = <p>'<< back'</p>

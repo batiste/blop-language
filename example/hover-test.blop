@@ -29,6 +29,7 @@ def variableType(x: number, _y=5) {
     } else {
         return 10 + _y
     }
+    // should be marked as unreachable code and not cause the function to widen to string | number
     return "Impossible"
 }
 

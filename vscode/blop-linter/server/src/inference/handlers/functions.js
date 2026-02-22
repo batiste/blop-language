@@ -143,6 +143,43 @@ function elseIfAlwaysReturns(elseIfNode) {
   return elseIfAlwaysReturns(elseIfNode.named.elseif);
 }
 
+/**
+ * Find the first dead (unreachable) statement in a stats array.
+ * A statement is dead if it follows a statement that always terminates
+ * (return, throw, VNode, or a condition with exhaustive return branches).
+ * Returns the inner statement node of the first dead statement, or null.
+ */
+function findDeadCodeStart(stats) {
+  const statsArr = stats ?? [];
+
+  // Build an index of the real (non-blank) statement nodes for easy lookup.
+  // Each entry is { index, first } where first is the inner SCOPED_STATEMENT child.
+  const realStatements = [];
+  for (let i = 0; i < statsArr.length; i++) {
+    const stmt = statsArr[i]?.children?.find(c => c.type === 'SCOPED_STATEMENT');
+    if (!stmt) continue;
+    const first = stmt.children?.[0];
+    if (!first) continue;
+    realStatements.push({ first });
+  }
+
+  for (let i = 0; i < realStatements.length - 1; i++) {
+    const { first } = realStatements[i];
+    const terminates =
+      first.type === 'return' ||
+      first.type === 'throw' ||
+      first.type === 'virtual_node' ||
+      first.type === 'virtual_node_exp' ||
+      (first.type === 'condition' && conditionAlwaysReturns(first));
+
+    if (terminates) {
+      // The next real statement is dead code — return it for warning positioning
+      return realStatements[i + 1].first;
+    }
+  }
+  return null;
+}
+
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
@@ -287,6 +324,14 @@ function createFunctionHandlers(getState) {
         const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
         if (explicitReturns.length > 0 && !scope.__returnTypes.includes(UndefinedType)) {
           scope.__returnTypes.push(UndefinedType);
+        }
+      }
+
+      // Dead code detection: warn about statements that follow a terminating one.
+      if (!isExpressionBody) {
+        const deadNode = findDeadCodeStart(bodyNode?.named?.stats);
+        if (deadNode) {
+          pushWarning(deadNode, 'Dead code: this statement is unreachable');
         }
       }
       
@@ -446,6 +491,16 @@ function createFunctionHandlers(getState) {
       setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
 
       visitChildren(node);
+
+      // Dead code detection: warn about statements that follow a terminating one.
+      const classBodyNode = node.named.body;
+      const classIsExpressionBody = classBodyNode?.type === 'func_body_fat' && classBodyNode.named?.exp;
+      if (!classIsExpressionBody) {
+        const deadNode = findDeadCodeStart(classBodyNode?.named?.stats);
+        if (deadNode) {
+          pushWarning(deadNode, 'Dead code: this statement is unreachable');
+        }
+      }
 
       if (annotation) stampTypeAnnotation(annotation);
       const declaredType = annotation ? getAnnotationType(annotation) : null;

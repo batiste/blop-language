@@ -1,10 +1,12 @@
 # Blop Language Compiler Guide
 
+Blop is a typed language for the Web that generates Virtual DOM. It has a grammar defined in `src/grammar.js` and type inference system in `src/inference/`. The parser is generated from the grammar into `src/parser.js`, the code generation lies in `src/backend/`. The linter extension for VSCode uses the same inference engine to provide real-time feedback.
+
 ## Quick Commands
 
-- **Build linter**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`)
-- **Run tests**: `npm test`
+- **Run tests**: `npx vitest run`
 - **Debug AST**: `node --experimental-vm-modules src/tests/yourDebugFile.js`
+- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`)
 
 ## Development Principles
 
@@ -43,15 +45,6 @@
 2. **Checking Phase**: Re-walks the AST with same handlers, emits warnings
 
 Both phases run with fresh scopes initialized from the binding phase symbol table. A bug manifesting in only one phase indicates a handler logic error—check `inferencePhase === 'checking'` guards.
-
-### LiteralType vs PrimitiveType
-
-Variables without type annotations receive a `LiteralType` (e.g., `x = 5` → `LiteralType(5, NumberType)`), not a bare `PrimitiveType`.
-
-**Critical**: `instanceof PrimitiveType` checks will miss inferred literals. Always normalize using `getBaseTypeOfLiteral(type)` from `typeSystem.js` before comparing types. This applies in:
-- `checkMathOperation`
-- Property access guards
-- Any code consuming inferred variable types
 
 ## Grammar & AST Structure
 
