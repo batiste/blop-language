@@ -1,8 +1,6 @@
 
 import { TodoListItem } from './TodoListItem.blop'
 
-// Type definition for todo items
-// type TodoItem = { text: string, completed: boolean, id: number }
 
 AutoFocusInput = (ctx: Component) => {
   { attributes } = ctx
