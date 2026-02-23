@@ -1,42 +1,34 @@
 
 import { TodoListItem } from './TodoListItem.blop'
 
-// Type definition for todo items
-// type TodoItem = { text: string, completed: boolean, id: number }
+
 
 AutoFocusInput = (ctx: Component) => {
   { attributes } = ctx
   hooks = { insert: (vnode) => vnode.elm.focus() }
-  <input
-    hooks
-    type="text"
-    value=attributes.value
-    class="form-control"
-    on=attributes.on
-    autofocus=true
-    placeholder="What needs to be done?"
-    style={ fontSize: '16px', padding: '0.5em' } />
+  <input hooks type="text" value=attributes.value class="form-control" on=attributes.on autofocus=true
+  placeholder="What needs to be done?" style={ fontSize: '16px', padding: '0.5em' } />
 }
 
 // Filter tabs component
 FilterTabs = (ctx: Component) => {
   { attributes } = ctx
   { currentFilter, setFilter } = attributes
-  
+
   def filterButton(filter, label) {
     isActive = currentFilter == filter
     classes = "btn btn-outline-secondary btn-sm"
     if isActive {
       classes := "btn btn-primary btn-sm"
     }
-    
+
     <button class=classes on={ click: () => setFilter(filter) } style={ marginRight: '5px' }>
       = label
     </button>
   }
-  
+
   groupStyle = { marginBottom: '1em' }
-  
+
   <div class="btn-group" role="group" style=groupStyle>
     = filterButton('all', 'All')
     = filterButton('active', 'Active')
@@ -48,9 +40,9 @@ FilterTabs = (ctx: Component) => {
 TodoStats = (ctx: Component) => {
   { attributes } = ctx
   { total, active, completed } = attributes
-  
+
   alertStyle = { padding: '0.75em', marginBottom: '1em' }
-  
+
   <div class="alert alert-info" style=alertStyle>
     <strong>'📊 Statistics: '</strong>
     = 'Total: 'total' | '
@@ -63,24 +55,24 @@ TodoListPage = (ctx: Component): VNode => {
   { value as inputValue, setState as setInputValue } = ctx.state('input', '')
   { attributes } = ctx
   { todo } = attributes
-  
+
   // Initialize todoList if it doesn't exist or is old format
   if !todo.todoList {
     todo.todoList = []
   }
-  
+
   // Initialize filter if not exists
   if !todo.filter {
     todo.filter = 'all'
   }
-  
+
   // Initialize next ID counter
   if !todo.nextId {
     todo.nextId = 1
   }
-  
+
   todoList = todo.todoList
-  
+
   def unselect() {
     // Using nullish coalescing to check for undefined/null
     if (todo.editItemIndex ?? false) != false {
@@ -106,7 +98,7 @@ TodoListPage = (ctx: Component): VNode => {
       setInputValue('')
     }
   }
-  
+
   change = (e) => {
     setInputValue(e.target.value)
   }
@@ -115,35 +107,35 @@ TodoListPage = (ctx: Component): VNode => {
     e.stopPropagation()
     todo.editItemIndex = index
   }
-  
+
   changeItem = (index: number) => (e) => {
     todo.editItemIndex = false
     todoList[index].text = e.target.value
   }
-  
+
   remove = (index: number) => () => {
     todo.editItemIndex = false
     todoList.splice(index, 1)
   }
-  
+
   toggleComplete = (index: number) => () => {
     todoList[index].completed = !todoList[index].completed
   }
-  
+
   setFilter = (filter: string) => {
     todo.filter = filter
   }
-  
+
   clearCompleted = () => {
     // Using filter to keep only non-completed items
     todo.todoList = todoList.filter((item) => !item.completed)
   }
-  
+
   // Calculate statistics
   totalCount = todoList.length
   completedCount = todoList.filter((item) => item.completed).length
   activeCount = totalCount - completedCount
-  
+
   // Filter todos based on current filter
   filteredTodos = todoList.filter((item) => {
     if todo.filter == 'active' {
@@ -153,44 +145,43 @@ TodoListPage = (ctx: Component): VNode => {
     }
     return true
   })
-  
+
   cardStyle1 = { padding: '1.5em', marginBottom: '1em' }
   titleStyle = { marginBottom: '1em' }
-  
+
   <div>
     <div class="card" style=cardStyle1>
       <h2 style=titleStyle>'📝 Advanced Todo List'</h2>
-      
+
       <TodoStats total=totalCount active=activeCount completed=completedCount />
-      
+
       <form on={ submit: addItem }>
         <div class="form-row">
           <div class="col-9">
             <AutoFocusInput value=todo.inputValue on={ change } />
           </div>
           <div class="col-3">
-            <button
-              type="submit" class="btn btn-primary btn-block"
-              on={ click: addItem }>"Add Task"</button>
+            <button type="submit" class="btn btn-primary btn-block" on={ click: addItem }>"Add Task"</button>
           </div>
         </div>
       </form>
     </div>
-    
+
     cardStyle2 = { padding: '1.5em' }
-    filterContainerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1em' }
-    
+    filterContainerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1em'
+    }
+
     <div class="card" style=cardStyle2>
       <div style=filterContainerStyle>
         <FilterTabs currentFilter=todo.filter setFilter />
-        
+
         if completedCount > 0 {
           <button class="btn btn-warning btn-sm" on={ click: clearCompleted }>
             '🗑️ Clear Completed ('completedCount')'
           </button>
         }
       </div>
-      
+
       if filteredTodos.length == 0 {
         <div class="alert alert-secondary text-center">
           if todo.filter == 'all' {
@@ -206,16 +197,11 @@ TodoListPage = (ctx: Component): VNode => {
           for index, item of todoList {
             // Only render if item passes filter
             shouldRender = todo.filter == 'all' || (todo.filter == 'active' && !item.completed) || (todo.filter == 'completed' && item.completed)
-            
+
             if shouldRender {
-              <TodoListItem removeItem=remove(index)
-                key=item.id
-                editItem=editItem(index)
-                changeItem=changeItem(index)
-                toggleComplete=toggleComplete(index)
-                editMode=todo.editItemIndex == index
-                completed=item.completed
-                value=item.text />
+              <TodoListItem removeItem=remove(index) key=item.id editItem=editItem(index) changeItem=changeItem(index)
+              toggleComplete=toggleComplete(index) editMode=todo.editItemIndex == index completed=item.completed
+              value=item.text />
             }
           }
         </ul>

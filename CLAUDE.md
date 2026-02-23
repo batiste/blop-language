@@ -48,7 +48,7 @@ Both phases run with fresh scopes initialized from the binding phase symbol tabl
 
 ## Grammar & AST Structure
 
-Grammar is defined in `src/grammar.js`. AST node keys match grammar rule labels: `type_arguments:type_args` stores at `.named.type_args`, not `.named.type_arguments`. Only certain tokens have `.named` properties, depending on the grammar rule. However node.children always contains all children.
+Grammar is defined in `src/grammar.js`. AST node keys match grammar rule labels: `type_arguments:type_args` stores at `.named.type_args`, not `.named.type_arguments`. Only certain tokens have `.named` properties, depending on the grammar rule. However `node.children` always contains all children. At the end of the tree every final token has a `node.value` property that contain the raw string from the tokeniser defined in `src/tokensDefinition.js`.
 
 ## AST Debugging
 

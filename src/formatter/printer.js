@@ -1,65 +1,68 @@
-const WHITESPACE_TYPES = new Set(['w', 'W', 'newline', 'single_space_or_newline', 'newline_and_space']);
+const INLINE_SPACE = new Set(['w', 'wcomment']);
+const BREAKABLE = new Set(['single_space_or_newline', 'newline_and_space']);
+const NEWLINE = new Set(['newline']);
+const INDENT = new Set(['W']);
+const OPEN_BRACE = '{';
+const CLOSE_BRACE = '}';
+const VNODE_OPEN = { type: '__vopen', value: '' };
 
-function isWhitespace(node) { return WHITESPACE_TYPES.has(node.type); }
+// Virtual_node has SCOPED_STATEMENTS* between '>' and '</' — just like {…}.
+// We inject a synthetic __vopen marker after the opening '>' so the level
+// counter increments for the content, matching what '{' does for blocks.
+const VNODE_TYPES = new Set(['virtual_node', 'virtual_node_exp']);
 
-function rawValue(node) {
-  if (!node) return '';
-  if (node.value !== undefined && !node.children?.length) return node.value;
-  return (node.children || []).map(rawValue).join('');
-}
-
-function firstContent(node) {
-  return (node.children || []).find(c => !isWhitespace(c));
-}
-
-function contentChildren(node) {
-  return (node.children || []).filter(c => !isWhitespace(c));
-}
-
-function hasFuncCall(node) {
-  if (!node) return false;
-  if (node.type === 'func_call') return true;
-  return (node.children || []).some(hasFuncCall);
-}
-
-function collectCallArgs(node) {
-  if (!node) return [];
-  const children = node.children || [];
-  if (children[1]?.type === '=') return [rawValue(node).trim()];
-  const exp = children.find(c => c.type === 'exp');
-  const rest = children.find(c => c.type === 'func_call_params');
-  return exp ? [rawValue(exp).trim(), ...collectCallArgs(rest)] : [];
-}
-
-function collectArrayItems(node) {
-  if (!node) return [];
-  const children = node.children || [];
-  const exp = children.find(c => c.type === 'exp');
-  const rest = children.find(c => c.type === 'array_literal_body');
-  return exp ? [rawValue(exp).trim(), ...collectArrayItems(rest)] : [];
-}
-
-function collectObjectProps(node) {
-  if (!node) return [];
-  const children = node.children || [];
-  if (!children.length) return [];
-  const rest = children.find(c => c.type === 'object_literal_body');
-  if (children[0]?.type === 'spread') {
-    const spreadExp = children.find(c => c.type === 'exp');
-    return [`...${spreadExp ? rawValue(spreadExp).trim() : ''}`, ...collectObjectProps(rest)];
+function collectLeaves(node, out = []) {
+  if (!node) return out;
+  if (node.value !== undefined && (!node.children || node.children.length === 0)) {
+    out.push(node);
+    return out;
   }
-  const key = children.find(c => c.type === 'object_literal_key');
-  if (!key) return [];
-  const keyStr = rawValue(key).trim();
-  const colonIdx = children.findIndex(c => c.type === 'colon');
-  let propStr;
-  if (colonIdx >= 0) {
-    const valueExp = children.slice(colonIdx + 1).find(c => c.type === 'exp');
-    propStr = `${keyStr}: ${valueExp ? rawValue(valueExp).trim() : ''}`;
-  } else {
-    propStr = keyStr;
+
+  // single_space_or_newline / newline_and_space are breakable separators.
+  // Replace with a synthetic __break so the printer can decide space vs newline.
+  if (BREAKABLE.has(node.type)) {
+    out.push({ type: '__break', value: '' });
+    return out;
   }
-  return [propStr, ...collectObjectProps(rest)];
+
+  const children = node.children || [];
+
+  if (VNODE_TYPES.has(node.type)) {
+    // Only non-self-closing variants have a '</' child.
+    const hasClosingTag = children.some(c => c.type === '</');
+    if (hasClosingTag) {
+      let injectedOpen = false;
+      for (const child of children) {
+        collectLeaves(child, out);
+        // The first direct '>' child is the opening tag's closer.
+        if (!injectedOpen && child.type === '>') {
+          out.push(VNODE_OPEN);
+          injectedOpen = true;
+        }
+      }
+      return out;
+    }
+  }
+
+  for (const child of children) {
+    collectLeaves(child, out);
+  }
+  return out;
+}
+
+// Measure display length of the next segment (until __break, newline, W, or a
+// level-changing token). Used for look-ahead line-length decisions.
+function segmentLength(leaves, from) {
+  const STOP = new Set(['__break', '__vopen', 'EOS']);
+  let len = 0;
+  for (let i = from; i < leaves.length; i++) {
+    const t = leaves[i];
+    if (STOP.has(t.type)) break;
+    if (NEWLINE.has(t.type) || INDENT.has(t.type)) break;
+    if (INLINE_SPACE.has(t.type)) { len += 1; continue; }
+    len += t.value ? t.value.length : 0;
+  }
+  return len;
 }
 
 export class Printer {
@@ -67,222 +70,98 @@ export class Printer {
     this.indentSize = options.indentSize ?? 2;
     this.indentChar = options.indentChar ?? ' ';
     this.maxLineLength = options.maxLineLength ?? 120;
-    this.indentLevel = 0;
-    this._lineOffset = 0;
   }
 
-  get currentIndent() {
-    return this.indentChar.repeat(this.indentSize * this.indentLevel);
-  }
-
-  indent() { this.indentLevel++; }
-  dedent() { this.indentLevel--; }
-
-  _tooLong(flat) {
-    return this._lineOffset + flat.length > this.maxLineLength;
-  }
-
-  _withOffset(offset, fn) {
-    const prev = this._lineOffset;
-    this._lineOffset = offset;
-    const result = fn();
-    this._lineOffset = prev;
-    return result;
+  _indent(level) {
+    return this.indentChar.repeat(this.indentSize * Math.max(0, level));
   }
 
   print(ast) {
-    return this.printNode(ast).trimEnd() + '\n';
-  }
+    const leaves = collectLeaves(ast);
+    const parts = [];
+    let level = 0;
+    let lineLen = 0;   // current column position
+    let needsIndent = false;
 
-  printNode(node) {
-    if (!node) return '';
-    const handler = this[node.type];
-    if (typeof handler === 'function') return handler.call(this, node);
-    return rawValue(node).trim();
-  }
+    for (let i = 0; i < leaves.length; i++) {
+      const leaf = leaves[i];
 
-  START(node) {
-    const stmts = this._collectGlobalStatements(node);
-    return stmts.map(s => this.printNode(s)).join('\n\n');
-  }
+      if (NEWLINE.has(leaf.type)) {
+        parts.push('\n');
+        lineLen = 0;
+        needsIndent = true;
+      } else if (INLINE_SPACE.has(leaf.type)) {
+        // Skip inline spaces when at the start of a new line.
+        if (!needsIndent) { parts.push(' '); lineLen += 1; }
+      } else if (leaf.type === '__break') {
+        // Breakable separator: emit space or newline+indent based on line length.
+        const seg = segmentLength(leaves, i + 1);
+        const indentLen = this._indent(level).length;
+        if (lineLen + 1 + seg > this.maxLineLength) {
+          parts.push('\n');
+          lineLen = 0;
+          needsIndent = true;
+        } else {
+          if (!needsIndent) { parts.push(' '); lineLen += 1; }
+        }
+      } else if (INDENT.has(leaf.type)) {
+        // W token = existing indentation in source: always replace with computed indent.
+        if (needsIndent) {
+          // W.value may carry an embedded newline, e.g. "  \n  " for a
+          // whitespace-only blank line. Preserve at most one blank line.
+          if (leaf.value.includes('\n')) { parts.push('\n'); lineLen = 0; }
 
-  _collectGlobalStatements(node) {
-    const results = [];
-    for (const child of node.children || []) {
-      if (child.type === 'GLOBAL_STATEMENT') results.push(child);
-      else if (child.type === 'GLOBAL_STATEMENTS') results.push(...this._collectGlobalStatements(child));
+          // Look ahead to find next non-whitespace leaf.
+          let j = i + 1;
+          while (j < leaves.length &&
+                 (NEWLINE.has(leaves[j].type) || INLINE_SPACE.has(leaves[j].type) || INDENT.has(leaves[j].type) || leaves[j].type === '__break')) {
+            j++;
+          }
+          // Use level-1 when the next content closes a brace or VNode.
+          const nextType = j < leaves.length ? leaves[j].type : '';
+          const nextIsClose = nextType === CLOSE_BRACE || nextType === '</' || nextType === '__vclose';
+          const ind = this._indent(nextIsClose ? level - 1 : level);
+          parts.push(ind);
+          lineLen = ind.length;
+          needsIndent = false;
+        }
+        // else: W without preceding newline (unusual), skip it.
+      } else if (leaf.type === '__vopen') {
+        // Synthetic marker injected after a VNode's opening '>'.
+        level++;
+      } else if (leaf.type === OPEN_BRACE) {
+        needsIndent = false;
+        parts.push(leaf.value); lineLen += 1;
+        level++;
+      } else if (leaf.type === CLOSE_BRACE) {
+        if (needsIndent) {
+          const ind = this._indent(level - 1);
+          parts.push(ind); lineLen = ind.length;
+          needsIndent = false;
+        }
+        level--;
+        parts.push(leaf.value); lineLen += 1;
+      } else if (leaf.type === '</') {
+        // VNode closing tag: decrement level so the tag aligns with its opener.
+        level--;
+        if (needsIndent) {
+          const ind = this._indent(level);
+          parts.push(ind); lineLen = ind.length;
+          needsIndent = false;
+        }
+        parts.push(leaf.value); lineLen += leaf.value.length;
+      } else if (leaf.type === 'EOS') {
+        // skip end-of-stream marker
+      } else {
+        if (needsIndent) {
+          const ind = this._indent(level);
+          parts.push(ind); lineLen = ind.length;
+          needsIndent = false;
+        }
+        parts.push(leaf.value); lineLen += leaf.value.length;
+      }
     }
-    return results;
-  }
 
-  GLOBAL_STATEMENT(node) {
-    this._lineOffset = this.currentIndent.length;
-    const stmt = firstContent(node);
-    return stmt ? this.printNode(stmt) : '';
-  }
-
-  exp_statement(node) {
-    const exp = (node.children || []).find(c => c.type === 'exp');
-    return exp ? this.printNode(exp) : '';
-  }
-
-  exp(node) {
-    const inner = firstContent(node);
-    return inner ? this.printNode(inner) : '';
-  }
-
-  assign(node) {
-    const nameNode = node.named?.name ?? node.children?.find(c => c.type === 'name');
-    const name = nameNode?.value ?? rawValue(nameNode).trim();
-    const expNode = node.named?.exp;
-    const prefix = `${name} = `;
-    const expStr = this._withOffset(this._lineOffset + prefix.length, () =>
-      expNode ? this.printNode(expNode) : ''
-    );
-    return `${prefix}${expStr}`;
-  }
-
-  func_def(node) {
-    const name = node.named.name?.value ?? '';
-    const params = node.named.params ? this._printParams(node.named.params) : '';
-    const body = node.named.body ? this._printFuncBody(node.named.body) : '{}';
-    return `def ${name}(${params}) ${body}`;
-  }
-
-  _printParams(node) {
-    return (node.children || []).filter(c => c.type === 'name').map(c => c.value).join(', ');
-  }
-
-  _printFuncBody(node) {
-    return this._printStatsBlock(node.named.stats ?? []);
-  }
-
-  _printStatsBlock(statsArray) {
-    const statements = this._extractScopedStatements(statsArray);
-    this.indent();
-    const lines = statements.map(s => {
-      this._lineOffset = this.currentIndent.length;
-      return `${this.currentIndent}${this._printScopedStatement(s)}`;
-    });
-    this.dedent();
-    return `{\n${lines.join('\n')}\n${this.currentIndent}}`;
-  }
-
-  _extractScopedStatements(statsArray) {
-    const results = [];
-    for (const ss of statsArray) {
-      const stmt = (ss.children || []).find(c => c.type === 'SCOPED_STATEMENT');
-      if (stmt) results.push(stmt);
-    }
-    return results;
-  }
-
-  _printScopedStatement(node) {
-    const children = contentChildren(node);
-    if (!children.length) return '';
-    const first = children[0];
-    if (first.type === 'return') {
-      const exp = children[1];
-      const prefix = 'return ';
-      const expStr = exp
-        ? this._withOffset(this._lineOffset + prefix.length, () => this.printNode(exp))
-        : '';
-      return `return${expStr ? ' ' + expStr : ''}`;
-    }
-    if (first.type === 'condition') return this._printCondition(first);
-    if (first.type === 'assign') return this.assign(first);
-    if (first.type === 'exp_statement') return this.exp_statement(first);
-    return children.map(c => this.printNode(c)).join(' ');
-  }
-
-  _printCondition(node) {
-    const exp = node.named.exp ? this.printNode(node.named.exp) : '';
-    const body = this._printStatsBlock(node.named.stats ?? []);
-    let result = `if ${exp} ${body}`;
-    if (node.named.elseif) result += this._printElseIf(node.named.elseif);
-    return result;
-  }
-
-  _printElseIf(node) {
-    const body = this._printStatsBlock(node.named.stats ?? []);
-    return ` else ${body}`;
-  }
-
-  name_exp(node) {
-    const flat = rawValue(node).trim();
-    if (!this._tooLong(flat) || !hasFuncCall(node)) return flat;
-    // Thread accumulated prefix length into _lineOffset as we walk
-    return (node.children || []).reduce((result, c) => {
-      if (isWhitespace(c)) return result;
-      if (c.type === 'access_or_operation') {
-        return result + this._withOffset(this._lineOffset + result.length, () =>
-          this._printAccessOrOp(c)
-        );
-      }
-      return result + rawValue(c);
-    }, '').trimEnd();
-  }
-
-  _printAccessOrOp(node) {
-    return (node.children || []).reduce((result, c) => {
-      if (c.type === 'object_access') {
-        return result + this._withOffset(this._lineOffset + result.length, () =>
-          this._printObjectAccess(c)
-        );
-      }
-      return result + rawValue(c);
-    }, '');
-  }
-
-  _printObjectAccess(node) {
-    return (node.children || []).reduce((result, c) => {
-      if (c.type === 'func_call') {
-        return result + this._withOffset(this._lineOffset + result.length, () =>
-          this.func_call(c)
-        );
-      }
-      if (c.type === 'object_access') {
-        return result + this._withOffset(this._lineOffset + result.length, () =>
-          this._printObjectAccess(c)
-        );
-      }
-      return result + rawValue(c);
-    }, '');
-  }
-
-  func_call(node) {
-    const paramsNode = (node.children || []).find(c => c.type === 'func_call_params');
-    if (!paramsNode) return '()';
-    const args = collectCallArgs(paramsNode);
-    const flat = `(${args.join(', ')})`;
-    if (!this._tooLong(flat)) return flat;
-    this.indent();
-    const expanded = args.map(a => `${this.currentIndent}${a}`).join(',\n');
-    this.dedent();
-    return `(\n${expanded}\n${this.currentIndent})`;
-  }
-
-  array_literal(node) {
-    const bodyNode = (node.children || []).find(c => c.type === 'array_literal_body');
-    if (!bodyNode) return '[]';
-    const items = collectArrayItems(bodyNode);
-    const flat = `[${items.join(', ')}]`;
-    if (!this._tooLong(flat)) return flat;
-    this.indent();
-    const expanded = items.map(i => `${this.currentIndent}${i}`).join(',\n');
-    this.dedent();
-    return `[\n${expanded}\n${this.currentIndent}]`;
-  }
-
-  object_literal(node) {
-    const bodyNode = (node.children || []).find(c => c.type === 'object_literal_body');
-    if (!bodyNode) return '{}';
-    const props = collectObjectProps(bodyNode);
-    const flat = `{ ${props.join(', ')} }`;
-    if (!this._tooLong(flat)) return flat;
-    this.indent();
-    const expanded = props.map(p => `${this.currentIndent}${p},`).join('\n');
-    this.dedent();
-    return `{\n${expanded}\n${this.currentIndent}}`;
+    return parts.join('').trimEnd() + '\n';
   }
 }

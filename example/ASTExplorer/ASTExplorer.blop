@@ -9,47 +9,28 @@ def TreeNode(ctx: Component): VNode {
   { astNode, depth, path } = attributes
 
   { value as expanded, setState as setExpanded } = ctx.state<boolean>('expanded', depth < 2)
-  
+
   def toggleExpand() {
     setExpanded(!expanded)
   }
-  
+
   // Check if node has children
   hasChildren = astNode && typeof astNode == 'object' && !Array.isArray(astNode)
   isArray = Array.isArray(astNode)
-  
+
   // Style based on depth
   indentSize = 16
-  nodeStyle = {
-    marginLeft: indentSize'px',
-    fontFamily: 'monospace',
-    fontSize: '13px',
-    lineHeight: '1.6'
-  }
-  
-  keyStyle = {
-    color: '#881391',
-    fontWeight: 'bold'
-  }
-  
-  valueStyle = {
-    color: '#1c00cf'
-  }
-  
-  typeStyle = {
-    color: '#0b7500',
-    fontStyle: 'italic'
-  }
-  
-  buttonStyle = {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '0 5px',
-    color: '#666',
-    fontFamily: 'monospace'
-  }
-  
+  nodeStyle = { marginLeft: indentSize'px', fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }
+
+  keyStyle = { color: '#881391', fontWeight: 'bold' }
+
+  valueStyle = { color: '#1c00cf' }
+
+  typeStyle = { color: '#0b7500', fontStyle: 'italic' }
+
+  buttonStyle = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', color: '#666',
+    fontFamily: 'monospace' }
+
   <div style=nodeStyle>
     if hasChildren || isArray {
       expandIcon = '▼'
@@ -62,11 +43,11 @@ def TreeNode(ctx: Component): VNode {
     } else {
       <span style={ paddingLeft: '18px' }></span>
     }
-    
+
     if path {
       <span style=keyStyle>path': '</span>
     }
-    
+
     if isArray {
       <span style=valueStyle>'['astNode.length' items]'</span>
       if expanded {
@@ -82,7 +63,7 @@ def TreeNode(ctx: Component): VNode {
       } else {
         <span style=valueStyle>' {object} '</span>
       }
-      
+
       if expanded {
         <div>
           for key, value in astNode {
@@ -98,11 +79,11 @@ def TreeNode(ctx: Component): VNode {
       } elseif typeof astNode == 'number' {
         <span style=valueStyle>astNode</span>
       } elseif typeof astNode == 'boolean' {
-      boolText = 'false'
-      if astNode {
-        boolText := 'true'
-      }
-      <span style=valueStyle>boolText</span>
+        boolText = 'false'
+        if astNode {
+          boolText := 'true'
+        }
+        <span style=valueStyle>boolText</span>
       } elseif astNode == null {
         <span style={ color: '#999' }>'null'</span>
       } else {
@@ -114,25 +95,25 @@ def TreeNode(ctx: Component): VNode {
 
 def ASTExplorer(ctx: Component): VNode {
   defaultCode = 'def greet(name: string): string {\n  return "Hello, "name"!"\n}\n\nresult = greet("World")'
-  
+
   { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
   { value as ast, setState as setAst } = ctx.state('ast', null)
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
   { value as showTokens, setState as setShowTokens } = ctx.state<boolean>('showTokens', false)
   { value as tokens, setState as setTokens } = ctx.state<any>('tokens', null)
-  
+
   def handleCodeChange(e) {
     setCode(e.target.value)
   }
-  
+
   def parseCode() {
     setError(null)
     setAst(null)
     setTokens(null)
-    
+
     stream = tokenize(code)
     tree = parse(stream)
-    
+
     if tree.success {
       setAst(tree)
       setTokens(stream)
@@ -144,29 +125,31 @@ def ASTExplorer(ctx: Component): VNode {
       setError(errorMsg)
     }
   }
-  
+
   ctx.mount(() => {
     parseCode()
   })
-  
+
   containerStyle = { padding: '20px', maxWidth: '1400px', margin: '0 auto' }
   headerStyle = { marginBottom: '20px' }
   splitStyle = { display: 'flex', gap: '20px', marginTop: '20px' }
   editorStyle = { flex: '1', minWidth: '400px' }
-  treeStyle = { flex: '1', minWidth: '400px', maxHeight: '600px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '15px', borderRadius: '5px', border: '1px solid #ddd' }
-  textareaStyle = { width: '100%', height: '300px', fontFamily: 'monospace', fontSize: '14px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }
-  
+  treeStyle = { flex: '1', minWidth: '400px', maxHeight: '600px', overflow: 'auto', backgroundColor: '#f8f8f8',
+    padding: '15px', borderRadius: '5px', border: '1px solid #ddd' }
+  textareaStyle = { width: '100%', height: '300px', fontFamily: 'monospace', fontSize: '14px', padding: '10px',
+    border: '1px solid #ddd', borderRadius: '5px' }
+
   <div style=containerStyle>
     <div style=headerStyle>
       <h2>'🌳 AST Explorer'</h2>
       <p>'Parse Blop code and explore its Abstract Syntax Tree structure'</p>
     </div>
-    
+
     <div style=splitStyle>
       <div style=editorStyle>
         <h4>'Code Input'</h4>
         <textarea style=textareaStyle value=code on={ input: handleCodeChange } placeholder="Enter Blop code here..."></textarea>
-        
+
         <div style={ marginTop: '10px' }>
           <button class="btn btn-primary" on={ click: parseCode }>'Parse Code'</button>
           <label style={ marginLeft: '15px' }>
@@ -174,17 +157,18 @@ def ASTExplorer(ctx: Component): VNode {
             = ' Show Tokens'
           </label>
         </div>
-        
+
         if error {
           <div class="alert alert-danger" style={ marginTop: '15px' }>
             = error
           </div>
         }
-        
+
         if showTokens && tokens {
           <div style={ marginTop: '20px' }>
             <h4>'Tokens ('tokens.length')'</h4>
-            <div style={ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '10px', borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
+            <div style={ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '10px',
+              borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
               for token in tokens {
                 <div style={ marginBottom: '5px' }>
                   <span style={ color: '#881391', fontWeight: 'bold' }>token.type</span>
@@ -197,7 +181,7 @@ def ASTExplorer(ctx: Component): VNode {
           </div>
         }
       </div>
-      
+
       <div style=editorStyle>
         <h4>'Abstract Syntax Tree'</h4>
         if ast {
@@ -224,7 +208,7 @@ def ASTExplorer(ctx: Component): VNode {
         }
       </div>
     </div>
-    
+
     <div style={ marginTop: '30px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px' }>
       <h4>'About the AST'</h4>
       <p>'The Abstract Syntax Tree (AST) is the internal representation of your code used by the compiler. Each node represents a language construct:'</p>

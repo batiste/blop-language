@@ -17,7 +17,9 @@ program
   .option('-f, --inference', 'enable type inference checking')
   .option('-v, --validate', 'validate only (check for type errors without generating output)')
   .option('-t, --format', 'format source file in place')
-  // .option('--indent-size <n>', 'indentation size for formatter (default: 2)', parseInt)
+  .option('--indent-size <n>', 'indentation size for formatter (default: 2)', parseInt)
+  .option('--indent-char <char>', 'indentation character for formatter (default: space)')
+  .option('--max-line-length <n>', 'max line length before breaking (default: 120)', parseInt)
   
   
 program.parse(process.argv);
@@ -34,7 +36,11 @@ function execute() {
     const source = fs.readFileSync(options.input);
 
     if (options.format) {
-      const formatted = format(source.toString(), {});
+      const formatted = format(source.toString(), {
+        indentSize: options.indentSize,
+        indentChar: options.indentChar,
+        maxLineLength: options.maxLineLength,
+      });
       fs.writeFileSync(options.input, formatted);
       console.log(`${COLORS.GREEN}[blop]${COLORS.RESET} ${options.input} formatted`);
       return;
@@ -80,6 +86,9 @@ function execute() {
       }
       throw error;
     }
+  } else {
+    console.error(`${COLORS.RED}Error:${COLORS.RESET} No input file specified`);
+    process.exit(1);
   }
 }
 

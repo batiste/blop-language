@@ -1,21 +1,12 @@
 
 TodoListItem = ({ attributes }: Component): VNode => {
-  { value,
-    changeItem as change,
-    removeItem,
-    editItem,
-    editMode,
-    completed,
-    toggleComplete
-  } = attributes
+  { value, changeItem as change, removeItem, editItem, editMode, completed, toggleComplete } = attributes
 
-  hooks = {
-    insert: (vnode) => {
+  hooks = { insert: (vnode) => {
       vnode.elm.focus()
       vnode.elm.select()
-    }
-  }
-  
+    } }
+
   // Styling based on completion status
   textDecoration = 'none'
   textOpacity = '1'
@@ -23,37 +14,27 @@ TodoListItem = ({ attributes }: Component): VNode => {
     textDecoration := 'line-through'
     textOpacity := '0.6'
   }
-  
-  textStyle = {
-    padding: '10px',
-    textDecoration,
-    opacity: textOpacity,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease'
-  }
-  
+
+  textStyle = { padding: '10px', textDecoration, opacity: textOpacity, cursor: 'pointer', transition: 'all 0.2s ease' }
+
   borderColor = '#dee2e6'
   bgColor = 'white'
   if completed {
     borderColor := '#28a745'
     bgColor := '#d4edda'
   }
-  
+
   borderStyle = '1px solid 'borderColor''
-  
-  cardStyle = {
-    marginBottom: '10px',
-    border: borderStyle,
-    borderRadius: '5px',
-    backgroundColor: bgColor,
-    transition: 'all 0.2s ease'
-  }
+
+  cardStyle = { marginBottom: '10px', border: borderStyle, borderRadius: '5px', backgroundColor: bgColor,
+    transition: 'all 0.2s ease' }
 
   <div class="card" style=cardStyle key=attributes.key>
     <div class="card-body" style={ padding: '10px' }>
       <div class="form-row align-items-center">
         <div class="col-auto">
-          <input type="checkbox" checked=completed on={ change: toggleComplete } style={ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#28a745' } />
+          <input type="checkbox" checked=completed on={ change: toggleComplete } style={ width: '20px', height: '20px',
+            cursor: 'pointer', accentColor: '#28a745' } />
         </div>
         <div class="col">
           if editMode {
@@ -75,4 +56,3 @@ TodoListItem = ({ attributes }: Component): VNode => {
     </div>
   </div>
 }
-
