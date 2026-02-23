@@ -201,7 +201,7 @@ class MouseTracker extends Component {
   def render() {
     { text } = this.attributes
     <div>
-      <p>'Hello 'text''</p>
+      <p>'Hello 'text</p>
       <p>JSON.stringify(this.pos)</p>
     </div>
   }
@@ -237,7 +237,7 @@ Use `ctx.state` to maintain component-local state:
 ```typescript
 Counter = (ctx: Component) => {
   // Initialize state with name and initial value
-  { value as counter, setState } = ctx.state('counter', 0)
+  { value as counter, setState } = ctx.state<number>('counter', 0)
   
   increase = () => setState(counter + 1)
   decrease = () => setState(counter - 1)
