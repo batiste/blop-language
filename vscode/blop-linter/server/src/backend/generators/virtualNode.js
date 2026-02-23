@@ -83,10 +83,18 @@ function createVirtualNodeGenerators(context) {
         stat => output.push(...generateCode(stat)),
       ) : null;
       if (node.named.exp) {
-        const a_uid = uid();
-        output.push(` const ${a_uid} = `);
-        output.push(...generateCode(node.named.exp));
-        output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});`);
+        const expChild = node.named.exp.children[0];
+        const isStringExp = expChild && (expChild.type === 'str' || expChild.type === 'str_expression');
+        if (isStringExp) {
+          output.push(` ${_uid}c.push(`);
+          output.push(...generateCode(node.named.exp));
+          output.push(`);`);
+        } else {
+          const a_uid = uid();
+          output.push(` const ${a_uid} = `);
+          output.push(...generateCode(node.named.exp));
+          output.push(`; Array.isArray(${a_uid}) ? ${_uid}c.push(...${a_uid}) : ${_uid}c.push(${a_uid});`);
+        }
       }
       if (renderGuard) {
         output.push('}');
