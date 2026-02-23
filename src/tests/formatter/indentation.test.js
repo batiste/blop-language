@@ -115,4 +115,28 @@ describe('indentation normalization', () => {
       expect(result.trim().includes('\n')).toBe(true);
     });
   });
+
+  describe('space handling around delimiters', () => {
+    it('preserves spaces around operators', () => {
+      const result = format(`x = a > b`);
+      expect(result.trim()).toBe(`x = a > b`);
+    });
+  });
+
+  describe('multi-line preservation', () => {
+    it('preserves multi-line object type definitions', () => {
+      const src = `type Route = {\n  path: string,\n  name: string\n}`;
+      const result = format(src);
+      const lines = result.trim().split('\n');
+      // Should preserve multiple lines
+      expect(lines.length).toBeGreaterThan(2);
+    });
+
+    it('preserves multi-line object literals in assignments', () => {
+      const src = `x = {\n  a: 1,\n  b: 2\n}`;
+      const result = format(src);
+      const lines = result.trim().split('\n');
+      expect(lines.length).toBeGreaterThan(2);
+    });
+  });
 });

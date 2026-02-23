@@ -21,7 +21,12 @@ function collectLeaves(node, out = []) {
   // single_space_or_newline / newline_and_space are breakable separators.
   // Replace with a synthetic __break so the printer can decide space vs newline.
   if (BREAKABLE.has(node.type)) {
-    out.push({ type: '__break', value: '' });
+    // Track whether the original source had a newline
+    // single_space_or_newline contains either: [wcomment?, newline, w?, W?] or [w]
+    // newline_and_space contains only: [wcomment?, newline, w?, W?]
+    const hadNewline = node.type === 'newline_and_space' || 
+                      (node.children && node.children.some(child => child.type === 'newline'));
+    out.push({ type: '__break', value: '', hadNewline });
     return out;
   }
 
@@ -91,13 +96,24 @@ export class Printer {
         lineLen = 0;
         needsIndent = true;
       } else if (INLINE_SPACE.has(leaf.type)) {
-        // Skip inline spaces when at the start of a new line.
-        if (!needsIndent) { parts.push(' '); lineLen += 1; }
+        // Skip inline spaces when at the start of a new line or after opening delimiters.
+        const prevLeaf = i > 0 ? leaves[i - 1] : null;
+        const nextLeaf = i < leaves.length - 1 ? leaves[i + 1] : null;
+        const prevIsOpenDelim = prevLeaf?.value && ['(', '[', '{'].includes(prevLeaf.value);
+        const nextIsCloseDelim = nextLeaf?.value && [')', ']', '}'].includes(nextLeaf.value);
+        
+        if (!needsIndent && !prevIsOpenDelim && !nextIsCloseDelim) {
+          parts.push(' ');
+          lineLen += 1;
+        }
       } else if (leaf.type === '__break') {
         // Breakable separator: emit space or newline+indent based on line length.
+        // If the original source had a newline, preserve it.
         const seg = segmentLength(leaves, i + 1);
         const indentLen = this._indent(level).length;
-        if (lineLen + 1 + seg > this.maxLineLength) {
+        const shouldBreak = leaf.hadNewline || (lineLen + 1 + seg > this.maxLineLength);
+        
+        if (shouldBreak) {
           parts.push('\n');
           lineLen = 0;
           needsIndent = true;
