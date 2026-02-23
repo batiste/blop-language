@@ -35,7 +35,7 @@ Counter = (ctx: Component) => {
   { value, setState } = ctx.state<number>('count', 0)
   
   <div>
-    <h2>'Counter: 'value''</h2>
+    <h2>'Counter: 'value</h2>
     <button on={ click: () => setState(value + 1) }>'Increment'</button>
     <button on={ click: () => setState(value - 1) }>'Decrement'</button>
   </div>
