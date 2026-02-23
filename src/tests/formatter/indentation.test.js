@@ -33,9 +33,9 @@ describe('indentation normalization', () => {
       );
     });
 
-    it('separates multiple top-level definitions with one blank line', () => {
+    it('preserves newlines between top-level definitions', () => {
       const result = format(`def foo(x) {\nreturn x\n}\ndef bar(x) {\nreturn x\n}`);
-      expect(result).toBe(`def foo(x) {\n  return x\n}\n\ndef bar(x) {\n  return x\n}\n`);
+      expect(result).toBe(`def foo(x) {\n  return x\n}\ndef bar(x) {\n  return x\n}\n`);
     });
   });
 
@@ -49,6 +49,20 @@ describe('indentation normalization', () => {
     it('respects tab indent', () => {
       expect(format(`def greet(name) {\nreturn name\n}`, { indentChar: '\t', indentSize: 1 })).toBe(
         `def greet(name) {\n\treturn name\n}\n`
+      );
+    });
+  });
+
+  describe('operator preservation', () => {
+    it('preserves := (explicit assign)', () => {
+      expect(format(`def f() {\nx := 1\n}`)).toBe(
+        `def f() {\n  x := 1\n}\n`
+      );
+    });
+
+    it('preserves += (assign_op)', () => {
+      expect(format(`def f() {\nx += 1\n}`)).toBe(
+        `def f() {\n  x += 1\n}\n`
       );
     });
   });

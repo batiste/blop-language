@@ -80,6 +80,9 @@ function execute() {
       }
       throw error;
     }
+  } else {
+    console.error(`${COLORS.RED}Error:${COLORS.RESET} No input file specified`);
+    process.exit(1);
   }
 }
 
