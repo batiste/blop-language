@@ -44,10 +44,10 @@ def PlaygroundPage(ctx: Component): VNode {
     <div class="jumbotron" style={ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', color: 'white',
         padding: '2em', marginBottom: '0', borderRadius: '0' }>
       <h1 class="display-4 text-center" style={ fontWeight: 'bold', marginBottom: '0.3em' }>
-        '🎮 Blop Playground'
+        = '🎮 Blop Playground'
       </h1>
       <p class="lead text-center" style={ fontSize: '1.2em', marginBottom: '0' }>
-        'Write Blop code and see the compiled JavaScript output in real-time'
+        = 'Write Blop code and see the compiled JavaScript output in real-time'
       </p>
     </div>
 
@@ -60,7 +60,7 @@ def PlaygroundPage(ctx: Component): VNode {
             <div class="card-header" style={ backgroundColor: '#667eea', color: 'white', fontWeight: 'bold',
                 fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'📝'</span>
-              'Blop Code'
+              = 'Blop Code'
             </div>
             <div class="card-body" style={ padding: '0' }>
               <textarea class="form-control" style={ height: '500px', border: 'none', fontFamily: 'monospace',
@@ -71,17 +71,17 @@ def PlaygroundPage(ctx: Component): VNode {
               if isCompiling {
                 <button class="btn btn-primary btn-lg" disabled=true>
                   <span class="spinner-border spinner-border-sm" style={ marginRight: '0.5em' }></span>
-                  'Compiling...'
+                  = 'Compiling...'
                 </button>
               } else {
                 <button class="btn btn-primary btn-lg" on={ click: compileCode }>
                   <span style={ marginRight: '0.5em' }>'⚙️'</span>
-                  'Compile Code'
+                  = 'Compile Code'
                 </button>
               }
 
               <div style={ marginTop: '1em', fontSize: '0.9em', color: '#6c757d' }>
-                'Press the button to compile your Blop code'
+                = 'Press the button to compile your Blop code'
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ def PlaygroundPage(ctx: Component): VNode {
             <div class="card-header" style={ backgroundColor: '#28a745', color: 'white', fontWeight: 'bold',
                 fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'✨'</span>
-              'Compiled JavaScript'
+              = 'Compiled JavaScript'
             </div>
             <div class="card-body" style={ padding: '0' }>
 
@@ -102,7 +102,7 @@ def PlaygroundPage(ctx: Component): VNode {
                     fontFamily: 'monospace', fontSize: '14px', overflowY: 'auto', whiteSpace: 'pre-wrap' }>
                   <div style={ fontWeight: 'bold', marginBottom: '1em', fontSize: '1.1em' }>
                     <span style={ marginRight: '0.5em' }>'⚠️'</span>
-                    'Compilation Warning'
+                    = 'Compilation Warning'
                   </div>
                   = warning
                 </div>
@@ -113,7 +113,7 @@ def PlaygroundPage(ctx: Component): VNode {
                     fontFamily: 'monospace', fontSize: '14px', overflowY: 'auto', whiteSpace: 'pre-wrap' }>
                   <div style={ fontWeight: 'bold', marginBottom: '1em', fontSize: '1.1em' }>
                     <span style={ marginRight: '0.5em' }>'❌'</span>
-                    'Compilation Error'
+                    = 'Compilation Error'
                   </div>
                   = error
                 </div>
@@ -134,16 +134,16 @@ def PlaygroundPage(ctx: Component): VNode {
               if output {
                 <div style={ fontSize: '0.9em', color: '#28a745', fontWeight: 'bold' }>
                   <span style={ marginRight: '0.5em' }>'✓'</span>
-                  'Compilation successful!'
+                  = 'Compilation successful!'
                 </div>
               } elseif error {
                 <div style={ fontSize: '0.9em', color: '#dc3545', fontWeight: 'bold' }>
                   <span style={ marginRight: '0.5em' }>'✗'</span>
-                  'Compilation failed'
+                  = 'Compilation failed'
                 </div>
               } else {
                 <div style={ fontSize: '0.9em', color: '#6c757d' }>
-                  'Output will appear here after compilation'
+                  = 'Output will appear here after compilation'
                 </div>
               }
             </div>
@@ -158,7 +158,7 @@ def PlaygroundPage(ctx: Component): VNode {
             <div class="card-header" style={ backgroundColor: '#6f42c1', color: 'white', fontWeight: 'bold',
                 fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'📚'</span>
-              'Example Snippets - Click to Load'
+              = 'Example Snippets - Click to Load'
             </div>
             <div class="card-body">
               <div style={ display: 'flex', gap: '1em', flexWrap: 'wrap', justifyContent: 'center' }>
@@ -197,7 +197,7 @@ def PlaygroundPage(ctx: Component): VNode {
             <div class="card-header" style={ backgroundColor: '#17a2b8', color: 'white', fontWeight: 'bold',
                 fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'ℹ️'</span>
-              'About This Playground'
+              = 'About This Playground'
             </div>
             <div class="card-body">
               <div class="row">
@@ -224,19 +224,19 @@ def PlaygroundPage(ctx: Component): VNode {
                   <ul>
                     <li>
                       <a href="https://github.com/batiste/blop-language" target="_blank">
-                        'GitHub Repository'
+                        = 'GitHub Repository'
                       </a>
                     </li>
                     <li>
                       <a href="https://github.com/batiste/blop-language/blob/master/docs/SYNTAX_REFERENCE.md"
                         target="_blank">
-                        'Syntax Reference'
+                        = 'Syntax Reference'
                       </a>
                     </li>
                     <li>
                       <a href="https://github.com/batiste/blop-language/blob/master/docs/QUICK_START.md"
                         target="_blank">
-                        'Quick Start Guide'
+                        = 'Quick Start Guide'
                       </a>
                     </li>
                   </ul>

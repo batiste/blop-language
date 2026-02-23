@@ -19,9 +19,10 @@ def FormField(ctx: Component): VNode {
       on={ input: onChange }
       placeholder="Enter label" />
     if hasError {
-      <small class="form-text" style={ color: '#dc3545', display: 'block', marginTop: '0.25em' }>
-        = error
-      </small>
+      <small class="form-text"
+          style={ color: '#dc3545',
+          display: 'block', marginTop: '0.25em'
+      }>error</small>
     }
   </div>
 }
@@ -133,15 +134,12 @@ FormBuilderPage = (ctx: Component): VNode => {
     confirmPassword: ''
   })
 
-  { value as touched, setState as setTouched } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
-  { value as submitted, setState as setSubmitted
-  } = ctx.state<boolean>('submitted', false)
-  { value as isLoading, setState as setIsLoading
-  } = ctx.state<boolean>('isLoading', false)
-  { value as success, setState as setSuccess
-  } = ctx.state<boolean>('success', false)
-  { value as showPassword, setState as setShowPassword
-  } = ctx.state<boolean>('showPassword', false)
+  { value as touched, setState as setTouched } = ctx.state<object>('touched', { name: false, email: false,
+    password: false, confirmPassword: false })
+  { value as submitted, setState as setSubmitted } = ctx.state<boolean>('submitted', false)
+  { value as isLoading, setState as setIsLoading } = ctx.state<boolean>('isLoading', false)
+  { value as success, setState as setSuccess } = ctx.state<boolean>('success', false)
+  { value as showPassword, setState as setShowPassword } = ctx.state<boolean>('showPassword', false)
 
   def updateField(fieldName: string) {
     return (e) => {

@@ -128,9 +128,7 @@ def DogGame(ctx: Component) {
           <p style={ color: '#666', margin: '0', fontSize: '0.9em' }>
             'The correct answer is '
             <b>page.lastResult.breed</b>
-            = ' (you said "'
-            = page.lastResult.guess
-            = '")'
+            ' (you said "'page.lastResult.guess'")'
           </p>
         } else {
           <p style={ color: '#dc3545', fontSize: '1em', fontWeight: 'bold', margin: '0 0 0.5em 0' }>
@@ -138,9 +136,7 @@ def DogGame(ctx: Component) {
             <b>page.lastResult.breed</b>
           </p>
           <p style={ color: '#666', margin: '0', fontSize: '0.9em' }>
-            'You guessed "'
-            = page.lastResult.guess
-            = '" – give the next one a try!'
+            'You guessed "'page.lastResult.guess'" – give the next one a try!'
           </p>
         }
       </div>
