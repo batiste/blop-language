@@ -188,17 +188,6 @@ Card = ({ attributes, children }) => {
     </div>
   </div>
 }
-
-// Stateful component — needs ctx
-Counter = (ctx: Component) => {
-  { value, setState } = ctx.state<number>('count', 0)
-  
-  <div>
-    <button on={ click: () => setState(value - 1) }>'-'</button>
-    <span>' 'value' '</span>
-    <button on={ click: () => setState(value + 1) }>'+'</button>
-  </div>
-}
 ```
 
 ## Class Components
@@ -239,38 +228,6 @@ class MouseTracker extends Component {
 
 ```typescript
 <MouseTracker text="world" />
-```
-
-### Component Class Methods
-
-The `Component` class provides these methods:
-
-```typescript
-class MyComponent extends Component {
-  // Required: render the component
-  render(attributes, children) : VNode { 
-    // Return a VNode tree. In blop, your simply write HTML in the render method, and it gets compiled to VNodes.
-    <div>
-      = children
-    </div>
-  }
-
-  // Schedule a re-render
-  this.refresh()
-
-  // Lifecycle methods
-  onMount() { ... }
-  onUnmount() { ... }
-
-  // State management
-  state(name, initialValue) { ... }
-  
-  // Context management
-  context(name, initialValue) { ... }
-
-  // React to attribute changes
-  onChange(attribute, callback) { ... }
-}
 ```
 
 ## Component State
@@ -334,26 +291,6 @@ TodoList = (ctx: Component) => {
 Context allows parent components to pass data to deeply nested children without prop drilling.
 
 **Signature:** `ctx.context(name: string, initial: any): { value: any, setContext: Function }`
-
-```typescript
-// Child component - consumes context
-ContextConsumer = (ctx: Component) => {
-  { value } = ctx.context('specialNumber')
-  <p>'Value from context: 'value''</p>
-}
-
-// Parent component - provides context
-ContextHolder = (ctx: Component) => {
-  { setContext } = ctx.context('specialNumber', Math.random())
-  
-  changeValue = () => setContext(Math.random())
-  
-  <div>
-    <ContextConsumer />
-    <button on={ click: changeValue }>'Change value'</button>
-  </div>
-}
-```
 
 ### How Context Works
 
