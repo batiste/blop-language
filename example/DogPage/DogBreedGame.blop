@@ -7,7 +7,7 @@ def DogGame(ctx: Component) {
   dog = page?.choice
 
   input = <input type="text"
-    class="form-control" placeholder="Breed" />
+  class="form-control" placeholder="Breed" />
 
   // Normalize breed names for comparison (remove spaces, dashes, make lowercase)
   def normalizeBreed(breedName: string): string {
@@ -18,19 +18,19 @@ def DogGame(ctx: Component) {
     if !breedName || !userGuess {
       return 0
     }
-    
+
     normalizedGuess = normalizeBreed(userGuess).trim()
     normalizedBreed = normalizeBreed(breedName).trim()
-    
+
     // Exact match (full point)
     if normalizedGuess == normalizedBreed {
       return 1
     }
-    
+
     // Parse breed into parts
     breedParts = normalizedBreed.split(' ').filter((word) => word.length > 0)
     guessParts = normalizedGuess.split(' ').filter((word) => word.length > 0)
-    
+
     // Single word breed: only full/no partial match on that word
     if breedParts.length == 1 {
       if guessParts.length > 0 && breedParts[0] == guessParts[0] {
@@ -38,7 +38,7 @@ def DogGame(ctx: Component) {
       }
       return 0
     }
-    
+
     // Multi-word breed: check if all breed parts are in guess (flexible order, full point)
     allMatch = true
     for part in breedParts {
@@ -55,7 +55,7 @@ def DogGame(ctx: Component) {
     if allMatch {
       return 1
     }
-    
+
     // Partial match (at least one word correct, half point)
     oneMatch = false
     for part in breedParts {
@@ -68,24 +68,24 @@ def DogGame(ctx: Component) {
     if oneMatch {
       return 0.5
     }
-    
+
     return 0
   }
 
   def check() {
     elm = input.elm
     userGuess = elm.value
-    
+
     if !userGuess || userGuess.trim().length == 0 {
       return
     }
-    
+
     input.elm.value = ''
     page.attempt = (page.attempt ?? 0) + 1
-    
+
     score = scoreGuess(dog?.breed ?? '', userGuess)
     page.success = (page.success ?? 0) + score
-    
+
     if score == 1 {
       page.lastResult = { result: 'correct', breed: dog?.breed, guess: userGuess }
     } elseif score == 0.5 {
@@ -93,7 +93,7 @@ def DogGame(ctx: Component) {
     } else {
       page.lastResult = { result: 'wrong', breed: dog?.breed, guess: userGuess }
     }
-    
+
     getNewDog(state)
   }
 
@@ -161,8 +161,8 @@ def DogGame(ctx: Component) {
 
     <div style={ minHeight: '400px' }>
       = if dog => <img
-          src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
-          style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
+      src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+      style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
     </div>
 
   </div>

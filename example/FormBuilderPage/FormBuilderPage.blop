@@ -3,21 +3,21 @@
 def FormField(ctx: Component): VNode {
   { attributes } = ctx
   { label, type, value, error, onChange } = attributes
-  
+
   hasError = error && error.length > 0
   borderColor = if hasError => '#dc3545' else '#dee2e6'
-  
+
   <div class="mb-3">
     <label class="form-label" style={ fontWeight: 'bold', marginBottom: '0.5em' }>
       = label
     </label>
     <input
-      type=type
-      class="form-control"
-      value=value
-      style={ borderColor, borderWidth: '1px' }
-      on={ input: onChange }
-      placeholder="Enter label" />
+    type=type
+    class="form-control"
+    value=value
+    style={ borderColor, borderWidth: '1px' }
+    on={ input: onChange }
+    placeholder="Enter label" />
     if hasError {
       <small class="form-text" style={ color: '#dc3545', display: 'block', marginTop: '0.25em' }>
         = error
@@ -38,10 +38,10 @@ def validateEmail(email: string): string {
 
 def validatePassword(password: string): string {
   if !password {
-     return 'Password is required'
+    return 'Password is required'
   }
   if password.length < 8 {
-     return 'Password must be at least 8 characters'
+    return 'Password must be at least 8 characters'
   }
   return ''
 }
@@ -103,15 +103,16 @@ def PasswordField(ctx): VNode {
     </label>
     <div style={ position: 'relative', display: 'flex', alignItems: 'center' }>
       <input
-        type=inputType
-        class="form-control"
-        value=value
-        style={ borderColor, borderWidth: '1px', paddingRight: '3.5em' }
-        on={ input: onChange } />
+      type=inputType
+      class="form-control"
+      value=value
+      style={ borderColor, borderWidth: '1px', paddingRight: '3.5em' }
+      on={ input: onChange } />
       <button
-        type="button"
-        style={ position: 'absolute', right: '0.6em', background: 'none', border: 'none', cursor: 'pointer', color: '#6c757d', fontSize: '0.78em', padding: '0', lineHeight: '1' }
-        on={ click: onToggleShow }>
+      type="button"
+      style={ position: 'absolute', right: '0.6em', background: 'none', border: 'none', cursor: 'pointer',
+        color: '#6c757d', fontSize: '0.78em', padding: '0', lineHeight: '1' }
+      on={ click: onToggleShow }>
         = if showPassword => 'Hide' else 'Show'
       </button>
     </div>
@@ -125,24 +126,24 @@ def PasswordField(ctx): VNode {
 
 FormBuilderPage = (ctx: Component): VNode => {
   { value as formData, setState as setFormData } = ctx.state<{ name: string, email: string,
-      password: string, confirmPassword: string }>('formData', {
+    password: string, confirmPassword: string }>('formData', {
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
-  
+
   { value as touched, setState as setTouched
-    } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
+  } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
   { value as submitted, setState as setSubmitted
-    } = ctx.state<boolean>('submitted', false)
+  } = ctx.state<boolean>('submitted', false)
   { value as isLoading, setState as setIsLoading
-    } = ctx.state<boolean>('isLoading', false)
+  } = ctx.state<boolean>('isLoading', false)
   { value as success, setState as setSuccess
-    } = ctx.state<boolean>('success', false)
+  } = ctx.state<boolean>('success', false)
   { value as showPassword, setState as setShowPassword
-    } = ctx.state<boolean>('showPassword', false)
-  
+  } = ctx.state<boolean>('showPassword', false)
+
   def updateField(fieldName: string) {
     return (e) => {
       newData = { ...formData }
@@ -150,7 +151,7 @@ FormBuilderPage = (ctx: Component): VNode => {
       setFormData(newData)
     }
   }
-  
+
   def markTouched(fieldName: string) {
     return () => {
       newTouched = { ...touched }
@@ -158,29 +159,29 @@ FormBuilderPage = (ctx: Component): VNode => {
       setTouched(newTouched)
     }
   }
-  
+
   def getFieldError(fieldName: string): string | null {
     if !touched[fieldName] && !submitted {
-         return null
+      return null
     }
     if fieldName == 'name' {
-        return validateName(formData.name)
+      return validateName(formData.name)
     }
     if fieldName == 'email' {
-        return validateEmail(formData.email)
+      return validateEmail(formData.email)
     }
     if fieldName == 'password' {
-        return validatePassword(formData.password)
+      return validatePassword(formData.password)
     }
     if fieldName == 'confirmPassword' && !formData.confirmPassword {
-        return 'Please confirm password'
+      return 'Please confirm password'
     }
     if formData.confirmPassword != formData.password {
-        return 'Passwords do not match'
+      return 'Passwords do not match'
     }
     return null
   }
-  
+
   def isFormValid(): boolean {
     nameErr = validateName(formData.name)
     emailErr = validateEmail(formData.email)
@@ -189,7 +190,7 @@ FormBuilderPage = (ctx: Component): VNode => {
 
     return !nameErr && !emailErr && !passwordErr && !confirmErr
   }
-  
+
   def handleSubmit(e) {
     e.preventDefault()
     setSubmitted(true)
@@ -209,10 +210,11 @@ FormBuilderPage = (ctx: Component): VNode => {
       }, 1500)
     }
   }
-  
+
   <div class="container" style={ maxWidth: '500px', marginTop: '3em', marginBottom: '3em' }>
     <div class="card">
-      <div class="card-header" style={ backgroundColor: '#667eea', color: 'white', fontWeight: 'bold', fontSize: '1.1em' }>
+      <div class="card-header" style={ backgroundColor: '#667eea', color: 'white', fontWeight: 'bold', fontSize: '1.1em'
+      }>
         '📋 User Registration Form'
       </div>
       <div class="card-body" style={ padding: '2em' }>
@@ -226,17 +228,17 @@ FormBuilderPage = (ctx: Component): VNode => {
           <li>'Show/hide password toggle'</li>
           <li>'Dependent field validation'</li>
         </ul>
-        
+
         <form on={ submit: handleSubmit }>
           <FormField label='Full Name' type='text'
-            value=formData.name error=getFieldError('name') onChange=updateField('name') />
+          value=formData.name error=getFieldError('name') onChange=updateField('name') />
 
           <FormField label='Email Address' type='email'
-            value=formData.email error=getFieldError('email') onChange=updateField('email') />
+          value=formData.email error=getFieldError('email') onChange=updateField('email') />
 
           <PasswordField label='Password' value=formData.password
-            error=getFieldError('password') onChange=updateField('password')
-            showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
+          error=getFieldError('password') onChange=updateField('password')
+          showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
 
           passwordStrength = getPasswordStrength(formData.password)
           if passwordStrength {
@@ -253,14 +255,14 @@ FormBuilderPage = (ctx: Component): VNode => {
           }
 
           <PasswordField label='Confirm Password' value=formData.confirmPassword
-            error=getFieldError('confirmPassword') onChange=updateField('confirmPassword')
-            showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
-          
+          error=getFieldError('confirmPassword') onChange=updateField('confirmPassword')
+          showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
+
           <button
-            type="submit"
-            class="btn btn-primary w-100"
-            style={ marginTop: '1em' }
-            disabled=isLoading>
+          type="submit"
+          class="btn btn-primary w-100"
+          style={ marginTop: '1em' }
+          disabled=isLoading>
             if isLoading {
               <span>'Creating account...'</span>
             } else {
@@ -268,7 +270,7 @@ FormBuilderPage = (ctx: Component): VNode => {
             }
           </button>
         </form>
-        
+
         if success {
           <div class="alert alert-success" style={ marginTop: '1em' }>
             '✓ Account created successfully!'

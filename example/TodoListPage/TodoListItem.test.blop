@@ -22,9 +22,9 @@ def SomeComponent(ctx: Component) {
 
 test('Virtual DOM component with children', () => {
   component = () => <SomeComponent content='text'>
-      <p>'hello'</p>
-      <p>'world'</p>
-    </SomeComponent>
+    <p>'hello'</p>
+    <p>'world'</p>
+  </SomeComponent>
 
   node = component()
   expect(node.children[0].text).toBe('text')

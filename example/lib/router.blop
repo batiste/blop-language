@@ -47,7 +47,7 @@ class Router {
         initial && initial()
       } else {
         matchedRoute = this.routes.find(
-          (route) => route.path == e.state.path)
+        (route) => route.path == e.state.path)
         matchedRoute && matchedRoute.handler(e.state.params, this.state)
       }
     })
@@ -88,11 +88,11 @@ class Router {
     }
     if push {
       this.global.history.pushState({
-          name: m.route.name,
-          path: m.route.path,
-          params: m.params
-        },
-        m.route.name, path)
+        name: m.route.name,
+        path: m.route.path,
+        params: m.params
+      },
+      m.route.name, path)
     }
     this.state.route = { name: m.route.name, params: m.params }
     if m.route.handler {

@@ -96,15 +96,21 @@ export class Printer {
         lineLen = 0;
         needsIndent = true;
       } else if (INLINE_SPACE.has(leaf.type)) {
-        // Skip inline spaces when at the start of a new line or after opening delimiters.
-        const prevLeaf = i > 0 ? leaves[i - 1] : null;
-        const nextLeaf = i < leaves.length - 1 ? leaves[i + 1] : null;
-        const prevIsOpenDelim = prevLeaf?.value && ['(', '[', '{'].includes(prevLeaf.value);
-        const nextIsCloseDelim = nextLeaf?.value && [')', ']', '}'].includes(nextLeaf.value);
-        
-        if (!needsIndent && !prevIsOpenDelim && !nextIsCloseDelim) {
-          parts.push(' ');
-          lineLen += 1;
+        // 'w' tokens are mandatory single spaces in the grammar - always preserve them
+        // Only apply delimiter logic to 'wcomment' tokens
+        if (leaf.type === 'w') {
+          if (!needsIndent) { parts.push(' '); lineLen += 1; }
+        } else if (leaf.type === 'wcomment') {
+          // Skip wcomment spaces when at the start of a new line or after opening delimiters
+          const prevLeaf = i > 0 ? leaves[i - 1] : null;
+          const nextLeaf = i < leaves.length - 1 ? leaves[i + 1] : null;
+          const prevIsOpenDelim = prevLeaf?.value && ['(', '['].includes(prevLeaf.value);
+          const nextIsCloseDelim = nextLeaf?.value && [')', ']', '}'].includes(nextLeaf.value);
+          
+          if (!needsIndent && !prevIsOpenDelim && !nextIsCloseDelim) {
+            parts.push(' ');
+            lineLen += 1;
+          }
         }
       } else if (leaf.type === '__break') {
         // Breakable separator: emit space or newline+indent based on line length.

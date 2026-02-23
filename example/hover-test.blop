@@ -1,47 +1,47 @@
 type User = {
-    name: string,
-    id: number,
-    userType?: "Admin" | "User"
+  name: string,
+  id: number,
+  userType?: "Admin" | "User"
 }
 
 type Profile = {
-    user: User,
-    bio?: string,
-    verified: boolean
+  user: User,
+  bio?: string,
+  verified: boolean
 }
 
 def profile(prof: Profile) {
-    return prof.user
+  return prof.user
 }
 
 def test(a: number=1) {
-    return a
+  return a
 }
 
 def arrayFct(a: number=1): { a: number }[] {
-    return [{ a }, { a: a + 1 }, { a: a + 2 }]
+  return [{ a }, { a: a + 1 }, { a: a + 2 }]
 }
 arrayFct()[0].b
 
 def variableType(x: number, _y=5) {
-    if (x > 10) {
-        return "Greater than 10"
-    } else {
-        return 10 + _y
-    }
-    // should be marked as unreachable code and not cause the function to widen to string | number
-    return "Impossible"
+  if (x > 10) {
+    return "Greater than 10"
+  } else {
+    return 10 + _y
+  }
+  // should be marked as unreachable code and not cause the function to widen to string | number
+  return "Impossible"
 }
 
 inferred = variableType(3)
 console.log(inferred)
 
 def genericFunction<T>(arg: T): T {
-    return arg
+  return arg
 }
 
 def identity<T>(arg: T): T {
-    return arg
+  return arg
 }
 // identity<number>(5) + identity<string>("10")
 // 5 + "10"
@@ -49,11 +49,11 @@ def identity<T>(arg: T): T {
 // identity<number>(5) + "10"
 
 def text(title: string): string {
-    title
-    return title.toUpperCase()
+  title
+  return title.toUpperCase()
 }
 def num(n: number): number {
-    return n
+  return n
 }
 
 vt: number = 5
@@ -75,24 +75,24 @@ hello := "asdf"
 console.log(userAssignmentTest)
 
 def test1(a: number=1): VNode {
-    <p>a</p>
+  <p>a</p>
 }
 result_1 = test1()
 
 Test = (): VNode => {
-    <p>'hello'</p>
+  <p>'hello'</p>
 }
 result_2 = Test()
 
 def testAnnotation1(attributes: { total: number, text: string }) {
-    return attributes
+  return attributes
 }
 
 def testAnnotation2(attributes: { total: number, text: string }) {
-    return attributes.text
+  return attributes.text
 }
 
 def testAnnotation3(attributes: { total: number, text: string }) {
-    { total, text as _text } = attributes
-    return total
+  { total, text as _text } = attributes
+  return total
 }

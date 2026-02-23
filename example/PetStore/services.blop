@@ -9,7 +9,7 @@ async def findAvailablePets(state, controller) {
     return
   }
   petList = (await response.json()) ?? []
-  
+
   state.loading = false
   state.petStore.pets = petList
   return controller

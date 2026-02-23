@@ -45,7 +45,7 @@ def create(state, options={ readOnly: false }) {
       }
       completePath = joinPath(path, extrapath)
       return !!modifications.find(
-        (modification) => modification.path.startsWith(completePath))
+      (modification) => modification.path.startsWith(completePath))
     }
     return {
       get: def (obj, prop) {
@@ -61,9 +61,9 @@ def create(state, options={ readOnly: false }) {
         // be sure to not double wrap a Proxy — use Symbol to avoid false positives
         if isObject(obj[prop]) && !obj[prop][PROXY_TAG] {
           return new Proxy(
-            currentState[prop],
-            handler(currentState[prop],
-            joinPath(path, prop), currentState))
+          currentState[prop],
+          handler(currentState[prop],
+          joinPath(path, prop), currentState))
         }
         return obj[prop]
       },
