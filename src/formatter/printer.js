@@ -33,25 +33,41 @@ function collectLeaves(node, out = []) {
   const children = node.children || [];
 
   if (VNODE_TYPES.has(node.type)) {
-    // Track whether this VNode has attributes to inject markers at the right place
-    const hasAttributes = children.some(c => c.type === 'virtual_node_attributes');
-    const hasClosingTag = children.some(c => c.type === '</');
-    let foundOpeningTagClose = false; // Track whether we've seen the opening tag's '>'
+    // VNode grammar forms (from grammar.js):
+    //   Self-closing:     ['<', 'name:opening', 'virtual_node_attributes*:attrs', 'w?', '/>']
+    //   With statements:  ['<', 'name:opening', 'virtual_node_attributes*:attrs', '>', 'SCOPED_STATEMENTS*:stats', '</', 'name:closing', '>']
+    //   With expression:  ['<', 'name:opening', 'virtual_node_attributes*:attrs', '>', 'exp:exp', '</', 'name:closing', '>']
+    //
+    // The .named field provides grammar-aware access to:
+    //   - .named.attrs[]       = virtual_node_attributes children (0 or more)
+    //   - .named.stats[]       = SCOPED_STATEMENTS children (present in statement-form only)
+    //   - .named.exp           = single expression (present in expression-form only)
+    //   - .named.closing       = closing tag name (present only if not self-closing)
+    
+    const attrs = node.named?.attrs;
+    const hasAttributes = attrs && attrs.length > 0;
+    const hasClosingTag = !!node.named?.closing;
+    const hasStatements = !!node.named?.stats;
+    const hasExpression = !!node.named?.exp;
+    
+    let foundOpeningTagClose = false;
     
     for (const child of children) {
-      // Inject start marker before virtual_node_attributes section
-      if (hasAttributes && child.type === 'virtual_node_attributes') {
+      // Inject marker before first attribute to enable special attribute indentation
+      if (hasAttributes && !foundOpeningTagClose && child === attrs[0]) {
         out.push({ type: '__vnode_attrs_start', value: '' });
       }
       
       collectLeaves(child, out);
       
-      // Inject end marker after virtual_node_attributes section is complete
-      if (hasAttributes && child.type === 'virtual_node_attributes') {
+      // Inject marker after last attribute to end special attribute indentation
+      if (hasAttributes && !foundOpeningTagClose && child === attrs[attrs.length - 1]) {
         out.push({ type: '__vnode_attrs_end', value: '' });
       }
       
-      // Inject __vopen after the opening tag's '>' only (not the closing tag's )
+      // Inject __vopen after the opening tag's '>' to indent any children/content.
+      // This mirrors how '{' increments level for block content.
+      // Only inject once and only for non-self-closing tags (which have closing tags).
       if (!foundOpeningTagClose && child.type === '>' && hasClosingTag) {
         out.push(VNODE_OPEN);
         foundOpeningTagClose = true;

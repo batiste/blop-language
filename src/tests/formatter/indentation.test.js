@@ -87,6 +87,61 @@ describe('indentation normalization', () => {
         `def f() {\n  <div>\n    <section>\n      <p>'text'</p>\n    </section>\n  </div>\n}\n`
       );
     });
+
+    it('formats VNode with multiple attributes', () => {
+      const src = `def C() {
+<div class="main" id="root" data-value="123">
+<p>'Content'</p>
+</div>
+}`;
+      const result = format(src);
+      const lines = result.split('\n');
+      // <div> should be indented by 2 (inside function)
+      expect(lines[1]).toMatch(/^  </);
+      // <p> should be indented by 4 (inside div)
+      expect(lines[2]).toMatch(/^    </);
+    });
+
+    it('formats self-closing VNode with attributes', () => {
+      const src = `def Page() {
+<input type="text" placeholder="Enter name" disabled />
+}`;
+      const result = format(src);
+      expect(result).toContain('<input type="text" placeholder="Enter name" disabled />');
+      const lines = result.split('\n');
+      // <input> should be indented by 2 (inside function)
+      expect(lines[1]).toMatch(/^  </);
+    });
+
+    it('formats VNode with nested structure and attributes', () => {
+      const src = `def C() {
+<section class="wrapper">
+<article>
+<h1>'Title'</h1>
+</article>
+</section>
+}`;
+      const result = format(src);
+      const lines = result.split('\n');
+      // <section> indented by 2
+      expect(lines[1]).toMatch(/^  <section/);
+      // <article> indented by 4
+      expect(lines[2]).toMatch(/^    <article/);
+      // <h1> indented by 6
+      expect(lines[3]).toMatch(/^      <h1/);
+    });
+
+    it('handles mixed content (elements and strings)', () => {
+      const src = `def C() {
+<div>
+<span>'Hello ' + name</span>
+</div>
+}`;
+      const result = format(src);
+      const lines = result.split('\n');
+      expect(lines[1]).toMatch(/^  <div/);
+      expect(lines[2]).toMatch(/^    <span/);
+    });
   });
 
   describe('line length breaking', () => {
