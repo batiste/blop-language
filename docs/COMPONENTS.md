@@ -141,7 +141,7 @@ def Layout({ attributes, children }: Component) {
 - Return a VNode
 
 ```typescript
-// Capitalized - designed for JSX tag usage
+// Capitalized - designed for HTML tag usage
 def Card(ctx: Component) {
   { attributes, children } = ctx
   <div class=attributes.class>
@@ -149,7 +149,7 @@ def Card(ctx: Component) {
   </div>
 }
 
-// Use with JSX syntax - creates a Component instance
+// Use with HTML syntax - creates a Component instance
 <Card class="primary"><h1>'Title'</h1></Card>
 
 // Lowercase - designed for direct function calls
