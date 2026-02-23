@@ -64,10 +64,14 @@ Blop's Virtual DOM syntax is **compiled** into JavaScript function calls. The co
 ```typescript
 def Greeting(attributes) {
   <div class="greeting">
-    'Hello, ' attributes.name '!'
+    'Hello, 'attributes.firstName'!'
+    'Days since last login: '
+      = numberOfDays()
   </div>
 }
 ```
+
+Note: The `attributes.firstName` is concatenated with the string. Blop knows that it has to add this text expression a text node. To add anything else (like a number), you would use the `=` operator instead.
 
 **Compiled JavaScript (simplified):**
 ```javascript
@@ -76,9 +80,9 @@ function Greeting(attributes) {
   const _v1a = {};
   
   _v1a['class'] = "greeting";
-  _v1c.push('Hello, ');
-  _v1c.push(attributes.name);
-  _v1c.push('!');
+  _v1c.push(`Hello, ${attributes.firstName}!`);
+  _v1c.push('Days since last login: ');
+  _v1c.push(numberOfDays());
   
   const _v1 = blop.h('div', _v1a, _v1c);
   return _v1;

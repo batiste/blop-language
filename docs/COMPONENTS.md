@@ -157,13 +157,18 @@ def link(url, text) {
   <a href=url>text</a>
 }
 
-// Called directly
+// On a single line, Blop knows to treat it as a VNode-generating function
 <div>link('/home', 'Home')</div>
 
-// or with assignment
+// the `=` operator is needed to yield the result of any function call as a VNode
 <div>
-  homeLink = link('/home', 'Home')
-  = homeLink
+  = link('/home', 'Home')
+</div>
+
+// string and string expressions do not require the `=` operator: they are automatically treated as text nodes
+<div>
+  'Welcome'
+  ' to the site, 'user.name
 </div>
 ```
 
