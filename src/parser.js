@@ -3925,19 +3925,14 @@ let object_type_properties_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_2 = wcomment(stream, i);
-  if (_rule_2) {
-    children.push(_rule_2);
-    i = _rule_2.last_index;
-  }
-  const _rule_3 = single_space_or_newline(stream, i);
+  const _rule_2 = single_space_or_newline(stream, i);
+  if (!_rule_2) return false;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  const _rule_3 = object_type_properties(stream, i);
   if (!_rule_3) return false;
   children.push(_rule_3);
   i = _rule_3.last_index;
-  const _rule_4 = object_type_properties(stream, i);
-  if (!_rule_4) return false;
-  children.push(_rule_4);
-  i = _rule_4.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -3956,11 +3951,6 @@ let object_type_properties_1 = (stream, index) => {
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
-  const _rule_1 = wcomment(stream, i);
-  if (_rule_1) {
-    children.push(_rule_1);
-    i = _rule_1.last_index;
-  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -4278,20 +4268,10 @@ let func_def_params_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'func_def_params', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
+  const _rule_3 = single_space_or_newline(stream, i);
+  if (!_rule_3) return false;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
   const _rule_4 = func_def_params(stream, i);
   if (!_rule_4) return false;
   children.push(_rule_4);
@@ -4388,20 +4368,10 @@ let func_def_params_2 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'func_def_params', sub_rule_index: 2,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
+  const _rule_5 = single_space_or_newline(stream, i);
+  if (!_rule_5) return false;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
   const _rule_6 = func_def_params(stream, i);
   if (!_rule_6) return false;
   children.push(_rule_6);
@@ -4508,20 +4478,10 @@ let func_def_params_4 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'func_def_params', sub_rule_index: 4,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
+  const _rule_3 = single_space_or_newline(stream, i);
+  if (!_rule_3) return false;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
   const _rule_4 = func_def_params(stream, i);
   if (!_rule_4) return false;
   children.push(_rule_4);
@@ -6272,12 +6232,17 @@ let single_space_or_newline_0 = (stream, index) => {
     children, stream_index: index, name: 'single_space_or_newline',
     sub_rule_index: 0, type: 'single_space_or_newline', named,
   };
+  const _rule_0 = wcomment(stream, i);
+  if (_rule_0) {
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+  }
 
-  if (stream[i].type !== 'w') {
+  if (stream[i].type !== 'newline') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'single_space_or_newline', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -6286,6 +6251,12 @@ let single_space_or_newline_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  if (stream[i].type === 'W') {
+    children.push(stream[i]); i++;
+  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -6301,7 +6272,7 @@ let single_space_or_newline_1 = (stream, index) => {
     sub_rule_index: 1, type: 'single_space_or_newline', named,
   };
 
-  if (stream[i].type !== 'newline') {
+  if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'single_space_or_newline', sub_rule_index: 1,
@@ -6314,12 +6285,6 @@ let single_space_or_newline_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  if (stream[i].type === 'w') {
-    children.push(stream[i]); i++;
-  }
-  if (stream[i].type === 'W') {
-    children.push(stream[i]); i++;
-  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -6338,12 +6303,17 @@ let newline_and_space_0 = (stream, index) => {
     children, stream_index: index, name: 'newline_and_space',
     sub_rule_index: 0, type: 'newline_and_space', named,
   };
+  const _rule_0 = wcomment(stream, i);
+  if (_rule_0) {
+    children.push(_rule_0);
+    i = _rule_0.last_index;
+  }
 
   if (stream[i].type !== 'newline') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'newline_and_space', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);

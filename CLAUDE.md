@@ -48,18 +48,7 @@ Both phases run with fresh scopes initialized from the binding phase symbol tabl
 
 ## Grammar & AST Structure
 
-Grammar is defined in `src/grammar.js`. AST node keys match grammar rule labels: `type_arguments:type_args` stores at `.named.type_args`, not `.named.type_arguments`.
-
-**Recursive nesting example**: `node.state<number>('count', 0)` produces:
-
-```
-access_or_operation
-  named.access → object_access (OUTER: '.' + name="state")
-    child object_access (INNER: type_arguments + func_call)
-      named.type_args → type_arguments
-        named.args → type_argument_list
-          named.arg → type_expression
-```
+Grammar is defined in `src/grammar.js`. AST node keys match grammar rule labels: `type_arguments:type_args` stores at `.named.type_args`, not `.named.type_arguments`. Only certain tokens have `.named` properties, depending on the grammar rule. However node.children always contains all children.
 
 ## AST Debugging
 
@@ -67,6 +56,8 @@ Use reusable utilities from `src/tests/debugUtils.js` instead of throwaway scrip
 - `findNodes()` — locate AST nodes
 - `analyzeOperations()` — inspect operations
 - `printInferenceTree()` — visualize type inference
+
+Update and improve those utilities as you discover new debugging needs.
 
 ### Inspecting the AST
 

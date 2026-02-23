@@ -5,6 +5,7 @@ import fs from 'fs';
 import vm from 'vm';
 import { compileSource } from './compile.js';
 import { COLORS } from './constants.js';
+import { format } from './formatter/index.js';
 
 program
   .version('0.1.0')
@@ -15,7 +16,11 @@ program
   .option('-s, --sourceMap', 'add source maps')
   .option('-f, --inference', 'enable type inference checking')
   .option('-v, --validate', 'validate only (check for type errors without generating output)')
-  .parse(process.argv);
+  .option('-t, --format', 'format source file in place')
+  // .option('--indent-size <n>', 'indentation size for formatter (default: 2)', parseInt)
+  
+  
+program.parse(process.argv);
 
 const options = program.opts();
 
@@ -27,7 +32,14 @@ if (!process.argv.slice(2).length || !options.input) {
 function execute() {
   if (options.input) {
     const source = fs.readFileSync(options.input);
-    
+
+    if (options.format) {
+      const formatted = format(source.toString(), {});
+      fs.writeFileSync(options.input, formatted);
+      console.log(`${COLORS.GREEN}[blop]${COLORS.RESET} ${options.input} formatted`);
+      return;
+    }
+
     try {
       const result = compileSource(source.toString(), options.input, options.sourceMap, options.resolve, options.inference);
       

@@ -120,13 +120,13 @@ const grammar = {
     ['type_expression:arg'],
   ],
   'object_type': [
-    ['{', 'wcomment', 'newline', 'w?', 'W?', 'object_type_properties:properties', 'single_space_or_newline', '}'],
+    ['{', 'wcomment', 'newline', 'w?', 'W?', 'object_type_properties:properties', 'single_space_or_newline', '}'], // this line could be removed
     ['{', 'single_space_or_newline', 'object_type_properties:properties', 'single_space_or_newline', '}'],
     ['{', '}'],
   ],
   'object_type_properties': [
-    ['object_type_property', ',', 'wcomment?', 'single_space_or_newline', 'object_type_properties'],
-    ['object_type_property', 'wcomment?'],
+    ['object_type_property', ',', 'single_space_or_newline', 'object_type_properties'],
+    ['object_type_property'],
   ],
   'object_type_property': [
     ['name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
@@ -140,11 +140,11 @@ const grammar = {
     ['false'],
   ],
   'func_def_params': [
-    ['object_destructuring:destructuring', 'annotation?:annotation', ',', 'w', 'func_def_params'],
+    ['object_destructuring:destructuring', 'annotation?:annotation', ',', 'single_space_or_newline', 'func_def_params'],
     ['object_destructuring:destructuring', 'annotation?:annotation'],
-    ['name:name', 'annotation?:annotation', '=', 'exp', ',', 'w', 'func_def_params'],
+    ['name:name', 'annotation?:annotation', '=', 'exp', ',', 'single_space_or_newline', 'func_def_params'],
     ['name:name', 'annotation?:annotation', '=', 'exp'],
-    ['name:name', 'annotation?:annotation', ',', 'w', 'func_def_params'],
+    ['name:name', 'annotation?:annotation', ',', 'single_space_or_newline', 'func_def_params'],
     ['name:name', 'annotation?:annotation'],
   ],
   'func_call': [
@@ -204,10 +204,10 @@ const grammar = {
     ['{', '}'],
   ],
   'single_space_or_newline': [
+    ['wcomment?', 'newline', 'w?', 'W?'],
     ['w'],
-    ['newline', 'w?', 'W?'],
   ],
-  'newline_and_space': [['newline', 'w?', 'W?']],
+  'newline_and_space': [['wcomment?', 'newline', 'w?', 'W?']],
   'object_literal_body': [
     ['spread:spread', 'exp:spread_exp', ',', 'single_space_or_newline', 'object_literal_body'],
     ['spread:spread', 'exp:spread_exp'],

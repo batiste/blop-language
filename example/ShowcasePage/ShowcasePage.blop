@@ -1,8 +1,7 @@
 // ShowcasePage - Interactive demonstration of Blop's strengths
 
 // Code Display Component
-def CodeBlock(ctx: Component): VNode {
-  { attributes } = ctx
+def CodeBlock({ attributes }: Component): VNode {
   { code, title } = attributes
   
   borderRadius = '6px'
@@ -37,8 +36,7 @@ def CodeBlock(ctx: Component): VNode {
 }
 
 // Feature cards showing key advantages
-def FeatureCard(ctx: Component): VNode {
-  { attributes, children } = ctx
+def FeatureCard({ attributes, children }: Component): VNode {
   { icon, title, color } = attributes
   
   <div class="col-md-4" style={ marginBottom: '1.5em' }>

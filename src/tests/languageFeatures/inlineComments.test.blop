@@ -1,4 +1,11 @@
-// Tests that inline comments are allowed in more positions
+/* Tests that inline comments are allowed in more positions
+  - after opening brace of a type definition
+  - after opening brace of a function definition
+  - after opening brace of a fat-arrow function body
+  - after a function call
+  - after property access
+  - after return statement, spanning multiple lines
+*/
 
 // Comment after opening brace of a type definition
 type Route = { // opening brace comment
@@ -8,7 +15,8 @@ type Route = { // opening brace comment
 } // closing brace comment
 
 // Comment after opening brace of a function definition
-def makeRoute(path: string, name: string): Route { // opening brace comment
+def makeRoute(path: string, // comment
+  name: string): Route { // opening brace comment
   return { path, name } // closing brace comment
 } // closing brace comment
 
@@ -16,12 +24,14 @@ test('inline comments in type definition and function body', () => { // Comment 
   r = makeRoute('/home', 'home') // comment after function call
   expect(r.path).toBe('/home') // comment after property access
   expect(r.name).toBe('home') // comment after property access
-})
+}) // comment after closing brace of test function
 
 // Comment after opening brace of a fat-arrow function body
 add = (a: number, b: number) => { // opening brace comment
-  return a + b // comment after return statement
-}
+  return a + b /* comment after return statement
+    spanning multiple lines
+  */
+} // closing brace comment
 
 test('inline comment after fat-arrow function body opening brace', () => {
   expect(add(2, 3)).toBe(5)
