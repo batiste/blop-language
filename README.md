@@ -189,7 +189,7 @@ npm run parser
 npm run linter
 ```
 
-Formatting:
+### Formatting
 
 You can format your Blop source files in place using the CLI:
 
