@@ -350,16 +350,14 @@ Attributes accept expressions or bare names (treated as boolean `true`):
 <button disabled class=buttonClass>label</button>
 ```
 
-### Returning elements from a list with `=`
-
-Use the `=` operator to yield elements inside a loop:
+You can freely mix statements and expressions:
 
 ```typescript
 def List(attributes) {
   items = attributes.items
   <ul>
     for item in items {
-      = <li>item</li>
+      <li>item</li>
     }
   </ul>
 }
