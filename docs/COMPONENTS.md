@@ -43,24 +43,50 @@ LoginForm = (ctx: Component) => {
 
 ### Component Parameters
 
-Every component receives a single `ctx` parameter of type `Component`. It carries:
+Every component is a function that receives a single parameter: a **Component class instance** (conventionally named `ctx`). This instance holds:
 
-- **`ctx.attributes`** - object containing all element attributes passed to the component
-- **`ctx.children`** - array of child VNodes (empty array if none)
-- **Component methods** - `ctx.state`, `ctx.mount`, `ctx.unmount`, `ctx.onChange`, `ctx.context`
+**Data:**
+- **`attributes`** - object with all HTML attributes passed to that component instance:
+  ```typescript
+  <Card title="Hello" class="primary" />
+  // → this instance's attributes = { title: 'Hello', class: 'primary' }
+  ```
+- **`children`** - array of child VNodes for that instance (empty if none):
+  ```typescript
+  <Card><span>'child 1'</span><span>'child 2'</span></Card>
+  // → this instance's children = [VNode, VNode]
+  ```
 
-The idiomatic way to access attributes and children is by destructuring at the top of the function body:
+**Instance Methods** (called on `ctx`):
+- `ctx.state(name, initial)` - Create local state for this instance
+- `ctx.mount(callback)` - Run code when this instance mounts
+- `ctx.unmount(callback)` - Run code before this instance unmounts
+- `ctx.onChange(attrName, callback)` - React to attribute changes on this instance (class components only)
+- `ctx.context(name, initial)` - Hierarchical context for this instance
+
+**Accessing data:**
+
+The idiomatic way is to destructure at the top of the function body:
 
 ```typescript
 def Card(ctx: Component) {
   { attributes, children } = ctx
-  // use attributes.title, children, etc.
+  
+  <div class=attributes.class>
+    <h2>attributes.title</h2>
+    = children
+  </div>
 }
+
+// Multiple instances on same page - each has separate state/lifecycle
+<Card title="First" />
+<Card title="Second" />
+// → Two separate Component instances with different attributes
 ```
 
 #### Inline Parameter Destructuring
 
-For pure display components that don't need hooks, you can destructure directly in the parameter list:
+For pure display components that don't need an handle on the instance of the Component, you can destructure directly in the parameter list:
 
 ```typescript
 def Badge({ attributes }: Component) {
