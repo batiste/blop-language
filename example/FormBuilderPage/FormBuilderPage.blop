@@ -20,7 +20,7 @@ def FormField(ctx: Component): VNode {
       placeholder="Enter label" />
     if hasError {
       <small class="form-text"
-          style={ color: '#dc3545',
+        style={ color: '#dc3545',
           display: 'block', marginTop: '0.25em'
       }>error</small>
     }
