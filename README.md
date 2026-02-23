@@ -189,6 +189,27 @@ npm run parser
 npm run linter
 ```
 
+Formatting:
+
+You can format your Blop source files in place using the CLI:
+
+```
+node src/blop.js --format -i project/path/TodoListItem.blop
+```
+
+If you want to automatically format all staged Blop files before each commit, you can set up a Git pre-commit hook:
+
+```bash
+mkdir -p .git/hooks
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+git diff --cached --name-only --diff-filter=ACM | grep '\.blop$' | while read file; do
+  node src/blop.js --format -i "$file"
+done
+EOF
+chmod +x .git/hooks/pre-commit
+```
+
 **[Contributing Guide](docs/STYLE_GUIDE.md)**
 
 ## Example Project Structure
