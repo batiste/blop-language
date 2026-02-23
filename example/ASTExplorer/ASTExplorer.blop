@@ -168,7 +168,7 @@ def ASTExplorer(ctx: Component): VNode {
           <div style={ marginTop: '20px' }>
             <h4>'Tokens ('tokens.length')'</h4>
             <div style={ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f8f8f8', padding: '10px',
-              borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
+                borderRadius: '5px', fontFamily: 'monospace', fontSize: '12px' }>
               for token in tokens {
                 <div style={ marginBottom: '5px' }>
                   <span style={ color: '#881391', fontWeight: 'bold' }>token.type</span>

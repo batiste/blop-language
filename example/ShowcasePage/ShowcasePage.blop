@@ -12,25 +12,25 @@ def CodeBlock({ attributes }: Component): VNode {
   <div class="code-block" style={ marginTop: '1em' }>
     if title {
       <div style={
-        backgroundColor: '#2d3748',
-        color: '#e2e8f0',
-        padding: '0.75em 1em',
-        fontWeight: 'bold',
-        borderRadius: '6px 6px 0 0',
-        fontSize: '0.9em'
+          backgroundColor: '#2d3748',
+          color: '#e2e8f0',
+          padding: '0.75em 1em',
+          fontWeight: 'bold',
+          borderRadius: '6px 6px 0 0',
+          fontSize: '0.9em'
       }>
         = title
       </div>
     }
     <pre style={
-      backgroundColor: '#1a202c',
-      color: '#e2e8f0',
-      padding: '1.5em',
-      borderRadius,
-      overflow: 'auto',
-      margin: '0',
-      fontSize: '0.9em',
-      lineHeight: '1.6'
+        backgroundColor: '#1a202c',
+        color: '#e2e8f0',
+        padding: '1.5em',
+        borderRadius,
+        overflow: 'auto',
+        margin: '0',
+        fontSize: '0.9em',
+        lineHeight: '1.6'
     }><code>code</code></pre>
   </div>
 }
@@ -63,18 +63,18 @@ def CounterDemo(ctx: Component): VNode {
     </p>
     <div style={ display: 'flex', gap: '1em', justifyContent: 'center', flexWrap: 'wrap' }>
       <button
-      class="btn btn-primary btn-lg"
-      on={ click: () => setState(count + 1) }>
+        class="btn btn-primary btn-lg"
+        on={ click: () => setState(count + 1) }>
         '+ Increment'
       </button>
       <button
-      class="btn btn-danger btn-lg"
-      on={ click: () => setState(count - 1) }>
+        class="btn btn-danger btn-lg"
+        on={ click: () => setState(count - 1) }>
         '- Decrement'
       </button>
       <button
-      class="btn btn-secondary btn-lg"
-      on={ click: () => setState(0) }>
+        class="btn btn-secondary btn-lg"
+        on={ click: () => setState(0) }>
         '↻ Reset'
       </button>
     </div>
@@ -117,8 +117,8 @@ def ListDemo(ctx: Component): VNode {
             ' 'item
           </span>
           <button
-          class="btn btn-sm btn-outline-danger"
-          on={ click: removeItem(index) }>
+            class="btn btn-sm btn-outline-danger"
+            on={ click: removeItem(index) }>
             '✕ Remove'
           </button>
         </li>
@@ -208,11 +208,11 @@ def ShowcasePage(ctx: Component): VNode {
   <div>
     // Hero Section
     <div class="jumbotron" style={
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      padding: '3em 2em',
-      marginBottom: '0',
-      borderRadius: '0'
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        padding: '3em 2em',
+        marginBottom: '0',
+        borderRadius: '0'
     }>
       <h1 class="display-3 text-center" style={ fontWeight: 'bold', marginBottom: '0.5em' }>
         '✨ Why Choose Blop?'
@@ -314,21 +314,21 @@ def ShowcasePage(ctx: Component): VNode {
             </p>
             <div style={ display: 'flex', gap: '1em', justifyContent: 'center', flexWrap: 'wrap' }>
               <a
-              href="https://github.com/batiste/blop-language"
-              class="btn btn-primary btn-lg"
-              target="_blank">
+                href="https://github.com/batiste/blop-language"
+                class="btn btn-primary btn-lg"
+                target="_blank">
                 '📦 View on GitHub'
               </a>
               <a
-              href="https://www.npmjs.com/package/blop-language"
-              class="btn btn-success btn-lg"
-              target="_blank">
+                href="https://www.npmjs.com/package/blop-language"
+                class="btn btn-success btn-lg"
+                target="_blank">
                 '⚡ Install via NPM'
               </a>
             </div>
             <div style={ marginTop: '1.5em' }>
               <code style={ backgroundColor: '#f8f9fa', padding: '1em 1.5em', borderRadius: '6px', fontSize: '1.1em',
-                border: '1px solid #dee2e6' }>
+                  border: '1px solid #dee2e6' }>
                 'npm install blop-language'
               </code>
             </div>
@@ -347,8 +347,8 @@ def ShowcasePage(ctx: Component): VNode {
             <div class="col-lg-6">
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
-              title="CounterDemo.blop"
-              code="def CounterDemo(ctx: Component): VNode {
+                title="CounterDemo.blop"
+                code="def CounterDemo(ctx: Component): VNode {
   { value as count, setState } = ctx.state<number>('count', 0)
   
   <div style={ textAlign: 'center', padding: '2em' }>
@@ -394,8 +394,8 @@ def ShowcasePage(ctx: Component): VNode {
             <div class="col-lg-6">
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
-              title="ListDemo.blop"
-              code="def ListDemo(ctx: Component): VNode {
+                title="ListDemo.blop"
+                code="def ListDemo(ctx: Component): VNode {
   { value as items, setState } = ctx.state<string>('items', 
     ['Apple', 'Banana', 'Cherry'])
   
@@ -456,8 +456,8 @@ def ShowcasePage(ctx: Component): VNode {
             <div class="col-lg-6">
               <h4 style={ marginBottom: '1em', color: '#0d6efd' }>'💻 The Code'</h4>
               <CodeBlock
-              title="ConditionalDemo.blop"
-              code="def ConditionalDemo(ctx: Component): VNode {
+                title="ConditionalDemo.blop"
+                code="def ConditionalDemo(ctx: Component): VNode {
   { value as visible, setState as setVisible } = 
     ctx.state('visible', true)
   
@@ -511,7 +511,7 @@ def ShowcasePage(ctx: Component): VNode {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Natural For Loops'</h5>
                 <CodeBlock
-                code="<ul>
+                  code="<ul>
   for index, item of items {
     <li key=index>
       <strong>'#'index</strong>
@@ -527,7 +527,7 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - Must Use .map()'</h5>
                 <CodeBlock
-                code="<ul>
+                  code="<ul>
   {items.map((item, index) => (
     <li key={index}>
       <strong>#{index}</strong>
@@ -551,7 +551,7 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Real If/Else'</h5>
                 <CodeBlock
-                code="<div>
+                  code="<div>
   // Declare variables anywhere
   userName = user?.name ?? 'Guest'
   isAdmin = user?.role == 'admin'
@@ -577,7 +577,7 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - Ternaries & Logic'</h5>
                 <CodeBlock
-                code="<div>
+                  code="<div>
   {/* Variables must be declared outside JSX */}
   {(() => {
     const userName = user?.name ?? 'Guest';
@@ -616,7 +616,7 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#28a745', marginBottom: '1em' }>'✅ Blop - Zero Boilerplate'</h5>
                 <CodeBlock
-                code="def TodoItem(ctx: Component): VNode {
+                  code="def TodoItem(ctx: Component): VNode {
   { value as done, setState } = ctx.state<boolean>('done', false)
   
   classes = if done => 'todo-item' else 'todo-item completed'
@@ -638,7 +638,7 @@ for key, value in myObject {
               <div class="col-md-6">
                 <h5 style={ color: '#dc3545', marginBottom: '1em' }>'❌ React - More Boilerplate'</h5>
                 <CodeBlock
-                code="function TodoItem({ todo }) {
+                  code="function TodoItem({ todo }) {
   const [done, setDone] = useState(false);
   
   let classes = 'todo-item';
@@ -681,13 +681,13 @@ for key, value in myObject {
 
     // Footer Call to Action
     <div class="jumbotron" style={
-      background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      color: 'white',
-      padding: '3em 2em',
-      marginTop: '0',
-      marginBottom: '0',
-      borderRadius: '0',
-      textAlign: 'center'
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        color: 'white',
+        padding: '3em 2em',
+        marginTop: '0',
+        marginBottom: '0',
+        borderRadius: '0',
+        textAlign: 'center'
     }>
       <h2 class="display-4" style={ marginBottom: '0.5em' }>'Love what you see?'</h2>
       <p class="lead" style={ fontSize: '1.3em' }>

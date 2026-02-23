@@ -34,7 +34,7 @@ TodoListItem = ({ attributes }: Component): VNode => {
       <div class="form-row align-items-center">
         <div class="col-auto">
           <input type="checkbox" checked=completed on={ change: toggleComplete } style={ width: '20px', height: '20px',
-            cursor: 'pointer', accentColor: '#28a745' } />
+              cursor: 'pointer', accentColor: '#28a745' } />
         </div>
         <div class="col">
           if editMode {

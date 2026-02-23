@@ -12,12 +12,12 @@ def FormField(ctx: Component): VNode {
       = label
     </label>
     <input
-    type=type
-    class="form-control"
-    value=value
-    style={ borderColor, borderWidth: '1px' }
-    on={ input: onChange }
-    placeholder="Enter label" />
+      type=type
+      class="form-control"
+      value=value
+      style={ borderColor, borderWidth: '1px' }
+      on={ input: onChange }
+      placeholder="Enter label" />
     if hasError {
       <small class="form-text" style={ color: '#dc3545', display: 'block', marginTop: '0.25em' }>
         = error
@@ -103,16 +103,16 @@ def PasswordField(ctx): VNode {
     </label>
     <div style={ position: 'relative', display: 'flex', alignItems: 'center' }>
       <input
-      type=inputType
-      class="form-control"
-      value=value
-      style={ borderColor, borderWidth: '1px', paddingRight: '3.5em' }
-      on={ input: onChange } />
+        type=inputType
+        class="form-control"
+        value=value
+        style={ borderColor, borderWidth: '1px', paddingRight: '3.5em' }
+        on={ input: onChange } />
       <button
-      type="button"
-      style={ position: 'absolute', right: '0.6em', background: 'none', border: 'none', cursor: 'pointer',
-        color: '#6c757d', fontSize: '0.78em', padding: '0', lineHeight: '1' }
-      on={ click: onToggleShow }>
+        type="button"
+        style={ position: 'absolute', right: '0.6em', background: 'none', border: 'none', cursor: 'pointer',
+          color: '#6c757d', fontSize: '0.78em', padding: '0', lineHeight: '1' }
+        on={ click: onToggleShow }>
         = if showPassword => 'Hide' else 'Show'
       </button>
     </div>
@@ -231,14 +231,14 @@ FormBuilderPage = (ctx: Component): VNode => {
 
         <form on={ submit: handleSubmit }>
           <FormField label='Full Name' type='text'
-          value=formData.name error=getFieldError('name') onChange=updateField('name') />
+            value=formData.name error=getFieldError('name') onChange=updateField('name') />
 
           <FormField label='Email Address' type='email'
-          value=formData.email error=getFieldError('email') onChange=updateField('email') />
+            value=formData.email error=getFieldError('email') onChange=updateField('email') />
 
           <PasswordField label='Password' value=formData.password
-          error=getFieldError('password') onChange=updateField('password')
-          showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
+            error=getFieldError('password') onChange=updateField('password')
+            showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
 
           passwordStrength = getPasswordStrength(formData.password)
           if passwordStrength {
@@ -255,14 +255,14 @@ FormBuilderPage = (ctx: Component): VNode => {
           }
 
           <PasswordField label='Confirm Password' value=formData.confirmPassword
-          error=getFieldError('confirmPassword') onChange=updateField('confirmPassword')
-          showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
+            error=getFieldError('confirmPassword') onChange=updateField('confirmPassword')
+            showPassword=showPassword onToggleShow=() => setShowPassword(!showPassword) />
 
           <button
-          type="submit"
-          class="btn btn-primary w-100"
-          style={ marginTop: '1em' }
-          disabled=isLoading>
+            type="submit"
+            class="btn btn-primary w-100"
+            style={ marginTop: '1em' }
+            disabled=isLoading>
             if isLoading {
               <span>'Creating account...'</span>
             } else {

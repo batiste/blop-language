@@ -7,7 +7,7 @@ AutoFocusInput = (ctx: Component) => {
   { attributes } = ctx
   hooks = { insert: (vnode) => vnode.elm.focus() }
   <input hooks type="text" value=attributes.value class="form-control" on=attributes.on autofocus=true
-  placeholder="What needs to be done?" style={ fontSize: '16px', padding: '0.5em' } />
+    placeholder="What needs to be done?" style={ fontSize: '16px', padding: '0.5em' } />
 }
 
 // Filter tabs component
@@ -200,8 +200,8 @@ TodoListPage = (ctx: Component): VNode => {
 
             if shouldRender {
               <TodoListItem removeItem=remove(index) key=item.id editItem=editItem(index) changeItem=changeItem(index)
-              toggleComplete=toggleComplete(index) editMode=todo.editItemIndex == index completed=item.completed
-              value=item.text />
+                toggleComplete=toggleComplete(index) editMode=todo.editItemIndex == index completed=item.completed
+                value=item.text />
             }
           }
         </ul>

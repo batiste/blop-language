@@ -7,7 +7,7 @@ def DogGame(ctx: Component) {
   dog = page?.choice
 
   input = <input type="text"
-  class="form-control" placeholder="Breed" />
+    class="form-control" placeholder="Breed" />
 
   // Normalize breed names for comparison (remove spaces, dashes, make lowercase)
   def normalizeBreed(breedName: string): string {
@@ -147,8 +147,8 @@ def DogGame(ctx: Component) {
     }
 
     <form on={ submit: (e) => {
-        e.preventDefault()
-        check()
+          e.preventDefault()
+          check()
       }
     }>
       <div class="form-group">
@@ -161,8 +161,8 @@ def DogGame(ctx: Component) {
 
     <div style={ minHeight: '400px' }>
       = if dog => <img
-      src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
-      style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
+        src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
+        style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
     </div>
 
   </div>

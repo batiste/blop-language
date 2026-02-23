@@ -33,20 +33,32 @@ function collectLeaves(node, out = []) {
   const children = node.children || [];
 
   if (VNODE_TYPES.has(node.type)) {
-    // Only non-self-closing variants have a '</' child.
+    // Track whether this VNode has attributes to inject markers at the right place
+    const hasAttributes = children.some(c => c.type === 'virtual_node_attributes');
     const hasClosingTag = children.some(c => c.type === '</');
-    if (hasClosingTag) {
-      let injectedOpen = false;
-      for (const child of children) {
-        collectLeaves(child, out);
-        // The first direct '>' child is the opening tag's closer.
-        if (!injectedOpen && child.type === '>') {
-          out.push(VNODE_OPEN);
-          injectedOpen = true;
-        }
+    let foundOpeningTagClose = false; // Track whether we've seen the opening tag's '>'
+    
+    for (const child of children) {
+      // Inject start marker before virtual_node_attributes section
+      if (hasAttributes && child.type === 'virtual_node_attributes') {
+        out.push({ type: '__vnode_attrs_start', value: '' });
       }
-      return out;
+      
+      collectLeaves(child, out);
+      
+      // Inject end marker after virtual_node_attributes section is complete
+      if (hasAttributes && child.type === 'virtual_node_attributes') {
+        out.push({ type: '__vnode_attrs_end', value: '' });
+      }
+      
+      // Inject __vopen after the opening tag's '>' only (not the closing tag's )
+      if (!foundOpeningTagClose && child.type === '>' && hasClosingTag) {
+        out.push(VNODE_OPEN);
+        foundOpeningTagClose = true;
+      }
     }
+    
+    return out;
   }
 
   for (const child of children) {
@@ -58,7 +70,7 @@ function collectLeaves(node, out = []) {
 // Measure display length of the next segment (until __break, newline, W, or a
 // level-changing token). Used for look-ahead line-length decisions.
 function segmentLength(leaves, from) {
-  const STOP = new Set(['__break', '__vopen', 'EOS']);
+  const STOP = new Set(['__break', '__vopen', '__vnode_attrs_start', '__vnode_attrs_end', 'EOS']);
   let len = 0;
   for (let i = from; i < leaves.length; i++) {
     const t = leaves[i];
@@ -113,23 +125,12 @@ export class Printer {
             lineLen += 1;
           }
         }
-      } else if (leaf.type === '<') {
-        // Handle any pending indentation before the opening tag
-        if (needsIndent) {
-          const ind = this._indent(level);
-          parts.push(ind);
-          lineLen = ind.length;
-          needsIndent = false;
-        }
-        // Now we're starting a VNode opening tag - attributes after tag name should be indented
+      } else if (leaf.type === '__vnode_attrs_start') {
+        // Mark that we're entering a VNode attributes section - attributes should be indented
         inVNodeOpening = true;
-        parts.push(leaf.value);
-        lineLen += 1;
-      } else if (leaf.type === '>') {
-        // Ending a VNode opening tag
+      } else if (leaf.type === '__vnode_attrs_end') {
+        // Mark that we're exiting a VNode attributes section
         inVNodeOpening = false;
-        parts.push(leaf.value);
-        lineLen += 1;
       } else if (leaf.type === '__break') {
         // Breakable separator: emit space or newline+indent based on line length.
         // If the original source had a newline, preserve it.
@@ -154,15 +155,16 @@ export class Printer {
           // Look ahead to find next non-whitespace leaf.
           let j = i + 1;
           while (j < leaves.length &&
-                 (NEWLINE.has(leaves[j].type) || INLINE_SPACE.has(leaves[j].type) || INDENT.has(leaves[j].type) || leaves[j].type === '__break')) {
+                 (NEWLINE.has(leaves[j].type) || INLINE_SPACE.has(leaves[j].type) || INDENT.has(leaves[j].type) || 
+                  leaves[j].type === '__break' || leaves[j].type === '__vnode_attrs_start' || leaves[j].type === '__vnode_attrs_end')) {
             j++;
           }
           // Use level-1 when the next content closes a brace or VNode.
           const nextType = j < leaves.length ? leaves[j].type : '';
           const nextIsClose = nextType === CLOSE_BRACE || nextType === '</' || nextType === '__vclose';
-          // Add extra indentation for VNode opening tag attributes
+          // Add extra indentation for VNode opening tag attributes, but NOT for closing tags
           const indentLevel = nextIsClose ? level - 1 : level;
-          const attrIndentLevel = inVNodeOpening ? indentLevel + 1 : indentLevel;
+          const attrIndentLevel = (inVNodeOpening && !nextIsClose) ? indentLevel + 1 : indentLevel;
           const ind = this._indent(attrIndentLevel);
           parts.push(ind);
           lineLen = ind.length;
