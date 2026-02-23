@@ -102,6 +102,7 @@ export {
   findNodesWithValue,
   findFunctionDefs,
   extractParameters,
+  dedent,
 };
 
 /**

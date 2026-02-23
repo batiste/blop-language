@@ -139,12 +139,15 @@ def link(url, text) {
   <a href=url>text</a>
 }
 
-// ✅ Usage in expressions:
+// ✅ Single expression on one line - the function call is the VNode content
+<div>link('/home', 'Home')</div>
+
+// ✅ Multiple statements - need = operator to output the VNode
 <div>
   = link('/home', 'Home')
 </div>
 
-// or with variable:
+// ✅ Store in variable first, then output
 <div>
   homeLink = link('/home', 'Home')
   = homeLink
