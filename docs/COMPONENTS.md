@@ -118,6 +118,46 @@ Components are used like HTML elements:
 = Input({ attributes: { label: 'Email', name: 'email', type: 'email' } })
 ```
 
+### Helper Functions vs Components
+
+**Important distinction:** Only capitalized functions become components and can be used as `< ... />` tags. Lowercase functions are just regular functions that return VNodes, but they **don't receive a Component instance** and **can't use component features**.
+
+```typescript
+// ✅ Component (capitalized) - receives Component instance
+def Card(ctx: Component) {
+  { attributes, children } = ctx
+  <div class=attributes.class>
+    = children
+  </div>
+}
+
+// ❌ Can't use as: <Card>...</Card> without proper capitalization
+// ✅ Usage: <Card class="primary"><h1>'Title'</h1></Card>
+
+// ✅ Helper function (lowercase) - regular function, no Component instance
+def link(url, text) {
+  <a href=url>text</a>
+}
+
+// ✅ Usage in expressions:
+<div>
+  = link('/home', 'Home')
+</div>
+
+// or with variable:
+<div>
+  homeLink = link('/home', 'Home')
+  = homeLink
+</div>
+
+// ❌ Can't use as: <link url="..." text="..." />
+// ❌ Can't access: state, lifecycle methods (mount, unmount), context
+```
+
+**When to use each:**
+- **Components** (capitalized): When you need state, lifecycle methods, reactions to attribute changes, or the feature of being used as HTML-like tags
+- **Helper functions** (lowercase): For reusable VNode-generating utilities that are pure (no side effects) or when you just want to avoid repeating JSX code
+
 ## Function Components
 
 Function components are the simplest form:
