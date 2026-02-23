@@ -104,26 +104,44 @@ def Layout({ attributes, children }: Component) {
 
 ### Using Components
 
-Components are used like HTML elements:
+**Components are just functions.** The difference is how you call them:
+
+- **HTML tag syntax** `<Component ... />` — Blop creates a **Component instance** and passes it as the first parameter. This activates state, lifecycle, and context machinery.
+- **Direct function call** `Component({ ... })` — Calls the function directly without creating a Component instance.
 
 ```typescript
+// ✅ Using HTML tag syntax - creates Component instance with state, lifecycle, etc.
 <Input label='Email' name='email' type='email' />
 
-// With children
+// ✅ With children
 <Button class='primary'>
   'Click me!'
 </Button>
 
-// Components are just functions, so this is equivalent:
+// ⚠️ Calling as a regular function - no Component instance created
+// (State, lifecycle, context won't work if you do this)
 = Input({ attributes: { label: 'Email', name: 'email', type: 'email' } })
 ```
 
+**Best practice:** Use HTML tag syntax for Capitalized functions so you get the full component experience.
+
 ### Helper Functions vs Components
 
-**Important distinction:** Only capitalized functions become components and can be used as `< ... />` tags. Lowercase functions are just regular functions that return VNodes, but they **don't receive a Component instance** and **can't use component features**.
+**There is no technical distinction** — they're all just functions. The difference is purely **how you use them**:
+
+**Capitalized functions:**
+- Designed to be called with `<Component ... />` tag syntax
+- When called this way, they receive a Component instance as the first parameter
+- This gives them access to state, lifecycle methods, and context
+- Blop automatically manages mounting/unmounting
+
+**Lowercase functions:**
+- Designed to be called directly as expressions: `helper(args)`
+- Are regular function calls with no special machinery
+- Return a VNode
 
 ```typescript
-// ✅ Component (capitalized) - receives Component instance
+// Capitalized - designed for JSX tag usage
 def Card(ctx: Component) {
   { attributes, children } = ctx
   <div class=attributes.class>
@@ -131,35 +149,25 @@ def Card(ctx: Component) {
   </div>
 }
 
-// ❌ Can't use as: <Card>...</Card> without proper capitalization
-// ✅ Usage: <Card class="primary"><h1>'Title'</h1></Card>
+// Use with JSX syntax - creates a Component instance
+<Card class="primary"><h1>'Title'</h1></Card>
 
-// ✅ Helper function (lowercase) - regular function, no Component instance
+// Lowercase - designed for direct function calls
 def link(url, text) {
   <a href=url>text</a>
 }
 
-// ✅ Single expression on one line - the function call is the VNode content
+// Called directly
 <div>link('/home', 'Home')</div>
 
-// ✅ Multiple statements - need = operator to output the VNode
-<div>
-  = link('/home', 'Home')
-</div>
-
-// ✅ Store in variable first, then output
+// or with assignment
 <div>
   homeLink = link('/home', 'Home')
   = homeLink
 </div>
-
-// ❌ Can't use as: <link url="..." text="..." />
-// ❌ Can't access: state, lifecycle methods (mount, unmount), context
 ```
 
-**When to use each:**
-- **Components** (capitalized): When you need state, lifecycle methods, reactions to attribute changes, or the feature of being used as HTML-like tags
-- **Helper functions** (lowercase): For reusable VNode-generating utilities that are pure (no side effects) or when you just want to avoid repeating JSX code
+**The key rule:** Use Capitalized functions when you need state, lifecycle, or context. Use lowercase for simple VNode-generating utilities. At the end of the day, they're both just functions — the usage pattern is what makes them what they are.
 
 ## Function Components
 
