@@ -86,8 +86,7 @@ describe('VNode type validation - negative tests', () => {
     expectCompiles(code);
   });
 
-  test.skip('rejects function with if but no else returning VNode', () => {
-    // TODO: Implement tracking of missing else branches
+  test('rejects function with if but no else returning VNode', () => {
     const code = `
       def Test(show: boolean): VNode {
         if show {
@@ -99,8 +98,7 @@ describe('VNode type validation - negative tests', () => {
     expectCompilationError(code, 'VNode | undefined');
   });
 
-  test.skip('rejects if/elseif without else when declared as VNode', () => {
-    // TODO: Implement tracking of missing else in elseif chains
+  test('rejects if/elseif without else when declared as VNode', () => {
     const code = `
       def Test(value: number): VNode {
         if value > 10 {
