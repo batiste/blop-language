@@ -133,8 +133,7 @@ FormBuilderPage = (ctx: Component): VNode => {
     confirmPassword: ''
   })
 
-  { value as touched, setState as setTouched
-  } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
+  { value as touched, setState as setTouched } = ctx.state<object>('touched', { name: false, email: false, password: false, confirmPassword: false })
   { value as submitted, setState as setSubmitted
   } = ctx.state<boolean>('submitted', false)
   { value as isLoading, setState as setIsLoading

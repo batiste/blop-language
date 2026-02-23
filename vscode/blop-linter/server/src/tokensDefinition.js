@@ -92,6 +92,7 @@ const tokensDefinition = {
   'false': { reg: /^false(?![\w$_])/ },
   'type': { str: 'type ' },
   'comment': { reg: /^\/\/[^\n]*/, verbose: 'comment' },
+  // check this
   'multiline_comment': { reg: /^\/\*+[^*]*\*+(?:[^/*][^*]*\*+)*\//, verbose: 'comment' },
   'as': { str: 'as ' },
   'clazz': { str: 'class ' },
