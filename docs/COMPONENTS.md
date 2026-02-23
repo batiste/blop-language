@@ -191,7 +191,7 @@ Card = ({ attributes, children }) => {
 
 // Stateful component — needs ctx
 Counter = (ctx: Component) => {
-  { value, setState } = ctx.state('count', 0)
+  { value, setState } = ctx.state<number>('count', 0)
   
   <div>
     <button on={ click: () => setState(value - 1) }>'-'</button>
@@ -357,8 +357,9 @@ ContextHolder = (ctx: Component) => {
 
 ### How Context Works
 
-- Context is hierarchical - children inherit from parents
-- Changing context triggers re-render in all listening children
+- Context is hierarchical - child components look up the parent chain for a context value
+- When a child calls `ctx.context(name)`, it automatically registers as a **listener** to that context
+- When the parent calls `setContext(newValue)`, all listening children are re-rendered automatically
 - **Important:** Children passed as props won't have access to the parent's context (they're rendered in their original scope)
 
 ### Example: Theme Context
