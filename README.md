@@ -75,7 +75,7 @@ init()
 - **Native Virtual DOM** - HTML-like syntax built into the language
 - **Fast Compilation** - Process 30,000+ lines per second
 - **Enhanced Error Messages** - Helpful suggestions and quick fixes
-- **Integrated Linter** - No configuration needed
+- **Integrated Linter and Formatter** - No configuration needed, no discussions about rules
 - **VSCode Integration** - Syntax highlighting and real-time error checking
 - **Source Maps** - Debug with original source code
 - **Hot Module Reloading (HMR)** - Instant updates during development
