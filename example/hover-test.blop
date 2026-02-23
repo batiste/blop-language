@@ -18,6 +18,9 @@ def test(a: number=1) {
   return a
 }
 
+// should warn about missing argument
+test()
+
 def arrayFct(a: number=1): { a: number }[] {
   return [{ a }, { a: a + 1 }, { a: a + 2 }]
 }
@@ -30,7 +33,7 @@ def variableType(x: number, _y=5) {
     return 10 + _y
   }
   // should be marked as unreachable code and not cause the function to widen to string | number
-  return "Impossible"
+  // return "Impossible"
 }
 
 inferred = variableType(3)

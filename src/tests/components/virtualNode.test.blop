@@ -131,7 +131,7 @@ test('function inside virtual node', () => {
 })
 
 test('attribut with dash', () => {
-  test = attributeWithDash()
+  test = attributeWithDash([])
   expect(test.data.attrs['data-id']).toBe('1')
 })
 
