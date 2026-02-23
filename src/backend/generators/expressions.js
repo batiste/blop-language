@@ -121,15 +121,11 @@ function createExpressionGenerators(context) {
       
       // If inside a virtual node and it's a string, auto-add it to children
       if (parent && isString) {
-        const scope = scopes.type(SCOPE_TYPES.FUNCTION);
-        const a_uid = uid();
-        // Register for hoisting at function level so variable is declared
-        scope.names[a_uid] = { node, token: node, hoist: true };
-        output.push(`${a_uid} = `);
+        output.push(`${parent}c.push(`);
         for (let i = 0; i < node.children.length; i++) {
           output.push(...generateCode(node.children[i]));
         }
-        output.push(`; Array.isArray(${a_uid}) ? ${parent}c.push(...${a_uid}) : ${parent}c.push(${a_uid}); `);
+        output.push(`); `);
       } else {
         // Normal expression statement
         for (let i = 0; i < node.children.length; i++) {
