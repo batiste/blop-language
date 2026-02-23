@@ -184,9 +184,13 @@ function createBindingHandlers() {
       const functionName = node.named?.name?.value;
       if (!functionName) return;
 
-      // Extract parameter types and names
+      // Extract parameter types, names and default-value flags.
+      // The grammar's recursive func_def_params rule is unlabeled, so the
+      // next param is always a child node of type 'func_def_params', NOT
+      // accessible via .named.more (which does not exist in the grammar).
       const paramTypes = [];
       const paramNames = [];
+      const paramHasDefault = [];
       let paramNode = node.named?.params;
       while (paramNode) {
         if (paramNode.named?.annotation) {
@@ -196,7 +200,10 @@ function createBindingHandlers() {
           paramTypes.push(AnyType);
         }
         paramNames.push(paramNode.named?.name?.value || `p${paramNames.length}`);
-        paramNode = paramNode.named?.more;
+        // A default value is represented by an 'exp' direct child in the grammar
+        paramHasDefault.push(paramNode.children?.some(c => c.type === 'exp') ?? false);
+        // Walk to next sibling param (unlabeled recursive child)
+        paramNode = paramNode.children?.find(c => c.type === 'func_def_params');
       }
 
       // Extract return type annotation if present
@@ -213,6 +220,7 @@ function createBindingHandlers() {
         type: returnTypeAnnotation ?? AnyType, // Will be refined by inference phase
         params: paramTypes,
         paramNames: paramNames,
+        paramHasDefault,
         genericParams: genericParams.length > 0 ? genericParams : undefined,
         node,
       });

@@ -356,7 +356,7 @@ function handleNonGenericFunctionCall(name, definition, argTypes, parent, { push
 /**
  * Handle function calls to variables whose type is a FunctionType (e.g., arrow functions)
  */
-function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
+function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase, funcCallNode }) {
   const funcType = definition.type;
   if (!(funcType instanceof FunctionType)) {
     return false;
@@ -367,6 +367,10 @@ function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInfer
     name.inferredType = funcType;
   }
   
+  // Note: arity checking for arrow functions is deferred until FunctionType tracks
+  // paramHasDefault. Without that info we cannot distinguish required from optional
+  // params, so we would produce false positives for functions with default args.
+
   // Validate argument types if the function has a defined signature
   if (funcType.params && funcType.params !== null && argTypes.length > 0) {
     const result = TypeChecker.checkFunctionCall(argTypes, funcType.params, name.value, typeAliases);
@@ -401,6 +405,23 @@ function pushSubsequentOperation(access, parent, pushInference) {
   if (subsequentOp.named?.nullish_op) {
     pushInference(parent, subsequentOp.named.nullish_op);
   }
+}
+
+/**
+ * Count the number of arguments in a func_call AST node by walking the
+ * func_call_params chain. This is immune to the inference-array doubling
+ * that occurs when the same AST is visited in both inference and checking
+ * phases, so it gives the true call-site argument count.
+ */
+function countFuncCallArgs(funcCallNode) {
+  let paramsNode = funcCallNode?.children?.find(c => c.type === 'func_call_params');
+  if (!paramsNode) return 0;
+  let count = 0;
+  while (paramsNode) {
+    count++;
+    paramsNode = paramsNode.children?.find(c => c.type === 'func_call_params');
+  }
+  return count;
 }
 
 /**
@@ -444,7 +465,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   
   // Handle function-typed variables (e.g., arrow function assignments)
   if (definition && definition.type instanceof FunctionType) {
-    if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
+    if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase, funcCallNode })) {
       pushSubsequentOperation(access, parent, pushInference);
       return true;
     }
@@ -452,6 +473,23 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   
   // Handle user-defined function calls (from func_def)
   if (definition && definition.params) {
+    // Arity check: use AST-based count (immune to inference-array doubling across two passes)
+    // Skip if any required param is untyped (AnyType) — untyped params indicate component/VNode
+    // functions whose props are optional at the call site.
+    if (inferencePhase === 'checking') {
+      const hasUntypedRequiredParam = definition.params.some(
+        (p, i) => p === AnyType && !definition.paramHasDefault?.[i]
+      );
+      if (!hasUntypedRequiredParam) {
+        const actualArgCount = countFuncCallArgs(funcCallNode);
+        const required = definition.params.filter((_, i) => !definition.paramHasDefault?.[i]).length;
+        const total = definition.params.length;
+        if (actualArgCount < required || actualArgCount > total) {
+          const expected = required === total ? `${total}` : `${required}-${total}`;
+          pushWarning(name, `function ${name.value} takes ${expected} argument${total === 1 ? '' : 's'} but got ${actualArgCount}`);
+        }
+      }
+    }
     if (definition.genericParams && definition.genericParams.length > 0) {
       handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase });
     } else {

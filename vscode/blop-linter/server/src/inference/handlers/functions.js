@@ -10,6 +10,7 @@ import {
   resolveTypeAlias,
   inferGenericArguments,
   substituteType,
+  getBaseTypeOfLiteral,
 } from '../typeSystem.js';
 import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
@@ -195,6 +196,10 @@ function createFunctionHandlers(getState) {
         scope.__currentFctParamNames = [];
       }
       
+      if (!scope.__currentFctParamHasDefault) {
+        scope.__currentFctParamHasDefault = [];
+      }
+      
       let paramType = AnyType;
       const { annotation } = node.named;
       if (annotation) {
@@ -202,6 +207,11 @@ function createFunctionHandlers(getState) {
         const resolved = getAnnotationType(annotation);
         if (resolved) paramType = resolved;
       }
+
+      // Detect default value: grammar puts the default 'exp' as an anonymous
+      // (unlabeled) child alongside name and annotation.
+      const hasDefault = node.children?.some(c => c.type === 'exp');
+      scope.__currentFctParamHasDefault.push(hasDefault);
 
       if (node.named.destructuring) {
         // Destructuring parameter: { a, b }: TypeAnnotation
@@ -285,6 +295,7 @@ function createFunctionHandlers(getState) {
       const parentScope = getCurrentScope();
       const scope = pushScope();
       scope.__currentFctParams = [];
+      scope.__currentFctParamHasDefault = [];
       scope.__returnTypes = [];
       
       // Parse generic parameters if present
@@ -347,9 +358,10 @@ function createFunctionHandlers(getState) {
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
             // For anonymous functions, use the parent token for error reporting
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
+            const displayType = getBaseTypeOfLiteral(inferredType);
             pushWarning(
               errorToken,
-              `Function returns ${inferredType} but declared as ${declaredType}`
+              `Function returns ${displayType} but declared as ${declaredType}`
             );
           }
         }
@@ -363,9 +375,10 @@ function createFunctionHandlers(getState) {
         if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+            const displayType = getBaseTypeOfLiteral(inferredType);
             pushWarning(
               node.named.name,
-              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
+              `Function '${node.named.name.value}' returns ${displayType} but declared as ${declaredType}`
             );
           }
         }
@@ -386,6 +399,7 @@ function createFunctionHandlers(getState) {
           node,
           params: scope.__currentFctParams,
           paramNames: scope.__currentFctParamNames,
+          paramHasDefault: scope.__currentFctParamHasDefault,
           genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
       }
@@ -465,6 +479,7 @@ function createFunctionHandlers(getState) {
       const scope = pushScope();
       scope.__currentFctParams = [];
       scope.__currentFctParamNames = [];
+      scope.__currentFctParamHasDefault = [];
       scope.__returnTypes = [];
       scope.__isClassMethod = true;
 
@@ -502,9 +517,10 @@ function createFunctionHandlers(getState) {
       if (declaredType && inferredType !== AnyType) {
         const { typeAliases } = getState();
         if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+          const displayType = getBaseTypeOfLiteral(inferredType);
           pushWarning(
             node.named.name,
-            `Method '${node.named.name?.value}' returns ${inferredType} but declared as ${declaredType}`
+            `Method '${node.named.name?.value}' returns ${displayType} but declared as ${declaredType}`
           );
         }
       }

@@ -12,10 +12,10 @@ def inference2(c: number, d: number): number {
   return d + c
 }
 
-(1 + inference2()) || inference2()
+(1 + inference2(1, 2)) || inference2(3, 4)
 
 def scoped() {
-  return 1 + inference2()
+  return 1 + inference2(1, 2)
 }
 
 backLink = <p>'<< back'</p>

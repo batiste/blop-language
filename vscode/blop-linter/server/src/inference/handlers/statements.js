@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType } from '../typeSystem.js';
+import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import { extractPropertyNodesFromAccess } from './utils.js';
@@ -158,9 +158,10 @@ function createStatementHandlers(getState) {
             const singleType = returnExpNode.inference?.length === 1 ? returnType : null;
             if (declaredReturnType && singleType && singleType !== AnyType) {
               if (!isTypeCompatible(singleType, declaredReturnType, typeAliases)) {
+                const displayType = getBaseTypeOfLiteral(singleType);
                 pushWarning(
                   returnExpNode,
-                  `returns ${singleType} but declared as ${declaredReturnType}`
+                  `returns ${displayType} but declared as ${declaredReturnType}`
                 );
               }
             }

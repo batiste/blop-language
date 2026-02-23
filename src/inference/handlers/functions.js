@@ -196,6 +196,10 @@ function createFunctionHandlers(getState) {
         scope.__currentFctParamNames = [];
       }
       
+      if (!scope.__currentFctParamHasDefault) {
+        scope.__currentFctParamHasDefault = [];
+      }
+      
       let paramType = AnyType;
       const { annotation } = node.named;
       if (annotation) {
@@ -203,6 +207,11 @@ function createFunctionHandlers(getState) {
         const resolved = getAnnotationType(annotation);
         if (resolved) paramType = resolved;
       }
+
+      // Detect default value: grammar puts the default 'exp' as an anonymous
+      // (unlabeled) child alongside name and annotation.
+      const hasDefault = node.children?.some(c => c.type === 'exp');
+      scope.__currentFctParamHasDefault.push(hasDefault);
 
       if (node.named.destructuring) {
         // Destructuring parameter: { a, b }: TypeAnnotation
@@ -286,6 +295,7 @@ function createFunctionHandlers(getState) {
       const parentScope = getCurrentScope();
       const scope = pushScope();
       scope.__currentFctParams = [];
+      scope.__currentFctParamHasDefault = [];
       scope.__returnTypes = [];
       
       // Parse generic parameters if present
@@ -389,6 +399,7 @@ function createFunctionHandlers(getState) {
           node,
           params: scope.__currentFctParams,
           paramNames: scope.__currentFctParamNames,
+          paramHasDefault: scope.__currentFctParamHasDefault,
           genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
       }
@@ -468,6 +479,7 @@ function createFunctionHandlers(getState) {
       const scope = pushScope();
       scope.__currentFctParams = [];
       scope.__currentFctParamNames = [];
+      scope.__currentFctParamHasDefault = [];
       scope.__returnTypes = [];
       scope.__isClassMethod = true;
 

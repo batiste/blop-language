@@ -6,3 +6,4 @@ public/dist
 dist
 vscode/blop-syntax-highlighter/blop-syntax-highlighter
 coverage
+.vscode

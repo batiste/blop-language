@@ -85,15 +85,17 @@ const TypeChecker = {
   },
 
   /**
-   * Check function call arguments against signature
+   * Check function call argument types against the declared parameter types.
+   * Arity is NOT checked here — it is validated separately at call sites using
+   * AST‑based argument counting (see handleFunctionCall in expressions.js).
    */
   checkFunctionCall(args, expectedParams, functionName, typeAliases) {
     const warnings = [];
     for (let i = 0; i < expectedParams.length; i++) {
       const arg = args[i];
-      const expected = expectedParams[i];
-      if (arg && expected && !isTypeCompatible(arg, expected, typeAliases)) {
-        warnings.push(`function ${functionName} expected ${expected} for param ${i + 1} but got ${arg}`);
+      const exp = expectedParams[i];
+      if (arg && exp && !isTypeCompatible(arg, exp, typeAliases)) {
+        warnings.push(`function ${functionName} expected ${exp} for param ${i + 1} but got ${arg}`);
       }
     }
     return { valid: warnings.length === 0, warnings };
