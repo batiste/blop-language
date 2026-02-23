@@ -7,6 +7,7 @@ import { tokensDefinition } from '../../src/tokensDefinition.js'
 def PlaygroundPage(ctx: Component): VNode {
   defaultCode = 'def Greeting({ attributes }: Component): VNode {\n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'attributes.name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
   
+  
   { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
   { value as output, setState as setOutput } = ctx.state<string>('output', '')
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
