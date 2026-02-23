@@ -6,18 +6,17 @@ import { tokensDefinition } from '../../src/tokensDefinition.js'
 
 def PlaygroundPage(ctx: Component): VNode {
   defaultCode = 'def Greeting({ attributes }: Component): VNode {\n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'attributes.name\'!\'</h1>\n    <p>\'Welcome to the Blop playground.\'</p>\n  </div>\n}'
-  
-  
+
   { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
   { value as output, setState as setOutput } = ctx.state<string>('output', '')
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
   { value as warning, setState as setWarning } = ctx.state<string | null>('warning', null)
   { value as isCompiling, setState as setIsCompiling } = ctx.state<boolean>('isCompiling', false)
-  
+
   def handleCodeChange(e) {
     setCode(e.target.value)
   }
-  
+
   def compileCode() {
     setIsCompiling(true)
     setError(null)
@@ -26,29 +25,24 @@ def PlaygroundPage(ctx: Component): VNode {
     result = compile(code, { inference: true })
     console.log('Compilation result:', result)
     if result.success {
-        setOutput(result.code)
-        setError(null)
-        setWarning(null)
-        result.warnings.forEach((_warning) => {
-          setWarning(_warning.message)
-        })
+      setOutput(result.code)
+      setError(null)
+      setWarning(null)
+      result.warnings.forEach((_warning) => {
+        setWarning(_warning.message)
+      })
     } else {
-        errorMsg = result.errors[0].message || 'Compilation failed'
-        setError(errorMsg)
-        setOutput('')
+      errorMsg = result.errors[0].message || 'Compilation failed'
+      setError(errorMsg)
+      setOutput('')
     }
     setIsCompiling(false)
   }
-  
+
   <div>
     // Hero Section
-    <div class="jumbotron" style={
-      background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-      color: 'white',
-      padding: '2em',
-      marginBottom: '0',
-      borderRadius: '0'
-    }>
+    <div class="jumbotron" style={ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', color: 'white',
+      padding: '2em', marginBottom: '0', borderRadius: '0' }>
       <h1 class="display-4 text-center" style={ fontWeight: 'bold', marginBottom: '0.3em' }>
         '🎮 Blop Playground'
       </h1>
@@ -56,37 +50,22 @@ def PlaygroundPage(ctx: Component): VNode {
         'Write Blop code and see the compiled JavaScript output in real-time'
       </p>
     </div>
-    
+
     // Main Content
     <div class="container-fluid" style={ padding: '2em', backgroundColor: '#f8f9fa' }>
       <div class="row">
         // Input Section
         <div class="col-lg-6" style={ marginBottom: '2em' }>
           <div class="card h-100">
-            <div class="card-header" style={
-              backgroundColor: '#667eea',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.1em'
-            }>
+            <div class="card-header" style={ backgroundColor: '#667eea', color: 'white', fontWeight: 'bold',
+              fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'📝'</span>
               'Blop Code'
             </div>
             <div class="card-body" style={ padding: '0' }>
-              <textarea
-                class="form-control"
-                style={
-                  height: '500px',
-                  border: 'none',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  resize: 'none',
-                  backgroundColor: '#1e1e1e',
-                  color: '#d4d4d4'
-                }
-                value=code
-                on={ input: handleCodeChange }
-                placeholder="Write your Blop code here..." />
+              <textarea class="form-control" style={ height: '500px', border: 'none', fontFamily: 'monospace',
+                fontSize: '14px', resize: 'none', backgroundColor: '#1e1e1e', color: '#d4d4d4' } value=code on={
+                input: handleCodeChange } placeholder="Write your Blop code here..." />
             </div>
             <div class="card-footer" style={ textAlign: 'center', padding: '1em' }>
               if isCompiling {
@@ -100,39 +79,27 @@ def PlaygroundPage(ctx: Component): VNode {
                   'Compile Code'
                 </button>
               }
-              
+
               <div style={ marginTop: '1em', fontSize: '0.9em', color: '#6c757d' }>
                 'Press the button to compile your Blop code'
               </div>
             </div>
           </div>
         </div>
-        
+
         // Output Section
         <div class="col-lg-6" style={ marginBottom: '2em' }>
           <div class="card h-100">
-            <div class="card-header" style={
-              backgroundColor: '#28a745',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.1em'
-            }>
+            <div class="card-header" style={ backgroundColor: '#28a745', color: 'white', fontWeight: 'bold',
+              fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'✨'</span>
               'Compiled JavaScript'
             </div>
             <div class="card-body" style={ padding: '0' }>
 
               if warning {
-                <div style={
-                  height: 'auto',
-                  padding: '1.5em',
-                  backgroundColor: '#fff3cd',
-                  color: '#856404',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  overflowY: 'auto',
-                  whiteSpace: 'pre-wrap'
-                }>
+                <div style={ height: 'auto', padding: '1.5em', backgroundColor: '#fff3cd', color: '#856404',
+                  fontFamily: 'monospace', fontSize: '14px', overflowY: 'auto', whiteSpace: 'pre-wrap' }>
                   <div style={ fontWeight: 'bold', marginBottom: '1em', fontSize: '1.1em' }>
                     <span style={ marginRight: '0.5em' }>'⚠️'</span>
                     'Compilation Warning'
@@ -142,16 +109,8 @@ def PlaygroundPage(ctx: Component): VNode {
               }
 
               if error {
-                <div style={
-                  height: '500px',
-                  padding: '1.5em',
-                  backgroundColor: '#f8d7da',
-                  color: '#721c24',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  overflowY: 'auto',
-                  whiteSpace: 'pre-wrap'
-                }>
+                <div style={ height: '500px', padding: '1.5em', backgroundColor: '#f8d7da', color: '#721c24',
+                  fontFamily: 'monospace', fontSize: '14px', overflowY: 'auto', whiteSpace: 'pre-wrap' }>
                   <div style={ fontWeight: 'bold', marginBottom: '1em', fontSize: '1.1em' }>
                     <span style={ marginRight: '0.5em' }>'❌'</span>
                     'Compilation Error'
@@ -159,26 +118,11 @@ def PlaygroundPage(ctx: Component): VNode {
                   = error
                 </div>
               } elseif output {
-                <pre style={
-                  height: '500px',
-                  margin: '0',
-                  padding: '1.5em',
-                  backgroundColor: '#1e1e1e',
-                  color: '#d4d4d4',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  overflowY: 'auto',
-                  border: 'none'
-                }><code>output</code></pre>
+                <pre style={ height: '500px', margin: '0', padding: '1.5em', backgroundColor: '#1e1e1e',
+                  color: '#d4d4d4', fontFamily: 'monospace', fontSize: '14px', overflowY: 'auto', border: 'none' }><code>output</code></pre>
               } else {
-                <div style={
-                  height: '500px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#6c757d',
-                  fontSize: '1.1em'
-                }>
+                <div style={ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#6c757d', fontSize: '1.1em' }>
                   <div style={ textAlign: 'center' }>
                     <div style={ fontSize: '3em', marginBottom: '0.3em' }>'💡'</div>
                     <div>'Click "Compile Code" to see the output'</div>
@@ -206,45 +150,32 @@ def PlaygroundPage(ctx: Component): VNode {
           </div>
         </div>
       </div>
-      
+
       // Examples Section
       <div class="row" style={ marginTop: '2em' }>
         <div class="col-12">
           <div class="card">
-            <div class="card-header" style={
-              backgroundColor: '#6f42c1',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.1em'
-            }>
+            <div class="card-header" style={ backgroundColor: '#6f42c1', color: 'white', fontWeight: 'bold',
+              fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'📚'</span>
               'Example Snippets - Click to Load'
             </div>
             <div class="card-body">
               <div style={ display: 'flex', gap: '1em', flexWrap: 'wrap', justifyContent: 'center' }>
                 examples = [
-                  {
-                    name: 'Simple Component',
-                    code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
-                  },
-                  {
-                    name: 'Counter with State',
-                    code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state(\'count\', 0)\n  \n  <div style={ textAlign: \'center\' }>\n    <h2>count</h2>\n    <button on={ click: () => setState(count + 1) }>\n      \'Increment\'\n    </button>\n  </div>\n}'
-                  },
-                  {
-                    name: 'List with For Loop',
-                    code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
-                  },
-                  {
-                    name: 'Conditional Rendering',
-                    code: 'def StatusMessage({ attributes }: Component): VNode {\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
-                  }
+                { name: 'Simple Component',
+                  code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n  \n  <div style={ padding: \'2em\', textAlign: \'center\' }>\n    <h1>\'Hello, \'name\'!\'</h1>\n    <p>\'Welcome to Blop!\'</p>\n  </div>\n}'
+                }, { name: 'Counter with State',
+                  code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state(\'count\', 0)\n  \n  <div style={ textAlign: \'center\' }>\n    <h2>count</h2>\n    <button on={ click: () => setState(count + 1) }>\n      \'Increment\'\n    </button>\n  </div>\n}'
+                }, { name: 'List with For Loop',
+                  code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n  \n  <ul>\n    for item in items {\n      <li>item</li>\n    }\n  </ul>\n}'
+                }, { name: 'Conditional Rendering',
+                  code: 'def StatusMessage({ attributes }: Component): VNode {\n  { isSuccess } = attributes\n  \n  <div>\n    if isSuccess {\n      <div class="alert alert-success">\n        \'✓ Success!\'\n      </div>\n    } else {\n      <div class="alert alert-danger">\n        \'✗ Failed\'\n      </div>\n    }\n  </div>\n}'
+                }
                 ]
-                
+
                 for example in examples {
-                  <button
-                    class="btn btn-outline-primary"
-                    on={ click: () => {
+                  <button class="btn btn-outline-primary" on={ click: () => {
                       setCode(example.code)
                       setOutput('')
                       setError(null)
@@ -258,17 +189,13 @@ def PlaygroundPage(ctx: Component): VNode {
           </div>
         </div>
       </div>
-      
+
       // Help Section
       <div class="row" style={ marginTop: '2em' }>
         <div class="col-12">
           <div class="card">
-            <div class="card-header" style={
-              backgroundColor: '#17a2b8',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.1em'
-            }>
+            <div class="card-header" style={ backgroundColor: '#17a2b8', color: 'white', fontWeight: 'bold',
+              fontSize: '1.1em' }>
               <span style={ marginRight: '0.5em' }>'ℹ️'</span>
               'About This Playground'
             </div>
@@ -301,12 +228,14 @@ def PlaygroundPage(ctx: Component): VNode {
                       </a>
                     </li>
                     <li>
-                      <a href="https://github.com/batiste/blop-language/blob/master/docs/SYNTAX_REFERENCE.md" target="_blank">
+                      <a href="https://github.com/batiste/blop-language/blob/master/docs/SYNTAX_REFERENCE.md"
+                      target="_blank">
                         'Syntax Reference'
                       </a>
                     </li>
                     <li>
-                      <a href="https://github.com/batiste/blop-language/blob/master/docs/QUICK_START.md" target="_blank">
+                      <a href="https://github.com/batiste/blop-language/blob/master/docs/QUICK_START.md"
+                      target="_blank">
                         'Quick Start Guide'
                       </a>
                     </li>
