@@ -15,7 +15,7 @@ TodoListItem = ({ attributes }: Component): VNode => {
       vnode.elm.select()
     }
   }
-  
+
   // Styling based on completion status
   textDecoration = 'none'
   textOpacity = '1'
@@ -23,7 +23,7 @@ TodoListItem = ({ attributes }: Component): VNode => {
     textDecoration := 'line-through'
     textOpacity := '0.6'
   }
-  
+
   textStyle = {
     padding: '10px',
     textDecoration,
@@ -31,16 +31,16 @@ TodoListItem = ({ attributes }: Component): VNode => {
     cursor: 'pointer',
     transition: 'all 0.2s ease'
   }
-  
+
   borderColor = '#dee2e6'
   bgColor = 'white'
   if completed {
     borderColor := '#28a745'
     bgColor := '#d4edda'
   }
-  
+
   borderStyle = '1px solid 'borderColor''
-  
+
   cardStyle = {
     marginBottom: '10px',
     border: borderStyle,
@@ -75,4 +75,3 @@ TodoListItem = ({ attributes }: Component): VNode => {
     </div>
   </div>
 }
-

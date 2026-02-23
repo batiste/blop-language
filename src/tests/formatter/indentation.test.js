@@ -66,4 +66,26 @@ describe('indentation normalization', () => {
       );
     });
   });
+
+  describe('blank lines', () => {
+    it('preserves a single blank line between statements', () => {
+      expect(format(`def f() {\nx = 1\n\ny = 2\n}`)).toBe(
+        `def f() {\n  x = 1\n\n  y = 2\n}\n`
+      );
+    });
+  });
+
+  describe('VNode indentation', () => {
+    it('indents VNode children', () => {
+      expect(format(`def f() {\n<div>\n<span>'hi'</span>\n</div>\n}`)).toBe(
+        `def f() {\n  <div>\n    <span>'hi'</span>\n  </div>\n}\n`
+      );
+    });
+
+    it('indents nested VNodes', () => {
+      expect(format(`def f() {\n<div>\n<section>\n<p>'text'</p>\n</section>\n</div>\n}`)).toBe(
+        `def f() {\n  <div>\n    <section>\n      <p>'text'</p>\n    </section>\n  </div>\n}\n`
+      );
+    });
+  });
 });
