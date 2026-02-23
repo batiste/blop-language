@@ -87,6 +87,7 @@ export class Printer {
     let level = 0;
     let lineLen = 0;   // current column position
     let needsIndent = false;
+    let inVNodeOpening = false;  // tracking if we're inside VNode opening tag (between < and >)
 
     for (let i = 0; i < leaves.length; i++) {
       const leaf = leaves[i];
@@ -112,6 +113,23 @@ export class Printer {
             lineLen += 1;
           }
         }
+      } else if (leaf.type === '<') {
+        // Handle any pending indentation before the opening tag
+        if (needsIndent) {
+          const ind = this._indent(level);
+          parts.push(ind);
+          lineLen = ind.length;
+          needsIndent = false;
+        }
+        // Now we're starting a VNode opening tag - attributes after tag name should be indented
+        inVNodeOpening = true;
+        parts.push(leaf.value);
+        lineLen += 1;
+      } else if (leaf.type === '>') {
+        // Ending a VNode opening tag
+        inVNodeOpening = false;
+        parts.push(leaf.value);
+        lineLen += 1;
       } else if (leaf.type === '__break') {
         // Breakable separator: emit space or newline+indent based on line length.
         // If the original source had a newline, preserve it.
@@ -142,7 +160,10 @@ export class Printer {
           // Use level-1 when the next content closes a brace or VNode.
           const nextType = j < leaves.length ? leaves[j].type : '';
           const nextIsClose = nextType === CLOSE_BRACE || nextType === '</' || nextType === '__vclose';
-          const ind = this._indent(nextIsClose ? level - 1 : level);
+          // Add extra indentation for VNode opening tag attributes
+          const indentLevel = nextIsClose ? level - 1 : level;
+          const attrIndentLevel = inVNodeOpening ? indentLevel + 1 : indentLevel;
+          const ind = this._indent(attrIndentLevel);
           parts.push(ind);
           lineLen = ind.length;
           needsIndent = false;
@@ -176,7 +197,9 @@ export class Printer {
         // skip end-of-stream marker
       } else {
         if (needsIndent) {
-          const ind = this._indent(level);
+          // For VNode attributes on their own lines, add extra indentation
+          const attrLevel = inVNodeOpening ? level + 1 : level;
+          const ind = this._indent(attrLevel);
           parts.push(ind); lineLen = ind.length;
           needsIndent = false;
         }
