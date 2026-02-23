@@ -1,4 +1,5 @@
-const INLINE_SPACE = new Set(['w', 'single_space_or_newline', 'newline_and_space', 'wcomment']);
+const INLINE_SPACE = new Set(['w', 'wcomment']);
+const BREAKABLE = new Set(['single_space_or_newline', 'newline_and_space']);
 const NEWLINE = new Set(['newline']);
 const INDENT = new Set(['W']);
 const OPEN_BRACE = '{';
@@ -14,6 +15,13 @@ function collectLeaves(node, out = []) {
   if (!node) return out;
   if (node.value !== undefined && (!node.children || node.children.length === 0)) {
     out.push(node);
+    return out;
+  }
+
+  // single_space_or_newline / newline_and_space are breakable separators.
+  // Replace with a synthetic __break so the printer can decide space vs newline.
+  if (BREAKABLE.has(node.type)) {
+    out.push({ type: '__break', value: '' });
     return out;
   }
 
@@ -42,10 +50,26 @@ function collectLeaves(node, out = []) {
   return out;
 }
 
+// Measure display length of the next segment (until __break, newline, W, or a
+// level-changing token). Used for look-ahead line-length decisions.
+function segmentLength(leaves, from) {
+  const STOP = new Set(['__break', '__vopen', 'EOS']);
+  let len = 0;
+  for (let i = from; i < leaves.length; i++) {
+    const t = leaves[i];
+    if (STOP.has(t.type)) break;
+    if (NEWLINE.has(t.type) || INDENT.has(t.type)) break;
+    if (INLINE_SPACE.has(t.type)) { len += 1; continue; }
+    len += t.value ? t.value.length : 0;
+  }
+  return len;
+}
+
 export class Printer {
   constructor(options = {}) {
     this.indentSize = options.indentSize ?? 2;
     this.indentChar = options.indentChar ?? ' ';
+    this.maxLineLength = options.maxLineLength ?? 120;
   }
 
   _indent(level) {
@@ -56,8 +80,7 @@ export class Printer {
     const leaves = collectLeaves(ast);
     const parts = [];
     let level = 0;
-    // After a newline, we must emit indentation before the next content token.
-    // This handles both indented source (has W tokens) and flat source (no W).
+    let lineLen = 0;   // current column position
     let needsIndent = false;
 
     for (let i = 0; i < leaves.length; i++) {
@@ -65,27 +88,41 @@ export class Printer {
 
       if (NEWLINE.has(leaf.type)) {
         parts.push('\n');
+        lineLen = 0;
         needsIndent = true;
       } else if (INLINE_SPACE.has(leaf.type)) {
         // Skip inline spaces when at the start of a new line.
-        if (!needsIndent) parts.push(' ');
+        if (!needsIndent) { parts.push(' '); lineLen += 1; }
+      } else if (leaf.type === '__break') {
+        // Breakable separator: emit space or newline+indent based on line length.
+        const seg = segmentLength(leaves, i + 1);
+        const indentLen = this._indent(level).length;
+        if (lineLen + 1 + seg > this.maxLineLength) {
+          parts.push('\n');
+          lineLen = 0;
+          needsIndent = true;
+        } else {
+          if (!needsIndent) { parts.push(' '); lineLen += 1; }
+        }
       } else if (INDENT.has(leaf.type)) {
         // W token = existing indentation in source: always replace with computed indent.
         if (needsIndent) {
           // W.value may carry an embedded newline, e.g. "  \n  " for a
           // whitespace-only blank line. Preserve at most one blank line.
-          if (leaf.value.includes('\n')) parts.push('\n');
+          if (leaf.value.includes('\n')) { parts.push('\n'); lineLen = 0; }
 
           // Look ahead to find next non-whitespace leaf.
           let j = i + 1;
           while (j < leaves.length &&
-                 (NEWLINE.has(leaves[j].type) || INLINE_SPACE.has(leaves[j].type) || INDENT.has(leaves[j].type))) {
+                 (NEWLINE.has(leaves[j].type) || INLINE_SPACE.has(leaves[j].type) || INDENT.has(leaves[j].type) || leaves[j].type === '__break')) {
             j++;
           }
           // Use level-1 when the next content closes a brace or VNode.
           const nextType = j < leaves.length ? leaves[j].type : '';
           const nextIsClose = nextType === CLOSE_BRACE || nextType === '</' || nextType === '__vclose';
-          parts.push(this._indent(nextIsClose ? level - 1 : level));
+          const ind = this._indent(nextIsClose ? level - 1 : level);
+          parts.push(ind);
+          lineLen = ind.length;
           needsIndent = false;
         }
         // else: W without preceding newline (unusual), skip it.
@@ -94,32 +131,34 @@ export class Printer {
         level++;
       } else if (leaf.type === OPEN_BRACE) {
         needsIndent = false;
-        parts.push(leaf.value);
+        parts.push(leaf.value); lineLen += 1;
         level++;
       } else if (leaf.type === CLOSE_BRACE) {
         if (needsIndent) {
-          // '}' directly after newline, no W token — emit closing indent.
-          parts.push(this._indent(level - 1));
+          const ind = this._indent(level - 1);
+          parts.push(ind); lineLen = ind.length;
           needsIndent = false;
         }
         level--;
-        parts.push(leaf.value);
+        parts.push(leaf.value); lineLen += 1;
       } else if (leaf.type === '</') {
         // VNode closing tag: decrement level so the tag aligns with its opener.
         level--;
         if (needsIndent) {
-          parts.push(this._indent(level));
+          const ind = this._indent(level);
+          parts.push(ind); lineLen = ind.length;
           needsIndent = false;
         }
-        parts.push(leaf.value);
+        parts.push(leaf.value); lineLen += leaf.value.length;
       } else if (leaf.type === 'EOS') {
         // skip end-of-stream marker
       } else {
         if (needsIndent) {
-          parts.push(this._indent(level));
+          const ind = this._indent(level);
+          parts.push(ind); lineLen = ind.length;
           needsIndent = false;
         }
-        parts.push(leaf.value);
+        parts.push(leaf.value); lineLen += leaf.value.length;
       }
     }
 

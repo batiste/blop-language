@@ -88,4 +88,31 @@ describe('indentation normalization', () => {
       );
     });
   });
+
+  describe('line length breaking', () => {
+    it('keeps short func calls on one line', () => {
+      const result = format(`x = foo(a, b)`);
+      expect(result.trim()).toBe(`x = foo(a, b)`);
+    });
+
+    it('breaks long func call args onto separate lines', () => {
+      // Each arg is ~30 chars, total exceeds 120
+      const longArg = 'a'.repeat(40);
+      const src = `x = foo(${longArg}, ${longArg}, ${longArg})`;
+      const result = format(src);
+      expect(result.trim().includes('\n')).toBe(true);
+    });
+
+    it('keeps short object literals on one line', () => {
+      const result = format(`x = { a: 1, b: 2 }`);
+      expect(result.trim()).toBe(`x = { a: 1, b: 2 }`);
+    });
+
+    it('breaks long object literals', () => {
+      const longVal = `'${'x'.repeat(50)}'`;
+      const src = `x = { alpha: ${longVal}, beta: ${longVal} }`;
+      const result = format(src);
+      expect(result.trim().includes('\n')).toBe(true);
+    });
+  });
 });
