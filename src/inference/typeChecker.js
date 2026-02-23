@@ -117,9 +117,10 @@ const TypeChecker = {
 
     for (const returnType of explicitReturns) {
       if (!isTypeCompatible(returnType, declaredType, typeAliases)) {
+        const displayType = getBaseTypeOfLiteral(returnType);
         return { 
           valid: false, 
-          warning: `Function '${functionName}' returns ${returnType} but declared as ${declaredType}` 
+          warning: `Function '${functionName}' returns ${displayType} but declared as ${declaredType}` 
         };
       }
     }

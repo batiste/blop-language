@@ -63,7 +63,7 @@ describe('return type checking', () => {
         }
         return val
       }
-    `, 'returns 1 but declared as string');
+    `, 'returns number but declared as string');
   });
 
   it('rejects returning a string in a number-declared function', () => {
@@ -71,7 +71,7 @@ describe('return type checking', () => {
       def f(): number {
         return 'hello'
       }
-    `, 'returns "hello" but declared as number');
+    `, 'returns string but declared as number');
   });
 });
 

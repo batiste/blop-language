@@ -10,6 +10,7 @@ import {
   resolveTypeAlias,
   inferGenericArguments,
   substituteType,
+  getBaseTypeOfLiteral,
 } from '../typeSystem.js';
 import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
@@ -347,9 +348,10 @@ function createFunctionHandlers(getState) {
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
             // For anonymous functions, use the parent token for error reporting
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
+            const displayType = getBaseTypeOfLiteral(inferredType);
             pushWarning(
               errorToken,
-              `Function returns ${inferredType} but declared as ${declaredType}`
+              `Function returns ${displayType} but declared as ${declaredType}`
             );
           }
         }
@@ -363,9 +365,10 @@ function createFunctionHandlers(getState) {
         if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
           if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+            const displayType = getBaseTypeOfLiteral(inferredType);
             pushWarning(
               node.named.name,
-              `Function '${node.named.name.value}' returns ${inferredType} but declared as ${declaredType}`
+              `Function '${node.named.name.value}' returns ${displayType} but declared as ${declaredType}`
             );
           }
         }
@@ -502,9 +505,10 @@ function createFunctionHandlers(getState) {
       if (declaredType && inferredType !== AnyType) {
         const { typeAliases } = getState();
         if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+          const displayType = getBaseTypeOfLiteral(inferredType);
           pushWarning(
             node.named.name,
-            `Method '${node.named.name?.value}' returns ${inferredType} but declared as ${declaredType}`
+            `Method '${node.named.name?.value}' returns ${displayType} but declared as ${declaredType}`
           );
         }
       }

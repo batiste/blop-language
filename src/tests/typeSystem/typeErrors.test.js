@@ -8,7 +8,7 @@ describe('VNode type validation - negative tests', () => {
       }
       Test()
     `;
-    expectCompilationError(code, 'returns 1 but declared as VNode');
+    expectCompilationError(code, 'returns number but declared as VNode');
   });
 
   test('rejects arrow function with implicit return of number instead of VNode', () => {
@@ -16,7 +16,7 @@ describe('VNode type validation - negative tests', () => {
       Test = (): VNode => 1
       Test()
     `;
-    expectCompilationError(code, 'returns 1 but declared as VNode');
+    expectCompilationError(code, 'returns number but declared as VNode');
   });
 
   test('rejects named function returning string instead of VNode', () => {
@@ -168,13 +168,12 @@ describe('VNode type validation - negative tests', () => {
       }
       Test(true, false)
     `;
-    expectCompilationError(code, '42');
+    expectCompilationError(code, 'returns number but declared as VNode');
   });
 });
 
 describe('Type inference - negative tests', () => {
-  // TODO: Implement parameter type checking
-  test.skip('rejects mismatched parameter types', () => {
+  test('rejects mismatched parameter types', () => {
     const code = `
       def add(a: number, b: number): number {
         return a + b
@@ -184,8 +183,7 @@ describe('Type inference - negative tests', () => {
     expectCompilationError(code, /string|number/);
   });
 
-  // TODO: Fix string return type inference
-  test.skip('rejects return type mismatch', () => {
+  test('rejects return type mismatch', () => {
     const code = `
       def getString(): string {
         return 42
