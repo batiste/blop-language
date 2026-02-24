@@ -285,6 +285,14 @@ function createFunctionHandlers(getState) {
             }
           }
 
+          // Inline type annotation (e.g. { attributes: DogGameProps }) overrides
+          // the property type looked up from the outer parameter annotation
+          if (v.named.annotation) {
+            stampTypeAnnotation(v.named.annotation);
+            const inlineType = getAnnotationType(v.named.annotation);
+            if (inlineType) propType = inlineType;
+          }
+
           scope[localName] = { type: propType };
           if (inferencePhase === 'inference') {
             token.inferredType = resolveTypeAlias(propType, typeAliases);

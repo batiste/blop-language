@@ -84,6 +84,28 @@ def Card(ctx: Component) {
 // → Two separate Component instances with different attributes
 ```
 
+If you have clear types for your attributes, you can destructure with type annotations:
+
+```typescript
+type DogGameProps = {
+  state: State,
+  loading: boolean
+}
+
+def DogGame({ attributes: DogGameProps, children }: Component) {
+  { state, loading } = attributes
+  page = state.dogPage
+  dog = page.choice
+  <div>
+    if loading {
+      <h3>'Loading...'</h3>
+    } else {
+      <img src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image'' />
+    }
+  </div>
+}
+```
+
 #### Inline Parameter Destructuring
 
 For pure display components that don't need an handle on the instance of the Component, you can destructure directly in the parameter list:

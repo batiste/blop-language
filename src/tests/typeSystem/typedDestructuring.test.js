@@ -110,4 +110,33 @@ ctx = { score: 0, name: "hello" }
       }
     `);
   });
+
+  test('inline annotation in parameter destructuring overrides outer param type', () => {
+    const code = `
+type DogGameProps = {
+  page: { score: number },
+  state: { counter: number },
+}
+def DogGame({ attributes: DogGameProps, children }: Component) {
+  { page, state } = attributes
+}
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // 'attributes' inside the body must be typed as DogGameProps, not Record<string, any>
+    const attributesNodes = findNodesWithValue(tree, ['attributes']);
+    const badNode = attributesNodes.find(n => n.inferredType?.toString() === 'Record<string, any>');
+    expect(badNode).toBeUndefined();
+
+    // 'page' must be typed as the DogGameProps.page shape, not any
+    const pageNodes = findNodesWithValue(tree, ['page']);
+    const anyPage = pageNodes.find(n => n.inferredType?.toString() === 'any');
+    expect(anyPage).toBeUndefined();
+
+    const typedPage = pageNodes.find(n => n.inferredType?.toString().includes('score'));
+    expect(typedPage).toBeDefined();
+  });
 });

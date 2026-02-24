@@ -2,14 +2,14 @@ import { getNewDog } from './services.blop'
 import { State } from '../state.blop'
 
 type DogGameProps = {
-  page: State['dogPage'],
   state: State,
+  loading: boolean
 }
 
-def DogGame(ctx: Component) {
-  { attributes: DogGameProps, children } = ctx
-  { page, state } = attributes
-  dog = page?.choice
+def DogGame({ attributes: DogGameProps, children }: Component) {
+  { state, loading } = attributes
+  page = state.dogPage
+  dog = page.choice
 
   input = <input type="text"
     class="form-control" placeholder="Breed" />
@@ -161,7 +161,7 @@ def DogGame(ctx: Component) {
     </form>
 
     <div style={ minHeight: '400px' }>
-      = if dog => <img
+      = if dog && !loading => <img
         src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
         style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
     </div>

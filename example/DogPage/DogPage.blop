@@ -13,7 +13,7 @@ def DogPage(ctx: Component): VNode {
     }
   })
 
-  <DogGame page=state.dogPage state=state loading=state.loading>
+  <DogGame state=state loading=state.route.loading>
     = 'Dog breed game'
   </DogGame>
 }
