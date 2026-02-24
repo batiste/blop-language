@@ -1,4 +1,5 @@
 import path from 'path';
+import { RUNTIME_NAMESPACE } from '../../constants.js';
 
 function createImportGenerators(context) {
   const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename, scopes } = context;
@@ -39,8 +40,8 @@ function createImportGenerators(context) {
       
       if (fileNode) {
         const rawPath = fileNode.value.slice(1, -1);
-        if (rawPath === 'blop') {
-          modulePath = 'blop';
+        if (rawPath === RUNTIME_NAMESPACE) {
+          modulePath = RUNTIME_NAMESPACE;
           isBlop = true;
         } else {
           dependencies.push(fileNode.value);
@@ -58,18 +59,18 @@ function createImportGenerators(context) {
           // import 'blop' as name
           const name = node.named.name.value;
           registerName(name, node.named.name);
-          output.push(`let ${name} = blop;`);
+          output.push(`let ${name} = ${RUNTIME_NAMESPACE};`);
         } else if (node.named.dest_values) {
           // import { x, y } from 'blop'
           output.push('let { ');
           const names = collectDestructuredNames(node.named.dest_values, importedKeys, registerName);
           output.push(names.map(n => n.source !== n.local ? `${n.source}: ${n.local}` : n.source).join(', '));
-          output.push(' } = blop;');
+          output.push(` } = ${RUNTIME_NAMESPACE};`);
         } else if (node.named.name) {
           // import name from 'blop'
           const name = node.named.name.value;
           registerName(name, node.named.name);
-          output.push(`let ${name} = blop.${name};`);
+          output.push(`let ${name} = ${RUNTIME_NAMESPACE}.${name};`);
         }
         return output;
       }

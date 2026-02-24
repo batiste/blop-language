@@ -4,6 +4,12 @@
   "type": "module",
   "description": "Blop language is JavaScript-like language for the web",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./runtime": "./src/runtime.js",
+    "./vite": "./src/vite.js",
+    "./vitest": "./src/vitest.js"
+  },
   "vite-plugin": "src/vite.js",
   "vitest-plugin": "src/vitest.js",
   "bin": {

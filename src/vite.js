@@ -2,7 +2,7 @@
  * Vite plugin for blop language
  * 
  * Usage in vite.config.js:
- * import { blopPlugin } from 'blop-language/src/vite'
+ * import { blopPlugin } from 'blop-language/vite'
  * 
  * export default {
  *   plugins: [blopPlugin()]
@@ -10,15 +10,12 @@
  */
 
 import { compileSource } from './compile.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { RUNTIME_NAMESPACE } from './constants.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const RUNTIME_IMPORT = 'blop-language/runtime';
 
 function blopPlugin(options = {}) {
   const { debug = false, inference = true } = options;
-  const runtimePath = path.resolve(__dirname, 'runtime.js');
 
   return {
     name: 'vite-plugin-blop',
@@ -59,7 +56,7 @@ function blopPlugin(options = {}) {
         }
 
         // Add runtime import at the top
-        const finalCode = `import * as blop from '${runtimePath}';\n${result.code}`;
+        const finalCode = `import * as ${RUNTIME_NAMESPACE} from '${RUNTIME_IMPORT}';\n${result.code}`;
 
         // Shift source map by 1 line to account for the prepended import.
         // In VLQ source maps each ';' represents a new line, so a leading ';'
