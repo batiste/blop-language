@@ -26,7 +26,10 @@ import {
 	CodeActionKind,
 	CodeActionParams,
 	Hover,
-	MarkupKind
+	MarkupKind,
+	SignatureHelp,
+	SignatureInformation,
+	ParameterInformation
 } from 'vscode-languageserver';
 
 import {
@@ -42,7 +45,7 @@ import { inference } from './inference/index.js';
 import properties from './properties.js';
 import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
 import { selectBestFailure } from './selectBestFailure.js';
-import { parseTypeExpression, parseObjectTypeString } from './inference/typeSystem.js';
+import { parseTypeExpression, parseObjectTypeString, getPropertyType } from './inference/typeSystem.js';
 
 // Load global metadata for autocomplete
 const globalMetadata = getGlobalMetadata();
@@ -218,7 +221,11 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that the server supports hover
 			hoverProvider: true,
 			// Tell the client that the server supports go to definition
-			definitionProvider: true
+			definitionProvider: true,
+			// Tell the client that the server supports signature help
+			signatureHelpProvider: {
+				triggerCharacters: ['(', ',']
+			}
 		}
 	};
 	if (hasWorkspaceFolderCapability) {
@@ -741,6 +748,42 @@ function collectInferredTypeObjects(root: any): Map<string, any> {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Build a SignatureInformation directly from a FunctionType object.
+ * No string parsing — uses .params, .paramNames, .genericParams, .returnType
+ * directly from the inference engine's type objects.
+ */
+function buildSignatureFromFunctionType(funcType: any, methodName: string): SignatureInformation | null {
+	if (!funcType || funcType.kind !== 'function') return null;
+
+	const params: any[] = funcType.params ?? [];
+	const paramNames: string[] = funcType.paramNames ?? [];
+	const genericParams: string[] = funcType.genericParams ?? [];
+	const returnType = funcType.returnType;
+
+	const genericPart = genericParams.length ? `<${genericParams.join(', ')}>` : '';
+	const paramStrs: string[] = params.map((p: any, i: number) => {
+		const name = paramNames[i] ?? `p${i}`;
+		return `${name}: ${p.toString()}`;
+	});
+	const returnStr = returnType?.toString?.() ?? 'void';
+
+	const prefix = `${methodName}${genericPart}(`;
+	const sigLabel = `${prefix}${paramStrs.join(', ')}) => ${returnStr}`;
+
+	// Build offset-based ParameterInformation so VSCode highlights the active param
+	let offset = prefix.length;
+	const paramInfos: ParameterInformation[] = [];
+	for (const p of paramStrs) {
+		paramInfos.push({ label: [offset, offset + p.length] as [number, number] });
+		offset += p.length + 2; // +2 for ', '
+	}
+
+	return { label: sigLabel, parameters: paramInfos };
+}
+
+// ---------------------------------------------------------------------------
+
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
 		const document = documents.get(_textDocumentPosition.textDocument.uri);
@@ -907,6 +950,73 @@ connection.onCompletion(
 connection.onCompletionResolve(
 	(item: CompletionItem): CompletionItem => item
 );
+
+/**
+ * Signature help: show parameter hints when the user types `varName.method(`
+ */
+connection.onSignatureHelp((params): SignatureHelp | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) return null;
+
+	const { line, character } = params.position;
+	const text = document.getText({
+		start: { line, character: 0 },
+		end: { line, character }
+	});
+
+	// Detect `varName.methodName(` — find the last un-closed call
+	// Walk backwards to find the unmatched opening '('
+	let depth = 0;
+	let callOpenIdx = -1;
+	for (let i = text.length - 1; i >= 0; i--) {
+		const ch = text[i];
+		if (ch === ')' || ch === ']' || ch === '}') depth++;
+		else if (ch === '(' || ch === '[' || ch === '{') {
+			if (depth === 0 && ch === '(') { callOpenIdx = i; break; }
+			depth--;
+		}
+	}
+	if (callOpenIdx < 0) return null;
+
+	// The part before '(' should end with `varName.methodName`
+	const beforeParen = text.slice(0, callOpenIdx);
+	const accessMatch = /(\w+)\.(\w+)$/.exec(beforeParen);
+	if (!accessMatch) return null;
+
+	const varName = accessMatch[1];
+	const methodName = accessMatch[2];
+
+	// Count active parameter: commas at depth 0 after the opening '('
+	const argsText = text.slice(callOpenIdx + 1);
+	let activeParam = 0;
+	let argDepth = 0;
+	for (const ch of argsText) {
+		if (ch === '(' || ch === '[' || ch === '{') argDepth++;
+		else if (ch === ')' || ch === ']' || ch === '}') argDepth--;
+		else if (ch === ',' && argDepth === 0) activeParam++;
+	}
+
+	// Re-parse truncated at dot to get the inferred Type object for varName
+	const completionAstInfo = reparseForPropertyCompletion(document, line);
+	if (!completionAstInfo) return null;
+
+	const typeObjects = collectInferredTypeObjects(completionAstInfo.tree);
+	const inferredType = typeObjects.get(varName);
+	if (!inferredType) return null;
+
+	// Use getPropertyType to get the raw FunctionType object — no string round-trip
+	const methodType = getPropertyType(inferredType, methodName, completionAstInfo.typeAliases);
+	if (!methodType) return null;
+
+	const sig = buildSignatureFromFunctionType(methodType, methodName);
+	if (!sig) return null;
+
+	return {
+		signatures: [sig],
+		activeSignature: 0,
+		activeParameter: Math.min(activeParam, (sig.parameters?.length ?? 1) - 1)
+	};
+});
 
 /**
  * Find the AST node at a specific character offset

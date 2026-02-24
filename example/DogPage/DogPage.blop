@@ -3,8 +3,6 @@ import { getNewDog } from './services.blop'
 
 
 
-
-
 def DogPage(ctx: Component): VNode {
   { attributes } = ctx
   { state } = attributes
