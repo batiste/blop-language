@@ -3,9 +3,10 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary } from './typeSystem.js';
-import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType } from './Type.js';
-import { isBuiltinObjectType, getArrayMemberType } from './builtinTypes.js';
+import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary, inferGenericArguments, substituteType } from './typeSystem.js';
+import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType, FunctionType, AnyFunctionType, PrimitiveType } from './Type.js';
+import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
+import { extractExplicitTypeArguments, countFuncCallArgs } from './handlers/utils.js';
 
 // Module state
 let warnings;
@@ -359,12 +360,13 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
 
   if (resolvedType instanceof ObjectType) {
     if (!propertyName) return AnyType;
-    // Class instance types only track method signatures — constructor-assigned
-    // properties (this.x = ...) are not tracked, so suppress false positives.
-    if (resolvedType.isClassInstance) return AnyType;
     const propertyType = getPropertyType(objectType, propertyName, typeAliases);
     if (propertyType === null) {
-      pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
+      // Class instances may have constructor-assigned properties not tracked in ObjectType.
+      // Suppress false-positive warnings for those; only warn for explicitly typed objects.
+      if (!resolvedType.isClassInstance) {
+        pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
+      }
       return AnyType;
     }
     return propertyType;
@@ -384,6 +386,27 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
     return memberType;
   }
 
+  // Builtin namespace types (Math, Array, JSON, etc.) — look up member in builtin map
+  if (resolvedType instanceof TypeAlias && isBuiltinObjectType(resolvedType.name)) {
+    const builtinType = getBuiltinObjectType(resolvedType.name);
+    const memberType = propertyName ? builtinType?.[propertyName] : undefined;
+    if (memberType == null) return AnyType;
+    // Stamp member name node for hover support
+    const nameNode = accessNode?.children?.find(c => c.type === 'name');
+    if (nameNode && nameNode.inferredType === undefined) nameNode.inferredType = memberType;
+    return memberType; // May be FunctionType — handleFunctionCallStep will invoke it
+  }
+
+  // Primitive types (string, number, boolean) — look up member in primitive map
+  if (resolvedType instanceof PrimitiveType && propertyName) {
+    const memberType = getPrimitiveMemberType(resolvedType.name, propertyName);
+    if (memberType == null) {
+      pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${resolvedType}`);
+      return AnyType;
+    }
+    return memberType;
+  }
+
   // Not an object or array type — skip validation
   return AnyType;
 }
@@ -392,22 +415,41 @@ function handleObjectAccess(types, i) {
   const objectType = types[i - 1];
   const accessNode = types[i];
 
-  if (isOptionalChainAccess(accessNode)) {
+  const isOptional = isOptionalChainAccess(accessNode);
+  const isBracket = isBracketAccess(accessNode);
+  const propertyName = extractPropertyNameFromAccess(accessNode);
+
+  // Store info for checking-phase warnings in the object_access handler
+  accessNode.__objectType = objectType;
+  accessNode.__propertyName = propertyName;
+  accessNode.__isBracket = isBracket;
+  accessNode.__isOptional = isOptional;
+
+  if (isOptional) {
     types[i - 1] = AnyType;
     types.splice(i, 1);
     return i - 1;
   }
 
+  let resolvedType;
+
   // Handle bracket access (array indexing) - propertyName is null, returns element type
-  if (isBracketAccess(accessNode)) {
-    types[i - 1] = validateObjectPropertyAccess(objectType, null, accessNode);
-    types.splice(i, 1);
-    return i - 1;
+  if (isBracket) {
+    resolvedType = validateObjectPropertyAccess(objectType, null, accessNode);
+  } else {
+    // Handle dot notation property access
+    resolvedType = validateObjectPropertyAccess(objectType, propertyName, accessNode);
   }
 
-  // Handle dot notation property access
-  const propertyName = extractPropertyNameFromAccess(accessNode);
-  types[i - 1] = validateObjectPropertyAccess(objectType, propertyName, accessNode);
+  // Tag the resolved FunctionType with the property/method name.
+  // This survives across exp scopes (method resolution is in inner exp,
+  // func_call is in outer exp), and is used in the checking phase for
+  // error messages like "function push expected..."
+  if (resolvedType instanceof FunctionType && propertyName && resolvedType.funcName === null) {
+    resolvedType.__callerName = propertyName;
+  }
+
+  types[i - 1] = resolvedType;
   types.splice(i, 1);
   return i - 1;
 }
@@ -426,6 +468,70 @@ function checkObjectAccess(types, i) {
       validateObjectPropertyAccess(objectType, propertyName, accessNode);
     }
   }
+}
+
+/**
+ * Check if an object_access node is a function call (contains func_call child)
+ */
+function isFuncCallAccess(accessNode) {
+  return !!(accessNode?.children?.some(c => c.type === 'func_call'));
+}
+
+/**
+ * Handle function call object_access in inference phase.
+ * Resolves the return type and stores funcType + funcCallNode on the access node
+ * so the checking-phase object_access handler can emit arity/type warnings.
+ */
+function handleFunctionCallStep(types, i) {
+  const funcType = types[i - 1];
+  const accessNode = types[i];
+
+  const funcCallNode = accessNode.children?.find(c => c.type === 'func_call');
+  const argTypes = funcCallNode?.inference || [];
+  const typeArgsNode = accessNode.children?.find(c => c.type === 'type_arguments')
+                    ?? accessNode.named?.type_args;
+
+  // Not a known function type — cannot call it, return AnyType
+  if (!(funcType instanceof FunctionType)) {
+    types[i - 1] = AnyType;
+    types.splice(i, 1);
+    return i - 1;
+  }
+
+  // AnyFunctionType (params === null, no type info) — just forward AnyType
+  if (funcType.params === null) {
+    types[i - 1] = AnyType;
+    types.splice(i, 1);
+    return i - 1;
+  }
+
+  // Store for checking phase (object_access handler validates + warns during checking)
+  accessNode.__funcType = funcType;
+  accessNode.__funcCallNode = funcCallNode;
+  // __callerName is tagged on FunctionType by handleObjectAccess if this follows a property access
+  accessNode.__funcCallName = funcType.funcName ?? funcType.__callerName ?? accessNode.__callMethodName ?? '';
+
+  let returnType;
+  if (funcType.genericParams?.length > 0) {
+    // Generic function call — infer or use explicit type arguments
+    const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
+    let substitutions = {};
+    if (explicitTypeArgs) {
+      for (let j = 0; j < Math.min(funcType.genericParams.length, explicitTypeArgs.length); j++) {
+        substitutions[funcType.genericParams[j]] = explicitTypeArgs[j];
+      }
+    } else {
+      const result = inferGenericArguments(funcType.genericParams, funcType.params ?? [], argTypes, typeAliases);
+      substitutions = result.substitutions;
+    }
+    returnType = substituteType(funcType.returnType ?? AnyType, substitutions);
+  } else {
+    returnType = funcType.returnType ?? AnyType;
+  }
+
+  types[i - 1] = returnType;
+  types.splice(i, 1);
+  return i - 1;
 }
 
 /**
@@ -461,7 +567,11 @@ function resolveTypes(node) {
       } else if (t && t.type === 'assign') {
         handleAssignment(types, i, t);
       } else if (t && t.type === 'object_access' && types[i - 1]) {
-        i = handleObjectAccess(types, i);
+        if (isFuncCallAccess(t)) {
+          i = handleFunctionCallStep(types, i);
+        } else {
+          i = handleObjectAccess(types, i);
+        }
       }
     }
 
@@ -639,4 +749,5 @@ export {
   setHandlers,
   stampTypeAnnotation,
   stampInferredTypes,
+  validateObjectPropertyAccess,
 };

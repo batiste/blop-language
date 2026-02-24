@@ -2,7 +2,7 @@
 // Expression Handlers - Type inference for expressions
 // ============================================================================
 
-import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
+import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
@@ -645,8 +645,12 @@ function handleSimpleVariable(name, parent, definition, getState) {
       if (aliasEntry !== undefined) {
         name.inferredType = aliasEntry;
       } else if (isBuiltinObjectType(name.value)) {
-        // Bare builtin reference (e.g. `Array`, `Math`) — show its name as type
-        name.inferredType = new TypeAlias(name.value);
+        // Bare builtin reference (e.g. `Array`, `Math`) — push TypeAlias so that
+        // validateObjectPropertyAccess in visitor.js can look up its members
+        const builtinAlias = new TypeAlias(name.value);
+        name.inferredType = builtinAlias;
+        pushInference(parent, builtinAlias);
+        return;
       }
     }
     pushInference(parent, AnyType);
@@ -654,18 +658,21 @@ function handleSimpleVariable(name, parent, definition, getState) {
   }
   
   if (definition.source === 'func_def') {
-    pushInference(parent, AnyFunctionType);
-    const { inferencePhase } = getState();
-    if (inferencePhase === 'inference' && name.inferredType === undefined) {
-      // Build the full function signature for hover support
-      const funcType = definition.params
-        ? new FunctionType(
-            definition.params,
-            definition.type ?? AnyType,
-            definition.genericParams ?? [],
-            definition.paramNames ?? []
-          )
-        : AnyFunctionType;
+    // Build the full function type for both type resolution and hover
+    const funcType = definition.params
+      ? new FunctionType(
+          definition.params,
+          definition.type ?? AnyType,
+          definition.genericParams ?? [],
+          definition.paramNames ?? [],
+          definition.paramHasDefault ?? null
+        )
+      : AnyFunctionType;
+    if (definition.params) {
+      funcType.funcName = name.value; // preserve for arity error messages
+    }
+    pushInference(parent, funcType);
+    if (name.inferredType === undefined) {
       name.inferredType = funcType;
     }
   } else {
@@ -727,78 +734,8 @@ function createExpressionHandlers(getState) {
       pushToParent(node, parent);
     },
     name_exp: (node, parent) => {
-      const { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase } = getState();
-      const { name, access } = node.named;
-      
-      if (access) {
-        // Lookup variable definition early so we can stamp the name node
-        const definition = lookupVariable(name.value);
-        
-        // Stamp the name node with its type for hover support
-        if (definition && definition.type) {
-          if (definition.source === 'func_def') {
-            if (inferencePhase === 'inference' && name.inferredType === undefined) {
-              const funcType = definition.params
-                ? new FunctionType(
-                    definition.params,
-                    definition.type ?? AnyType,
-                    definition.genericParams ?? [],
-                    definition.paramNames ?? []
-                  )
-                : AnyFunctionType;
-              name.inferredType = funcType;
-            }
-          } else {
-            if (name.inferredType === undefined) {
-              // Normalize literal types to their base types for hover display
-              // But preserve type aliases as-is
-              const typeToStamp = getBaseTypeOfLiteral(definition.type);
-              name.inferredType = typeToStamp;
-            }
-          }
-        }
-        
-        // Check if this is a function call (search recursively through nested
-        // object_access nodes, e.g. obj.method(x) has func_call one level deeper)
-        function hasFuncCallInObjectAccess(node) {
-          if (!node || node.type !== 'object_access') return false;
-          if (node.children?.some(c => c.type === 'func_call')) return true;
-          return node.children?.some(c => hasFuncCallInObjectAccess(c)) ?? false;
-        }
-        const hasFuncCall = hasFuncCallInObjectAccess(access);
-        
-        if (hasFuncCall) {
-          if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase })) {
-            return;
-          }
-        }
-        
-        // Try built-in member access (e.g. Math.PI, Array.isArray)
-        if (handleBuiltinNameAccess(name, access, parent, { pushInference, inferencePhase })) {
-          return;
-        }
-        
-        // Try object property access
-        const defTypeIsAny = !definition?.type || definition.type === AnyType ||
-                              (definition.type instanceof PrimitiveType && definition.type.name === 'any');
-        
-        if (definition && definition.type && !defTypeIsAny) {
-          if (handleObjectPropertyAccess(name, access, parent, definition, { pushInference, pushWarning, typeAliases })) {
-            return;
-          }
-        }
-        
-        // Unknown variable or couldn't validate.
-        // If access contains a binary operation (e.g. value + 'a'), propagate the
-        // variable's type so the math/boolean type check fires on the parent.
-        // For function/property accesses that fell through, keep AnyType to avoid
-        // leaking the raw literal type (e.g. LiteralType(5) from index.toString()).
-        visitChildren(access);
-        pushInference(parent, AnyType);
-        return;
-      }
-      
-      // No access - handle simple variable reference
+      const { lookupVariable } = getState();
+      const { name } = node.named;
       const definition = lookupVariable(name.value);
       handleSimpleVariable(name, parent, definition, getState);
     },
@@ -818,8 +755,71 @@ function createExpressionHandlers(getState) {
       }
     },
     object_access: (node, parent) => {
-      const { pushInference } = getState();
+      const { pushInference, pushWarning, inferencePhase, typeAliases } = getState();
       visitChildren(node);
+
+      if (inferencePhase === 'checking') {
+        // Property access validation — emit warnings for non-existent properties
+        if (node.__objectType !== undefined && !node.__isOptional && !node.__isBracket) {
+          validateObjectPropertyAccess(node.__objectType, node.__propertyName, node);
+        }
+
+        // Function call validation — emit arity + type warnings
+        if (node.__funcType instanceof FunctionType) {
+          const funcType = node.__funcType;
+          const funcCallNode = node.__funcCallNode;
+          const funcCallName = node.__funcCallName ?? '';
+          const argTypes = funcCallNode?.inference || [];
+          const typeArgsNode = node.children?.find(c => c.type === 'type_arguments')
+                            ?? node.named?.type_args;
+
+          // Arity check — only for user-defined functions (funcType.funcName is set)
+          // Skip for builtins (like Math.max) and arrow functions to avoid false positives
+          if (funcType.funcName !== null) {
+            const hasUntypedRequiredParam = funcType.params?.some(
+              (p, idx) => p === AnyType && !funcType.paramHasDefault?.[idx]
+            );
+            if (!hasUntypedRequiredParam && funcType.params !== null) {
+              const actualArgCount = countFuncCallArgs(funcCallNode);
+              const required = funcType.params?.filter((_, idx) => !funcType.paramHasDefault?.[idx]).length ?? 0;
+              const total = funcType.params?.length ?? 0;
+              if (actualArgCount < required || actualArgCount > total) {
+                const expected = required === total ? `${total}` : `${required}-${total}`;
+                pushWarning(node, `function ${funcCallName} takes ${expected} argument${total === 1 ? '' : 's'} but got ${actualArgCount}`);
+              }
+            }
+          }
+
+          // Argument type check — always when params are known
+          if (funcType.params !== null && argTypes.length > 0) {
+            if (funcType.genericParams?.length > 0) {
+              const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
+              let substitutions = {};
+              if (explicitTypeArgs) {
+                for (let j = 0; j < Math.min(funcType.genericParams.length, explicitTypeArgs.length); j++) {
+                  substitutions[funcType.genericParams[j]] = explicitTypeArgs[j];
+                }
+              } else {
+                const result = inferGenericArguments(funcType.genericParams, funcType.params ?? [], argTypes, typeAliases);
+                substitutions = result.substitutions;
+                result.errors.forEach(e => pushWarning(node, e));
+              }
+              // Warn on wrong number of explicit type arguments
+              if (explicitTypeArgs && explicitTypeArgs.length !== funcType.genericParams.length) {
+                pushWarning(node, `Expected ${funcType.genericParams.length} type arguments but got ${explicitTypeArgs.length}`);
+              }
+              const substitutedParams = funcType.params.map(p => substituteType(p, substitutions));
+              const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, funcCallName, typeAliases);
+              if (!result.valid) result.warnings.forEach(w => pushWarning(node, w));
+            } else {
+              const result = TypeChecker.checkFunctionCall(argTypes, funcType.params, funcCallName, typeAliases);
+              if (!result.valid) result.warnings.forEach(w => pushWarning(node, w));
+            }
+          }
+        }
+        return;
+      }
+
       pushInference(parent, node);
     },
     new_expression: (node, parent) => {
