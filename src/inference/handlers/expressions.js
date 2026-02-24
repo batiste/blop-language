@@ -831,27 +831,35 @@ function createExpressionHandlers(getState) {
       
       let constructorType = new ObjectType();
       
-      // Try to extract constructor name and check if it's a built-in
+      // Walk leftmost exp chain to find the name_exp (constructor name).
+      // With the flat grammar, `new Store()` parses as:
+      //   new_expression → exp(exp(name_exp('Store')), OA(func_call()))
+      // so we must descend through nested exp nodes to find name_exp.
       let constructorName = null;
-      
-      if (expNode && expNode.type === 'name_exp') {
-        // expNode directly is a name_exp
-        const nameNode = expNode.named?.name;
-        if (nameNode) {
-          constructorName = nameNode.value;
+      function findConstructorName(n) {
+        if (!n) return;
+        if (n.type === 'name_exp') {
+          constructorName = n.named?.name?.value ?? null;
+          return;
         }
-      } else if (expNode && expNode.children) {
-        // Navigate through children to find the name
-        for (const child of expNode.children) {
-          if (child.type === 'name_exp') {
-            const nameNode = child.named?.name;
-            if (nameNode) {
-              constructorName = nameNode.value;
-              break;
+        if (n.type === 'exp') {
+          // Look in direct children for name_exp first, then recurse into exp children
+          for (const child of n.children ?? []) {
+            if (child.type === 'name_exp') {
+              constructorName = child.named?.name?.value ?? null;
+              return;
+            }
+          }
+          // Recurse into first exp child (leftmost chain)
+          for (const child of n.children ?? []) {
+            if (child.type === 'exp') {
+              findConstructorName(child);
+              if (constructorName) return;
             }
           }
         }
       }
+      findConstructorName(expNode);
       
       // If we have a constructor name and it's a built-in, use TypeAlias for it
       if (constructorName && isBuiltinObjectType(constructorName)) {

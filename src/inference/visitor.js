@@ -390,7 +390,12 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
   if (resolvedType instanceof TypeAlias && isBuiltinObjectType(resolvedType.name)) {
     const builtinType = getBuiltinObjectType(resolvedType.name);
     const memberType = propertyName ? builtinType?.[propertyName] : undefined;
-    if (memberType == null) return AnyType;
+    if (memberType == null) {
+      if (propertyName) {
+        pushWarning(accessNode, `Property '${propertyName}' does not exist on type '${resolvedType.name}'`);
+      }
+      return AnyType;
+    }
     // Stamp member name node for hover support
     const nameNode = accessNode?.children?.find(c => c.type === 'name');
     if (nameNode && nameNode.inferredType === undefined) nameNode.inferredType = memberType;
@@ -398,7 +403,9 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
   }
 
   // Primitive types (string, number, boolean) — look up member in primitive map
-  if (resolvedType instanceof PrimitiveType && propertyName) {
+  if (resolvedType instanceof PrimitiveType &&
+      propertyName &&
+      (resolvedType.name === 'string' || resolvedType.name === 'number' || resolvedType.name === 'boolean')) {
     const memberType = getPrimitiveMemberType(resolvedType.name, propertyName);
     if (memberType == null) {
       pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${resolvedType}`);
