@@ -496,8 +496,15 @@ export class UnionType extends Type {
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
     }
+
+    // When target is also a union, each type in this union must be covered by
+    // at least one type in the target union — don't compare each constituent
+    // against the whole union object, which would fail for e.g. FunctionType.
+    if (target instanceof UnionType) {
+      return this.types.every(t => target.types.some(targetT => t.isCompatibleWith(targetT, aliases)));
+    }
     
-    // Union is compatible if all constituent types are compatible
+    // Union is compatible if all constituent types are compatible with the single target
     return this.types.every(t => t.isCompatibleWith(target, aliases));
   }
   
@@ -736,6 +743,12 @@ export class FunctionType extends Type {
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // A function type is assignable to a union if it is assignable to any member
+    // (e.g. a concrete function is valid for `function | null`)
+    if (target instanceof UnionType) {
+      return target.types.some(t => this.isCompatibleWith(t, aliases));
     }
     
     // Simple function compatibility (contravariant params, covariant return)

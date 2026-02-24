@@ -72,4 +72,23 @@ a: Route = { path: '/users/:id', name: 'user', reg: new RegExp('') }`;
     const result = compileSource(code, 'test.blop', true);
     expect(result.success).toBe(true);
   });
+
+  test('constructor with function | null param does not produce false "Cannot assign ClassName to ClassName"', () => {
+    // Regression test: when a class constructor has a `function | null` parameter, calling
+    // `new ClassName(...)` must not emit "Cannot assign X to X".
+    // Root cause: UnionType.isCompatibleWith(UnionType) was falling through to check each
+    // constituent against the *whole* union (instead of against individual members), causing
+    // FunctionType.isCompatibleWith(UnionType) to return false and poisoning the result.
+    const code = `class Handler {
+  def constructor(state: object, cb: function | null) {
+    console.log(state, cb)
+  }
+}
+def hello() {
+  h = new Handler({ a: 1 }, null)
+  return h
+}`;
+    const result = compileSource(code, 'test.blop', true);
+    expect(result.success).toBe(true);
+  });
 });

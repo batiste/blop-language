@@ -1,4 +1,4 @@
-import { Router } from './lib/router.blop'
+import { Router, Test } from './lib/router.blop'
 
 async def dogPageIndexHandler(_params, _state) {
   console.log('dog page index')
@@ -24,8 +24,9 @@ def playgroundPageHandler(_params, _state) {
   console.log('playground page')
 }
 
-def createRouter(state, global) {
-  router = new Router(null, state, global)
+
+def createRouter(state) {
+  router = new Router(state, null, window)
 
   router.add({ path: '/todo', name: 'todo', handler: todoPageHandler })
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })

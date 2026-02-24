@@ -47,7 +47,7 @@ state = createState({
 })
 
 // Creating the Router automatically registers itself as the global navigator
-router = new Router(null, state, window)
+router = new Router(state)
 ```
 
 > The router registers a `go()` function into `lib/navigation.blop` on construction.
@@ -79,7 +79,7 @@ async def userHandler(params, state) {
 
 ```typescript
 def createRouter(state, window) {
-  router = new Router(null, state, window)
+  router = new Router(state)
   
   // Add routes
   router.add({
@@ -345,8 +345,8 @@ async def dogsHandler(_params, state) {
   // state.loading set to false by router
 }
 
-def createRouter(state, global) {
-  router = new Router(null, state, global)
+def createRouter(state) {
+  router = new Router(state)
   
   router.add({ path: '/', name: 'root', handler: indexHandler })
   router.add({ path: '/dogs', name: 'dogs', handler: dogsHandler })
@@ -407,8 +407,8 @@ async def blogPostHandler(params, state) {
   }
 }
 
-export def createRouter(state, global) {
-  router = new Router(null, state, global)
+export def createRouter(state) {
+  router = new Router(state)
   
   router.add({ path: '/', name: 'home', handler: homeHandler })
   router.add({ path: '/about', name: 'about', handler: aboutHandler })
