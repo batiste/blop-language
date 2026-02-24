@@ -590,18 +590,16 @@ function validatePropertyChain(properties, definition, typeAliases, { pushInfere
  */
 function handleObjectPropertyAccess(name, access, parent, definition, { pushInference, pushWarning, typeAliases }) {
   const resolvedType = resolveTypeAlias(definition.type, typeAliases);
-  
-  // Check for optional chaining
-  const hasOptionalChain = access.children?.some(child => 
+
+  // When optional chaining (?.) is used, suppress missing-property warnings:
+  // accessing a potentially-absent property via ?. is intentional in JS, so we
+  // resolve the type normally when the property exists and silently return AnyType
+  // when it doesn't (instead of emitting a spurious warning).
+  const hasOptionalChain = access.children?.some(child =>
     child.type === 'object_access' && child.children?.some(c => c.type === 'optional_chain')
   );
-  
-  if (hasOptionalChain) {
-    visitChildren(access);
-    pushInference(parent, AnyType);
-    return true;
-  }
-  
+  const effectivePushWarning = hasOptionalChain ? () => {} : pushWarning;
+
   // Skip validation for empty object type
   if (resolvedType instanceof ObjectType && resolvedType.properties.size === 0) {
     visitChildren(access);
@@ -615,7 +613,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     if (propName) {
       const memberType = getArrayMemberType(resolvedType, propName);
       if (memberType === AnyType) {
-        pushWarning(access, `Property '${propName}' does not exist on type ${definition.type}`);
+        effectivePushWarning(access, `Property '${propName}' does not exist on type ${definition.type}`);
       }
       if (propNode) propNode.inferredType = memberType;
       name.inferredType = resolvedType;
@@ -632,7 +630,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     if (propName) {
       const propType = getPropertyType(resolvedType, propName, typeAliases);
       if (propType === null) {
-        pushWarning(propNode ?? access, `Property '${propName}' does not exist on type '${resolvedType.name}'`);
+        effectivePushWarning(propNode ?? access, `Property '${propName}' does not exist on type '${resolvedType.name}'`);
         name.inferredType = resolvedType;
         pushInference(parent, AnyType);
         return true;
@@ -668,12 +666,12 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
         properties,
         definition,
         typeAliases,
-        { pushInference, pushWarning, access }
+        { pushInference, pushWarning: effectivePushWarning, access }
       );
 
       if (invalidProperty) {
         const onType = invalidPropertyType ?? definition.type;
-        pushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
+        effectivePushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
         visitChildren(access);
         pushInference(parent, AnyType);
         return true;
@@ -702,12 +700,12 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
         properties,
         definition,
         typeAliases,
-        { pushInference, pushWarning, access }
+        { pushInference, pushWarning: effectivePushWarning, access }
       );
       
       if (invalidProperty) {
         const onType = invalidPropertyType ?? definition.type;
-        pushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
+        effectivePushWarning(invalidPropertyNode ?? access, `Property '${invalidProperty}' does not exist on type ${onType}`);
         visitChildren(access);
         pushInference(parent, AnyType);
         return true;

@@ -228,7 +228,18 @@ function handleAssignment(types, i, assignNode) {
     const isDestructurable = resolvedValueType instanceof ObjectType ||
       (resolvedValueType instanceof TypeAlias && isBuiltinObjectType(resolvedValueType.name));
     if (isDestructurable) {
-      for (const { propertyName, varName, node: varNode } of destructuredBindings) {
+      for (const { propertyName, varName, node: varNode, annotationNode } of destructuredBindings) {
+        // Inline type annotation takes priority over the inferred property type
+        const inlineAnnotationType = annotationNode ? getAnnotationType(annotationNode) : null;
+        if (inlineAnnotationType) {
+          const scope = getCurrentScope();
+          scope[varName] = { type: inlineAnnotationType, node: assignNode };
+          if (varNode.inferredType === undefined) {
+            varNode.inferredType = inlineAnnotationType;
+          }
+          continue;
+        }
+
         // Look up property on the object using the PROPERTY NAME
         const propertyType = getPropertyType(valueType, propertyName, typeAliases);
         
@@ -595,11 +606,13 @@ function extractDestructuredNames(destructuringNode) {
       const propertyName = node.named.name.value;
       const varName = node.named.rename?.value || propertyName;
       const varNode = node.named.rename || node.named.name;
+      const annotationNode = node.named.annotation || null;
       
       bindings.push({
         propertyName,
         varName,
-        node: varNode
+        node: varNode,
+        annotationNode,
       });
     }
     

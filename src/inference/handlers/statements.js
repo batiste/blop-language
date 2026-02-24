@@ -78,14 +78,16 @@ function extractDestructuringBindings(node) {
       bindings.push({
         propertyName: node.named.name.value,
         varName: node.named.rename.value,
-        node: node.named.rename
+        node: node.named.rename,
+        annotationNode: null,
       });
     } else if (node.named.name) {
-      // Simple name in destructuring_values
+      // Simple name or typed: attributes, or attributes: DogGameProps
       bindings.push({
         propertyName: node.named.name.value,
         varName: node.named.name.value,
-        node: node.named.name
+        node: node.named.name,
+        annotationNode: node.named.annotation || null,
       });
     }
     // Recurse for nested destructuring through 'more' property or children
@@ -343,7 +345,7 @@ function createStatementHandlers(getState) {
     },
     
     assign: (node, parent) => {
-      const { pushInference, lookupVariable, typeAliases, pushWarning, stampTypeAnnotation } = getState();
+      const { pushInference, lookupVariable, typeAliases, pushWarning, stampTypeAnnotation, getCurrentScope } = getState();
       
       if (node.named.destructuring) {
         // Handle destructuring assignment: { total, text } = attributes
@@ -354,15 +356,20 @@ function createStatementHandlers(getState) {
         // which pushes its result to the parent statement node).
         const valueType = expNode?.inference?.[0] || node.inference?.[0];
         
+        const destNode = node.named.destructuring.named.values;
+        const bindings = extractDestructuringBindings(destNode);
+
+        // Stamp any inline annotations for hover support (independent of rhs type)
+        for (const { annotationNode } of bindings) {
+          if (annotationNode) stampTypeAnnotation(annotationNode);
+        }
+
         if (valueType && valueType !== AnyType) {
           const resolvedValueType = resolveTypeAlias(valueType, typeAliases);
           
           // Extract destructured variable names and stamp them with property types
           if (resolvedValueType instanceof ObjectType) {
-            const destNode = node.named.destructuring.named.values;
-            const bindings = extractDestructuringBindings(destNode);
-            
-            for (const {propertyName, varName, node} of bindings) {
+            for (const {propertyName, varName, node, annotationNode} of bindings) {
               // For destructuring, get the raw property type WITHOUT removing undefined
               // (which getPropertyType does for regular property access)
               let propertyType = null;
@@ -381,7 +388,16 @@ function createStatementHandlers(getState) {
                 propertyType = getPropertyType(valueType, propertyName, typeAliases);
               }
               
-              if (propertyType !== null) {
+              if (annotationNode) {
+                // Inline type annotation overrides the inferred property type
+                const annotationType = getAnnotationType(annotationNode);
+                if (annotationType) {
+                  node.inferredType = annotationType;
+                  // Update the live scope so subsequent lookups of this variable
+                  // (e.g. as the rhs of another destructuring) use the declared type.
+                  getCurrentScope()[varName] = { type: annotationType };
+                }
+              } else if (propertyType !== null) {
                 // Widen literal types to their abstract base types
                 const widenedType = widenLiteralTypes(propertyType);
                 node.inferredType = widenedType;
@@ -390,6 +406,17 @@ function createStatementHandlers(getState) {
                   destNode,
                   `Property '${propertyName}' does not exist on type ${valueType}`
                 );
+              }
+            }
+          }
+        } else {
+          // rhs type is unknown — still stamp any inline annotations
+          for (const { varName, node, annotationNode } of bindings) {
+            if (annotationNode) {
+              const annotationType = getAnnotationType(annotationNode);
+              if (annotationType) {
+                node.inferredType = annotationType;
+                getCurrentScope()[varName] = { type: annotationType };
               }
             }
           }

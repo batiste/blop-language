@@ -223,6 +223,8 @@ const grammar = {
     ['{', 'w', 'destructuring_values:values', 'single_space_or_newline', '}'],
   ],
   'destructuring_values': [
+    ['name:name', 'annotation:annotation', ',', 'single_space_or_newline', 'destructuring_values:more'],
+    ['name:name', 'annotation:annotation'],
     ['name:name', ',', 'single_space_or_newline', 'destructuring_values:more'],
     ['name:name', 'w', 'as', 'name:rename', ',', 'single_space_or_newline', 'destructuring_values:more'],
     ['name:name', 'w', 'as', 'name:rename'],

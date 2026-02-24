@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import { inference } from '../../inference/index.js';
+import { findNodesWithValue } from '../testHelpers.js';
 
 describe('Property Access Validation', () => {
   it('should error when accessing non-existent property', () => {
@@ -190,5 +191,35 @@ def test(u: User) {
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings[0].message).toContain('Property');
     expect(warnings[0].message).toContain('nonExistent');
+  });
+
+  it('should preserve property type when using optional chaining (?.) instead of dot access', () => {
+    const code = `type Dog = {
+  breed: string,
+  image: string,
+}
+
+type Page = {
+  choice: Dog,
+}
+
+def test(page: Page) {
+  dog = page?.choice
+  return dog
+}`;
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    const warnings = inference(tree, stream);
+
+    expect(warnings).toHaveLength(0);
+
+    // dog should be inferred as Dog, not any
+    const dogNodes = findNodesWithValue(tree, ['dog']);
+    const anyDog = dogNodes.find(n => n.inferredType?.toString() === 'any');
+    expect(anyDog).toBeUndefined();
+
+    const typedDog = dogNodes.find(n => n.inferredType?.toString().includes('breed'));
+    expect(typedDog).toBeDefined();
   });
 });
