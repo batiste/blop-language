@@ -515,7 +515,7 @@ def ShowcasePage(ctx: Component): VNode {
   for index, item of items {
     <li key=index>
       <strong>'#'index</strong>
-      = ' 'item.name
+      ' 'item.name
     </li>
   }
 </ul>
