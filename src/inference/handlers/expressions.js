@@ -8,42 +8,7 @@ import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctio
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
-import { extractPropertyNodesFromAccess } from './utils.js';
-
-/**
- * Extract explicit type arguments from type_arguments node
- * @param {Object} typeArgsNode - The type_arguments AST node
- * @returns {string[]} Array of type strings
- */
-function extractExplicitTypeArguments(typeArgsNode) {
-  if (!typeArgsNode) return null;
-  
-  const args = [];
-  
-  function collectArgs(node) {
-    if (!node) return;
-    
-    // Check if this node itself has a named.arg (type_expression)
-    if (node.named && node.named.arg) {
-      const typeArg = parseTypeExpression(node.named.arg);
-      if (typeArg) {
-        args.push(typeArg);
-      }
-    }
-    
-    // Check if it has a named.rest (for comma-separated list)
-    if (node.named && node.named.rest) {
-      collectArgs(node.named.rest);
-    }
-  }
-  
-  // Start with the args node (type_argument_list)
-  if (typeArgsNode.named && typeArgsNode.named.args) {
-    collectArgs(typeArgsNode.named.args);
-  }
-  
-  return args.length > 0 ? args : null;
-}
+import { extractPropertyNodesFromAccess, extractExplicitTypeArguments, countFuncCallArgs } from './utils.js';
 
 /**
  * Get the member name and its AST node from an object access node
@@ -329,23 +294,6 @@ function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInfer
   const returnType = funcType.returnType ?? AnyType;
   pushInference(parent, returnType);
   return true;
-}
-
-/**
- * Count the number of arguments in a func_call AST node by walking the
- * func_call_params chain. This is immune to the inference-array doubling
- * that occurs when the same AST is visited in both inference and checking
- * phases, so it gives the true call-site argument count.
- */
-function countFuncCallArgs(funcCallNode) {
-  let paramsNode = funcCallNode?.children?.find(c => c.type === 'func_call_params');
-  if (!paramsNode) return 0;
-  let count = 0;
-  while (paramsNode) {
-    count++;
-    paramsNode = paramsNode.children?.find(c => c.type === 'func_call_params');
-  }
-  return count;
 }
 
 /**

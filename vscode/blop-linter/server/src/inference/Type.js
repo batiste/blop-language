@@ -701,13 +701,15 @@ export class GenericType extends Type {
  * Function types: (a: string, b: number) => boolean
  */
 export class FunctionType extends Type {
-  constructor(params, returnType, genericParams = [], paramNames = []) {
+  constructor(params, returnType, genericParams = [], paramNames = [], paramHasDefault = null) {
     super();
     this.kind = 'function';
     this.params = params; // Type[]
     this.returnType = returnType; // Type
     this.genericParams = genericParams; // string[]
     this.paramNames = paramNames; // string[]
+    this.paramHasDefault = paramHasDefault; // boolean[] | null
+    this.funcName = null; // string | null — set by inference for error messages
   }
   
   toString() {
