@@ -364,11 +364,16 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
     if (propertyType === null) {
       // Class instances may have constructor-assigned properties not tracked in ObjectType.
       // Suppress false-positive warnings for those; only warn for explicitly typed objects.
+      // (The typeAliases map stores copies of class ObjectTypes *without* isClassInstance so
+      // that TypeAlias resolution via the chain — e.g. this.route.test — does not suppress.)
       if (!resolvedType.isClassInstance) {
         pushWarning(accessNode, `Property '${propertyName}' does not exist on type ${objectType}`);
       }
       return AnyType;
     }
+    // Stamp the member name node for hover support
+    const nameNode = accessNode?.children?.find(c => c.type === 'name');
+    if (nameNode && nameNode.inferredType === undefined) nameNode.inferredType = propertyType;
     return propertyType;
   }
 
@@ -433,7 +438,10 @@ function handleObjectAccess(types, i) {
   accessNode.__isOptional = isOptional;
 
   if (isOptional) {
-    types[i - 1] = AnyType;
+    // Still resolve the property type for inference (so variables assigned from optional access
+    // have the correct type), but pass null as accessNode to suppress any warnings.
+    const resolvedOptType = validateObjectPropertyAccess(objectType, propertyName, null);
+    types[i - 1] = resolvedOptType;
     types.splice(i, 1);
     return i - 1;
   }

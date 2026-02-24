@@ -3,7 +3,7 @@ import { createState } from './state.blop'
 import { createRouter } from './routing.blop'
 import { Index } from './index.blop'
 
-proxiedState = createState(window.INITIAL_STATE)
+proxiedState = createState({})
 router = createRouter(proxiedState, window)
 
 // The render function for this application
