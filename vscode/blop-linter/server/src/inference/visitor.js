@@ -5,7 +5,7 @@
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary } from './typeSystem.js';
 import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType } from './Type.js';
-import { isBuiltinObjectType } from './builtinTypes.js';
+import { isBuiltinObjectType, getArrayMemberType } from './builtinTypes.js';
 
 // Module state
 let warnings;

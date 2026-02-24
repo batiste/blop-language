@@ -291,12 +291,9 @@ const grammar = {
     ['<:boolean_op', 'w', 'exp'],
     ['>:boolean_op', 'w', 'exp'],
   ],
-  'access_or_operation': [
-    ['object_access:access'],
-  ],
   // used in backend
   'name_exp': [
-    ['name:name', 'access_or_operation:access'],
+    ['name:name', 'object_access:access'],
     ['name:name'],
   ],
   // 'optional_chaining': [
@@ -312,7 +309,7 @@ const grammar = {
   ],
   'exp': [
     // ['optional_chaining'],
-    ['exp', 'access_or_operation'],
+    ['exp', 'object_access'],
     ['exp', 'w', 'operation:op'],
     ['str_expression'],
     ['name_exp'],

@@ -9394,28 +9394,6 @@ function operation(stream, index) {
     || operation_3(stream, index)
     || operation_4(stream, index);
 }
-let access_or_operation_0 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'access_or_operation',
-    sub_rule_index: 0, type: 'access_or_operation', named,
-  };
-  const _rule_0 = object_access(stream, i);
-  if (!_rule_0) return false;
-  named['access'] = _rule_0;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
-access_or_operation_0 = memoize('access_or_operation_0', access_or_operation_0);
-
-
-function access_or_operation(stream, index) {
-  return access_or_operation_0(stream, index);
-}
 let name_exp_0 = (stream, index) => {
   let i = index;
   const children = [];
@@ -9439,7 +9417,7 @@ let name_exp_0 = (stream, index) => {
 
   named['name'] = stream[i];
   children.push(stream[i]); i++;
-  const _rule_1 = access_or_operation(stream, i);
+  const _rule_1 = object_access(stream, i);
   if (!_rule_1) return false;
   named['access'] = _rule_1;
   children.push(_rule_1);
@@ -9731,7 +9709,7 @@ let exp_0 = (stream, index) => {
   if (!_rule_0) return false;
   children.push(_rule_0);
   i = _rule_0.last_index;
-  const _rule_1 = access_or_operation(stream, i);
+  const _rule_1 = object_access(stream, i);
   if (!_rule_1) return false;
   children.push(_rule_1);
   i = _rule_1.last_index;

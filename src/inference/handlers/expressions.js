@@ -50,9 +50,8 @@ function extractExplicitTypeArguments(typeArgsNode) {
  * Used when we need to annotate the node with inferred type
  */
 function getObjectAccessMemberInfo(access) {
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  const memberName = objectAccess?.children?.find(child => child.type === 'name')?.value;
-  const memberNode = objectAccess?.children?.find(child => child.type === 'name');
+  const memberName = access.children?.find(child => child.type === 'name')?.value;
+  const memberNode = access.children?.find(child => child.type === 'name');
   return { memberName, memberNode };
 }
 
@@ -151,10 +150,9 @@ function handleArrayOrBuiltinMethodCall(name, access, definition, parent, { push
   }
 
   // Extract arguments for parameter validation.
-  // The path is: access(wrapper) → middleOA(['.', name, innerOA]) → innerOA → func_call
-  const argTypes = access.children
-    ?.find(child => child.type === 'object_access')  // middleOA
-    ?.children?.find(child => child.type === 'object_access')  // innerOA
+  // The path: access(middleOA) → innerOA → func_call
+  const argTypes = access
+    .children?.find(child => child.type === 'object_access')  // innerOA
     ?.children?.find(child => child.type === 'func_call')  // func_call
     ?.inference || [];
   
@@ -230,8 +228,7 @@ function handleBuiltinNameAccess(name, access, parent, { pushInference, inferenc
  * Handle generic function calls with explicit or inferred type arguments
  */
 function handleGenericFunctionCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
-  const objectAccess = access.children?.find(child => child.type === 'object_access');
-  const typeArgsNode = objectAccess?.children?.find(child => child.type === 'type_arguments');
+  const typeArgsNode = access.children?.find(child => child.type === 'type_arguments');
   const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
   
   // Stamp the name node with the function type for hover support
@@ -358,9 +355,9 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   visitChildren(access);
   
   const definition = lookupVariable(name.value);
-  const middleOA = access.children?.find(child => child.type === 'object_access');
-  // Try 3-level path: method call like r.push(1) → middleOA('.', name, innerOA) → innerOA → func_call
-  // Fall back to 2-level path: direct call like identity<T>(x) → middleOA(type_args?, func_call)
+  const middleOA = access;
+  // Try 2-level path: method call like r.push(1) → access('.', name, innerOA) → innerOA → func_call
+  // Fall back to 1-level path: direct call like identity<T>(x) → access(type_args?, func_call)
   const funcCallNode =
     middleOA?.children?.find(c => c.type === 'object_access')?.children?.find(c => c.type === 'func_call')
     ?? middleOA?.children?.find(c => c.type === 'func_call');
@@ -421,9 +418,9 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   // getPropertyType() already resolves both cases transparently.
   const defType = definition?.type;
   if (definition && isTypedObjectInstance(defType)) {
-    const outerOA = access.children?.find(c => c.type === 'object_access');
-    const memberName = outerOA?.children?.find(c => c.type === 'name')?.value;
-    const memberNode = outerOA?.children?.find(c => c.type === 'name');
+    const outerOA = access;
+    const memberName = outerOA.children?.find(c => c.type === 'name')?.value;
+    const memberNode = outerOA.children?.find(c => c.type === 'name');
     if (memberName) {
       const methodType = getPropertyType(defType, memberName, typeAliases);
 
@@ -564,9 +561,7 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
   // accessing a potentially-absent property via ?. is intentional in JS, so we
   // resolve the type normally when the property exists and silently return AnyType
   // when it doesn't (instead of emitting a spurious warning).
-  const hasOptionalChain = access.children?.some(child =>
-    child.type === 'object_access' && child.children?.some(c => c.type === 'optional_chain')
-  );
+  const hasOptionalChain = access.children?.some(c => c.type === 'optional_chain');
   const effectivePushWarning = hasOptionalChain ? () => {} : pushWarning;
 
   // Skip validation for empty object type
@@ -822,7 +817,7 @@ function createExpressionHandlers(getState) {
           if (node.children?.some(c => c.type === 'func_call')) return true;
           return node.children?.some(c => hasFuncCallInObjectAccess(c)) ?? false;
         }
-        const hasFuncCall = access.children?.some(child => hasFuncCallInObjectAccess(child));
+        const hasFuncCall = hasFuncCallInObjectAccess(access);
         
         if (hasFuncCall) {
           if (handleFunctionCall(name, access, parent, { lookupVariable, pushInference, pushWarning, typeAliases, inferencePhase })) {
@@ -874,11 +869,10 @@ function createExpressionHandlers(getState) {
         pushInference(parent, node.named.nullish_op);
       }
     },
-    access_or_operation: (node, parent) => {
+    object_access: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      pushToParent(node, parent);
-      pushInference(parent, node.named.access);
+      pushInference(parent, node);
     },
     new_expression: (node, parent) => {
       const { pushInference, lookupVariable } = getState();
