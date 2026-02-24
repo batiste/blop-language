@@ -4,7 +4,7 @@
 
 import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
@@ -774,6 +774,15 @@ function createExpressionHandlers(getState) {
     },
     exp: (node, parent) => {
       const firstChild = node.children?.[0];
+
+      // `!expr` — logical negation always produces boolean, regardless of the
+      // operand's static type. Visit children so the operand is still type-checked.
+      if (firstChild?.type === 'unary') {
+        visitChildren(node);
+        node.inference = [BooleanType];
+        pushToParent(node, parent);
+        return;
+      }
 
       // `typeof expr` — always produces string at runtime, regardless of the
       // operand's static type. Visit children so operand is still type-checked,
