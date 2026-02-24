@@ -17,9 +17,9 @@ state: State = {
     lastResult: undefined
   },
   todoList: [
-    { text: 'Buy some milk', completed: false, id: 1 },
-    { text: 'Take out the trash', completed: false, id: 2 },
-    { text: 'Recycle', completed: false, id: 3 }
+  { text: 'Buy some milk', completed: false, id: 1 },
+{ text: 'Take out the trash', completed: false, id: 2 },
+{ text: 'Recycle', completed: false, id: 3 }
   ],
   petStore: { pets: [], pageIndex: 0 },
   route: { name: '', params: {}, loading: false },
