@@ -215,73 +215,10 @@ function handleBuiltinMethodCall(name, access, parent, { pushInference, inferenc
   return true;
 }
 
-/**
- * Handle method calls on variables whose type is a builtin object type
- * (e.g. node.state<number>('count', 0) where node: Component)
- */
-function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase }) {
-  const defType = definition?.type;
-  if (!(defType instanceof TypeAlias) || !isBuiltinObjectType(defType.name)) return false;
-
-  const builtinType = getBuiltinObjectType(defType.name);
-
-  // For method calls like node.state<T>(), the AST structure is:
-  //   access_or_operation
-  //     object_access (OUTER: contains '.', 'name=method', INNER object_access)
-  //       object_access (INNER: contains 'type_arguments', 'func_call')
-  const outerObjectAccess = access.children?.find(child => child.type === 'object_access');
-  const methodName = outerObjectAccess?.children?.find(child => child.type === 'name')?.value;
-  const methodNode = outerObjectAccess?.children?.find(child => child.type === 'name');
-  const innerObjectAccess = outerObjectAccess?.children?.find(child => child.type === 'object_access');
-
-  if (!methodName || !builtinType) return false;
-
-  const methodDef = builtinType[methodName];
-  if (!methodDef) {
-    // The method name is known not to exist on this builtin type — warn and
-    // short-circuit so we don't fall through to unrelated handlers.
-    pushWarning(methodNode ?? name, `Property '${methodName}' does not exist on type '${defType.name}'`);
-    pushInference(parent, AnyType);
-    return true;
-  }
-
-  if (!(methodDef instanceof FunctionType)) {
-    // Plain type property — just push as-is
-    pushInference(parent, methodDef);
-    return true;
-  }
-
-  // Stamp method node with full function type for hover
-  if (inferencePhase === 'inference' && methodNode && methodNode.inferredType === undefined) {
-    methodNode.inferredType = methodDef;
-  }
-
-  if (methodDef.genericParams && methodDef.genericParams.length > 0) {
-    // type_arguments lives in the INNER object_access (one level deeper than the method name)
-    const typeArgsNode = innerObjectAccess?.children?.find(child => child.type === 'type_arguments')
-                      ?? innerObjectAccess?.named?.type_args;
-    const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
-
-    let substitutions = {};
-    if (explicitTypeArgs) {
-      for (let i = 0; i < Math.min(methodDef.genericParams.length, explicitTypeArgs.length); i++) {
-        substitutions[methodDef.genericParams[i]] = explicitTypeArgs[i];
-      }
-    } else {
-      const result = inferGenericArguments(methodDef.genericParams, methodDef.params, argTypes, typeAliases);
-      substitutions = result.substitutions;
-      if (result.errors.length > 0) result.errors.forEach(e => pushWarning(name, e));
-    }
-
-    let returnType = methodDef.returnType ?? AnyType;
-    returnType = substituteType(returnType, substitutions);
-    pushInference(parent, returnType);
-  } else {
-    pushInference(parent, methodDef.returnType ?? AnyType);
-  }
-
-  return true;
-}
+// handleBuiltinInstanceMethodCall has been removed.
+// Method calls on builtin instance types (e.g. ctx.mount() where ctx: Component)
+// are now handled by the unified instance-method section at the bottom of handleFunctionCall,
+// which covers both user-defined ObjectType and builtin TypeAlias instances via getPropertyType.
 
 /**
  * Handle generic function calls with explicit or inferred type arguments
@@ -463,12 +400,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
 
-  // Handle method calls on variables typed as a builtin (e.g. node.state<number>())
-  if (handleBuiltinInstanceMethodCall(name, access, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase })) {
-    pushSubsequentOperation(access, parent, pushInference);
-    return true;
-  }
-  
   // Handle function-typed variables (e.g., arrow function assignments)
   if (definition && definition.type instanceof FunctionType) {
     if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase, funcCallNode })) {
@@ -505,32 +436,74 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
 
-  // Handle method calls on user-defined ObjectType instances (e.g. this.double(x))
-  if (definition && definition.type instanceof ObjectType) {
-    const { memberName, memberNode } = getObjectAccessMemberInfo(access);
+  // Unified handler for method calls on any typed variable instance:
+  // covers user-defined ObjectType (e.g. this.double()) AND builtin TypeAlias
+  // instances (e.g. ctx.mount() where ctx: Component).
+  // getPropertyType() already resolves both cases transparently.
+  const defType = definition?.type;
+  const isTypedInstance = definition && (
+    defType instanceof ObjectType ||
+    (defType instanceof TypeAlias && isBuiltinObjectType(defType.name))
+  );
+  if (isTypedInstance) {
+    const outerOA = access.children?.find(c => c.type === 'object_access');
+    const memberName = outerOA?.children?.find(c => c.type === 'name')?.value;
+    const memberNode = outerOA?.children?.find(c => c.type === 'name');
     if (memberName) {
-      const methodType = getPropertyType(definition.type, memberName, typeAliases);
-      if (methodType instanceof FunctionType) {
-        if (methodType.params !== null && argTypes.length > 0) {
-          const result = TypeChecker.checkFunctionCall(argTypes, methodType.params, memberName, typeAliases);
-          if (!result.valid) {
-            result.warnings.forEach(warning => pushWarning(name, warning));
-          }
+      const methodType = getPropertyType(defType, memberName, typeAliases);
+
+      if (methodType === null) {
+        // Property does not exist on this type.
+        // Exception: class instances may have constructor-assigned properties or
+        // inherited methods not tracked in the ObjectType map — suppress warning
+        // for those and treat as AnyType to avoid false positives.
+        if (!(defType instanceof ObjectType && defType.isClassInstance)) {
+          pushWarning(memberNode ?? name, `Property '${memberName}' does not exist on type '${defType}'`);
         }
-        if (memberNode && memberNode.inferredType === undefined) {
-          memberNode.inferredType = methodType;
-        }
-        pushInference(parent, methodType.returnType ?? AnyType);
+        pushInference(parent, AnyType);
         pushSubsequentOperation(access, parent, pushInference);
         return true;
       }
 
-      // Handle chained array method calls on class instance properties
+      if (methodType instanceof FunctionType) {
+        // Stamp member node with full FunctionType for hover
+        if (inferencePhase === 'inference' && memberNode && memberNode.inferredType === undefined) {
+          memberNode.inferredType = methodType;
+        }
+
+        if (methodType.genericParams?.length > 0) {
+          // Generic method call (e.g. ctx.state<T>())
+          // type_arguments lives in the INNER object_access (one level below the method name)
+          const innerOA = outerOA?.children?.find(c => c.type === 'object_access');
+          const typeArgsNode = innerOA?.children?.find(c => c.type === 'type_arguments')
+                             ?? innerOA?.named?.type_args;
+          const explicitTypeArgs = extractExplicitTypeArguments(typeArgsNode);
+          let substitutions = {};
+          if (explicitTypeArgs) {
+            for (let i = 0; i < Math.min(methodType.genericParams.length, explicitTypeArgs.length); i++) {
+              substitutions[methodType.genericParams[i]] = explicitTypeArgs[i];
+            }
+          } else {
+            const result = inferGenericArguments(methodType.genericParams, methodType.params ?? [], argTypes, typeAliases);
+            substitutions = result.substitutions;
+            if (result.errors.length > 0) result.errors.forEach(e => pushWarning(memberNode ?? name, e));
+          }
+          pushInference(parent, substituteType(methodType.returnType ?? AnyType, substitutions));
+        } else {
+          if (methodType.params !== null && argTypes.length > 0) {
+            const result = TypeChecker.checkFunctionCall(argTypes, methodType.params, memberName, typeAliases);
+            if (!result.valid) result.warnings.forEach(w => pushWarning(memberNode ?? name, w));
+          }
+          pushInference(parent, methodType.returnType ?? AnyType);
+        }
+        pushSubsequentOperation(access, parent, pushInference);
+        return true;
+      }
+
+      // Property is not a function — handle chained array method calls
       // e.g. this.routes.find(...) where routes: Route[]
-      // The outer OA holds the property name ('routes'), the inner OA holds the method call ('.find(...)')
       const resolvedMethodType = resolveTypeAlias(methodType, typeAliases);
-      if (resolvedMethodType instanceof ArrayType) {
-        const outerOA = access.children?.find(c => c.type === 'object_access');
+      if (resolvedMethodType instanceof ArrayType && defType instanceof ObjectType) {
         const innerOA = outerOA?.children?.find(c => c.type === 'object_access');
         if (innerOA) {
           const arrayMethodName = innerOA.children?.find(c => c.type === 'name')?.value;
@@ -551,6 +524,12 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
           }
         }
       }
+
+      // Plain (non-function) property — stamp and push
+      if (memberNode) memberNode.inferredType = methodType;
+      pushInference(parent, methodType);
+      pushSubsequentOperation(access, parent, pushInference);
+      return true;
     }
   }
 
@@ -643,18 +622,21 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     }
   }
   
-  // Handle built-in object type aliases (e.g. VNode, Math, console, etc)
+  // Handle built-in object type aliases (e.g. ctx: Component, router: Router)
+  // getPropertyType already knows how to look up both user ObjectType and builtin
+  // TypeAlias types, so we reuse it here for consistency.
   if (resolvedType instanceof TypeAlias && isBuiltinObjectType(resolvedType.name)) {
     const { memberName: propName, memberNode: propNode } = getObjectAccessMemberInfo(access);
     if (propName) {
-      const builtinType = getBuiltinObjectType(resolvedType.name);
-      if (!builtinType?.[propName]) {
+      const propType = getPropertyType(resolvedType, propName, typeAliases);
+      if (propType === null) {
         pushWarning(propNode ?? access, `Property '${propName}' does not exist on type '${resolvedType.name}'`);
         name.inferredType = resolvedType;
         pushInference(parent, AnyType);
         return true;
       }
-      const propType = extractReturnType(builtinType[propName]);
+      // Preserve the full type (e.g. FunctionType for methods) so hover shows the
+      // correct signature rather than just the return type.
       if (propNode) propNode.inferredType = propType;
       name.inferredType = resolvedType;
       pushInference(parent, propType);
