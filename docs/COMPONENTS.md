@@ -65,7 +65,7 @@ Every component is a function that receives a single parameter: a **Component cl
 
 **Accessing data:**
 
-The idiomatic way is to destructure at the top of the function body:
+The idiomatic way is to destructure in the function definition if you can:
 
 ```typescript
 def Card({ attributes, children }: Component) {  
@@ -89,7 +89,7 @@ type DogGameProps = {
   loading: boolean
 }
 
-def DogGame({ attributes: DogGameProps, children }: Component) {
+def DogGame({ attributes: DogGameProps }: Component) {
   { state, loading } = attributes
   page = state.dogPage
   dog = page.choice
