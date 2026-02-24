@@ -106,6 +106,8 @@ const grammar = {
     ['number:literal', 'array_suffix?'],
     ['type_name:name', '<', 'type_arg_list:type_args', '>', 'array_suffix?'],
     ['type_name:name', '<', 'type_arg_list:type_args', '>'],
+    ['type_name:name', '.', 'name:member', 'array_suffix?'],
+    ['type_name:name', '[', 'str:member_key', ']', 'array_suffix?'],
     ['type_name:name', 'array_suffix?'],
   ],
   'func_type_params': [
@@ -126,6 +128,7 @@ const grammar = {
   ],
   'object_type_properties': [
     ['object_type_property', ',', 'single_space_or_newline', 'object_type_properties'],
+    ['object_type_property', ','],
     ['object_type_property'],
   ],
   'object_type_property': [

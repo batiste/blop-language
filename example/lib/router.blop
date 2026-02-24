@@ -101,9 +101,10 @@ class Router {
       },
       m.route.name, path)
     }
-    this.state.route = { name: m.route.name, params: m.params }
+    this.state.route = { name: m.route.name, params: m.params, loading: true }
     if m.route.handler {
       await m.route.handler(m.params, this.state)
     }
+    this.state.route.loading = false
   }
 }

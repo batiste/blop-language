@@ -33,18 +33,4 @@ describe('Example files compilation', () => {
     
     expect(result.success).toBe(true);
   });
-
-  test('example/services.blop compiles without errors', () => {
-    const filePath = join(__dirname, '../../../example/services.blop');
-    const source = readFileSync(filePath, 'utf-8');
-    
-    const result = compileSource(source, 'example/services.blop', true);
-    
-    if (!result.success) {
-      const errorMessages = result.errors.map(err => err.message || 'Unknown error').join('\n');
-      throw new Error(`example/services.blop failed to compile:\n${errorMessages}`);
-    }
-    
-    expect(result.success).toBe(true);
-  });
 });

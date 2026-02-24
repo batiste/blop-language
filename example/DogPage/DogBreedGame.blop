@@ -1,8 +1,16 @@
 import { getNewDog } from './services.blop'
+import { State } from '../state.blop'
+
+type DogGameProps = {
+  page: State['dogPage'],
+  state: State,
+}
 
 def DogGame(ctx: Component) {
   { attributes, children } = ctx
-  { page, state } = attributes
+  // todo: set type in array destructuring
+  attrs: DogGameProps = attributes
+  { page, state } = attrs
   dog = page?.choice
 
   input = <input type="text"
@@ -155,6 +163,7 @@ def DogGame(ctx: Component) {
     </form>
 
     <div style={ minHeight: '400px' }>
+      console.log('Rendering dog choice:', dog)
       = if dog => <img
         src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
         style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>

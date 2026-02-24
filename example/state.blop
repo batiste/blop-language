@@ -2,26 +2,28 @@ import create from './lib/state.blop'
 
 type State = {
   dogPage: { score: number, attempt: number, success: number,
-    choice?: { url: string, breed: string, image: string }
+    choice: { breed: string, url: string, image: string },
+    lastResult: any
   },
   petStore: { pets: string[], pageIndex: number },
-  route: { name: string, params: object },
+  route: { name: string, params: object, loading: boolean },
   memes: string[],
-  loading: boolean,
   todoList: { text: string, completed: boolean, id: number }[]
 }
 
 state: State = {
+  dogPage: { score: 0, attempt: 0, success: 0,
+    choice: { breed: '', url: '', image: '' },
+    lastResult: undefined
+  },
   todoList: [
-  { text: 'Buy some milk', completed: false, id: 1 },
-{ text: 'Take out the trash', completed: false, id: 2 },
-{ text: 'Recycle', completed: false, id: 3 }
+    { text: 'Buy some milk', completed: false, id: 1 },
+    { text: 'Take out the trash', completed: false, id: 2 },
+    { text: 'Recycle', completed: false, id: 3 }
   ],
-  dogPage: { score: 0, attempt: 0, success: 0 },
   petStore: { pets: [], pageIndex: 0 },
-  route: { name: '', params: {} },
-  memes: [],
-  loading: false
+  route: { name: '', params: {}, loading: false },
+  memes: []
 }
 
 

@@ -1,19 +1,18 @@
 import { State } from '../state.blop'
 
 async def getNewDog(state: State) {
-  state.loading = true
+  state.route.loading = true
   try {
     response = await fetch(`https://dog.ceo/api/breeds/image/random`)
   } catch e {
     console.log(e)
-    state.loading = e?.message ?? 'Failed to fetch'
     return
   }
   // Using optional chaining for safe property access
   data = await response.json()
   message = data?.message ?? ''
   bits = message.split('/')
-  state.loading = false
+  state.route.loading = false
 
   // Using nullish coalescing for default values
   state.dogPage.choice = { url: message, breed: bits[4] ?? 'unknown', image: bits[5] ?? 'default.jpg' }

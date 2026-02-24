@@ -55,8 +55,7 @@ router = new Router(state)
 
 ### 2. Define Route Handlers
 
-Route handlers are functions responsible for loading data. They no longer need to set a `page`
-property — the router sets `state.route.name` automatically before calling the handler.
+Route handlers are functions responsible for loading data. The router sets `state.route.name` automatically before calling the handler.
 
 `loading` is also managed by the router: it is set to `true` before the handler runs and `false`
 after it resolves.
@@ -68,10 +67,8 @@ def indexHandler(_params, _state) {
 
 // Data-loading handler
 async def userHandler(params, state) {
-  // state.loading is already true here
   response = await fetch(`/api/users/`params.id``)  
   state.currentUser = await response.json()
-  // state.loading will be set to false by the router
 }
 ```
 
@@ -97,7 +94,7 @@ def createRouter(state, window) {
   router.add({
     path: '/posts/:postId/comments/:commentId',
     name: 'comment',
-    handler: commentHandler
+    // handlers are optional
   })
   
   // Initialize router (calls handler for current URL)
@@ -193,7 +190,7 @@ Handlers receive two arguments:
 The router sets the following automatically **before** calling the handler:
 - `state.route.name` — the `name` field of the matched route
 - `state.route.params` — same as `params`
-- `state.loading = true` — cleared to `false` after the handler resolves
+- `state.route.loading = true` — cleared to `false` after the handler resolves
 
 Handlers should therefore only do data-loading work:
 
@@ -209,10 +206,8 @@ def aboutHandler(_params, _state) {
 
 ```typescript
 async def productHandler(params, state) {
-  // state.loading is already true
   response = await fetch(`/api/products/`params.id``)
   state.product = await response.json()
-  // state.loading is set to false automatically
 }
 ```
 
@@ -338,11 +333,9 @@ def indexHandler(_params, _state) {
 }
 
 async def dogsHandler(_params, state) {
-  // state.loading is already true
   response = await fetch('https://dog.ceo/api/breeds/image/random')
   data = await response.json()
   state.dogs.current = data
-  // state.loading set to false by router
 }
 
 def createRouter(state) {
@@ -398,7 +391,6 @@ def aboutHandler(_params, _state) {
 }
 
 async def blogPostHandler(params, state) {
-  // state.loading is already true; state.route is already set
   try {
     response = await fetch(`/api/posts/`params.postId``)
     state.currentPost = await response.json()
@@ -545,13 +537,13 @@ router.add({ path: '/users/:id', name: 'userProfile', handler: userHandler })
 
 ### 3. Handle Loading States
 
-The router automatically sets `state.loading = true` before calling an async handler and
-`state.loading = false` after it resolves. Simply include `loading` in your state and check it
+The router automatically sets `state.route.loading = true` before calling an async handler and
+`state.route.loading = false` after it resolves. Simply include `loading` in your state and check it
 in your component — no extra boilerplate needed:
 
 ```typescript
 // In your app component
-if state.loading {
+if state.route.loading {
   <Spinner />
 } else {
   // render active page

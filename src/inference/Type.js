@@ -77,8 +77,8 @@ export class PrimitiveType extends Type {
       return target.types.some(t => this.isCompatibleWith(t, aliases));
     }
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access (e.g. State.dogPage)
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -139,8 +139,8 @@ export class LiteralType extends Type {
       return target.types.some(t => this.isCompatibleWith(t, aliases));
     }
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -185,8 +185,8 @@ export class ArrayType extends Type {
       return true;
     }
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -263,8 +263,8 @@ export class ObjectType extends Type {
       return true;
     }
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -371,8 +371,8 @@ export class RecordType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
@@ -489,8 +489,8 @@ export class UnionType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -617,8 +617,8 @@ export class IntersectionType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
-    // Resolve aliases on the target side
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access on the target side
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false; // Unresolvable alias
       return this.isCompatibleWith(resolved, aliases);
@@ -671,8 +671,8 @@ export class GenericType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -737,8 +737,8 @@ export class FunctionType extends Type {
   isCompatibleWith(target, aliases) {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
-    // Resolve aliases
-    if (target instanceof TypeAlias) {
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -776,6 +776,44 @@ export class FunctionType extends Type {
  * Singleton representing a function with unknown signature (used as a type marker)
  */
 export const AnyFunctionType = new FunctionType(null, AnyType);
+
+/**
+ * Type member access: resolve a named property of a type alias at check time.
+ * Represents syntax like `State.dogPage` or `State['dogPage']`.
+ */
+export class TypeMemberAccess extends Type {
+  /**
+   * @param {Type} baseType - The base type (usually a TypeAlias)
+   * @param {string} memberKey - The property name being accessed
+   */
+  constructor(baseType, memberKey) {
+    super();
+    this.kind = 'member_access';
+    this.baseType = baseType;
+    this.memberKey = memberKey;
+  }
+
+  toString() {
+    return `${this.baseType.toString()}['${this.memberKey}']`;
+  }
+
+  equals(other) {
+    return (
+      other instanceof TypeMemberAccess &&
+      this.baseType.equals(other.baseType) &&
+      this.memberKey === other.memberKey
+    );
+  }
+
+  isCompatibleWith(target, aliases) {
+    const resolved = aliases.resolveMemberAccess(this);
+    if (resolved === this) {
+      // Could not resolve — treat as any
+      return target instanceof PrimitiveType && target.name === 'any';
+    }
+    return resolved.isCompatibleWith(target, aliases);
+  }
+}
 
 /**
  * Type alias reference (not resolved yet)
@@ -874,11 +912,29 @@ export class TypeAliasMap {
   }
   
   /**
+   * Resolve a TypeMemberAccess by looking up the base alias and extracting the property.
+   * @param {TypeMemberAccess} type
+   * @returns {Type} Resolved property type, or the original TypeMemberAccess if unresolvable
+   */
+  resolveMemberAccess(type) {
+    const resolvedBase = this.resolve(type.baseType);
+    if (resolvedBase instanceof ObjectType) {
+      const prop = resolvedBase.properties.get(type.memberKey);
+      if (prop) return this.resolve(prop.type);
+    }
+    // Base resolved to something other than ObjectType — cannot extract property
+    return type;
+  }
+
+  /**
    * Resolve a type alias (recursive with cycle detection)
    * @param {Type} type
    * @returns {Type}
    */
   resolve(type) {
+    if (type instanceof TypeMemberAccess) {
+      return this.resolveMemberAccess(type);
+    }
     if (!(type instanceof TypeAlias)) {
       return type;
     }

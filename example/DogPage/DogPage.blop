@@ -8,7 +8,7 @@ def DogPage(ctx: Component): VNode {
 
   ctx.mount(async () => {
     // Using optional chaining to safely check nested property
-    if (!state.dogPage?.choice) {
+    if (state.dogPage.choice.breed == '') {
       await getNewDog(state)
     }
   })

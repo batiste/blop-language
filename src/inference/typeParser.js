@@ -3,7 +3,7 @@
 // ============================================================================
 
 import {
-  Type, Types, TypeAlias, UnionType, IntersectionType, ArrayType, ObjectType,
+  Type, Types, TypeAlias, TypeMemberAccess, UnionType, IntersectionType, ArrayType, ObjectType,
   GenericType, LiteralType, PrimitiveType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType
@@ -118,12 +118,19 @@ export function parseTypePrimary(typePrimaryNode) {
     const value = parseFloat(typePrimaryNode.named.literal.value);
     baseType = Types.literal(value, NumberType);
   } else {
-    const { name, type_args } = typePrimaryNode.named;
+    const { name, type_args, member, member_key } = typePrimaryNode.named;
     if (name) {
       // name is a type_name node, get its first child
       const typeToken = name.children ? name.children[0] : name;
       const typeName = typeToken.value;
-      
+
+      // Check for type member access: State.dogPage  or  State['dogPage']
+      if (member || member_key) {
+        const key = member
+          ? member.value
+          : member_key.value.slice(1, -1); // strip surrounding quotes
+        baseType = new TypeMemberAccess(new TypeAlias(typeName), key);
+      } else
       // Check if it's a generic type instantiation: Type<Args>
       if (type_args) {
         const typeArgs = parseTypeArguments(type_args);

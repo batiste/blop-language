@@ -12,7 +12,7 @@
 import {
   Type, Types, TypeAliasMap,
   PrimitiveType, LiteralType, ArrayType, ObjectType, UnionType,
-  IntersectionType, GenericType, FunctionType, TypeAlias,
+  IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
@@ -36,6 +36,12 @@ function resolveGenericType(type, aliasMap) {
 }
 
 function resolveAliasType(type, aliasMap) {
+  if (type instanceof TypeMemberAccess) {
+    const resolved = aliasMap.resolveMemberAccess(type);
+    // If we got a different type back, recursively resolve it
+    if (resolved !== type) return resolveAliasType(resolved, aliasMap);
+    return type;
+  }
   if (type instanceof TypeAlias) {
     const resolved = aliasMap.resolve(type);
     // If resolved from user-defined aliases, return that
