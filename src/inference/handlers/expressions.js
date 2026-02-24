@@ -4,7 +4,7 @@
 
 import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
@@ -773,8 +773,19 @@ function createExpressionHandlers(getState) {
       pushInference(parent, PrimitiveType.Number);
     },
     exp: (node, parent) => {
-      // `await expr` — strip one Promise<T> wrapper to yield T
       const firstChild = node.children?.[0];
+
+      // `typeof expr` — always produces string at runtime, regardless of the
+      // operand's static type. Visit children so operand is still type-checked,
+      // then replace the inference with StringType.
+      if (firstChild?.type === 'operand' && firstChild.value?.includes('typeof')) {
+        visitChildren(node);
+        node.inference = [StringType];
+        pushToParent(node, parent);
+        return;
+      }
+
+      // `await expr` — strip one Promise<T> wrapper to yield T
       if (firstChild?.type === 'await') {
         resolveTypes(node);
         if (node.inference) {
