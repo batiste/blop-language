@@ -54,7 +54,7 @@ def navigation(state): VNode {
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="/" on={ click: links.indexPage }>
       <img
-        src="/blop/favicon.ico"
+        src="./blop.png"
         width="37" height="33" class="d-inline-block align-top" alt="" />
       = ' Blop'
     </a>
