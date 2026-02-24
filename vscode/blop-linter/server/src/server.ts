@@ -36,7 +36,7 @@ import {
 import { tokensDefinition } from './tokensDefinition.js';
 import parser from './parser.js';
 import { grammar } from './grammar.js';
-import { getGlobalMetadata } from './inference/builtinTypes.js';
+import { getGlobalMetadata, getBuiltinObjectType } from './inference/builtinTypes.js';
 import backend from './backend.js';
 import { inference } from './inference/index.js';
 import properties from './properties.js';
@@ -571,16 +571,184 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 	return codeActions;
 });
 
+// ---------------------------------------------------------------------------
+// Inference-based autocomplete helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert an inferredType (string or Type object) to a display string.
+ * Mirrors the same logic used in the hover provider.
+ */
+function getTypeString(inferredType: any): string {
+	if (!inferredType) return '';
+	if (typeof inferredType === 'string') return inferredType;
+	if (inferredType.kind === 'literal') {
+		return inferredType.baseType?.toString() ?? inferredType.toString();
+	}
+	return inferredType.toString?.() || String(inferredType);
+}
+
+/**
+ * Walk the AST and collect every `name` node that has an inferredType.
+ * Returns a Map of identifier name -> type string.
+ * The last occurrence of a name wins (declaration is usually before usages,
+ * and later occurrences tend to carry the most specific type).
+ */
+function collectInferredSymbols(root: any): Map<string, string> {
+	const symbols = new Map<string, string>();
+
+	function walk(node: any): void {
+		if (!node) return;
+		if (node.type === 'name' && node.value && node.inferredType) {
+			const typeStr = getTypeString(node.inferredType);
+			if (typeStr) symbols.set(node.value, typeStr);
+		}
+		if (node.children && Array.isArray(node.children)) {
+			for (const child of node.children) walk(child);
+		}
+		if (node.named && typeof node.named === 'object') {
+			for (const key in node.named) {
+				const child = node.named[key];
+				if (child && typeof child === 'object') walk(child);
+			}
+		}
+	}
+
+	walk(root);
+	return symbols;
+}
+
+/**
+ * For property completions (`foo.`): always re-parse the document with the
+ * trailing dot (and anything after it on the cursor line) stripped out.
+ * This gives us a syntactically valid AST with fresh, correct stream offsets
+ * and full inference results — regardless of whether the stale cache exists.
+ * Falls back to the cache only if the re-parse itself fails.
+ */
+function reparseForPropertyCompletion(
+	document: TextDocument,
+	cursorLine: number
+): DocumentASTInfo | null {
+	const fullText = document.getText();
+	const lines = fullText.split('\n');
+	const lineText = lines[cursorLine] ?? '';
+	const dotIdx = lineText.lastIndexOf('.');
+
+	// Build sanitised text: truncate the cursor line at the dot
+	if (dotIdx > 0) {
+		lines[cursorLine] = lineText.slice(0, dotIdx);
+	} else {
+		// No dot found — just blank the line so it parses
+		lines[cursorLine] = '';
+	}
+	const sanitized = lines.join('\n');
+
+	try {
+		const stream = parser.tokenize(tokensDefinition, sanitized);
+		// @ts-expect-error - parser.parse signature issue
+		const tree: any = parser.parse(stream, 0);
+		if (!tree?.success) {
+			// Re-parse failed; fall back to the stale cache
+			return documentASTs.get(document.uri) ?? null;
+		}
+		inference(tree, stream, document.uri.split(':')[1]);
+		const typeAliases = new Map<string, string>();
+		extractTypeAliases(tree, typeAliases);
+		return { tree, stream, typeAliases };
+	} catch {
+		return documentASTs.get(document.uri) ?? null;
+	}
+}
+
+/**
+ * Resolve an inferred type to a properties map suitable for completion.
+ *
+ * Returns an iterable of [propName, { type, optional }] entries, or null if
+ * the type doesn't describe an object with known properties.
+ *
+ * Handles:
+ *  - ObjectType with a .properties Map  (user-defined object types)
+ *  - Named ObjectType / TypeAlias whose name maps to a builtinObjectType
+ *    (e.g. Component, VNode, Router) — builtin entries use a plain object
+ *    { propName: TypeInstance } without the optional wrapper.
+ */
+function resolveTypeToPropertiesMap(inferredType: any): { name: string; typeStr: string; optional: boolean }[] | null {
+	if (!inferredType) return null;
+
+	// Case 1: ObjectType with a populated .properties Map (user-defined structs)
+	if (inferredType.properties instanceof Map && inferredType.properties.size > 0) {
+		const results: { name: string; typeStr: string; optional: boolean }[] = [];
+		for (const [prop, info] of inferredType.properties as Map<string, { type: any; optional: boolean }>) {
+			results.push({
+				name: prop,
+				typeStr: info.type?.toString?.() ?? '',
+				optional: info.optional ?? false
+			});
+		}
+		return results;
+	}
+
+	// Case 2: Named type (TypeAlias or named ObjectType) — look up builtins
+	const typeName: string | null =
+		typeof inferredType === 'string' ? inferredType
+		: (inferredType.name ?? null);
+
+	if (typeName) {
+		const builtin = getBuiltinObjectType(typeName);
+		if (builtin && typeof builtin === 'object') {
+			const results: { name: string; typeStr: string; optional: boolean }[] = [];
+			for (const [prop, typeVal] of Object.entries(builtin)) {
+				results.push({
+					name: prop,
+					typeStr: (typeVal as any)?.toString?.() ?? '',
+					optional: false
+				});
+			}
+			return results;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Like collectInferredSymbols but returns the raw Type objects instead of
+ * their string representations. Used for property completion where we need
+ * to inspect ObjectType.properties directly.
+ */
+function collectInferredTypeObjects(root: any): Map<string, any> {
+	const symbols = new Map<string, any>();
+
+	function walk(node: any): void {
+		if (!node) return;
+		if (node.type === 'name' && node.value && node.inferredType) {
+			symbols.set(node.value, node.inferredType);
+		}
+		if (node.children && Array.isArray(node.children)) {
+			for (const child of node.children) walk(child);
+		}
+		if (node.named && typeof node.named === 'object') {
+			for (const key in node.named) {
+				const child = node.named[key];
+				if (child && typeof child === 'object') walk(child);
+			}
+		}
+	}
+
+	walk(root);
+	return symbols;
+}
+
+// ---------------------------------------------------------------------------
+
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
 		const document = documents.get(_textDocumentPosition.textDocument.uri);
 		const line = _textDocumentPosition.position.line;
 		if (!document) {
 			return [];
 		}
+		// Text on the current line up to the cursor
 		const text = document.getText({
 			start: { line, character: 0 },
 			end: { line, character: _textDocumentPosition.position.character }
@@ -588,35 +756,55 @@ connection.onCompletion(
 		const kindMap:any = {
 			'Function': 3, 'Reference': 18, 'Class': 7, 'Value': 12
 		};
-		
+
+		const astInfo = documentASTs.get(_textDocumentPosition.textDocument.uri);
+
+		// ----------------------------------------------------------------
 		// Property completion: after 'varName.'
+		// ----------------------------------------------------------------
 		const propertyReg = /(\w+)\.(\w*)$/;
 		const propertyMatch = propertyReg.exec(text);
 		if (propertyMatch) {
 			const varName = propertyMatch[1];
 			const partial = propertyMatch[2].toLowerCase();
-			
-			// Look up the variable's type
+
+			// --- Primary path: fresh re-parse + name-based type lookup ---
+			const completionAstInfo = reparseForPropertyCompletion(document, line);
+			if (completionAstInfo) {
+				const { tree } = completionAstInfo;
+				const typeObjects = collectInferredTypeObjects(tree);
+				const inferredType = typeObjects.get(varName);
+				const resolved = resolveTypeToPropertiesMap(inferredType);
+				if (resolved && resolved.length > 0) {
+					const typeLabel = getTypeString(inferredType);
+					return resolved
+						.filter(p => p.name.toLowerCase().startsWith(partial))
+						.map(p => {
+							const optMarker = p.optional ? '?' : '';
+							const isFunction = p.typeStr.startsWith('(') || p.typeStr.includes('=>');
+							return {
+								label: p.name,
+								kind: isFunction ? CompletionItemKind.Method : CompletionItemKind.Property,
+								detail: `${p.name}${optMarker}: ${p.typeStr}`,
+								documentation: `(${typeLabel}) → ${p.name}${optMarker}: ${p.typeStr}`
+							};
+						});
+				}
+			}
+
+			// --- Fallback: manually extracted variable types (annotation-only) ---
 			const variables = documentVariables.get(_textDocumentPosition.textDocument.uri);
 			if (variables && variables.has(varName)) {
 				const varType = variables.get(varName);
-				
-				// Resolve the type to its structure
 				const typeDefs = documentTypeDefinitions.get(_textDocumentPosition.textDocument.uri);
 				let typeStructure = varType;
-				
-				// If it's a type alias, resolve it
 				if (typeDefs && typeDefs.has(varType!)) {
 					const typeInfo = typeDefs.get(varType!);
-					if (typeInfo) {
-						typeStructure = typeInfo.structure;
-					}
+					if (typeInfo) typeStructure = typeInfo.structure;
 				}
-				
-				// Extract property names from the type structure
 				if (typeStructure) {
-					const properties = extractPropertyNames(typeStructure);
-					return properties
+					const props = extractPropertyNames(typeStructure);
+					return props
 						.filter(prop => prop.toLowerCase().startsWith(partial))
 						.map(prop => ({
 							label: prop,
@@ -626,9 +814,27 @@ connection.onCompletion(
 						}));
 				}
 			}
+
+			// --- Built-in object properties ---
+			// @ts-expect-error - properties dynamic indexing
+			if (properties[varName]) {
+				const array: any[] = [];
+				// @ts-expect-error - properties dynamic indexing
+				properties[varName].forEach((item: String) => {
+					// @ts-expect-error - globalMetadata dynamic indexing
+					const builtinForItem = (globalMetadata[item.toString()] || { type: 'Function' });
+					const documentation = builtinForItem.documentation;
+					const detail = builtinForItem.detail;
+					const type = kindMap[builtinForItem.type];
+					array.push({ label: item, detail, kind: type, documentation });
+				});
+				if (array.length > 0) return array;
+			}
 		}
-		
+
+		// ----------------------------------------------------------------
 		// Type annotation completion: after ': '
+		// ----------------------------------------------------------------
 		const typeAnnotationReg = /:\s*(\w*)$/;
 		const typeMatch = typeAnnotationReg.exec(text);
 		if (typeMatch) {
@@ -636,45 +842,46 @@ connection.onCompletion(
 			const availableTypes = documentTypes.get(_textDocumentPosition.textDocument.uri) || [];
 			const builtinTypes = ['string', 'number', 'boolean', 'any', 'void', 'never', 'object', 'array'];
 			const allTypes = [...new Set([...availableTypes, ...builtinTypes])];
-			
 			return allTypes
 				.filter(typeName => typeName.toLowerCase().startsWith(partial))
 				.map(typeName => ({
 					label: typeName,
 					kind: CompletionItemKind.Class,
 					detail: builtinTypes.includes(typeName) ? 'Built-in type' : 'Imported/defined type',
-					documentation: builtinTypes.includes(typeName) 
+					documentation: builtinTypes.includes(typeName)
 						? `Built-in ${typeName} type`
 						: `Type defined or imported in this file`
 				}));
 		}
-		
-		// Object.<something completion>
-		const reg1 = /(\s|^)([\w]+)\./;
-		const result = reg1.exec(text);
-		if (result) {
-			const name = result[2];
-			// @ts-expect-error - properties dynamic indexing
-			if (properties[name]) {
-				const array: any[] = [];
-				// @ts-expect-error - properties dynamic indexing
-				properties[name].forEach((item: String) => {
-					// @ts-expect-error - globalMetadata dynamic indexing
-					const builtinForItem = (globalMetadata[item.toString()] || { type: 'Function' });
-					const documentation = builtinForItem.documentation;
-					const detail = builtinForItem.detail;
-					const type = kindMap[builtinForItem.type];
-					array.push({
-						label: item,
-						detail,
-						kind: type,
-						documentation
+
+		// ----------------------------------------------------------------
+		// In-scope variable / function completion from the inference engine
+		// ----------------------------------------------------------------
+		const partialWord = (text.match(/(\w+)$/) || ['', ''])[1];
+		if (astInfo && partialWord.length >= 1) {
+			const { tree } = astInfo;
+			const symbols = collectInferredSymbols(tree);
+			const partialLower = partialWord.toLowerCase();
+			const symbolCompletions: CompletionItem[] = [];
+			for (const [name, typeStr] of symbols) {
+				if (name.toLowerCase().startsWith(partialLower) && name !== partialWord) {
+					// Decide the completion kind based on the type string
+					let kind: CompletionItemKind = CompletionItemKind.Variable;
+					if (typeStr.startsWith('(') || typeStr.includes('=>')) kind = CompletionItemKind.Function;
+					symbolCompletions.push({
+						label: name,
+						kind,
+						detail: typeStr,
+						documentation: `${name}: ${typeStr}`
 					});
-				});
-				return array;
+				}
 			}
+			if (symbolCompletions.length > 0) return symbolCompletions;
 		}
-		// basic builtin 'completion'
+
+		// ----------------------------------------------------------------
+		// Basic builtin global completion
+		// ----------------------------------------------------------------
 		const reg0 = /(\s|^)([\w]{3,})/;
 		const result2 = reg0.exec(text);
 		if (result2) {
@@ -683,14 +890,11 @@ connection.onCompletion(
 			if (globalMetadata[name]) {
 				// @ts-expect-error - globalMetadata dynamic indexing
 				const builtinForItem = globalMetadata[name];
-				const documentation = builtinForItem.documentation;
-				const detail = builtinForItem.detail;
-				const type = kindMap[builtinForItem.type];
 				return [{
 					label: name,
-					detail,
-					kind: type,
-					documentation
+					detail: builtinForItem.detail,
+					kind: kindMap[builtinForItem.type],
+					documentation: builtinForItem.documentation
 				}];
 			}
 		}

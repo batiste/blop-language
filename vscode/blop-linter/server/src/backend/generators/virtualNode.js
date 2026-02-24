@@ -1,4 +1,4 @@
-import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, PATTERNS } from '../../constants.js';
+import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, PATTERNS, RUNTIME_NAMESPACE } from '../../constants.js';
 
 function createVirtualNodeGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;
@@ -106,12 +106,12 @@ function createVirtualNodeGenerators(context) {
         // Check if component has a 'key' attribute for stable identity
         const keyAttr = node.named.attrs?.find(attr => attr.named?.name?.value === 'key');
         if (keyAttr) {
-          output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}', ${_uid}a['key']);`);
+          output.push(` const ${_uid} = ${RUNTIME_NAMESPACE}.c(${start}, ${_uid}a, ${_uid}c, '${_uid}', ${_uid}a['key']);`);
         } else {
-          output.push(` const ${_uid} = blop.c(${start}, ${_uid}a, ${_uid}c, '${_uid}');`);
+          output.push(` const ${_uid} = ${RUNTIME_NAMESPACE}.c(${start}, ${_uid}a, ${_uid}c, '${_uid}');`);
         }
       } else {
-        output.push(` const ${_uid} = blop.h('${start}', ${_uid}a, ${_uid}c);`);
+        output.push(` const ${_uid} = ${RUNTIME_NAMESPACE}.h('${start}', ${_uid}a, ${_uid}c);`);
       }
       if (parent && node.type !== 'virtual_node_exp') {
         output.push(` ${parent}c.push(${_uid});`);

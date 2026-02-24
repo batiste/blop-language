@@ -2,7 +2,6 @@ import { compile } from '../../src/compile-browser.js'
 import { tokenize, parse } from '../../src/parser-browser.js'
 
 
-
 // Recursive TreeNode component for displaying AST nodes
 def TreeNode(ctx: Component): VNode {
   { attributes } = ctx

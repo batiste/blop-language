@@ -237,7 +237,13 @@ function handleBuiltinInstanceMethodCall(name, access, definition, argTypes, par
   if (!methodName || !builtinType) return false;
 
   const methodDef = builtinType[methodName];
-  if (!methodDef) return false;
+  if (!methodDef) {
+    // The method name is known not to exist on this builtin type — warn and
+    // short-circuit so we don't fall through to unrelated handlers.
+    pushWarning(methodNode ?? name, `Property '${methodName}' does not exist on type '${defType.name}'`);
+    pushInference(parent, AnyType);
+    return true;
+  }
 
   if (!(methodDef instanceof FunctionType)) {
     // Plain type property — just push as-is
@@ -642,7 +648,13 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
     const { memberName: propName, memberNode: propNode } = getObjectAccessMemberInfo(access);
     if (propName) {
       const builtinType = getBuiltinObjectType(resolvedType.name);
-      const propType = extractReturnType(builtinType?.[propName]);
+      if (!builtinType?.[propName]) {
+        pushWarning(propNode ?? access, `Property '${propName}' does not exist on type '${resolvedType.name}'`);
+        name.inferredType = resolvedType;
+        pushInference(parent, AnyType);
+        return true;
+      }
+      const propType = extractReturnType(builtinType[propName]);
       if (propNode) propNode.inferredType = propType;
       name.inferredType = resolvedType;
       pushInference(parent, propType);

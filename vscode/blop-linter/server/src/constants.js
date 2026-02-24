@@ -237,6 +237,12 @@ const COLORS = {
 };
 
 /**
+ * The name of the runtime namespace variable injected into every compiled file.
+ * Must match the identifier used by the Vite plugin and the backend code generators.
+ */
+const RUNTIME_NAMESPACE = 'blop';
+
+/**
  * Performance and limits
  */
 const LIMITS = {
@@ -248,6 +254,7 @@ export {
   SCOPE_TYPES,
   SCOPE_DEPTH,
   ERROR_MESSAGES,
+  RUNTIME_NAMESPACE,
   WARNING_MESSAGES,
   RESERVED,
   DEFAULTS,
