@@ -335,28 +335,6 @@ function handleFunctionTypedCall(name, definition, argTypes, parent, { pushInfer
 }
 
 /**
- * When access_or_operation contains both a function call (object_access) and a
- * subsequent operation (e.g. num(5) + "10"), propagate the operation's inferred
- * operand types and operator to the parent so that math/boolean validation runs.
- */
-function pushSubsequentOperation(access, parent, pushInference) {
-  const subsequentOp = access.named?.op;
-  if (!subsequentOp) return;
-  // The operation's inference array already holds the right-operand type(s)
-  // because visitChildren(access) ran before this helper is called.
-  pushToParent(subsequentOp, parent);
-  if (subsequentOp.named?.math_op) {
-    pushInference(parent, subsequentOp.named.math_op);
-  }
-  if (subsequentOp.named?.boolean_op) {
-    pushInference(parent, subsequentOp.named.boolean_op);
-  }
-  if (subsequentOp.named?.nullish_op) {
-    pushInference(parent, subsequentOp.named.nullish_op);
-  }
-}
-
-/**
  * Count the number of arguments in a func_call AST node by walking the
  * func_call_params chain. This is immune to the inference-array doubling
  * that occurs when the same AST is visited in both inference and checking
@@ -390,26 +368,22 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   
   // Try array/builtin method calls first
   if (handleArrayOrBuiltinMethodCall(name, access, definition, parent, { pushInference, pushWarning, typeAliases })) {
-    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
   
   // Try primitive type method calls (e.g. s.toLowerCase(), n.toFixed())
   if (handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushInference, typeAliases })) {
-    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
   
   // Try builtin object member access or calls (e.g. Math.cos(), Array.isArray)
   if (handleBuiltinNameAccess(name, access, parent, { pushInference, inferencePhase })) {
-    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
 
   // Handle function-typed variables (e.g., arrow function assignments)
   if (definition && definition.type instanceof FunctionType) {
     if (handleFunctionTypedCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase, funcCallNode })) {
-      pushSubsequentOperation(access, parent, pushInference);
       return true;
     }
   }
@@ -438,7 +412,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     } else {
       handleNonGenericFunctionCall(name, definition, argTypes, parent, { pushInference, pushWarning, typeAliases, inferencePhase });
     }
-    pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
 
@@ -463,7 +436,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
           pushWarning(memberNode ?? name, `Property '${memberName}' does not exist on type '${defType}'`);
         }
         pushInference(parent, AnyType);
-        pushSubsequentOperation(access, parent, pushInference);
         return true;
       }
 
@@ -498,7 +470,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
           }
           pushInference(parent, methodType.returnType ?? AnyType);
         }
-        pushSubsequentOperation(access, parent, pushInference);
         return true;
       }
 
@@ -520,7 +491,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
               if (memberNode) memberNode.inferredType = resolvedMethodType;
               if (arrayMethodNode) arrayMethodNode.inferredType = finalType;
               pushInference(parent, finalType);
-              pushSubsequentOperation(access, parent, pushInference);
               return true;
             }
           }
@@ -530,7 +500,6 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
       // Plain (non-function) property — stamp and push
       if (memberNode) memberNode.inferredType = methodType;
       pushInference(parent, methodType);
-      pushSubsequentOperation(access, parent, pushInference);
       return true;
     }
   }
@@ -882,20 +851,7 @@ function createExpressionHandlers(getState) {
         // For function/property accesses that fell through, keep AnyType to avoid
         // leaking the raw literal type (e.g. LiteralType(5) from index.toString()).
         visitChildren(access);
-        const hasOp = access.named?.op &&
-          (access.named.op.named?.math_op || access.named.op.named?.boolean_op);
-        // For `variable ?? default` (no property path), propagate the variable's type
-        // so handleNullishOperator can compute the correct result type.
-        // Skip this for `obj.prop ?? default` (has .named.access) — those property
-        // accesses that fell through here should return AnyType to avoid wrong results.
-        const hasNullishOp = !access.named?.access &&
-          access.named?.op?.named?.nullish_op;
-        if ((hasOp || hasNullishOp) && definition && definition.type && !defTypeIsAny) {
-          pushInference(parent, definition.type);
-          pushToParent(access, parent);
-        } else {
-          pushInference(parent, AnyType);
-        }
+        pushInference(parent, AnyType);
         return;
       }
       
@@ -922,9 +878,7 @@ function createExpressionHandlers(getState) {
       const { pushInference } = getState();
       visitChildren(node);
       pushToParent(node, parent);
-      if (node.named.access) {
-        pushInference(parent, node.named.access);
-      }
+      pushInference(parent, node.named.access);
     },
     new_expression: (node, parent) => {
       const { pushInference, lookupVariable } = getState();
@@ -938,16 +892,7 @@ function createExpressionHandlers(getState) {
       // Try to extract constructor name and check if it's a built-in
       let constructorName = null;
       
-      if (expNode && expNode.type === 'access_or_operation') {
-        // expNode is an access_or_operation with a name_exp child
-        const nameExp = expNode.named?.name_exp;
-        if (nameExp) {
-          const nameNode = nameExp.named?.name;
-          if (nameNode) {
-            constructorName = nameNode.value;
-          }
-        }
-      } else if (expNode && expNode.type === 'name_exp') {
+      if (expNode && expNode.type === 'name_exp') {
         // expNode directly is a name_exp
         const nameNode = expNode.named?.name;
         if (nameNode) {

@@ -42,21 +42,3 @@ generateParser(grammar, tokensDefinition, './src/parser.js', options);
 
 performance.mark('B');
 performance.measure('Writting parser code', 'A', 'B');
-
-// Quick fix, convert the generated parser to ESM format by replacing module.exports with export default
-
-// Post-process the generated parser to convert CommonJS to ESM
-const parserPath = path.join(__dirname, 'parser.js');
-let parserContent = fs.readFileSync(parserPath, 'utf8');
-
-// Replace module.exports with ESM export
-// Find the module.exports block and convert it to ESM
-parserContent = parserContent.replace(
-  /module\.exports = \{\s*parse: \(stream\) => \{([^]*?)\},\s*tokenize,\s*\};/,
-  (match, parseBody) => {
-    return `const parse = (stream) => {${parseBody}};\n\nexport default {\n  parse,\n  tokenize,\n};`;
-  }
-);
-
-fs.writeFileSync(parserPath, parserContent);
-console.log(`${GREEN}[blop]${NC} Converted parser to ESM format`);

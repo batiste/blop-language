@@ -1,6 +1,10 @@
 # Blop Language Compiler Guide
 
-Blop is a typed language for the Web that generates Virtual DOM. It has a grammar defined in `src/grammar.js` and type inference system in `src/inference/`. The parser is generated from the grammar into `src/parser.js`, the code generation lies in `src/backend/`. The linter extension for VSCode uses the same inference engine to provide real-time feedback. This is not React, so no mention of JSX unless you are specifically comparing concepts.
+Blop is a typed language for the Web that generates Virtual DOM. It has a grammar defined in `src/grammar.js` and type inference system in `src/inference/`. The code generation lies in `src/backend/`. The linter extension for VSCode uses the same inference engine to provide real-time feedback. This is not React, so no mention of JSX unless you are specifically comparing concepts.
+
+## Parser Characteristics
+
+`src/parser.js` is a PEG parser with ordered choice, Packrat parsing with memoization, and direct left recursion support using Guido van Rossum's algorithm. Can be regenerated from `src/grammar.js` using `npm run build-parser`.
 
 ## Quick Commands
 
@@ -74,3 +78,4 @@ const ast = parser.parse(stream);
 inference(ast, stream, 'debug.blop');
 // now ast nodes have .inferredType stamped on them
 ```
+
