@@ -1,14 +1,5 @@
 import { getNewDog } from './services.blop'
 
-
-type DogPageState = {
-  dogPage?: {
-    choice?: string
-  },
-  loading: boolean
-}
-
-
 def DogGame(ctx: Component) {
   { attributes, children } = ctx
   { page, state } = attributes

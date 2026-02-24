@@ -183,6 +183,52 @@ function findDeadCodeStart(stats) {
   return null;
 }
 
+/**
+ * Initialize the function scope tracking arrays shared by func_def and class_func_def.
+ */
+function initFuncScope(scope, { isClassMethod = false } = {}) {
+  scope.__currentFctParams = [];
+  scope.__currentFctParamNames = [];
+  scope.__currentFctParamHasDefault = [];
+  scope.__returnTypes = [];
+  if (isClassMethod) scope.__isClassMethod = true;
+}
+
+/**
+ * Emit a dead-code warning for the first unreachable statement in bodyNode,
+ * if any. No-op for expression bodies.
+ */
+function warnDeadCode(bodyNode, pushWarning) {
+  if (bodyNode?.type === 'func_body_fat' && bodyNode.named?.exp) return;
+  const deadNode = findDeadCodeStart(bodyNode?.named?.stats);
+  if (deadNode) pushWarning(deadNode, 'Dead code: this statement is unreachable');
+}
+
+/**
+ * Shared finalization for named functions and class methods:
+ * stamp annotation, collect inferred return type, validate declared vs actual,
+ * and stamp the name node for hover. Returns { declaredType, inferredType }.
+ */
+function finalizeFunctionReturnType({
+  scope, annotation, nameNode, genericParams,
+  warningLabel, pushWarning, stampTypeAnnotation,
+  inferencePhase, typeAliases,
+}) {
+  if (annotation) stampTypeAnnotation(annotation);
+  const declaredType = annotation ? getAnnotationType(annotation) : null;
+  const inferredType = collectReturnType(scope.__returnTypes);
+  if (declaredType && inferredType !== AnyType && !isTypeCompatible(inferredType, declaredType, typeAliases)) {
+    pushWarning(nameNode, `${warningLabel} returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
+  }
+  if (inferencePhase === 'inference' && nameNode?.inferredType === undefined) {
+    nameNode.inferredType = new FunctionType(
+      scope.__currentFctParams, declaredType ?? inferredType,
+      genericParams, scope.__currentFctParamNames
+    );
+  }
+  return { declaredType, inferredType };
+}
+
 function createFunctionHandlers(getState) {
   return {
     func_def_params: (node) => {
@@ -294,10 +340,8 @@ function createFunctionHandlers(getState) {
       const { getCurrentScope, pushScope, popScope, pushInference, pushWarning, stampTypeAnnotation, symbolTable } = getState();
       const parentScope = getCurrentScope();
       const scope = pushScope();
-      scope.__currentFctParams = [];
-      scope.__currentFctParamHasDefault = [];
-      scope.__returnTypes = [];
-      
+      initFuncScope(scope);
+
       // Parse generic parameters if present
       const genericParams = registerGenericParams(scope, node.named.generic_params);
 
@@ -314,13 +358,12 @@ function createFunctionHandlers(getState) {
       // return expression individually during the checking phase.
       const { annotation } = node.named;
       setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
-      
+
       visitChildren(node);
 
-      // If not every code path returns, the function can fall through with implicit undefined.
-      // alwaysReturns is a pure AST check — no type information needed.
       const bodyNode = node.named.body;
       const isExpressionBody = bodyNode?.type === 'func_body_fat' && bodyNode.named?.exp;
+      // If not every code path returns, the function can fall through with implicit undefined.
       if (!isExpressionBody && !alwaysReturns(bodyNode?.named?.stats)) {
         const explicitReturns = scope.__returnTypes.filter(t => t && t !== UndefinedType);
         if (explicitReturns.length > 0 && !scope.__returnTypes.includes(UndefinedType)) {
@@ -328,72 +371,21 @@ function createFunctionHandlers(getState) {
         }
       }
 
-      // Dead code detection: warn about statements that follow a terminating one.
-      if (!isExpressionBody) {
-        const deadNode = findDeadCodeStart(bodyNode?.named?.stats);
-        if (deadNode) {
-          pushWarning(deadNode, 'Dead code: this statement is unreachable');
-        }
-      }
-      
-      // Stamp the return type annotation for hover support (idempotent)
-      if (annotation) {
-        stampTypeAnnotation(annotation);
-      }
-      
-      const declaredType = annotation ? getAnnotationType(annotation) : null;
-      
-      // Infer return type from actual returns (Type objects from inference stack)
-      const inferredType = collectReturnType(scope.__returnTypes);
-      
-      // Anonymous functions as expressions should infer as a function type with proper signature
-      if (parent && !node.named.name) {
-        const finalType = declaredType ?? inferredType;
-        const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames);
-        pushInference(parent, functionType);
-        
-        // Validate anonymous function return types if they have type annotations
-        if (declaredType && inferredType !== AnyType) {
-          const { typeAliases } = getState();
-          if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
-            // For anonymous functions, use the parent token for error reporting
-            const errorToken = parent.children?.find(c => c.type === 'name') || parent;
-            const displayType = getBaseTypeOfLiteral(inferredType);
-            pushWarning(
-              errorToken,
-              `Function returns ${displayType} but declared as ${declaredType}`
-            );
-          }
-        }
-      }
-      
+      warnDeadCode(bodyNode, pushWarning);
+
       if (node.named.name) {
-        // Use declared Type if provided, otherwise fall back to inferred Type
-        const finalType = declaredType ?? inferredType;
-        
-        // Validate named function return types
-        if (declaredType && inferredType !== AnyType) {
-          const { typeAliases } = getState();
-          if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
-            const displayType = getBaseTypeOfLiteral(inferredType);
-            pushWarning(
-              node.named.name,
-              `Function '${node.named.name.value}' returns ${displayType} but declared as ${declaredType}`
-            );
-          }
-        }
-        
-        // Stamp the function name with its full function type for hover support
-        const { inferencePhase } = getState();
-        if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
-          // Create a FunctionType with the actual params and return type
-          const functionType = new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames);
-          node.named.name.inferredType = functionType;
-        }
-        
+        // Named function: validate return type and stamp hover type
+        const { declaredType, inferredType } = finalizeFunctionReturnType({
+          scope, annotation, nameNode: node.named.name,
+          genericParams,
+          warningLabel: `Function '${node.named.name.value}'`,
+          pushWarning, stampTypeAnnotation,
+          inferencePhase: getState().inferencePhase,
+          typeAliases: getState().typeAliases,
+        });
         parentScope[node.named.name.value] = {
           source: 'func_def',
-          type: finalType,
+          type: declaredType ?? inferredType,
           inferredReturnType: inferredType,
           declaredReturnType: declaredType,
           node,
@@ -402,6 +394,20 @@ function createFunctionHandlers(getState) {
           paramHasDefault: scope.__currentFctParamHasDefault,
           genericParams: genericParams.length > 0 ? genericParams : undefined,
         };
+      } else if (parent) {
+        // Anonymous function as expression: infer function type and validate
+        if (annotation) stampTypeAnnotation(annotation);
+        const declaredType = annotation ? getAnnotationType(annotation) : null;
+        const inferredType = collectReturnType(scope.__returnTypes);
+        const finalType = declaredType ?? inferredType;
+        pushInference(parent, new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames));
+        if (declaredType && inferredType !== AnyType) {
+          const { typeAliases } = getState();
+          if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+            const errorToken = parent.children?.find(c => c.type === 'name') || parent;
+            pushWarning(errorToken, `Function returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
+          }
+        }
       }
       popScope();
     },
@@ -477,11 +483,7 @@ function createFunctionHandlers(getState) {
       const classType = getCurrentScope().__currentClassType;
 
       const scope = pushScope();
-      scope.__currentFctParams = [];
-      scope.__currentFctParamNames = [];
-      scope.__currentFctParamHasDefault = [];
-      scope.__returnTypes = [];
-      scope.__isClassMethod = true;
+      initFuncScope(scope, { isClassMethod: true });
 
       // Parse and register generic parameters if present
       const genericParams = registerGenericParams(scope, node.named.generic_params);
@@ -497,43 +499,14 @@ function createFunctionHandlers(getState) {
 
       visitChildren(node);
 
-      // Dead code detection: warn about statements that follow a terminating one.
-      const classBodyNode = node.named.body;
-      const classIsExpressionBody = classBodyNode?.type === 'func_body_fat' && classBodyNode.named?.exp;
-      if (!classIsExpressionBody) {
-        const deadNode = findDeadCodeStart(classBodyNode?.named?.stats);
-        if (deadNode) {
-          pushWarning(deadNode, 'Dead code: this statement is unreachable');
-        }
-      }
-
-      if (annotation) stampTypeAnnotation(annotation);
-      const declaredType = annotation ? getAnnotationType(annotation) : null;
-
-      // Infer return type from collected return expressions
-      const inferredType = collectReturnType(scope.__returnTypes);
-
-      // Validate declared vs inferred return type (mirrors func_def)
-      if (declaredType && inferredType !== AnyType) {
-        const { typeAliases } = getState();
-        if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
-          const displayType = getBaseTypeOfLiteral(inferredType);
-          pushWarning(
-            node.named.name,
-            `Method '${node.named.name?.value}' returns ${displayType} but declared as ${declaredType}`
-          );
-        }
-      }
-
-      // Stamp hover type on the method name node
-      if (inferencePhase === 'inference' && node.named.name?.inferredType === undefined) {
-        node.named.name.inferredType = new FunctionType(
-          scope.__currentFctParams,
-          declaredType ?? inferredType,
-          genericParams,
-          scope.__currentFctParamNames
-        );
-      }
+      warnDeadCode(node.named.body, pushWarning);
+      finalizeFunctionReturnType({
+        scope, annotation, nameNode: node.named.name,
+        genericParams,
+        warningLabel: `Method '${node.named.name?.value}'`,
+        pushWarning, stampTypeAnnotation, inferencePhase,
+        typeAliases: getState().typeAliases,
+      });
 
       popScope();
     },

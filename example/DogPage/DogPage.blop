@@ -1,6 +1,5 @@
-import { DogGame, DogPageState } from './DogBreedGame.blop'
+import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
-
 
 
 def DogPage(ctx: Component): VNode {
