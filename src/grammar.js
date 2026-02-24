@@ -58,7 +58,7 @@ const grammar = {
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
-    ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
+    ['exp:path', 'w', '=', 'w', 'exp:exp'],
   ],
   'assign_op': [
     ['name:name', 'annotation?:annotation', 'w', 'assign_operator', 'w', 'exp:exp'],
@@ -277,12 +277,12 @@ const grammar = {
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
   'object_access': [
-    ['optional_chain:optional', 'name:name', 'object_access?'],
-    ['.', 'name', 'object_access?'],
-    ['optional_chain:optional', '[', 'exp', ']', 'object_access?'],
-    ['type_arguments:type_args', 'func_call', 'object_access?'],
-    ['func_call', 'object_access?'],
-    ['[', 'exp', ']', 'object_access?'],
+    ['optional_chain:optional', 'name:name'],
+    ['.', 'name'],
+    ['optional_chain:optional', '[', 'exp', ']'],
+    ['type_arguments:type_args', 'func_call'],
+    ['func_call'],
+    ['[', 'exp', ']'],
   ],
   'operation': [
     ['nullish:nullish_op', 'w', 'exp'],
@@ -293,7 +293,6 @@ const grammar = {
   ],
   // used in backend
   'name_exp': [
-    ['name:name', 'object_access:access'],
     ['name:name'],
   ],
   // 'optional_chaining': [
