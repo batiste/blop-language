@@ -21,8 +21,7 @@ Components are reusable building blocks for your UI. In Blop, a component can be
 The simplest way to create a component:
 
 ```typescript
-Input = (ctx: Component) => {
-  { attributes } = ctx
+Input = ({ attributes }: Component) => {
   <label>
     = attributes.label
     <input
@@ -69,9 +68,7 @@ Every component is a function that receives a single parameter: a **Component cl
 The idiomatic way is to destructure at the top of the function body:
 
 ```typescript
-def Card(ctx: Component) {
-  { attributes, children } = ctx
-  
+def Card({ attributes, children }: Component) {  
   <div class=attributes.class>
     <h2>attributes.title</h2>
     = children
@@ -164,8 +161,7 @@ def Layout({ attributes, children }: Component) {
 
 ```typescript
 // Capitalized - designed for HTML tag usage
-def Card(ctx: Component) {
-  { attributes, children } = ctx
+def Card({ attributes, children }: Component) {
   <div class=attributes.class>
     = children
   </div>
