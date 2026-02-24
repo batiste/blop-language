@@ -124,6 +124,11 @@ function alwaysReturns(stats) {
     if (first.type === 'return' || first.type === 'throw') return true;
     if (first.type === 'virtual_node' || first.type === 'virtual_node_exp') return true;
     if (first.type === 'condition' && conditionAlwaysReturns(first)) return true;
+    // try_catch always returns when both the try body and the catch body always
+    // return — one of the two blocks is guaranteed to execute to completion.
+    if (first.type === 'try_catch' &&
+        alwaysReturns(first.named?.statstry) &&
+        alwaysReturns(first.named?.statscatch)) return true;
   }
   return false;
 }
@@ -197,7 +202,8 @@ function findDeadCodeStart(stats) {
       first.type === 'virtual_node' ||
       first.type === 'virtual_node_exp' ||
       (first.type === 'condition' && conditionAlwaysReturns(first)) ||
-      (first.type === 'while_loop' && isLiteralTrue(first.named?.exp) && alwaysReturns(first.named?.stats));
+      (first.type === 'while_loop' && isLiteralTrue(first.named?.exp) && alwaysReturns(first.named?.stats)) ||
+      (first.type === 'try_catch' && alwaysReturns(first.named?.statstry) && alwaysReturns(first.named?.statscatch));
 
     if (terminates) {
       // The next real statement is dead code — return it for warning positioning

@@ -794,6 +794,33 @@ function createStatementHandlers(getState) {
       popScope();
       pushToParent(node, parent);
     },
+
+    try_catch: (node, parent) => {
+      const { pushScope, popScope } = getState();
+
+      // Visit try body in an isolated scope so variables declared inside
+      // do not leak into the surrounding scope.
+      pushScope();
+      if (node.named.statstry) {
+        node.named.statstry.forEach(stat => visit(stat, node));
+      }
+      popScope();
+
+      // Visit catch body in an isolated scope.  The catch variable (e.g. `err`
+      // in `catch err { ... }`) is bound here as AnyType because the runtime
+      // exception value has no static type information.
+      const catchScope = pushScope();
+      const catchVarName = node.named.name?.value;
+      if (catchVarName) {
+        catchScope[catchVarName] = { type: AnyType, node: node.named.name };
+      }
+      if (node.named.statscatch) {
+        node.named.statscatch.forEach(stat => visit(stat, node));
+      }
+      popScope();
+
+      pushToParent(node, parent);
+    },
   };
 }
 
