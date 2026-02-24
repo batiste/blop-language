@@ -39,13 +39,14 @@ import {
 import { tokensDefinition } from './tokensDefinition.js';
 import parser from './parser.js';
 import { grammar } from './grammar.js';
-import { getGlobalMetadata, getBuiltinObjectType } from './inference/builtinTypes.js';
+import { getGlobalMetadata, getBuiltinObjectType, getArrayMemberType, builtinPrimitiveTypes } from './inference/builtinTypes.js';
 import backend from './backend.js';
 import { inference } from './inference/index.js';
 import properties from './properties.js';
 import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
 import { selectBestFailure } from './selectBestFailure.js';
 import { parseTypeExpression, parseObjectTypeString, getPropertyType } from './inference/typeSystem.js';
+import { ArrayType } from './inference/Type.js';
 
 // Load global metadata for autocomplete
 const globalMetadata = getGlobalMetadata();
@@ -681,6 +682,17 @@ function reparseForPropertyCompletion(
  */
 function resolveTypeToPropertiesMap(inferredType: any): { name: string; typeStr: string; optional: boolean }[] | null {
 	if (!inferredType) return null;
+
+	// Case 0: ArrayType (e.g. number[], string[]) — expose all array members with
+	// element-type-aware signatures via getArrayMemberType
+	if (inferredType instanceof ArrayType) {
+		const memberNames = Object.keys((builtinPrimitiveTypes as any).array);
+		return memberNames.map(name => {
+			const memberType = getArrayMemberType(inferredType, name);
+			const typeStr = memberType?.toString?.() ?? '';
+			return { name, typeStr, optional: false };
+		});
+	}
 
 	// Case 1: ObjectType with a populated .properties Map (user-defined structs)
 	if (inferredType.properties instanceof Map && inferredType.properties.size > 0) {
