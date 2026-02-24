@@ -468,7 +468,11 @@ DataDisplay = (ctx: Component) => {
   { value as counter, setState } = ctx.state('counter', 0)
   
   ctx.mount(() => {
-    setInterval(() => setState(counter + 1), 5000)
+    // just simulate an attribute change every 5 seconds for demo purposes
+    interval = setInterval(() => setState(counter + 1), 5000)
+    
+    // Return cleanup function (you can also use ctx.unmount for this if you prefer)
+    return () => clearInterval(interval)
   })
   
   <div>
