@@ -65,10 +65,11 @@ Every component is a function that receives a single parameter: a **Component cl
 
 **Accessing data:**
 
-The idiomatic way is to destructure in the function definition if you can:
+Typically, you'll destructure `attributes` and `children` at the top of your component function:
 
 ```typescript
-def Card({ attributes, children }: Component) {  
+def Card(ctx: Component) {  
+  { attributes, children } = ctx
   <div class=attributes.class>
     <h2>attributes.title</h2>
     = children
@@ -80,6 +81,24 @@ def Card({ attributes, children }: Component) {
 <Card title="Second" />
 // → Two separate Component instances with different attributes
 ```
+
+#### Inline Parameter Destructuring
+
+For pure display components that don't need an handle on the instance of the Component, you can destructure directly in the parameter list:
+
+```typescript
+def Badge({ attributes }: Component) {
+  <span class=attributes.variant>attributes.text</span>
+}
+
+def Layout({ attributes, children }: Component) {
+  <div class=attributes.layout>
+    = children
+  </div>
+}
+```
+
+> **Note:** When using inline destructuring, the `ctx` binding is not available inside the function body. This means component methods such as `state`, `mount`, `unmount`, and `onChange` cannot be called. Use the `def Foo(ctx: Component)` form for any stateful or lifecycle-aware component.
 
 If you have clear types for your attributes, you can destructure with type annotations:
 
@@ -103,23 +122,6 @@ def DogGame({ attributes: DogGameProps }: Component) {
 }
 ```
 
-#### Inline Parameter Destructuring
-
-For pure display components that don't need an handle on the instance of the Component, you can destructure directly in the parameter list:
-
-```typescript
-def Badge({ attributes }: Component) {
-  <span class=attributes.variant>attributes.text</span>
-}
-
-def Layout({ attributes, children }: Component) {
-  <div class=attributes.layout>
-    = children
-  </div>
-}
-```
-
-> **Note:** When using inline destructuring, the `ctx` binding is not available inside the function body. This means component methods such as `state`, `mount`, `unmount`, and `onChange` cannot be called. Use the `def Foo(ctx: Component)` form for any stateful or lifecycle-aware component.
 
 ### Using Components
 
