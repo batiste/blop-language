@@ -171,17 +171,20 @@ function handleBooleanOperator(types, i) {
 
 function handleNullishOperator(types, i) {
   // Nullish coalescing: left ?? right
+  // types[i-2] = left side (potentially-nullish value), types[i-1] = right side (fallback)
   // If left is never nullish → result is left; otherwise → (non-null left) | right
-  const leftType = types[i - 1];
-  const rightType = types[i - 2];
+  const leftType = types[i - 2];
+  const rightType = types[i - 1];
+  // Resolve TypeAlias (e.g. `type MaybeString = string | null`) before nullish check
+  const resolvedLeft = resolveTypeAlias(leftType, typeAliases) ?? leftType;
 
-  const leftCanBeNullish = leftType === NullType || leftType === UndefinedType ||
-    (isUnionType(leftType) && parseUnionType(leftType).some(t => t === NullType || t === UndefinedType));
+  const leftCanBeNullish = resolvedLeft === NullType || resolvedLeft === UndefinedType ||
+    (isUnionType(resolvedLeft) && parseUnionType(resolvedLeft).some(t => t === NullType || t === UndefinedType));
 
   if (!leftCanBeNullish) {
     types[i - 2] = leftType;
   } else {
-    const nonNullishLeft = removeNullish(leftType);
+    const nonNullishLeft = removeNullish(resolvedLeft);
     types[i - 2] = nonNullishLeft === NeverType
       ? rightType
       : createUnionType([nonNullishLeft, rightType].filter(Boolean));

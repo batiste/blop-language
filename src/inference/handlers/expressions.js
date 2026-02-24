@@ -883,8 +883,14 @@ function createExpressionHandlers(getState) {
         // leaking the raw literal type (e.g. LiteralType(5) from index.toString()).
         visitChildren(access);
         const hasOp = access.named?.op &&
-          (access.named.op.named?.math_op || access.named.op.named?.boolean_op || access.named.op.named?.nullish_op);
-        if (hasOp && definition && definition.type && !defTypeIsAny) {
+          (access.named.op.named?.math_op || access.named.op.named?.boolean_op);
+        // For `variable ?? default` (no property path), propagate the variable's type
+        // so handleNullishOperator can compute the correct result type.
+        // Skip this for `obj.prop ?? default` (has .named.access) — those property
+        // accesses that fell through here should return AnyType to avoid wrong results.
+        const hasNullishOp = !access.named?.access &&
+          access.named?.op?.named?.nullish_op;
+        if ((hasOp || hasNullishOp) && definition && definition.type && !defTypeIsAny) {
           pushInference(parent, definition.type);
           pushToParent(access, parent);
         } else {
@@ -907,6 +913,9 @@ function createExpressionHandlers(getState) {
       }
       if (node.named.boolean_op) {
         pushInference(parent, node.named.boolean_op);
+      }
+      if (node.named.nullish_op) {
+        pushInference(parent, node.named.nullish_op);
       }
     },
     access_or_operation: (node, parent) => {

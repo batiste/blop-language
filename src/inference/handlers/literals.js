@@ -231,6 +231,11 @@ function createLiteralHandlers(getState) {
     true: (node, parent) => pushLiteralType(node, parent, Types.literal(true, BooleanType)),
     false: (node, parent) => pushLiteralType(node, parent, Types.literal(false, BooleanType)),
 
+    regexp: (node, parent) => {
+      const { pushInference } = getState();
+      pushInference(parent, new TypeAlias('RegExp'));
+    },
+
     array_literal: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
