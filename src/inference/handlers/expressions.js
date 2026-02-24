@@ -75,6 +75,18 @@ function isValidPrimitiveType(type) {
 }
 
 /**
+ * Return true when a type is a typed object instance whose properties can be
+ * resolved — covers user-defined ObjectType structs and builtin TypeAlias
+ * instances (e.g. Component, Router).
+ */
+function isTypedObjectInstance(type) {
+  return (
+    type instanceof ObjectType ||
+    (type instanceof TypeAlias && isBuiltinObjectType(type.name))
+  );
+}
+
+/**
  * Generic handler for method calls on typed values (arrays, primitives, etc.)
  * Handles extraction of return type and stamping of AST nodes
  */
@@ -187,29 +199,23 @@ function handlePrimitiveTypeMethodCall(name, access, definition, parent, { pushI
 }
 
 /**
- * Handle built-in object method calls (e.g. Math.cos, Object.keys)
+ * Handle built-in object member access or calls (e.g. Math.PI, Math.cos(), Array.isArray()).
+ * Used for both property access and method calls — the distinction is handled by the caller.
  */
-function handleBuiltinMethodCall(name, access, parent, { pushInference, inferencePhase }) {
+function handleBuiltinNameAccess(name, access, parent, { pushInference, inferencePhase }) {
   if (!isBuiltinObjectType(name.value)) return false;
   
   const { memberName, memberNode } = getObjectAccessMemberInfo(access);
   if (!memberName) return false;
   
   const builtinType = getBuiltinObjectType(name.value);
-  const rawReturn = builtinType?.[memberName];
-  const returnType = extractReturnType(rawReturn);
-  
-  pushInference(parent, returnType);
+  const rawMemberType = builtinType?.[memberName];
+  pushInference(parent, extractReturnType(rawMemberType));
 
   if (inferencePhase === 'inference') {
-    // Stamp the object name (e.g. 'Array' in Array.isArray(...))
-    if (name.inferredType === undefined) {
-      name.inferredType = new TypeAlias(name.value);
-    }
-    // Stamp the method name node with its full function type
-    if (memberNode && memberNode.inferredType === undefined && rawReturn) {
-      memberNode.inferredType = rawReturn;
-    }
+    if (name.inferredType === undefined) name.inferredType = new TypeAlias(name.value);
+    if (memberNode && memberNode.inferredType === undefined && rawMemberType)
+      memberNode.inferredType = rawMemberType;
   }
 
   return true;
@@ -394,8 +400,8 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
     return true;
   }
   
-  // Try builtin object method calls (e.g. Math.cos())
-  if (handleBuiltinMethodCall(name, access, parent, { pushInference, inferencePhase })) {
+  // Try builtin object member access or calls (e.g. Math.cos(), Array.isArray)
+  if (handleBuiltinNameAccess(name, access, parent, { pushInference, inferencePhase })) {
     pushSubsequentOperation(access, parent, pushInference);
     return true;
   }
@@ -441,11 +447,7 @@ function handleFunctionCall(name, access, parent, { lookupVariable, pushInferenc
   // instances (e.g. ctx.mount() where ctx: Component).
   // getPropertyType() already resolves both cases transparently.
   const defType = definition?.type;
-  const isTypedInstance = definition && (
-    defType instanceof ObjectType ||
-    (defType instanceof TypeAlias && isBuiltinObjectType(defType.name))
-  );
-  if (isTypedInstance) {
+  if (definition && isTypedObjectInstance(defType)) {
     const outerOA = access.children?.find(c => c.type === 'object_access');
     const memberName = outerOA?.children?.find(c => c.type === 'name')?.value;
     const memberNode = outerOA?.children?.find(c => c.type === 'name');
@@ -720,34 +722,6 @@ function handleObjectPropertyAccess(name, access, parent, definition, { pushInfe
 }
 
 /**
- * Handle property access on built-in objects (e.g. Math.PI, Number.MAX_VALUE)
- */
-function handleBuiltinPropertyAccess(name, access, parent, { pushInference, inferencePhase }) {
-  if (!isBuiltinObjectType(name.value)) return false;
-  
-  const { memberName, memberNode } = getObjectAccessMemberInfo(access);
-  if (!memberName) return false;
-  
-  const builtinType = getBuiltinObjectType(name.value);
-  const rawPropType = builtinType?.[memberName];
-  const propType = extractReturnType(rawPropType);
-  pushInference(parent, propType);
-
-  if (inferencePhase === 'inference') {
-    // Stamp the object name (e.g. 'Array' in Array.isArray) with a readable alias
-    if (name.inferredType === undefined) {
-      name.inferredType = new TypeAlias(name.value);
-    }
-    // Stamp the member name node (e.g. 'isArray') with its full type
-    if (memberNode && memberNode.inferredType === undefined && rawPropType) {
-      memberNode.inferredType = rawPropType;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Handle simple variable reference without property access
  */
 function handleSimpleVariable(name, parent, definition, getState) {
@@ -851,8 +825,8 @@ function createExpressionHandlers(getState) {
           }
         }
         
-        // Try built-in property access first
-        if (handleBuiltinPropertyAccess(name, access, parent, { pushInference, inferencePhase })) {
+        // Try built-in member access (e.g. Math.PI, Array.isArray)
+        if (handleBuiltinNameAccess(name, access, parent, { pushInference, inferencePhase })) {
           return;
         }
         
