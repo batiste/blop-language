@@ -697,6 +697,44 @@ function createStatementHandlers(getState) {
       pushToParent(node, parent);
     },
 
+    while_loop: (node, parent) => {
+      const { pushScope, popScope, lookupVariable, pushWarning, typeAliases } = getState();
+
+      // Check for impossible comparisons in the condition
+      const impossibleComparison = detectImpossibleComparison(node.named.exp, lookupVariable, typeAliases);
+      if (impossibleComparison) {
+        const { variable, comparedValue, possibleValues } = impossibleComparison;
+        pushWarning(
+          node.named.exp,
+          `This condition will always be false: '${variable}' has type ${possibleValues.join(' | ')} and can never equal ${comparedValue}`
+        );
+      }
+
+      // Detect type guards in the loop condition (same patterns as `condition` handler)
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
+
+      // Visit condition expression
+      if (node.named.exp) {
+        visit(node.named.exp, node);
+      }
+
+      // Push an isolated scope for the loop body (mirrors for_loop / condition)
+      const scope = pushScope();
+
+      // Apply type narrowing from the condition into the body
+      if (typeGuard) {
+        applyIfBranchGuard(scope, typeGuard, lookupVariable);
+      }
+
+      // Visit body statements
+      if (node.named.stats) {
+        node.named.stats.forEach(stat => visit(stat, node));
+      }
+
+      popScope();
+      pushToParent(node, parent);
+    },
+
     for_loop: (node, parent) => {
       const { pushScope, popScope, pushWarning, typeAliases } = getState();
       const scope = pushScope();

@@ -147,6 +147,29 @@ function elseIfAlwaysReturns(elseIfNode) {
 }
 
 /**
+ * Return true when an expression node is a bare `true` literal —
+ * the only condition that lets us statically prove a while loop never exits
+ * through its bottom (it can only exit via return or throw).
+ */
+function isLiteralTrue(expNode) {
+  if (!expNode) return false;
+  let foundTrue = false;
+  let hasOperator = false;
+  function walk(node) {
+    if (!node || hasOperator) return;
+    if (node.type === 'true') { foundTrue = true; return; }
+    if (node.type === 'boolean_operator' || node.type === 'math_operator') {
+      hasOperator = true;
+      return;
+    }
+    if (node.children) node.children.forEach(walk);
+    if (node.named) Object.values(node.named).forEach(v => { if (v && typeof v === 'object') walk(v); });
+  }
+  walk(expNode);
+  return foundTrue && !hasOperator;
+}
+
+/**
  * Find the first dead (unreachable) statement in a stats array.
  * A statement is dead if it follows a statement that always terminates
  * (return, throw, VNode, or a condition with exhaustive return branches).
@@ -173,7 +196,8 @@ function findDeadCodeStart(stats) {
       first.type === 'throw' ||
       first.type === 'virtual_node' ||
       first.type === 'virtual_node_exp' ||
-      (first.type === 'condition' && conditionAlwaysReturns(first));
+      (first.type === 'condition' && conditionAlwaysReturns(first)) ||
+      (first.type === 'while_loop' && isLiteralTrue(first.named?.exp) && alwaysReturns(first.named?.stats));
 
     if (terminates) {
       // The next real statement is dead code — return it for warning positioning
