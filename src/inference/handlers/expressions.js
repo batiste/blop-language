@@ -4,7 +4,7 @@
 
 import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { inferGenericArguments, substituteType, parseTypeExpression, getPropertyType, resolveTypeAlias, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType, isBuiltinObjectType, getArrayMemberType, getPrimitiveMemberType } from '../builtinTypes.js';
@@ -773,6 +773,24 @@ function createExpressionHandlers(getState) {
       pushInference(parent, PrimitiveType.Number);
     },
     exp: (node, parent) => {
+      // `await expr` — strip one Promise<T> wrapper to yield T
+      const firstChild = node.children?.[0];
+      if (firstChild?.type === 'await') {
+        resolveTypes(node);
+        if (node.inference) {
+          for (let i = 0; i < node.inference.length; i++) {
+            const t = node.inference[i];
+            if (t instanceof GenericType &&
+                t.baseType instanceof TypeAlias &&
+                t.baseType.name === 'Promise' &&
+                t.typeArgs.length > 0) {
+              node.inference[i] = t.typeArgs[0];
+            }
+          }
+        }
+        pushToParent(node, parent);
+        return;
+      }
       resolveTypes(node);
       pushToParent(node, parent);
     },

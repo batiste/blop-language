@@ -12,9 +12,16 @@ import {
   substituteType,
   getBaseTypeOfLiteral,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias, GenericType } from '../Type.js';
 import TypeChecker from '../typeChecker.js';
 import { getBuiltinObjectType } from '../builtinTypes.js';
+
+/**
+ * Wrap a type in Promise<T> to represent the external return type of an async function.
+ */
+function wrapInPromise(type) {
+  return new GenericType(new TypeAlias('Promise'), [type]);
+}
 
 /**
  * Pre-scan a class_func_def node's signature without visiting its body.
@@ -60,6 +67,11 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
     stampTypeAnnotation(methodNode.named.annotation);
     const resolved = getAnnotationType(methodNode.named.annotation);
     if (resolved) returnType = resolved;
+  }
+
+  // Async methods are seen by callers as returning Promise<T>
+  if (methodNode.named?.async) {
+    returnType = wrapInPromise(returnType);
   }
 
   return new FunctionType(params, returnType, genericParams, paramNames);
@@ -411,19 +423,33 @@ function createFunctionHandlers(getState) {
 
       warnDeadCode(bodyNode, pushWarning);
 
+      const isAsync = !!node.named.async;
+
       if (node.named.name) {
         // Named function: validate return type and stamp hover type
+        const { inferencePhase, typeAliases } = getState();
         const { declaredType, inferredType } = finalizeFunctionReturnType({
           scope, annotation, nameNode: node.named.name,
           genericParams,
           warningLabel: `Function '${node.named.name.value}'`,
           pushWarning, stampTypeAnnotation,
-          inferencePhase: getState().inferencePhase,
-          typeAliases: getState().typeAliases,
+          inferencePhase, typeAliases,
         });
+        // Callers see async functions as returning Promise<T>; body validation
+        // already ran against the raw T above.
+        const externalReturnType = isAsync
+          ? wrapInPromise(declaredType ?? inferredType)
+          : (declaredType ?? inferredType);
+        // Re-stamp hover type with the Promise-wrapped return type.
+        if (isAsync && inferencePhase === 'inference') {
+          node.named.name.inferredType = new FunctionType(
+            scope.__currentFctParams, externalReturnType,
+            genericParams, scope.__currentFctParamNames
+          );
+        }
         parentScope[node.named.name.value] = {
           source: 'func_def',
-          type: declaredType ?? inferredType,
+          type: externalReturnType,
           inferredReturnType: inferredType,
           declaredReturnType: declaredType,
           node,
@@ -437,7 +463,9 @@ function createFunctionHandlers(getState) {
         if (annotation) stampTypeAnnotation(annotation);
         const declaredType = annotation ? getAnnotationType(annotation) : null;
         const inferredType = collectReturnType(scope.__returnTypes);
-        const finalType = declaredType ?? inferredType;
+        const innerType = declaredType ?? inferredType;
+        // Async anonymous functions also expose Promise<T> to callers
+        const finalType = isAsync ? wrapInPromise(innerType) : innerType;
         pushInference(parent, new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames));
         if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
@@ -538,13 +566,22 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
 
       warnDeadCode(node.named.body, pushWarning);
-      finalizeFunctionReturnType({
+      const { declaredType: methodDeclaredType, inferredType: methodInferredType } = finalizeFunctionReturnType({
         scope, annotation, nameNode: node.named.name,
         genericParams,
         warningLabel: `Method '${node.named.name?.value}'`,
         pushWarning, stampTypeAnnotation, inferencePhase,
         typeAliases: getState().typeAliases,
       });
+
+      // Async methods expose Promise<T>; re-stamp the hover type accordingly.
+      if (node.named.async && inferencePhase === 'inference' && node.named.name) {
+        const externalReturnType = wrapInPromise(methodDeclaredType ?? methodInferredType);
+        node.named.name.inferredType = new FunctionType(
+          scope.__currentFctParams, externalReturnType,
+          genericParams, scope.__currentFctParamNames
+        );
+      }
 
       popScope();
     },
