@@ -9627,10 +9627,12 @@ let exp_0 = (stream, index) => {
   };
   const _rule_0 = exp(stream, i);
   if (!_rule_0) return false;
+  named['obj'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
   const _rule_1 = object_access(stream, i);
   if (!_rule_1) return false;
+  named['access'] = _rule_1;
   children.push(_rule_1);
   i = _rule_1.last_index;
   node.success = i === stream.length; node.last_index = i;
@@ -9648,6 +9650,7 @@ let exp_1 = (stream, index) => {
   };
   const _rule_0 = exp(stream, i);
   if (!_rule_0) return false;
+  named['obj'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
 

@@ -308,8 +308,8 @@ const grammar = {
   ],
   'exp': [
     // ['optional_chaining'],
-    ['exp', 'object_access'],
-    ['exp', 'w', 'operation:op'],
+    ['exp:obj', 'object_access:access'],
+    ['exp:obj', 'w', 'operation:op'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],
