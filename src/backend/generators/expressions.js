@@ -9,7 +9,10 @@ function createExpressionGenerators(context) {
       const output = [];
       if (node.children) {
         for (let i = 0; i < node.children.length; i++) {
-          output.push(...generateCode(node.children[i]));
+          // Skip type_arguments — they are static type hints only, not emitted to JS
+          if (node.children[i].type !== 'type_arguments') {
+            output.push(...generateCode(node.children[i]));
+          }
         }
       }
       return output;
@@ -35,38 +38,6 @@ function createExpressionGenerators(context) {
     'optional_chain': () => ['?.'],
     'pipe': () => ['|'],
     'ampersand': () => ['&'],
-    'object_access': (node) => {
-      const output = [];
-      // Handle optional chaining
-      if (node.named.optional) {
-        output.push('?.');
-        if (node.named.name) {
-          output.push(node.named.name.value);
-        } else if (node.children.some(c => c.type === 'exp')) {
-          // Optional chaining with bracket notation ?.[exp]
-          output.push('[');
-          const expChild = node.children.find(c => c.type === 'exp');
-          if (expChild) {
-            output.push(...generateCode(expChild));
-          }
-          output.push(']');
-        }
-        // Continue with recursive object_access if it exists
-        const recursiveAccess = node.children.find(c => c.type === 'object_access');
-        if (recursiveAccess) {
-          output.push(...generateCode(recursiveAccess));
-        }
-      } else {
-        // Regular access - use default traversal
-        // Skip type_arguments node (only for static type checking)
-        for (let i = 0; i < node.children.length; i++) {
-          if (node.children[i].type !== 'type_arguments') {
-            output.push(...generateCode(node.children[i]));
-          }
-        }
-      }
-      return output;
-    },
     'type_expression': (node) => {
       const output = [];
       // Type annotations are comments in the generated code

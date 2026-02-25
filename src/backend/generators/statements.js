@@ -179,7 +179,10 @@ function createStatementGenerators(context) {
     },
     'assign_op': (node) => {
       const output = [];
-      shouldBeDefined(node.named.name.value, node.named.name);
+      // First alternative has name:name; second has exp:target for property compound-assign (a.b += 1)
+      if (node.named.name) {
+        shouldBeDefined(node.named.name.value, node.named.name);
+      }
       for (let i = 0; i < node.children.length; i++) {
         output.push(...generateCode(node.children[i]));
       }

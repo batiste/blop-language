@@ -6,7 +6,6 @@ import TypeChecker from './typeChecker.js';
 import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary, inferGenericArguments, substituteType } from './typeSystem.js';
 import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType, FunctionType, AnyFunctionType, PrimitiveType } from './Type.js';
 import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
-import { extractExplicitTypeArguments, countFuncCallArgs } from './handlers/utils.js';
 
 // Module state
 let warnings;

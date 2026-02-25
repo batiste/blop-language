@@ -33,6 +33,10 @@ add = (a: number, b: number) => { // opening brace comment
   */
 } // closing brace comment
 
+class test {
+  // asf
+} // asdf
+
 test('inline comment after fat-arrow function body opening brace', () => {
   expect(add(2, 3)).toBe(5)
 })
