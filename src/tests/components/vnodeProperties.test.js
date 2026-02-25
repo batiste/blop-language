@@ -56,3 +56,22 @@ describe('VNode type properties', () => {
     expectCompiles(code);
   });
 });
+
+describe('VNode multiple children', () => {
+  test('virtual_node_exp with multiple children on separate lines compiles', () => {
+    // Regression: top-level virtual_node_exp (IIFE) must push a FUNCTION scope
+    // so child virtual_node statements pass the MIN_FUNCTION_DEPTH guard.
+    const code = `
+      content = <div>
+        <strong>'hello'</strong>
+        'world'
+      </div>
+    `;
+    expectCompiles(code);
+  });
+
+  test('inline multiple children gives a clear error message', () => {
+    const code = `content = <div><strong>'hello'</strong>'world'</div>`;
+    expectCompilationError(code, 'Multiple virtual node children must be on separate lines');
+  });
+});

@@ -17,6 +17,8 @@ def level1() {
   </div>
 }
 
+// content = <div><strong>'hello'</strong>'world'</div>
+
 // should produce no warning
 def testConditions() {
   if true {

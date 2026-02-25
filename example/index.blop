@@ -64,11 +64,11 @@ def navigation(state): VNode {
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        = navItem('playground', links.playgroundPage, '🎮 Playground')
-        = navItem('dog', links.dogPage, '🐕 Breed game')
-        = navItem('todo', links.todoPage, '📝 Advanced Todo')
-        = navItem('ast', links.astExplorerPage, '🌳 AST Explorer')
-        = navItem('form', links.formPage, '📋 Form Builder')
+        = navItem('playground', links.playgroundPage, 'Playground')
+        = navItem('dog', links.dogPage, 'Breed game')
+        = navItem('todo', links.todoPage, 'Advanced Todo')
+        = navItem('ast', links.astExplorerPage, 'AST Explorer')
+        = navItem('form', links.formPage, 'Form Builder')
       </ul>
       <div class=style['right-buttons']>
         if (state.loading) {
@@ -93,7 +93,11 @@ Index = (state): VNode => {
   <div>
     = navigation(state)
     console.log('Rendering page with state 'state.route.name)
-    <div class=''style.container' container'>
+    containerClass = 'container'
+    if state.route.name == 'playground' || state.route.name == 'showcase' || state.route.name == 'root' {
+      containerClass := 'container-fluid'
+    }
+    <div class=''style.container' 'containerClass>
       if state.route.name == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
       } elseif state.route.name == 'playground' {

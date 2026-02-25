@@ -123,7 +123,11 @@ function createVirtualNodeGenerators(context) {
     'virtual_node_exp': (node) => {
       const output = [];
       output.push('(() => {');
+      // Push a FUNCTION scope so that child virtual_node statements registered
+      // inside the IIFE don't fail the MIN_FUNCTION_DEPTH guard.
+      scopes.add(SCOPE_TYPES.FUNCTION);
       output.push(...virtualNode(node));
+      scopes.pop(SCOPE_TYPES.FUNCTION);
       output.push('})()');
       return output;
     },

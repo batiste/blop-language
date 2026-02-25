@@ -26,7 +26,6 @@ state: State = {
   memes: []
 }
 
-
-def createState(initialState) {
-  return create(initialState || state)
+def createState() { // the type will be different than State (extra $)
+  return create(state)
 }

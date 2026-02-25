@@ -29,6 +29,8 @@ const RULE_EXPLANATIONS = {
   'while_loop': 'a while loop',
   'condition': 'an if statement',
   'virtual_node': 'a virtual DOM node',
+  'virtual_node_exp': 'a virtual DOM node expression',
+  'virtual_node_assign': 'a virtual DOM node assignment',
   'class_def': 'a class definition',
   'import_statement': 'an import statement',
   'try_catch': 'a try-catch block',
@@ -315,6 +317,39 @@ const ERROR_PATTERNS = [
     suggestion: () => 'Blop uses backticks with backtick-variables for interpolation:\n' +
       '  message = `Hello `name``\n' +
       '  result = `The sum is `a + b``',
+  },
+  {
+    name: 'inline_vnode_multiple_children',
+    detect: (context) => {
+      // Two possible failures get selected depending on token statistics:
+      //
+      // Case A: virtual_node_exp alt3 (<tag> exp </tag>) parsed the first child,
+      //   then expects '</' for the closing tag but finds the second child literal.
+      //   ruleName='virtual_node_exp', expectedToken='</', lastToken='>'
+      //
+      // Case B: exp left-recursive extension tries optional_chain/dot/etc. after
+      //   the first child expression, but finds another expression token.
+      //   ruleName='exp', expectedToken='optional_chain', lastToken='>'
+      //
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      if (!lastToken || lastToken.type !== '>') return false;
+
+      const caseA = (context.ruleName === 'virtual_node_exp' || context.ruleName === 'virtual_node')
+        && context.expectedToken === '</';
+
+      const caseB = context.ruleName === 'exp'
+        && context.expectedToken === 'optional_chain';
+
+      return caseA || caseB;
+    },
+    message: () => 'Multiple virtual node children must be on separate lines',
+    suggestion: () => 'Each child of a virtual node must be on its own line:\n' +
+      '  <div>           // correct\n' +
+      '    <strong>text</strong>\n' +
+      '    \'world\'\n' +
+      '  </div>\n' +
+      '\n' +
+      '  <div><strong>text</strong>\'world\'</div>  // error: multiple inline children',
   },
 ];
 
