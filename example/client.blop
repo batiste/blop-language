@@ -24,7 +24,6 @@ pending = false
 // by the reactive subscription system — each Component re-renders itself when
 // a path it read during its last render is written to.
 proxiedState.$.listen((path) => {
-  console.log((`State changed at path: `path))
   if !path.startsWith('route') {
     return
   }
