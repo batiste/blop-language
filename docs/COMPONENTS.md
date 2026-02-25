@@ -341,9 +341,9 @@ TodoListPage = (ctx: Component): VNode => {
 > **Only Component instances participate.** A plain (lowercase) helper function called
 > directly runs in the context of its *caller* component, so its reads are attributed to that
 > caller. Top-level render functions that run during a full `refresh()` are not Components
-> and do not subscribe.\n
-> See [State Management — Reactive Subscriptions](./STATE_MANAGEMENT.md#reactive-subscriptions)
-> for a full explanation and the open hook API.
+> and do not subscribe.
+
+See [State Management — Reactive Subscriptions](./STATE_MANAGEMENT.md#reactive-subscriptions) for a full explanation and the open hook API.
 
 ## Component Context
 
