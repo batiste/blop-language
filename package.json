@@ -28,7 +28,7 @@
     "debug": "BLOP_DEBUG=true vite",
     "linter": "./scripts/sync-linter.sh",
     "link-extensions": "ln -s $PWD/vscode/blop-linter ~/.vscode/extensions/batistebieler.blop-linter-1.0.35 && ln -s $PWD/vscode/blop-syntax-highlighter ~/.vscode/extensions/batistebieler.blop-syntax-highlighter-1.0.14",
-    "build": "npm run parser && npm run test && node src/updateAutocompleteFile.js && npm run linter && npm run build:app",
+    "build": "npm run parser && npm run test && npm run linter && npm run build:app",
     "build-ci": "npm run parser && npm run test"
   },
   "repository": {
