@@ -376,7 +376,15 @@ const ERROR_PATTERNS = [
       const caseD = lastToken && lastToken.type === 'str'
         && prevToken && prevToken.type === '>';
 
-      return caseA || caseD;
+      // Case E: <p>'text'a\n  </p>
+      // 'text'a is parsed as str_expression beginning, 'a' is the embedded exp,
+      // then inner_str_expression expects the closing str but hits newline.
+      // Guard: a '>' must appear somewhere in the preceding tokens (we are inside a vnode).
+      const caseE = (context.ruleName === 'inner_str_expression' || context.ruleName === 'str_expression')
+        && context.expectedToken === 'str'
+        && context.precedingTokens.some(t => t.type === '>');
+
+      return caseA || caseD || caseE;
     },
     message: () => 'Closing tag must be on the same line as its inline content',
     suggestion: () => 'Either keep the content and closing tag on the same line:\n' +

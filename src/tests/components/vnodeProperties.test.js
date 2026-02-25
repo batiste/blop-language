@@ -91,6 +91,19 @@ describe('VNode multiple children', () => {
     expectCompilationError(code, 'Closing tag must be on the same line as its inline content');
   });
 
+  test('closing tag on different line with trailing expression also gives a clear error', () => {
+    // <p>'text'a\n  </p> — 'text'a looks like an incomplete interpolation to the
+    // parser; the error must still be attributed to the closing tag placement.
+    const code = `
+      def f() {
+        a = 1
+        <p>'text'a
+        </p>
+      }
+    `;
+    expectCompilationError(code, 'Closing tag must be on the same line as its inline content');
+  });
+
   test('virtual_node_exp as assignment RHS does not pollute function return type', () => {
     // `_a = <p>...</p>` (inline) should NOT count as an implicit VNode return.
     const code = `
