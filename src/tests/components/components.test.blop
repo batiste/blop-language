@@ -67,7 +67,7 @@ def Counter(ctx: Component) {
 
 def TestLiteralTypeWidening(ctx: Component): VNode {
   { value as count, setState } = ctx.state('count', 0)
-  
+
   <button on={ click: () => setState(count + 1) }>
     'Increment'
   </button>
@@ -255,11 +255,11 @@ test('conditional component rendering', () => {
   vnode1 = Message({ attributes: { msgType: 'error', text: 'Error!' } })
   expect(vnode1.sel).toBe('div')
   expect(vnode1.data.attrs['class']).toBe('error')
-  
+
   vnode2 = Message({ attributes: { msgType: 'success', text: 'Success!' } })
   expect(vnode2.sel).toBe('div')
   expect(vnode2.data.attrs['class']).toBe('success')
-  
+
   vnode3 = Message({ attributes: { msgType: 'info', text: 'Info' } })
   expect(vnode3.sel).toBe('div')
   expect(vnode3.data.attrs['class']).toBe('info')
@@ -267,8 +267,8 @@ test('conditional component rendering', () => {
 
 test('table with component rows', () => {
   rows = [
-    { name: 'First', value: 1 },
-    { name: 'Second', value: 2 }
+  { name: 'First', value: 1 },
+{ name: 'Second', value: 2 }
   ]
   vnode = Table({ attributes: { rows } })
   expect(vnode.sel).toBe('table')
@@ -277,8 +277,8 @@ test('table with component rows', () => {
 
 test('component used as function', () => {
   links = [
-    { href: '/home', text: 'Home' },
-    { href: '/about', text: 'About' }
+  { href: '/home', text: 'Home' },
+{ href: '/about', text: 'About' }
   ]
   vnode = Navigation({ attributes: { links } })
   expect(vnode.sel).toBe('nav')

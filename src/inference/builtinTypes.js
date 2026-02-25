@@ -25,7 +25,7 @@ let builtinObjectTypes = {
     // attributes - Record<string, any>: open map of attribute name → value
     attributes: new RecordType(StringType, AnyType),
     // children - array of child VNodes passed to the component
-    children: Types.array(Types.union([Types.alias('VNode'), StringType])),  // Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]
+    children: Types.array(Types.union([Types.alias('VNode'), StringType])),
     // function state(key, initialValue) {
     //   return { value, setState: (newValue) => {}, getState: () => value };
     // }
@@ -131,8 +131,272 @@ let builtinObjectTypes = {
     trunc: new FunctionType([NumberType], NumberType, [], ['x']),
   },
 
-  AbortController: ObjectType,
+  // AbortController / AbortSignal – used to cancel fetch requests and other async ops
+  AbortController: {
+    signal: AnyType,  // AbortSignal – typed as any to avoid circular reference issues
+    abort: new FunctionType([AnyType], UndefinedType, [], ['reason']),
+  },
 
+  AbortSignal: {
+    aborted: BooleanType,
+    reason: AnyType,
+    throwIfAborted: new FunctionType([], UndefinedType, [], []),
+    addEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    removeEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+  },
+
+  // Fetch API – Headers, Request, Response
+  Headers: {
+    append: new FunctionType([StringType, StringType], UndefinedType, [], ['name', 'value']),
+    delete: new FunctionType([StringType], UndefinedType, [], ['name']),
+    get: new FunctionType([StringType], Types.union([StringType, NullType]), [], ['name']),
+    has: new FunctionType([StringType], BooleanType, [], ['name']),
+    set: new FunctionType([StringType, StringType], UndefinedType, [], ['name', 'value']),
+    entries: new FunctionType([], AnyType, [], []),
+    keys: new FunctionType([], AnyType, [], []),
+    values: new FunctionType([], AnyType, [], []),
+    forEach: new FunctionType([AnyFunctionType], UndefinedType, [], ['callback']),
+  },
+
+  Response: {
+    ok: BooleanType,
+    status: NumberType,
+    statusText: StringType,
+    headers: AnyType,   // Headers instance
+    url: StringType,
+    redirected: BooleanType,
+    type: StringType,
+    body: AnyType,
+    bodyUsed: BooleanType,
+    json: new FunctionType([], AnyType, [], []),           // Promise<any>
+    text: new FunctionType([], AnyType, [], []),           // Promise<string>
+    blob: new FunctionType([], AnyType, [], []),           // Promise<Blob>
+    arrayBuffer: new FunctionType([], AnyType, [], []),    // Promise<ArrayBuffer>
+    formData: new FunctionType([], AnyType, [], []),       // Promise<FormData>
+    clone: new FunctionType([], AnyType, [], []),          // Response
+  },
+
+  Request: {
+    url: StringType,
+    method: StringType,
+    headers: AnyType,   // Headers instance
+    body: AnyType,
+    bodyUsed: BooleanType,
+    mode: StringType,
+    credentials: StringType,
+    cache: StringType,
+    redirect: StringType,
+    referrer: StringType,
+    signal: AnyType,    // AbortSignal
+    clone: new FunctionType([], AnyType, [], []),
+    json: new FunctionType([], AnyType, [], []),
+    text: new FunctionType([], AnyType, [], []),
+    blob: new FunctionType([], AnyType, [], []),
+    arrayBuffer: new FunctionType([], AnyType, [], []),
+    formData: new FunctionType([], AnyType, [], []),
+  },
+
+  // URL API
+  URL: {
+    href: StringType,
+    origin: StringType,
+    protocol: StringType,
+    username: StringType,
+    password: StringType,
+    host: StringType,
+    hostname: StringType,
+    port: StringType,
+    pathname: StringType,
+    search: StringType,
+    searchParams: AnyType,  // URLSearchParams instance
+    hash: StringType,
+    toString: new FunctionType([], StringType, [], []),
+    toJSON: new FunctionType([], StringType, [], []),
+  },
+
+  URLSearchParams: {
+    append: new FunctionType([StringType, StringType], UndefinedType, [], ['name', 'value']),
+    delete: new FunctionType([StringType], UndefinedType, [], ['name']),
+    get: new FunctionType([StringType], Types.union([StringType, NullType]), [], ['name']),
+    getAll: new FunctionType([StringType], Types.array(StringType), [], ['name']),
+    has: new FunctionType([StringType], BooleanType, [], ['name']),
+    set: new FunctionType([StringType, StringType], UndefinedType, [], ['name', 'value']),
+    sort: new FunctionType([], UndefinedType, [], []),
+    toString: new FunctionType([], StringType, [], []),
+    entries: new FunctionType([], AnyType, [], []),
+    keys: new FunctionType([], AnyType, [], []),
+    values: new FunctionType([], AnyType, [], []),
+    forEach: new FunctionType([AnyFunctionType], UndefinedType, [], ['callback']),
+  },
+
+  // DOM Event API
+  Event: {
+    type: StringType,
+    target: AnyType,
+    currentTarget: AnyType,
+    bubbles: BooleanType,
+    cancelable: BooleanType,
+    defaultPrevented: BooleanType,
+    eventPhase: NumberType,
+    isTrusted: BooleanType,
+    timeStamp: NumberType,
+    preventDefault: new FunctionType([], UndefinedType, [], []),
+    stopPropagation: new FunctionType([], UndefinedType, [], []),
+    stopImmediatePropagation: new FunctionType([], UndefinedType, [], []),
+  },
+
+  CustomEvent: {
+    type: StringType,
+    target: AnyType,
+    currentTarget: AnyType,
+    bubbles: BooleanType,
+    cancelable: BooleanType,
+    defaultPrevented: BooleanType,
+    detail: AnyType,
+    isTrusted: BooleanType,
+    timeStamp: NumberType,
+    preventDefault: new FunctionType([], UndefinedType, [], []),
+    stopPropagation: new FunctionType([], UndefinedType, [], []),
+    stopImmediatePropagation: new FunctionType([], UndefinedType, [], []),
+  },
+
+  // Web Storage API (localStorage / sessionStorage)
+  Storage: {
+    length: NumberType,
+    getItem: new FunctionType([StringType], Types.union([StringType, NullType]), [], ['key']),
+    setItem: new FunctionType([StringType, StringType], UndefinedType, [], ['key', 'value']),
+    removeItem: new FunctionType([StringType], UndefinedType, [], ['key']),
+    clear: new FunctionType([], UndefinedType, [], []),
+    key: new FunctionType([NumberType], Types.union([StringType, NullType]), [], ['index']),
+  },
+
+  // Map and Set constructors (static methods only; instance methods are on values returned by `new Map()`)
+  Map: {
+    groupBy: new FunctionType([AnyType, AnyFunctionType], AnyType, [], ['iterable', 'keySelector']),
+  },
+
+  Set: {},
+
+  WeakMap: {},
+
+  WeakSet: {},
+
+  WeakRef: {},
+
+  FinalizationRegistry: {},
+
+  // Binary data / files
+  Blob: {
+    size: NumberType,
+    type: StringType,
+    arrayBuffer: new FunctionType([], AnyType, [], []),   // Promise<ArrayBuffer>
+    text: new FunctionType([], AnyType, [], []),           // Promise<string>
+    slice: new FunctionType([NumberType], AnyType, [], ['start']),
+    stream: new FunctionType([], AnyType, [], []),
+  },
+
+  File: {
+    name: StringType,
+    size: NumberType,
+    type: StringType,
+    lastModified: NumberType,
+    arrayBuffer: new FunctionType([], AnyType, [], []),
+    text: new FunctionType([], AnyType, [], []),
+    slice: new FunctionType([NumberType], AnyType, [], ['start']),
+    stream: new FunctionType([], AnyType, [], []),
+  },
+
+  FileReader: {
+    result: Types.union([StringType, AnyType, NullType]),
+    error: AnyType,
+    readyState: NumberType,
+    onload: AnyType,
+    onerror: AnyType,
+    onabort: AnyType,
+    onloadend: AnyType,
+    onloadstart: AnyType,
+    onprogress: AnyType,
+    readAsArrayBuffer: new FunctionType([AnyType], UndefinedType, [], ['blob']),
+    readAsBinaryString: new FunctionType([AnyType], UndefinedType, [], ['blob']),
+    readAsDataURL: new FunctionType([AnyType], UndefinedType, [], ['blob']),
+    readAsText: new FunctionType([AnyType], UndefinedType, [], ['blob']),
+    abort: new FunctionType([], UndefinedType, [], []),
+  },
+
+  FormData: {
+    append: new FunctionType([StringType, AnyType], UndefinedType, [], ['name', 'value']),
+    delete: new FunctionType([StringType], UndefinedType, [], ['name']),
+    get: new FunctionType([StringType], Types.union([StringType, AnyType, NullType]), [], ['name']),
+    getAll: new FunctionType([StringType], Types.array(AnyType), [], ['name']),
+    has: new FunctionType([StringType], BooleanType, [], ['name']),
+    set: new FunctionType([StringType, AnyType], UndefinedType, [], ['name', 'value']),
+    entries: new FunctionType([], AnyType, [], []),
+    keys: new FunctionType([], AnyType, [], []),
+    values: new FunctionType([], AnyType, [], []),
+    forEach: new FunctionType([AnyFunctionType], UndefinedType, [], ['callback']),
+  },
+
+  // WebSocket – real-time bidirectional communication
+  WebSocket: {
+    url: StringType,
+    readyState: NumberType,
+    bufferedAmount: NumberType,
+    protocol: StringType,
+    extensions: StringType,
+    binaryType: StringType,
+    onopen: AnyType,
+    onmessage: AnyType,
+    onclose: AnyType,
+    onerror: AnyType,
+    send: new FunctionType([AnyType], UndefinedType, [], ['data']),
+    close: new FunctionType([NumberType, StringType], UndefinedType, [], ['code', 'reason']),
+    addEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    removeEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+  },
+
+  // DOM Observers
+  MutationObserver: {
+    observe: new FunctionType([AnyType, AnyType], UndefinedType, [], ['target', 'options']),
+    disconnect: new FunctionType([], UndefinedType, [], []),
+    takeRecords: new FunctionType([], Types.array(AnyType), [], []),
+  },
+
+  IntersectionObserver: {
+    root: AnyType,
+    rootMargin: StringType,
+    thresholds: Types.array(NumberType),
+    observe: new FunctionType([AnyType], UndefinedType, [], ['target']),
+    unobserve: new FunctionType([AnyType], UndefinedType, [], ['target']),
+    disconnect: new FunctionType([], UndefinedType, [], []),
+    takeRecords: new FunctionType([], Types.array(AnyType), [], []),
+  },
+
+  ResizeObserver: {
+    observe: new FunctionType([AnyType], UndefinedType, [], ['target']),
+    unobserve: new FunctionType([AnyType], UndefinedType, [], ['target']),
+    disconnect: new FunctionType([], UndefinedType, [], []),
+  },
+
+  // Web Crypto API
+  crypto: {
+    randomUUID: new FunctionType([], StringType, [], []),
+    getRandomValues: new FunctionType([AnyType], AnyType, [], ['typedArray']),
+    subtle: AnyType,  // SubtleCrypto – complex async API, typed as any
+  },
+
+  // Performance API
+  performance: {
+    now: new FunctionType([], NumberType, [], []),
+    mark: new FunctionType([StringType], UndefinedType, [], ['name']),
+    measure: new FunctionType([StringType, StringType, StringType], AnyType, [], ['name', 'startMark', 'endMark']),
+    clearMarks: new FunctionType([StringType], UndefinedType, [], ['name']),
+    clearMeasures: new FunctionType([StringType], UndefinedType, [], ['name']),
+    getEntriesByName: new FunctionType([StringType], Types.array(AnyType), [], ['name']),
+    getEntriesByType: new FunctionType([StringType], Types.array(AnyType), [], ['type']),
+    getEntries: new FunctionType([], Types.array(AnyType), [], []),
+    timeOrigin: NumberType,
+    memory: AnyType,
+  },
 
   // JavaScript console object – all methods are functions that return undefined
   console: {
@@ -269,15 +533,46 @@ let builtinObjectTypes = {
     setInterval: new FunctionType([AnyFunctionType, NumberType], NumberType, [], ['callback', 'delay']),
     clearTimeout: new FunctionType([NumberType], UndefinedType, [], ['id']),
     clearInterval: new FunctionType([NumberType], UndefinedType, [], ['id']),
-    fetch: new FunctionType([StringType], AnyType, [], ['url']),  // returns Promise<Response>; typed as any until generics
+    queueMicrotask: new FunctionType([AnyFunctionType], UndefinedType, [], ['callback']),
+    structuredClone: new FunctionType([AnyType], AnyType, [], ['value']),
+    fetch: new FunctionType([AnyType, AnyType], AnyType, [], ['input', 'init']),  // returns Promise<Response>
     location: AnyType,
     history: AnyType,
     navigator: AnyType,
     screen: AnyType,
-    localStorage: AnyType,
-    sessionStorage: AnyType,
+    localStorage: AnyType,    // Storage instance – see Storage type above
+    sessionStorage: AnyType,  // Storage instance – see Storage type above
+    indexedDB: AnyType,
     requestAnimationFrame: new FunctionType([AnyFunctionType], NumberType, [], ['callback']),
     cancelAnimationFrame: new FunctionType([NumberType], UndefinedType, [], ['id']),
+    addEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    removeEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    dispatchEvent: new FunctionType([AnyType], BooleanType, [], ['event']),
+    postMessage: new FunctionType([AnyType, StringType], UndefinedType, [], ['message', 'targetOrigin']),
+    open: new FunctionType([StringType, StringType], AnyType, [], ['url', 'target']),
+    close: new FunctionType([], UndefinedType, [], []),
+    atob: new FunctionType([StringType], StringType, [], ['encodedString']),
+    btoa: new FunctionType([StringType], StringType, [], ['stringToEncode']),
+    crypto: AnyType,        // Crypto instance – see crypto type above
+    performance: AnyType,   // Performance instance – see performance type above
+    // Constructor references exposed on window
+    URL: AnyType,
+    URLSearchParams: AnyType,
+    Headers: AnyType,
+    Request: AnyType,
+    Response: AnyType,
+    Event: AnyType,
+    CustomEvent: AnyType,
+    AbortController: AnyType,
+    AbortSignal: AnyType,
+    Blob: AnyType,
+    File: AnyType,
+    FileReader: AnyType,
+    FormData: AnyType,
+    WebSocket: AnyType,
+    MutationObserver: AnyType,
+    IntersectionObserver: AnyType,
+    ResizeObserver: AnyType,
   },
 
   // Browser document object (common properties)
