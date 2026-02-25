@@ -9,14 +9,14 @@
 
 // Comment after opening brace of a type definition
 type Route = { // opening brace comment
-  path: string, // comma-separated property comment
-  name: string, // comma-separated property comment
-  params?: string[] // last property comment
+  path: string,
+  name: string,
+  params?: string[]
 } // closing brace comment
 
 // Comment after opening brace of a function definition
-def makeRoute(path: string, // comment
-  name: string): Route { // opening brace comment
+def makeRoute(path: string,
+name: string): Route { // opening brace comment
   return { path, name } // closing brace comment
 } // closing brace comment
 
@@ -33,8 +33,10 @@ add = (a: number, b: number) => { // opening brace comment
   */
 } // closing brace comment
 
-class test {
-  // asf
+class DogClass { // comment after opening brace of class definition
+  def method() { // comment after opening brace of method definition
+    return 42 // comment after return statement
+  } // comment after closing brace of method definition
 } // asdf
 
 test('inline comment after fat-arrow function body opening brace', () => {

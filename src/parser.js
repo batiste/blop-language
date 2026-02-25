@@ -5110,20 +5110,25 @@ let class_def_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_7 = CLASS_STATEMENT(stream, i);
-  while (_rule_7) {
-    named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_7);
+  const _rule_7 = wcomment(stream, i);
+  if (_rule_7) {
     children.push(_rule_7);
     i = _rule_7.last_index;
-    _rule_7 = CLASS_STATEMENT(stream, i);
+  }
+  let _rule_8 = CLASS_STATEMENT(stream, i);
+  while (_rule_8) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_8);
+    children.push(_rule_8);
+    i = _rule_8.last_index;
+    _rule_8 = CLASS_STATEMENT(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_def', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 8,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 9,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -5203,20 +5208,25 @@ let class_def_1 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  let _rule_4 = CLASS_STATEMENT(stream, i);
-  while (_rule_4) {
-    named['stats'] ? null : named['stats'] = [];
-    named['stats'].push(_rule_4);
+  const _rule_4 = wcomment(stream, i);
+  if (_rule_4) {
     children.push(_rule_4);
     i = _rule_4.last_index;
-    _rule_4 = CLASS_STATEMENT(stream, i);
+  }
+  let _rule_5 = CLASS_STATEMENT(stream, i);
+  while (_rule_5) {
+    named['stats'] ? null : named['stats'] = [];
+    named['stats'].push(_rule_5);
+    children.push(_rule_5);
+    i = _rule_5.last_index;
+    _rule_5 = CLASS_STATEMENT(stream, i);
   }
 
   if (stream[i].type !== '}') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_def', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
