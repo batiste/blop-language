@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral } from '../typeSystem.js';
+import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
@@ -774,6 +774,11 @@ function createStatementHandlers(getState) {
         const resolvedExpType = resolveTypeAlias(expType, typeAliases);
         if (resolvedExpType instanceof ArrayType) {
           valueType = resolvedExpType.elementType;
+        } else if (!isArray && resolvedExpType instanceof ObjectType && resolvedExpType.properties.size > 0) {
+          // for key, value in obj — value is the union of all property value types
+          const propTypes = Array.from(resolvedExpType.properties.values()).map(p => p.type);
+          const unique = [...new Map(propTypes.map(t => [t.toString(), t])).values()];
+          valueType = unique.length === 1 ? unique[0] : createUnionType(unique);
         }
         
         scope[value] = { type: valueType, node: node.named.value };
