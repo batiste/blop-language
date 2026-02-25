@@ -111,15 +111,9 @@ For the best development experience, install the Blop VSCode extensions:
 ## Common Commands
 
 ```bash
-# Development server
-npm start  # or npx vite
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
+# Format a file
+npx blop --format -i hello.blop
 
 # Compile a single file
-npx blop -i input.blop -o output.js
+npx blop -i hello.blop
 ```
