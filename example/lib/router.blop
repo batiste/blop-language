@@ -105,6 +105,5 @@ class Router {
     if m.route.handler {
       await m.route.handler(m.params, this.state)
     }
-    this.state.route.loading = false
   }
 }
