@@ -21,7 +21,8 @@ def test(a: number=1) {
 def arrayFct(a: number=1): { a: number }[] {
   return [{ a }, { a: a + 1 }, { a: a + 2 }]
 }
-arrayFct()[0].b
+// should fail
+// arrayFct()[0].b
 
 
 def variableType(x: number, _y=5) {

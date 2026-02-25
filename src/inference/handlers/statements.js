@@ -176,15 +176,11 @@ function createStatementHandlers(getState) {
           // Validate each return expression against the declared return type.
           // Doing this per-statement avoids the problem where any-typed returns
           // contaminate the end-of-function union check.
-          // Only check when the exp resolves to a single type: multi-item arrays
-          // indicate unresolved inline string interpolation whose final type can't
-          // be reliably inferred from the last element alone.
           if (inferencePhase === 'checking' && returnExpNode) {
             const declaredReturnType = functionScope.__declaredReturnType;
-            const singleType = returnExpNode.inference?.length === 1 ? returnType : null;
-            if (declaredReturnType && singleType && singleType !== AnyType) {
-              if (!isTypeCompatible(singleType, declaredReturnType, typeAliases)) {
-                const displayType = getBaseTypeOfLiteral(singleType);
+            if (declaredReturnType && returnType !== AnyType) {
+              if (!isTypeCompatible(returnType, declaredReturnType, typeAliases)) {
+                const displayType = getBaseTypeOfLiteral(returnType);
                 pushWarning(
                   returnExpNode,
                   `returns ${displayType} but declared as ${declaredReturnType}`

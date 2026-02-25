@@ -132,6 +132,8 @@ let builtinObjectTypes = {
     trunc: new FunctionType([NumberType], NumberType, [], ['x']),
   },
 
+  AbortController: ObjectType,
+
   // JavaScript console object – all methods are functions that return undefined
   console: {
     log: new FunctionType([], UndefinedType, [], []),

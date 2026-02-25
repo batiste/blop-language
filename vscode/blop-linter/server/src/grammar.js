@@ -276,15 +276,10 @@ const grammar = {
     ['try:try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
-
   // used in backend
   'name_exp': [
     ['name:name'],
   ],
-  // 'optional_chaining': [
-  //   ['name:name', '.', 'optional_chaining'],
-  //   ['name:name', 'question', 'object_access'],
-  // ],
   'short_if_expression': [
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2', 'w', 'else:else', 'exp:exp3'],
     ['if:type', 'exp:exp1', 'w', '=>', 'w', 'exp:exp2'],
@@ -293,7 +288,6 @@ const grammar = {
     ['new', 'exp:exp'],
   ],
   'exp': [
-    // ['optional_chaining'],
     ['exp:obj', 'optional_chain:optional', 'name:prop'],
     ['exp:obj', '.', 'name:prop'],
     ['exp:obj', 'optional_chain:optional', '[', 'exp:key', ']'],

@@ -4,13 +4,13 @@ Blop is a typed language for the Web that generates Virtual DOM. It has a gramma
 
 ## Parser Characteristics
 
-`src/parser.js` is a PEG parser with ordered choice, Packrat parsing with memoization, and direct left recursion support using Guido van Rossum's algorithm. Can be regenerated from `src/grammar.js` using `npm run build-parser`.
+`src/parser.js` is a PEG parser with ordered choice, Packrat parsing with memoization, and direct left recursion support using Guido van Rossum's algorithm. Can be regenerated from `src/grammar.js` using `npm run parser`.
 
 ## Quick Commands
 
 - **Run tests**: `npx vitest run`
 - **Debug AST**: `node --experimental-vm-modules src/tests/yourDebugFile.js`
-- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`). Do not do it, the user should not have to worry about it.
+- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`). Do not do it, the user will decide when to do it.
 
 ## Development Principles
 
@@ -32,13 +32,13 @@ Blop is a typed language for the Web that generates Virtual DOM. It has a gramma
 ### Files & Directories
 - **Auto-generated**: `vscode/blop-linter/blop-linter/server/src/` — do not modify except `server.ts`
 - Grammar definition: `src/grammar.js`
-- Type system: `src/inference/` and `src/backend/`
+- Type system: `src/inference/`
+- Code generation (and some type checks): `src/backend/`
 - Debug utilities: `src/tests/debugUtils.js`
 
 ### Testing Strategy
 
 **Positive tests**: Write real `.blop` test files compiled by the test suite.
-
 **Negative tests**: Use `expectCompilationError()` from `src/tests/testHelpers.js`.
 
 ## Type System Architecture

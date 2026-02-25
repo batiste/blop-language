@@ -243,6 +243,26 @@ function createLiteralHandlers(getState) {
       pushInference(parent, elementType ? Types.array(elementType) : Types.alias('array'));
     },
 
+    str_expression: (node, parent) => {
+      // String interpolation always produces a string regardless of embedded
+      // expression types. Visit children so the embedded expressions are still
+      // type-checked (e.g. property access errors still fire).
+      const { pushInference } = getState();
+      visitChildren(node);
+      node.inference = [StringType];
+      node.inferredType = StringType;
+      if (parent) pushInference(parent, StringType);
+    },
+
+    inner_str_expression: (node, parent) => {
+      // Inner string interpolation segment — same reasoning as str_expression.
+      const { pushInference } = getState();
+      visitChildren(node);
+      node.inference = [StringType];
+      node.inferredType = StringType;
+      if (parent) pushInference(parent, StringType);
+    },
+
     object_literal: (node, parent) => {
       const { pushInference, lookupVariable } = getState();
       resolveTypes(node);
