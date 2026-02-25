@@ -52,28 +52,28 @@ This helps prevent bugs from accidental variable shadowing.
 
 ### How does string concatenation work?
 
-In Blop, strings are concatenated by placing them next to each other:
+In Blop, strings are concatenated by placing them next to each other (no space):
 
 ```typescript
 name = 'Alice'
 greeting = 'Hello ' name  // "Hello Alice"
 
 count = 42
-message = 'The answer is ' count ''  // "The answer is 42"
+message = 'The answer is 'count // "The answer is 42"
 ```
 
 ### Can I use template literals?
 
-Blop's string concatenation is more flexible than template literals. Any quote type works:
+Blop's string concatenation is more flexible than template literals. Any quote type works and are multiline by default:
 
 ```typescript
 name = 'Alice'
-message1 = 'Hello 'name''
-message2 = "Hello "name""
-message3 = `Hello `name``
+message1 = 'Hello 'name
+message2 = "Hello "name
+message3 = `
+    Hello  
+    `name
 ```
-
-All three are equivalent.
 
 ## Components
 
@@ -186,12 +186,15 @@ The assignment operator (`=`) inserts content into Virtual DOM:
 
 ```typescript
 <div>
-  = "Some text"
+  "Welcome "name
+  "Login :"
   = myVariable
   = someComponent()
   = items.map(i => <span>i</span>)
 </div>
 ```
+
+For strings and strings expression, you can omit the `=`:
 
 ## State Management
 
