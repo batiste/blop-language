@@ -301,7 +301,11 @@ let builtinObjectTypes = {
   },
 };
 
-builtinObjectTypes = { ...builtinObjectTypes, ...builtinObjectTypes.window }; // Include all global properties (e.g. setTimeout) as built-in types for convenience
+// Spread window globals into the top-level map so that `setTimeout`, `fetch`, etc.
+// are accessible as bare names. Window properties are placed FIRST so that explicitly
+// defined types (e.g. the full `console` object with `log`/`warn`/`error`) take
+// precedence over the generic `AnyType` stubs in the `window` definition.
+builtinObjectTypes = { ...builtinObjectTypes.window, ...builtinObjectTypes };
 
 export default builtinObjectTypes;
 

@@ -8,6 +8,7 @@ import createExpressionHandlers from './handlers/expressions.js';
 import createFunctionHandlers from './handlers/functions.js';
 import createStatementHandlers from './handlers/statements.js';
 import { runBindingPhase } from './symbolTable.js';
+import { ObjectType } from './Type.js';
 
 // Combine all handlers
 function createNodeHandlers() {
@@ -62,10 +63,19 @@ function inference(node, _stream, filename) {
   // can be resolved by resolveTypeAlias everywhere in the chain validators.
   // Without this, chains like this.route.test.bad where test: SomeClass would
   // silently break out of validatePropertyChain when it hit the unresolved alias.
+  //
+  // IMPORTANT: Store a copy WITHOUT isClassInstance so that TypeAlias resolution
+  // (e.g. resolving Type2 in `this.route.test`) does NOT suppress property-not-found
+  // warnings.  The isClassInstance flag must only be set on the ObjectType that is
+  // bound to `this` inside a class method – those come from the scope directly and
+  // still have isClassInstance = true for constructor-property suppression.
   const classes = symbolTable.getClasses();
   for (const [className, classInfo] of Object.entries(classes)) {
     if (!typeAliases[className]) {
-      typeAliases[className] = classInfo.type;
+      const aliasType = new ObjectType(classInfo.type.properties, classInfo.type.name);
+      // Deliberately NOT setting aliasType.isClassInstance so that TypeAlias resolution
+      // of class names in property chains emits proper missing-property warnings.
+      typeAliases[className] = aliasType;
     }
   }
 

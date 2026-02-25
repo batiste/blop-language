@@ -58,7 +58,7 @@ const grammar = {
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'w', '=', 'w', 'exp:exp'],
-    ['name:path', 'object_access:access', 'w', '=', 'w', 'exp:exp'],
+    ['exp:path', 'w', '=', 'w', 'exp:exp'],
   ],
   'assign_op': [
     ['name:name', 'annotation?:annotation', 'w', 'assign_operator', 'w', 'exp:exp'],
@@ -308,8 +308,8 @@ const grammar = {
   ],
   'exp': [
     // ['optional_chaining'],
-    ['exp', 'object_access'],
-    ['exp', 'w', 'operation:op'],
+    ['exp:obj', 'object_access:access'],
+    ['exp:obj', 'w', 'operation:op'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],

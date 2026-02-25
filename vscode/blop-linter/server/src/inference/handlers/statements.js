@@ -8,7 +8,6 @@ import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js'
 import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
-import { extractPropertyNodesFromAccess } from './utils.js';
 import TypeChecker from '../typeChecker.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -39,6 +38,29 @@ function extractImportNameNodes(node) {
 
   traverse(node);
   return entries;
+}
+
+/**
+ * Collect all property names from an exp:path tree (for LHS of property assignment).
+ * For `a.b.c`, walks the nested exp nodes and collects [a, b, c], returning "b.c"
+ * (skipping the base variable name — only the property chain part).
+ */
+function collectPropertyPathFromExp(expNode) {
+  const parts = [];
+  function walk(node) {
+    if (!node) return;
+    if (node.type === 'exp') {
+      for (const child of node.children ?? []) {
+        if (child.type === 'exp') walk(child);
+        else if (child.type === 'object_access') {
+          const name = child.children?.find(c => c.type === 'name');
+          if (name) parts.push(name.value);
+        }
+      }
+    }
+  }
+  walk(expNode);
+  return parts.join('.');
 }
 
 /**
@@ -432,66 +454,39 @@ function createStatementHandlers(getState) {
         
         visit(node.named.exp, node);
         
-        // Check if this is a property assignment (e.g., u.name = 1 or u.user.name = "x")
-        if (node.named.path && node.named.access) {
-          // Property assignment - extract the full property chain
-          const objectName = node.named.path.value;
-          const accessNode = node.named.access;
-          
-          // Extract all property names from the access chain (handles nested like user.userType)
-          const propertyNodes = extractPropertyNodesFromAccess(accessNode);
-          const propertyChain = propertyNodes.map(prop => prop.name);
-          
-          if (objectName && propertyChain.length > 0) {
-            // Get the type of the value being assigned
-            const expNode = node.named.exp;
-            const valueType = expNode && expNode.inference && expNode.inference[0];
-            
-            if (valueType && valueType !== AnyType) {
-              // Look up the object's type
-              const objectDef = lookupVariable(objectName);
-              if (objectDef && objectDef.type) {
-                // Stamp property name nodes with their resolved types for hover support
-                let currentType = objectDef.type;
-                for (const prop of propertyNodes) {
-                  const nextType = getPropertyType(currentType, prop.name, typeAliases);
-                  if (!nextType) {
-                    break;
-                  }
-                  prop.node.inferredType = resolveTypeAlias(nextType, typeAliases);
-                  currentType = nextType;
-                }
+        // Check if this is a property assignment via exp:path (e.g., u.name = 1 or u.b.c = x)
+        if (node.named.path && !node.named.name) {
+          // Visit the LHS exp so object_access nodes get __objectType/__propertyName stamped
+          visit(node.named.path, node);
 
-                // For class instances, check if the property is explicitly declared.
-                // If it is, validate the assignment; otherwise, allow it (constructor-assigned).
-                const resolvedObjType = resolveTypeAlias(objectDef.type, typeAliases);
-                const shouldSkipValidation = 
-                  resolvedObjType.isClassInstance && 
-                  propertyChain.length > 0 &&
-                  !resolvedObjType.properties.has(propertyChain[0]);
-                
-                if (!shouldSkipValidation) {
-                  // Use getPropertyType to validate and get the final property type
-                  const expectedType = getPropertyType(objectDef.type, propertyChain, typeAliases);
-                  
-                  if (expectedType === null) {
-                    // Property doesn't exist
-                    const fullPropertyPath = propertyChain.join('.');
-                    pushWarning(
-                      node,
-                      `Property '${fullPropertyPath}' does not exist on type ${objectDef.type}`
-                    );
-                  } else {
-                    // Property exists, check type compatibility
-                    const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
-                    
-                    if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
-                      const fullPropertyPath = propertyChain.join('.');
-                      pushWarning(
-                        node,
-                        `Cannot assign ${valueType} to property '${fullPropertyPath}' of type ${expectedType}`
-                      );
-                    }
+          // Find the outermost object_access in the LHS exp (direct child of top-level exp)
+          const pathExpNode = node.named.path;
+          const finalOA = pathExpNode.children?.find(c => c.type === 'object_access');
+
+          if (finalOA && finalOA.__objectType !== undefined && finalOA.__propertyName) {
+            const objectType = finalOA.__objectType;
+            const propertyName = finalOA.__propertyName;
+
+            const valueType = node.named.exp?.inference?.[0];
+
+            if (valueType && valueType !== AnyType) {
+              // For class instances, skip validation for non-declared (constructor-assigned) props
+              const resolvedObjType = resolveTypeAlias(objectType, typeAliases);
+              const shouldSkipValidation =
+                resolvedObjType?.isClassInstance &&
+                !resolvedObjType.properties.has(propertyName);
+
+              if (!shouldSkipValidation) {
+                const expectedType = getPropertyType(objectType, propertyName, typeAliases);
+                // Collect full property path string for error messages (e.g. "user.userType")
+                const fullPath = collectPropertyPathFromExp(pathExpNode);
+
+                if (expectedType === null) {
+                  pushWarning(node, `Property '${fullPath}' does not exist on type ${objectType}`);
+                } else {
+                  const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                  if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                    pushWarning(node, `Cannot assign ${valueType} to property '${fullPath}' of type ${expectedType}`);
                   }
                 }
               }
@@ -792,6 +787,33 @@ function createStatementHandlers(getState) {
       }
       
       popScope();
+      pushToParent(node, parent);
+    },
+
+    try_catch: (node, parent) => {
+      const { pushScope, popScope } = getState();
+
+      // Visit try body in an isolated scope so variables declared inside
+      // do not leak into the surrounding scope.
+      pushScope();
+      if (node.named.statstry) {
+        node.named.statstry.forEach(stat => visit(stat, node));
+      }
+      popScope();
+
+      // Visit catch body in an isolated scope.  The catch variable (e.g. `err`
+      // in `catch err { ... }`) is bound here as AnyType because the runtime
+      // exception value has no static type information.
+      const catchScope = pushScope();
+      const catchVarName = node.named.name?.value;
+      if (catchVarName) {
+        catchScope[catchVarName] = { type: AnyType, node: node.named.name };
+      }
+      if (node.named.statscatch) {
+        node.named.statscatch.forEach(stat => visit(stat, node));
+      }
+      popScope();
+
       pushToParent(node, parent);
     },
   };

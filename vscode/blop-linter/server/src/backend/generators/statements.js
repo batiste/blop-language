@@ -166,10 +166,9 @@ function createStatementGenerators(context) {
         }
         output.push(...generateCode(node.named.name));
       } else if (node.named.path) {
-        const name = node.named.path.value;
-        shouldBeDefined(name, node.named.path);
+        // New grammar: exp:path = exp (e.g., this.routes = [], a.b.c = val)
+        // Generate the full LHS expression directly
         output.push(...generateCode(node.named.path));
-        output.push(...generateCode(node.named.access));
       } else {
         output.push(...generateCode(node.named.destructuring));
       }

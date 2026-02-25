@@ -8,12 +8,9 @@ import {
   isTypeCompatible,
   parseGenericParams,
   resolveTypeAlias,
-  inferGenericArguments,
-  substituteType,
   getBaseTypeOfLiteral,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, AnyFunctionType, createUnion, ObjectType, TypeAlias, GenericType } from '../Type.js';
-import TypeChecker from '../typeChecker.js';
+import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType } from '../Type.js';
 import { getBuiltinObjectType } from '../builtinTypes.js';
 
 /**

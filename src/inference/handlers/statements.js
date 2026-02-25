@@ -8,7 +8,6 @@ import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js'
 import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
-import { extractPropertyNodesFromAccess } from './utils.js';
 import TypeChecker from '../typeChecker.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
