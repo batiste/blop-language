@@ -2,7 +2,7 @@
 	"name": "blop-syntax-highlighter",
 	"displayName": "Blop language syntax highlighter",
 	"description": "A Javascript-like language that offers a JSX syntax",
-	"version": "1.0.14",
+	"version": "1.2.0",
 	"publisher": "batistebieler",
 	"engines": {
 		"vscode": "*"
