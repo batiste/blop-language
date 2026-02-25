@@ -42,7 +42,6 @@ export default defineConfig({
         'src/parser.js', // Generated file
         'src/blop.js', // CLI entry point
         'src/generateParser.js',
-        'src/updateAutocompleteFile.js',
         'src/runtime.mock.js',
       ],
       thresholds: {

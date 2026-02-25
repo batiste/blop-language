@@ -10,7 +10,7 @@ Get started with Blop in 5 minutes!
 ## Installation
 
 ```bash
-npm install blop-language
+npm install blop-language vite
 ```
 
 ## Create Your First Blop File
@@ -38,7 +38,7 @@ Create `vite.config.js`:
 
 ```javascript
 import { defineConfig } from 'vite';
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -72,7 +72,7 @@ def Hello(ctx: Component) {
   </div>
 }
 
-def App(ctx: Component) {
+def App() {
   <div>
     <Hello name="Blop"></Hello>
   </div>

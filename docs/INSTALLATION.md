@@ -68,7 +68,7 @@ Create `vite.config.js`:
 
 ```javascript
 import { defineConfig } from 'vite';
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -142,7 +142,7 @@ Vite provides fast development and optimized builds.
 ```javascript
 // vite.config.js
 import { defineConfig } from 'vite';
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -154,7 +154,7 @@ export default defineConfig({
 ```javascript
 // vite.config.js
 import { defineConfig } from 'vite';
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -185,7 +185,7 @@ Create `vitest.config.js`:
 
 ```javascript
 import { defineConfig } from 'vitest/config';
-import { blopPlugin } from 'blop-language/src/vitest';
+import { blopPlugin } from 'blop-language/vitest';
 
 export default defineConfig({
   plugins: [blopPlugin()],
@@ -336,7 +336,7 @@ blop-language/
 **Solution:** Make sure `blopPlugin()` is in your `vite.config.js`:
 
 ```typescript
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],

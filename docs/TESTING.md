@@ -25,7 +25,7 @@ Create `vitest.config.js`:
 
 ```javascript
 import { defineConfig } from 'vitest/config';
-import { blopPlugin } from 'blop-language/src/vitest';
+import { blopPlugin } from 'blop-language/vitest';
 
 export default defineConfig({
   plugins: [blopPlugin()],

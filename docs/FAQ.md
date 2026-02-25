@@ -233,7 +233,7 @@ Yes! Blop has first-class Vite support:
 
 ```javascript
 // vite.config.js
-import { blopPlugin } from 'blop-language/src/vite';
+import { blopPlugin } from 'blop-language/vite';
 
 export default defineConfig({
   plugins: [blopPlugin()],
