@@ -86,7 +86,7 @@ def ListDemo(ctx: Component): VNode {
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span>
             <span style={ color: '#6c757d', fontSize: '0.85em', marginRight: '0.5em' }>'#'(index + 1)</span>
-            item
+            = item
           </span>
           <button
             class="btn btn-sm btn-outline-danger"
@@ -227,7 +227,8 @@ def ShowcasePage(ctx: Component): VNode {
           </h2>
 
           <p style={ color: '#495057', lineHeight: '1.7', marginBottom: '1.5em' }>
-            'JSX is an expression language: only expressions are valid inside markup, which forces you to use .map() for iteration, ternary operators for conditionals, and IIFEs for local variables. Blop templates can be both statement and expression-based.'
+            'JSX is an expression language, which forces you to use .map() for iteration, ternary operators for conditionals, and IIFEs for local variables. '
+            <strong>'Blop templates can do statements and expressions.'</strong>
           </p>
 
           <div class="row" style={ marginBottom: '2em' }>
@@ -275,8 +276,8 @@ def ShowcasePage(ctx: Component): VNode {
           </h3>
           <ul style={ color: '#495057', lineHeight: '2', paddingLeft: '1.5em' }>
             <li>
-              <strong>'Statement-based templates'</strong>
-              ' — for, if/elseif/else, and variable declarations are valid anywhere in a template'
+              <strong>'Flexible templates'</strong>
+              ' — for, if/elseif/else, and variable declarations are valid anywhere'
             </li>
             <li>
               <strong>'Compiled to Virtual DOM'</strong>
@@ -287,7 +288,7 @@ def ShowcasePage(ctx: Component): VNode {
               ' with inference. Generics are supported.'</li>
             <li>
               <strong>'No return statement'</strong>
-              ' — the last expression in a component function is its output'</li>
+              ' — The top-level node in a component function is its output'</li>
             <li>
               <strong>'Built-in reactivity'</strong>
               ' via ctx.state() with typed initial values'</li>
@@ -384,7 +385,7 @@ def ShowcasePage(ctx: Component): VNode {
     <ul class=\"list-group\" style={ marginTop: '1em' }>
       for index, item of items {
         <li class=\"list-group-item d-flex justify-content-between\">
-          item
+          = item
           <button on={ click: removeItem(index) }>'Remove'</button>
         </li>
       }
@@ -482,7 +483,7 @@ def ShowcasePage(ctx: Component): VNode {
               <CodeBlock
                 code="<ul>
   for index, item of items {
-    <li>
+    <li key=index>
       <strong>'#'index</strong>
       ' 'item.name
     </li>
@@ -575,7 +576,7 @@ for key, value in config {
     ctx.state<boolean>('done', false)
 
   <li
-    class={ if done => 'done' else 'todo' }
+    class={ done => 'done' else 'todo' }
     on={ click: () => setState(!done) }
   >
     = ctx.attributes.todo.title
