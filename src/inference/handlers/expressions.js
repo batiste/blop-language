@@ -387,6 +387,16 @@ function createExpressionHandlers(getState) {
         pushToParent(node, parent);
         return;
       }
+
+      // `delete expr` — always produces boolean at runtime regardless of operand type.
+      if (firstChild?.type === 'delete') {
+        visitChildren(node);
+        node.inference = [BooleanType];
+        node.inferredType = BooleanType;
+        pushToParent(node, parent);
+        return;
+      }
+
       resolveTypes(node);
       pushToParent(node, parent);
     },
