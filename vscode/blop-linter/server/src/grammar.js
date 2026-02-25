@@ -62,7 +62,7 @@ const grammar = {
   ],
   'assign_op': [
     ['name:name', 'annotation?:annotation', 'w', 'assign_operator', 'w', 'exp:exp'],
-    ['name:name', 'object_access:access', 'w', 'assign_operator', 'w', 'exp:exp'],
+    ['exp:target', 'w', 'assign_operator', 'w', 'exp:exp'],
   ],
   'for_loop': [
     ['for', 'name:value', 'w', 'in:in', 'exp:exp', 'w', '{', 'SCOPED_STATEMENTS*:stats', '}'],
@@ -167,8 +167,8 @@ const grammar = {
     ['{', 'wcomment?', 'SCOPED_STATEMENTS*:stats', '}'],
   ],
   'class_def': [
-    ['clazz', 'name:name', 'w', 'extends', 'name:extends', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
-    ['clazz', 'name:name', 'w', '{', 'CLASS_STATEMENT*:stats', '}'],
+    ['clazz', 'name:name', 'w', 'extends', 'name:extends', 'w', '{', 'wcomment?', 'CLASS_STATEMENT*:stats', '}'],
+    ['clazz', 'name:name', 'w', '{', 'wcomment?', 'CLASS_STATEMENT*:stats', '}'],
   ],
   'class_func_def': [
     ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', ')', 'annotation?:annotation', 'w', 'func_body:body'],
@@ -276,21 +276,7 @@ const grammar = {
     ['try:try', '{', 'SCOPED_STATEMENTS*:statstry', '}',
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
-  'object_access': [
-    ['optional_chain:optional', 'name:name'],
-    ['.', 'name'],
-    ['optional_chain:optional', '[', 'exp', ']'],
-    ['type_arguments:type_args', 'func_call'],
-    ['func_call'],
-    ['[', 'exp', ']'],
-  ],
-  'operation': [
-    ['nullish:nullish_op', 'w', 'exp'],
-    ['math_operator:math_op', 'w', 'exp'],
-    ['boolean_operator:boolean_op', 'w', 'exp'],
-    ['<:boolean_op', 'w', 'exp'],
-    ['>:boolean_op', 'w', 'exp'],
-  ],
+
   // used in backend
   'name_exp': [
     ['name:name'],
@@ -308,8 +294,17 @@ const grammar = {
   ],
   'exp': [
     // ['optional_chaining'],
-    ['exp:obj', 'object_access:access'],
-    ['exp:obj', 'w', 'operation:op'],
+    ['exp:obj', 'optional_chain:optional', 'name:prop'],
+    ['exp:obj', '.', 'name:prop'],
+    ['exp:obj', 'optional_chain:optional', '[', 'exp:key', ']'],
+    ['exp:obj', 'type_arguments:type_args', 'func_call:call'],
+    ['exp:obj', 'func_call:call'],
+    ['exp:obj', '[', 'exp:key', ']'],
+    ['exp:left', 'w', 'nullish:nullish_op', 'w', 'exp:right'],
+    ['exp:left', 'w', 'math_operator:math_op', 'w', 'exp:right'],
+    ['exp:left', 'w', 'boolean_operator:boolean_op', 'w', 'exp:right'],
+    ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
+    ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],

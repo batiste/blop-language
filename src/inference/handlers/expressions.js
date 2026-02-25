@@ -3,8 +3,8 @@
 // ============================================================================
 
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
-import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType } from '../Type.js';
+import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType } from '../typeSystem.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType, NullType, NeverType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { isBuiltinObjectType } from '../builtinTypes.js';
@@ -255,6 +255,64 @@ function handleSimpleVariable(name, parent, definition, getState) {
   }
 }
 
+/**
+ * Handle inlined binary operation alternatives: math, boolean, nullish coalescing.
+ * All five inlined operation alternatives have exp:left + one of math_op/boolean_op/nullish_op.
+ */
+function handleExpBinaryOp(node, parent, getState) {
+  const { inferencePhase, pushInference, pushWarning, typeAliases } = getState();
+  const { math_op, boolean_op, nullish_op, left, right } = node.named;
+
+  // In inference phase the two exp children pushed their types to node.inference[0,1].
+  // In checking phase use the stamped inferredType from the inference phase.
+  const leftType = inferencePhase === 'checking'
+    ? (left?.inferredType ?? AnyType)
+    : (node.inference?.[0] ?? AnyType);
+  const rightType = inferencePhase === 'checking'
+    ? (right?.inferredType ?? AnyType)
+    : (node.inference?.[1] ?? AnyType);
+
+  if (math_op) {
+    const result = TypeChecker.checkMathOperation(leftType, rightType, math_op.value);
+    // pushWarning is a no-op in inference phase, so this is safe to call unconditionally
+    if (!result.valid) {
+      const msgs = result.warning ? [result.warning] : (result.warnings ?? []);
+      msgs.forEach(w => pushWarning(node, w));
+    }
+    if (inferencePhase === 'inference') {
+      const resultType = result.resultType ?? AnyType;
+      node.inference = [resultType];
+      node.inferredType = resultType;
+      if (parent) pushInference(parent, resultType);
+    }
+  } else if (boolean_op) {
+    // boolean_op covers boolean_operator tokens (||, &&, >=, <=, ==, !=, instanceof)
+    // AND the bare < / > tokens (also labelled :boolean_op in the grammar)
+    if (inferencePhase === 'inference') {
+      node.inference = [BooleanType];
+      node.inferredType = BooleanType;
+      if (parent) pushInference(parent, BooleanType);
+    }
+  } else if (nullish_op) {
+    if (inferencePhase === 'inference') {
+      const resolvedLeft = resolveTypeAlias(leftType, typeAliases) ?? leftType;
+      const leftCanBeNullish = resolvedLeft === NullType || resolvedLeft === UndefinedType ||
+        (isUnionType(resolvedLeft) && parseUnionType(resolvedLeft).some(t => t === NullType || t === UndefinedType));
+      const resultType = leftCanBeNullish
+        ? (() => {
+            const nonNullishLeft = removeNullish(resolvedLeft);
+            return nonNullishLeft === NeverType
+              ? rightType
+              : createUnionType([nonNullishLeft, rightType].filter(Boolean));
+          })()
+        : leftType;
+      node.inference = [resultType];
+      node.inferredType = resultType;
+      if (parent) pushInference(parent, resultType);
+    }
+  }
+}
+
 function createExpressionHandlers(getState) {
   return {
     math: (node, parent) => {
@@ -263,12 +321,17 @@ function createExpressionHandlers(getState) {
       pushInference(parent, PrimitiveType.Number);
     },
     exp: (node, parent) => {
-      const { obj, op } = node.named ?? {};
+      const { left, obj } = node.named ?? {};
 
-      // Property/bracket/call access — visit children first to populate the object
-      // type (from exp:obj) and func_call/key/prop arguments, then dispatch structurally.
-      // All six inlined object_access alternatives have obj but no op.
-      if (obj !== undefined && op === undefined) {
+      // Binary operations — five inlined alternatives all have exp:left
+      if (left !== undefined) {
+        visitChildren(node);
+        handleExpBinaryOp(node, parent, getState);
+        return;
+      }
+
+      // Property/bracket/call access — six inlined alternatives all have exp:obj
+      if (obj !== undefined) {
         visitChildren(node);
         handleExpObjAccess(node, parent, getState);
         return;
@@ -320,21 +383,6 @@ function createExpressionHandlers(getState) {
       const { name } = node.named;
       const definition = lookupVariable(name.value);
       handleSimpleVariable(name, parent, definition, getState);
-    },
-    operation: (node, parent) => {
-      const { pushInference } = getState();
-      resolveTypes(node);
-      pushToParent(node, parent);
-      // Push the operator node itself so parent can process the binary operation
-      if (node.named.math_op) {
-        pushInference(parent, node.named.math_op);
-      }
-      if (node.named.boolean_op) {
-        pushInference(parent, node.named.boolean_op);
-      }
-      if (node.named.nullish_op) {
-        pushInference(parent, node.named.nullish_op);
-      }
     },
     new_expression: (node, parent) => {
       const { pushInference, lookupVariable } = getState();

@@ -9,13 +9,13 @@
 
 // Comment after opening brace of a type definition
 type Route = { // opening brace comment
-  path: string,
-  name: string,
-  params?: string[]
+  path: string, // comment after property definition
+  name: string, // comment after property definition
+  params?: string[] // comment after property definition
 } // closing brace comment
 
 // Comment after opening brace of a function definition
-def makeRoute(path: string,
+def makeRoute(path: string, // comment after parameter list
 name: string): Route { // opening brace comment
   return { path, name } // closing brace comment
 } // closing brace comment

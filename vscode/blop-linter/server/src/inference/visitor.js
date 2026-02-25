@@ -3,8 +3,8 @@
 // ============================================================================
 
 import TypeChecker from './typeChecker.js';
-import { getAnnotationType, removeNullish, createUnionType, resolveTypeAlias, isTypeCompatible, getPropertyType, isUnionType, parseUnionType, parseTypePrimary, inferGenericArguments, substituteType } from './typeSystem.js';
-import { ObjectType, ArrayType, AnyType, BooleanType, NeverType, NullType, UndefinedType, TypeAlias, RecordType, FunctionType, AnyFunctionType, PrimitiveType } from './Type.js';
+import { getAnnotationType, resolveTypeAlias, isTypeCompatible, getPropertyType, parseTypePrimary } from './typeSystem.js';
+import { ObjectType, ArrayType, AnyType, TypeAlias, RecordType, PrimitiveType } from './Type.js';
 import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 // Module state
@@ -77,11 +77,7 @@ function stampTypeAnnotation(node) {
 }
 
 function pushInference(node, inference) {
-  // During checking && phase, don't populate inference arrays to avoid duplication
-  //EXCEPT: For math/boolean/nullish operations, we need to re-validate, so we allow repopulation
   if (inferencePhase === 'checking') {
-    // Check if the parent is an operation/exp node with math operators
-    // We'll validate those operators during checking phase
     return;
   }
   if (!node.inference) {
@@ -110,69 +106,6 @@ function pushWarning(node, message) {
 /**
  * Run a math operation check and emit any warnings. Returns the result.
  */
-function emitMathWarnings(leftType, rightType, operatorNode) {
-  const result = TypeChecker.checkMathOperation(leftType, rightType, operatorNode.value);
-  // Only emit warnings for invalid operations; valid-but-warned cases (e.g. style
-  // hints like "use template strings") are intentionally suppressed here.
-  if (!result.valid) {
-    if (result.warning) {
-      const error = new Error(result.warning);
-      error.token = stream[operatorNode.stream_index];
-      warnings.push(error);
-    }
-    result.warnings?.forEach(w => {
-      const error = new Error(w);
-      error.token = stream[operatorNode.stream_index];
-      warnings.push(error);
-    });
-  }
-  return result;
-}
-
-function handleMathOperator(types, i, operatorNode) {
-  const result = emitMathWarnings(types[i - 1], types[i - 2], operatorNode);
-  types[i - 2] = result.resultType;
-  types.splice(i - 1, 2);
-  return i - 2;
-}
-
-function checkMathOperator(types, i, operatorNode) {
-  const leftType = types[i - 1];
-  const rightType = types[i - 2];
-  if (leftType && rightType) emitMathWarnings(leftType, rightType, operatorNode);
-}
-
-function handleBooleanOperator(types, i) {
-  types[i - 2] = BooleanType;
-  types.splice(i - 1, 2);
-  return i - 2;
-}
-
-function handleNullishOperator(types, i) {
-  // Nullish coalescing: left ?? right
-  // types[i-2] = left side (potentially-nullish value), types[i-1] = right side (fallback)
-  // If left is never nullish → result is left; otherwise → (non-null left) | right
-  const leftType = types[i - 2];
-  const rightType = types[i - 1];
-  // Resolve TypeAlias (e.g. `type MaybeString = string | null`) before nullish check
-  const resolvedLeft = resolveTypeAlias(leftType, typeAliases) ?? leftType;
-
-  const leftCanBeNullish = resolvedLeft === NullType || resolvedLeft === UndefinedType ||
-    (isUnionType(resolvedLeft) && parseUnionType(resolvedLeft).some(t => t === NullType || t === UndefinedType));
-
-  if (!leftCanBeNullish) {
-    types[i - 2] = leftType;
-  } else {
-    const nonNullishLeft = removeNullish(resolvedLeft);
-    types[i - 2] = nonNullishLeft === NeverType
-      ? rightType
-      : createUnionType([nonNullishLeft, rightType].filter(Boolean));
-  }
-
-  types.splice(i - 1, 2);
-  return i - 2;
-}
-
 function handleAssignment(types, i, assignNode) {
   const { annotation, name, explicit_assign, destructuring } = assignNode.named;
   const valueType = types[i - 1];
@@ -414,22 +347,7 @@ function resolveTypes(node) {
     for (let i = 0; i < types.length; i++) {
       const t = types[i];
 
-      if (inferencePhase === 'checking') {
-        if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
-          checkMathOperator(types, i, t);
-        } else if (t && t.type === 'assign') {
-          handleAssignment(types, i, t);
-        }
-        continue;
-      }
-      
-      if (t && t.type === 'math_operator' && types[i - 1] && types[i - 2]) {
-        i = handleMathOperator(types, i, t);
-      } else if (t && t.type === 'boolean_operator') {
-        i = handleBooleanOperator(types, i);
-      } else if (t && t.type === 'nullish') {
-        i = handleNullishOperator(types, i);
-      } else if (t && t.type === 'assign') {
+      if (t && t.type === 'assign') {
         handleAssignment(types, i, t);
       }
     }

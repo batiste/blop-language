@@ -277,13 +277,6 @@ const grammar = {
       'w', 'catch:catch', 'name:name', 'w', '{', 'SCOPED_STATEMENTS*:statscatch', '}'],
   ],
 
-  'operation': [
-    ['nullish:nullish_op', 'w', 'exp'],
-    ['math_operator:math_op', 'w', 'exp'],
-    ['boolean_operator:boolean_op', 'w', 'exp'],
-    ['<:boolean_op', 'w', 'exp'],
-    ['>:boolean_op', 'w', 'exp'],
-  ],
   // used in backend
   'name_exp': [
     ['name:name'],
@@ -307,7 +300,11 @@ const grammar = {
     ['exp:obj', 'type_arguments:type_args', 'func_call:call'],
     ['exp:obj', 'func_call:call'],
     ['exp:obj', '[', 'exp:key', ']'],
-    ['exp:obj', 'w', 'operation:op'],
+    ['exp:left', 'w', 'nullish:nullish_op', 'w', 'exp:right'],
+    ['exp:left', 'w', 'math_operator:math_op', 'w', 'exp:right'],
+    ['exp:left', 'w', 'boolean_operator:boolean_op', 'w', 'exp:right'],
+    ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
+    ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],

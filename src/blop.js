@@ -41,9 +41,14 @@ function execute() {
         indentChar: options.indentChar,
         maxLineLength: options.maxLineLength,
       });
-      fs.writeFileSync(options.input, formatted);
-      console.log(`${COLORS.GREEN}[blop]${COLORS.RESET} ${options.input} formatted`);
-      return;
+      if (formatted != source.toString()) {  
+        fs.writeFileSync(options.input, formatted);
+        console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${options.input} formatted`);
+        return;
+      } else {
+        console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${options.input} is already correctly formatted`);
+        return;
+      }
     }
 
     try {

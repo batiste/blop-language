@@ -50,11 +50,13 @@ function collectPropertyPathFromExp(expNode) {
   function walk(node) {
     if (!node) return;
     if (node.type === 'exp') {
-      for (const child of node.children ?? []) {
-        if (child.type === 'exp') walk(child);
-        else if (child.type === 'object_access') {
-          const name = child.children?.find(c => c.type === 'name');
-          if (name) parts.push(name.value);
+      if (node.named?.prop) {
+        // Inlined property access: recurse into obj first, then add this prop
+        walk(node.named.obj);
+        parts.push(node.named.prop.value);
+      } else {
+        for (const child of node.children ?? []) {
+          if (child.type === 'exp') walk(child);
         }
       }
     }
@@ -456,16 +458,16 @@ function createStatementHandlers(getState) {
         
         // Check if this is a property assignment via exp:path (e.g., u.name = 1 or u.b.c = x)
         if (node.named.path && !node.named.name) {
-          // Visit the LHS exp so object_access nodes get __objectType/__propertyName stamped
+          // Visit the LHS exp so __objectType/__propertyName get stamped by handlePropertyAccess
           visit(node.named.path, node);
 
-          // Find the outermost object_access in the LHS exp (direct child of top-level exp)
+          // After inlining object_access into exp, the LHS path exp itself carries
+          // __objectType and __propertyName directly (stamped by handlePropertyAccess).
           const pathExpNode = node.named.path;
-          const finalOA = pathExpNode.children?.find(c => c.type === 'object_access');
 
-          if (finalOA && finalOA.__objectType !== undefined && finalOA.__propertyName) {
-            const objectType = finalOA.__objectType;
-            const propertyName = finalOA.__propertyName;
+          if (pathExpNode && pathExpNode.__objectType !== undefined && pathExpNode.__propertyName) {
+            const objectType = pathExpNode.__objectType;
+            const propertyName = pathExpNode.__propertyName;
 
             const valueType = node.named.exp?.inference?.[0];
 
@@ -644,7 +646,7 @@ function createStatementHandlers(getState) {
       // Also skip property-access variants (e.g. obj.prop += 1) — those
       // require resolving the property type from the object, which is handled
       // by the property-access validators elsewhere.
-      if (inferencePhase !== 'checking' || node.named.access) {
+      if (inferencePhase !== 'checking' || node.named.target) {
         pushToParent(node, parent);
         return;
       }
