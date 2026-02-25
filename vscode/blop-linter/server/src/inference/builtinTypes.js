@@ -25,7 +25,7 @@ let builtinObjectTypes = {
     // attributes - Record<string, any>: open map of attribute name → value
     attributes: new RecordType(StringType, AnyType),
     // children - array of child VNodes passed to the component
-    children: Types.array(AnyType),
+    children: Types.array(StringType),  // typed as string[] for simplicity; could be VNode[] or (VNode | string)[] with more complex types
 
     // function state(key, initialValue) {
     //   return { value, setState: (newValue) => {}, getState: () => value };
@@ -131,6 +131,9 @@ let builtinObjectTypes = {
     tanh: new FunctionType([NumberType], NumberType, [], ['x']),
     trunc: new FunctionType([NumberType], NumberType, [], ['x']),
   },
+
+  AbortController: ObjectType,
+
 
   // JavaScript console object – all methods are functions that return undefined
   console: {

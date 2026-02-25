@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
-import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType } from '../typeSystem.js';
+import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType, NullType, NeverType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
@@ -287,11 +287,23 @@ function handleExpBinaryOp(node, parent, getState) {
     }
   } else if (boolean_op) {
     // boolean_op covers boolean_operator tokens (||, &&, >=, <=, ==, !=, instanceof)
-    // AND the bare < / > tokens (also labelled :boolean_op in the grammar)
+    // AND the bare < / > tokens (also labelled :boolean_op in the grammar).
+    // Logical operators (|| and &&) return one of their operands, not a boolean;
+    // comparison operators always produce boolean.
     if (inferencePhase === 'inference') {
-      node.inference = [BooleanType];
-      node.inferredType = BooleanType;
-      if (parent) pushInference(parent, BooleanType);
+      const opValue = boolean_op.value;
+      const isLogical = opValue === '||' || opValue === '&&';
+      let resultType;
+      if (isLogical) {
+        const leftBase = getBaseTypeOfLiteral(leftType);
+        const rightBase = getBaseTypeOfLiteral(rightType);
+        resultType = leftBase === rightBase ? leftBase : createUnionType([leftBase, rightBase]);
+      } else {
+        resultType = BooleanType;
+      }
+      node.inference = [resultType];
+      node.inferredType = resultType;
+      if (parent) pushInference(parent, resultType);
     }
   } else if (nullish_op) {
     if (inferencePhase === 'inference') {
@@ -375,6 +387,16 @@ function createExpressionHandlers(getState) {
         pushToParent(node, parent);
         return;
       }
+
+      // `delete expr` — always produces boolean at runtime regardless of operand type.
+      if (firstChild?.type === 'delete') {
+        visitChildren(node);
+        node.inference = [BooleanType];
+        node.inferredType = BooleanType;
+        pushToParent(node, parent);
+        return;
+      }
+
       resolveTypes(node);
       pushToParent(node, parent);
     },

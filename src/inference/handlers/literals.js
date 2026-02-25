@@ -280,6 +280,17 @@ function createLiteralHandlers(getState) {
       visitChildren(node);
       pushVNodeType(node, parent);
     },
+
+    virtual_node_assign: (node, parent) => {
+      // `= expr` inside a virtual node pushes content into the parent node's
+      // children array as a side effect. The expression itself has no meaningful
+      // return value, so it infers as undefined.
+      const { pushInference } = getState();
+      visitChildren(node);
+      node.inference = [UndefinedType];
+      node.inferredType = UndefinedType;
+      if (parent) pushInference(parent, UndefinedType);
+    },
   };
 }
 
