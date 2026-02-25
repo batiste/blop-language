@@ -235,10 +235,3 @@ Display all available options:
 ```bash
 node src/blop.js --help
 ```
-
-## See Also
-
-- [Blop Language Syntax Reference](https://github.com/batiste/blop-language/wiki/Blop-language-syntax-reference)
-- [Modern Features](MODERN_FEATURES.md) - Enhanced error messages and type inference
-- [Statistical Error Prioritization](STATISTICAL_ERROR_PRIORITIZATION.md)
-- [How Components Work](https://github.com/batiste/blop-language/wiki/Components)
