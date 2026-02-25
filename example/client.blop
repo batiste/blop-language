@@ -19,13 +19,20 @@ init()
 
 pending = false
 
-// Listen to any state change, batch multiple rapid mutations into one render
-proxiedState.$.listen(() => {
+// Only do a full tree refresh when the route changes (which restructures the
+// whole page). Todo mutations, dog-page state, etc. are handled automatically
+// by the reactive subscription system — each Component re-renders itself when
+// a path it read during its last render is written to.
+proxiedState.$.listen((path) => {
+  if !path.startsWith('route') {
+    return
+  }
   if pending {
     return
   }
   pending := true
   Promise.resolve().then(() => {
+    console.log('Route changed, refreshing the whole tree')
     pending := false
     refresh((time) => {
       if time > 50 {

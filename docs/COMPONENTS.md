@@ -311,6 +311,40 @@ TodoList = (ctx: Component) => {
 }
 ```
 
+### Global State (Reactive Subscriptions)
+
+When a Component reads from a reactive state proxy (e.g. the one from `state.blop`), it
+**automatically subscribes** to the paths it reads. No manual subscription wiring is needed.
+
+```typescript
+TodoListPage = (ctx: Component): VNode => {
+  { attributes } = ctx
+  { todo } = attributes          // todo is a sub-proxy of the global state
+
+  todoList = todo.todoList       // ← subscribes to "todoList"
+  filter   = todo.filter         // ← subscribes to "filter"
+
+  setFilter = (f) => {
+    todo.filter = f              // ← notifies "filter" subscribers → only this component re-renders
+  }
+
+  <div>// ...</div>
+}
+```
+
+**How it works:**
+- During render, every proxy read calls `trackRead(path)` internally, registering this Component.
+- When a matching path is written, `notifyWrite(path)` schedules a `partialRender` on this Component only.
+- Before each re-render, all previous subscriptions are cleared and re-established from scratch.
+- When a component is destroyed, its subscriptions are fully cleaned up.
+
+> **Only Component instances participate.** A plain (lowercase) helper function called
+> directly runs in the context of its *caller* component, so its reads are attributed to that
+> caller. Top-level render functions that run during a full `refresh()` are not Components
+> and do not subscribe.\n
+> See [State Management — Reactive Subscriptions](./STATE_MANAGEMENT.md#reactive-subscriptions)
+> for a full explanation and the open hook API.
+
 ## Component Context
 
 Context allows parent components to pass data to deeply nested children without prop drilling.
@@ -575,6 +609,6 @@ GoodCounter = (ctx: Component) => {
 ## See Also
 
 - [Syntax Reference](./SYNTAX_REFERENCE.md) - Language basics
-- [State Management](./STATE_MANAGEMENT.md) - Application-level state
+- [State Management](./STATE_MANAGEMENT.md) - Application-level state and reactive subscriptions
 - [Virtual DOM](./VIRTUAL_DOM.md) - How rendering works
 - [Examples](../example/) - Real-world examples

@@ -10,6 +10,7 @@ Learn how to manage application state in Blop using the built-in Proxy-based sta
 - [Reading State](#reading-state)
 - [Updating State](#updating-state)
 - [Listening to Changes](#listening-to-changes)
+- [Reactive Subscriptions](#reactive-subscriptions)
 - [Full Application Example](#full-application-example)
 - [Advanced Patterns](#advanced-patterns)
 - [Best Practices](#best-practices)
@@ -20,7 +21,7 @@ Blop includes a lightweight state management library based on the [Proxy API](ht
 
 - Automatically tracks state changes
 - Triggers re-renders when state changes
-- Provides fine-grained reactivity
+- Provides fine-grained, automatic reactivity — components re-render only when data they actually read changes
 - Is completely optional (you can use any state management solution)
 
 ## Getting Started
@@ -107,7 +108,12 @@ def LoginForm(state) {
 
 Set up a listener to react to any state changes. Multiple mutations that happen synchronously
 (e.g. inside an async route handler) are automatically coalesced into a single render via a
-`Promise.resolve()` microtask:
+`Promise.resolve()` microtask.
+
+For most mutations you will **not** need a global listener at all — Components re-render
+automatically via the [reactive subscription system](#reactive-subscriptions). A global
+listener is only necessary when structural changes (such as route navigation) require
+re-rendering the whole application tree:
 
 ```typescript
 import { mount } from 'blop'
@@ -126,8 +132,10 @@ init()
 
 pending = false
 
-// Batch rapid mutations into one render via microtask
-state.$.listen(() => {
+// Only do a full refresh for structural/route changes.
+// Component-level state mutations are handled by reactive subscriptions.
+state.$.listen((path) => {
+  if !path.startsWith('route') { return }
   if pending { return }
   pending := true
   Promise.resolve().then(() => {
@@ -150,6 +158,79 @@ if state.hasChanged('route') || state.hasChanged('loading') {
   // ...
 }
 ```
+
+## Reactive Subscriptions
+
+Blop's runtime implements **automatic reactive subscriptions**: every Component instance
+automatically tracks which state paths it reads during its render, and re-renders itself
+(via an efficient `partialRender`) when any of those paths change.
+
+This means **you do not need to manually subscribe components to state changes** — the
+bookkeeping is handled entirely by the runtime and the state proxy.
+
+### How it works
+
+1. When a Component renders, the runtime sets itself as the currently-active component.
+2. Every read through the state proxy (e.g. `state.todos.length`, `state.user.name`)
+   calls `trackRead(path)`, which records `{component → path}` in a subscription map.
+3. When a value is written (e.g. `state.user.name = 'Alice'`), the proxy calls
+   `notifyWrite(path)`, which finds all subscribed components and calls
+   `scheduleRender` on each of them.
+4. Before the next render, the component clears its previous subscriptions and
+   re-establishes them from scratch, so the subscription set is always accurate.
+5. Subscriptions are cleaned up when a component is destroyed.
+
+### Subscription scope
+
+Subscriptions follow a prefix rule: writing to `user` will notify subscribers of `user`,
+`user.name`, `user.address.city`, etc. Writing to `user.name` will also notify subscribers
+of `user` (the parent). This matches the semantics of `hasChanged`.
+
+### The open hook contract
+
+The runtime exports two plain functions:
+
+```typescript
+import { trackRead, notifyWrite } from 'blop'
+```
+
+- `trackRead(key: string)` — call inside any getter
+- `notifyWrite(key: string)` — call inside any setter or delete handler
+
+The runtime is completely decoupled from the specific proxy or store implementation.
+Any reactive source — a Proxy, a Signal, a WebSocket store — can call these two
+functions and get automatic, targeted component re-renders for free.
+
+The built-in `state.blop` library already calls both hooks.
+
+### Example
+
+```typescript
+// TodoListPage reads todo.todoList, todo.filter, todo.editItemIndex during render.
+// Writing any of those paths will re-render only TodoListPage, not the whole app.
+
+TodoListPage = (ctx: Component): VNode => {
+  { attributes } = ctx
+  { todo } = attributes   // todo is a sub-proxy of proxiedState
+
+  todoList = todo.todoList            // ← trackRead('todoList') fires
+  currentFilter = todo.filter         // ← trackRead('filter') fires
+
+  setFilter = (f) => {
+    todo.filter = f                   // ← notifyWrite('filter') → only TodoListPage re-renders
+  }
+
+  <div>
+    <FilterTabs currentFilter setFilter />
+    // ...
+  </div>
+}
+```
+
+> **Plain functions vs Components** — Only Component instances (called with `<TagSyntax />`) participate
+> in reactive subscriptions. A plain function called directly (e.g. `navigation(state)`) runs during the
+> parent's render so its reads are attributed to the parent component. Top-level functions like `Index`
+> that run during `refresh()` are not Components and do not subscribe.
 
 ## Full Application Example
 
@@ -186,8 +267,11 @@ init()
 
 pending = false
 
-// Batch rapid mutations into one render
-state.$.listen(() => {
+// Only trigger a full refresh for route changes.
+// All other mutations are handled automatically by reactive subscriptions —
+// only the Components that read the changed path will re-render.
+state.$.listen((path) => {
+  if !path.startsWith('route') { return }
   if pending { return }
   pending := true
   Promise.resolve().then(() => {
@@ -466,12 +550,28 @@ state.user.name = 'Alice'
 state.user.name := 'Alice'
 ```
 
+### 6. Prefer passing sub-proxies to Components
+
+Reactive subscriptions only fire when a read passes *through the proxy*. If you extract a
+plain value before passing it to a Component, the subscription is lost:
+
+```typescript
+// ❌ Plain value — Component cannot subscribe; changes won't trigger partial re-render
+<TodoList todos=state.todos.slice() />
+
+// ✅ Sub-proxy — Component reads through the proxy and subscribes automatically
+<TodoList todos=state.todos />
+
+// ✅ Full proxy slice — Component can traverse state.todo.* reactively
+<TodoListPage todo=state />
+```
+
 ## State API Reference
 
 The proxied state object includes a special `$` property with utilities:
 
 ```typescript
-state.$.listen(callback)     // Subscribe to any state change
+state.$.listen(callback)     // Subscribe to any state change; callback receives the changed path
 state.$.flush()              // Clear recorded modifications (call before each render)
 state.$.modifications        // Array of { path, action, value } since last flush
 state.$.raw                  // The underlying plain object (unproxied)
@@ -486,6 +586,21 @@ state.user.hasChanged('name') // true if user.name changed
 ```
 
 Paths are dot-separated with no leading dot, matching the keys as written in state.
+
+### Reactive hooks (advanced)
+
+The runtime exports two hooks used internally by the state proxy:
+
+```typescript
+import { trackRead, notifyWrite } from 'blop'
+
+trackRead(key: string)   // Record that the current component depends on `key`
+notifyWrite(key: string) // Schedule re-render for all components subscribed to `key`
+```
+
+These are called automatically by `state.blop`. You only need them if you build a custom
+reactive source (e.g. a WebSocket-backed store or a Signal primitive) and want it to
+participate in the same component subscription system.
 
 ## See Also
 

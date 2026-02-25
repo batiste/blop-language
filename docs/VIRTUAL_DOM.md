@@ -15,11 +15,15 @@ Blop leverages [Snabbdom](https://github.com/snabbdom/snabbdom), a fast and modu
 3. **Predictable** - State changes lead to predictable UI updates
 4. **Efficient** - Batches multiple updates using `requestAnimationFrame`
 5. **Small Bundle** - Snabbdom + Blop runtime = ~15KB gzipped
+6. **Targeted re-renders** - Components automatically subscribe to the state paths they read and re-render themselves independently, bypassing the full tree diff
 
 ### Architecture
 
 ```text
 Blop Syntax → JavaScript Code → Virtual DOM Tree → Snabbdom Patch → Real DOM
+                                        ↑
+                          Partial re-render (Component)
+                          triggered by reactive subscriptions
 ```
 
 ## Snabbdom Integration

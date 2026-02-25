@@ -14,6 +14,47 @@ let cache = {};
 // this is the next cache that replace cache after a full re-render
 let nextCache = {};
 
+// ---------------------------------------------------------------------------
+// Reactive subscription system
+// Any reactive source (proxy, store, signal …) can call trackRead/notifyWrite.
+// The runtime stays completely decoupled from the specific implementation.
+// ---------------------------------------------------------------------------
+
+// key (any stable string) → Set<Component>
+const subscriptions = new Map();
+
+/**
+ * Call this inside a getter to register that the currently-rendering
+ * component depends on `key`. No-op when called outside a render.
+ */
+function trackRead(key) {
+  if (!currentNode || currentNode === rootNode) return;
+  if (!subscriptions.has(key)) subscriptions.set(key, new Set());
+  subscriptions.get(key).add(currentNode);
+  currentNode.trackedKeys.add(key);
+}
+
+/**
+ * Call this inside a setter/deleter to schedule re-renders for every
+ * component that read a path related to `key` (exact match or ancestor/
+ * descendant — matches the same prefix semantics as `hasChanged`).
+ */
+function notifyWrite(key) {
+  const toRender = new Set();
+  subscriptions.forEach((subs, subKey) => {
+    if (
+      subKey === key ||
+      key.startsWith(subKey + '.') ||
+      subKey.startsWith(key + '.')
+    ) {
+      subs.forEach(c => toRender.add(c));
+    }
+  });
+  toRender.forEach(component => {
+    if (!component.destroyed) scheduleRender(component);
+  });
+}
+
 // eslint-disable-next-line arrow-body-style
 const componentPath = (name, userKey) => {
   // Use userKey if provided for stable identity, otherwise use position
@@ -51,6 +92,7 @@ class Component {
     this.onChangeRegistry = {};
     this.mounted = false;
     this.destroyed = false;
+    this.trackedKeys = new Set();
     cache[this.path] = this;
   }
 
@@ -159,6 +201,10 @@ class Component {
     // Reset listeners to avoid stale references - components will re-register
     // during render if they still use the context
     this.listeners = [];
+    // Clear reactive subscriptions — they will be re-established during the
+    // upcoming render by trackRead calls in any reactive source.
+    this.trackedKeys.forEach(key => subscriptions.get(key)?.delete(this));
+    this.trackedKeys.clear();
   }
 
   _render(attributes, children) {
@@ -207,6 +253,9 @@ class Component {
   _destroy() {
     this.destroyed = true;
     this._unmount();
+    // Remove from all reactive subscriptions to avoid stale references.
+    this.trackedKeys.forEach(key => subscriptions.get(key)?.delete(this));
+    this.trackedKeys.clear();
     this.parent = null;
     this.children = [];
     this.stateMap = {};
@@ -391,5 +440,5 @@ function mount(dom, render) {
 }
 
 // ES module exports
-export { h, patch, mount, Component };
+export { h, patch, mount, Component, trackRead, notifyWrite };
 export const c = createComponent;
