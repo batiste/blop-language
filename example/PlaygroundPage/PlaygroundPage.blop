@@ -60,7 +60,8 @@ def PlaygroundPage(ctx: Component): VNode {
       // Input
       <div class="col-lg-6" style={ marginBottom: '1.5em' }>
         <div class="card h-100">
-          <div class="card-header" style={ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85em', color: '#6c757d' }>
+          <div class="card-header" style={ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              fontSize: '0.85em', color: '#6c757d' }>
             <span>'Input — Blop'</span>
           </div>
           <div class="card-body" style={ padding: '0' }>
@@ -78,7 +79,7 @@ def PlaygroundPage(ctx: Component): VNode {
                 outline: 'none',
                 lineHeight: '1.65',
                 display: 'block'
-              }
+            }
               value=code
               on={ input: handleCodeChange }
               placeholder="Write your Blop code here..." />
@@ -102,7 +103,8 @@ def PlaygroundPage(ctx: Component): VNode {
       // Output
       <div class="col-lg-6" style={ marginBottom: '1.5em' }>
         <div class="card h-100">
-          <div class="card-header" style={ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85em', color: '#6c757d' }>
+          <div class="card-header" style={ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              fontSize: '0.85em', color: '#6c757d' }>
             <span>'Output — JavaScript'</span>
             if output {
               <span style={ color: '#198754' }>'Compiled successfully'</span>
@@ -181,28 +183,28 @@ def PlaygroundPage(ctx: Component): VNode {
           <div class="card-body" style={ padding: '1em' }>
             <div style={ display: 'flex', gap: '0.5em', flexWrap: 'wrap' }>
               examples = [
-                { name: 'Simple component',
-                  code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'Welcome to Blop.\'</p>\n  </div>\n}'
-                },
-                { name: 'Counter with state',
-                  code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  <div style={ textAlign: \'center\', padding: \'2em\' }>\n    <div style={ fontSize: \'3em\', fontWeight: \'bold\', marginBottom: \'1em\' }>count</div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-primary"\n        on={ click: () => setState(count + 1) }>\n        \'Increment\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n    </div>\n  </div>\n}'
-                },
-                { name: 'List with for loop',
-                  code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n\n  <ul class="list-group">\n    for index, item of items {\n      <li class="list-group-item">\n        <span style={ color: \'#6c757d\', fontSize: \'0.85em\', marginRight: \'0.5em\' }>\'#\'(index + 1)</span>\n        item\n      </li>\n    }\n  </ul>\n}'
-                },
-                { name: 'Conditional rendering',
-                  code: 'def StatusBadge({ attributes }: Component): VNode {\n  { status } = attributes\n\n  <div>\n    if status == \'ok\' {\n      <span class="badge badge-success">\'OK\'</span>\n    } elseif status == \'warn\' {\n      <span class="badge badge-warning">\'Warning\'</span>\n    } else {\n      <span class="badge badge-danger">\'Error\'</span>\n    }\n  </div>\n}'
-                }
+              { name: 'Simple component',
+                code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'Welcome to Blop.\'</p>\n  </div>\n}'
+              },
+{ name: 'Counter with state',
+                code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  <div style={ textAlign: \'center\', padding: \'2em\' }>\n    <div style={ fontSize: \'3em\', fontWeight: \'bold\', marginBottom: \'1em\' }>count</div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-primary"\n        on={ click: () => setState(count + 1) }>\n        \'Increment\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n    </div>\n  </div>\n}'
+              },
+{ name: 'List with for loop',
+                code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n\n  <ul class="list-group">\n    for index, item of items {\n      <li class="list-group-item">\n        <span style={ color: \'#6c757d\', fontSize: \'0.85em\', marginRight: \'0.5em\' }>\'#\'(index + 1)</span>\n        item\n      </li>\n    }\n  </ul>\n}'
+              },
+{ name: 'Conditional rendering',
+                code: 'def StatusBadge({ attributes }: Component): VNode {\n  { status } = attributes\n\n  <div>\n    if status == \'ok\' {\n      <span class="badge badge-success">\'OK\'</span>\n    } elseif status == \'warn\' {\n      <span class="badge badge-warning">\'Warning\'</span>\n    } else {\n      <span class="badge badge-danger">\'Error\'</span>\n    }\n  </div>\n}'
+              }
               ]
 
               for example in examples {
                 <button
                   class="btn btn-sm btn-outline-secondary"
                   on={ click: () => {
-                    setCode(example.code)
-                    setOutput('')
-                    setError(null)
-                    setWarning(null)
+                      setCode(example.code)
+                      setOutput('')
+                      setError(null)
+                      setWarning(null)
                   } }>
                   = example.name
                 </button>

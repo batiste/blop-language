@@ -138,7 +138,8 @@ def ConditionalDemo(ctx: Component): VNode {
         }
       </div>
 
-      <div style={ marginTop: '1em', padding: '0.75em 1em', backgroundColor: '#f8f9fa', borderRadius: '4px', fontSize: '0.9em' }>
+      <div style={ marginTop: '1em', padding: '0.75em 1em', backgroundColor: '#f8f9fa', borderRadius: '4px',
+          fontSize: '0.9em' }>
         if status == 'active' {
           <span style={ color: '#198754' }>'Active — all systems running'</span>
         } elseif status == 'pending' {
@@ -193,13 +194,14 @@ def ShowcasePage(ctx: Component): VNode {
     </div>
 
     // Navigation Tabs
-    <ul class="nav nav-tabs" style={ backgroundColor: '#f8f9fa', paddingLeft: '2em', paddingTop: '0.5em', borderBottom: '1px solid #dee2e6' }>
+    <ul class="nav nav-tabs" style={ backgroundColor: '#f8f9fa', paddingLeft: '2em', paddingTop: '0.5em',
+        borderBottom: '1px solid #dee2e6' }>
       tabs = [
-        { id: 'overview', label: 'Overview' },
-        { id: 'counter', label: 'State' },
-        { id: 'loops', label: 'For loops' },
-        { id: 'conditionals', label: 'Conditionals' },
-        { id: 'comparison', label: 'Blop vs JSX' }
+      { id: 'overview', label: 'Overview' },
+{ id: 'counter', label: 'State' },
+{ id: 'loops', label: 'For loops' },
+{ id: 'conditionals', label: 'Conditionals' },
+{ id: 'comparison', label: 'Blop vs JSX' }
       ]
 
       for tab in tabs {
@@ -294,7 +296,8 @@ def ShowcasePage(ctx: Component): VNode {
               ' with HMR and source maps'</li>
           </ul>
 
-          <div style={ marginTop: '2em', padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px', borderLeft: '3px solid #6c757d' }>
+          <div style={ marginTop: '2em', padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px',
+              borderLeft: '3px solid #6c757d' }>
             <p style={ marginBottom: '0', color: '#495057', fontSize: '0.95em', lineHeight: '1.6' }>
               'Blop is not a drop-in replacement for React or a production alternative to established frameworks. It is a research project exploring what a web templating language looks like when designed around statements rather than expressions.'
             </p>
@@ -469,7 +472,8 @@ def ShowcasePage(ctx: Component): VNode {
           </p>
 
           // Iteration
-          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em', borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
             'Iteration'
           </h3>
           <div class="row" style={ marginBottom: '2.5em' }>
@@ -510,7 +514,8 @@ for key, value in config {
           </div>
 
           // Conditionals and local variables
-          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em', borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
             'Conditionals and local variables'
           </h3>
           <div class="row" style={ marginBottom: '2.5em' }>
@@ -557,7 +562,8 @@ for key, value in config {
           </div>
 
           // Component definition
-          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em', borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
             'Component definition'
           </h3>
           <div class="row" style={ marginBottom: '2.5em' }>
@@ -598,7 +604,8 @@ for key, value in config {
             </div>
           </div>
 
-          <div style={ padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px', fontSize: '0.9em', color: '#495057', lineHeight: '1.6' }>
+          <div style={ padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px', fontSize: '0.9em',
+              color: '#495057', lineHeight: '1.6' }>
             'These comparisons show the structural difference: Blop requires no expression-wrapping ceremony because its template parser understands statements. The tradeoff is that Blop is a new language with its own toolchain, while JSX runs on the widely-supported TypeScript/Babel ecosystem.'
           </div>
         </div>
