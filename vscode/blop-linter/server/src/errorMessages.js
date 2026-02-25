@@ -351,6 +351,42 @@ const ERROR_PATTERNS = [
       '\n' +
       '  <div><strong>text</strong>\'world\'</div>  // error: multiple inline children',
   },
+  {
+    name: 'vnode_closing_tag_on_different_line',
+    detect: (context) => {
+      // <p>'hello'    ← inline expression child
+      //   </p>        ← closing tag on next line
+      //
+      // Case A: selectBestFailure picks virtual_node_exp expecting '</' but found newline.
+      //   lastToken is the expression (e.g. str), NOT '>' (which would be multiple-children case).
+      //
+      // Case D: statistics may pick str_expression or another rule at the same position.
+      //   Detected positionally: newline found immediately after <tag>'str' with no space,
+      //   i.e. lastToken = str, prevToken = '>'.
+      const lastToken = context.precedingTokens[context.precedingTokens.length - 1];
+      const prevToken = context.precedingTokens[context.precedingTokens.length - 2];
+
+      if (context.token.type !== 'newline') return false;
+
+      const caseA = (context.ruleName === 'virtual_node_exp' || context.ruleName === 'virtual_node')
+        && context.expectedToken === '</'
+        && lastToken && lastToken.type !== '>';
+
+      // Position-based: any rule, but token stream shows <tag>'str'\n pattern
+      const caseD = lastToken && lastToken.type === 'str'
+        && prevToken && prevToken.type === '>';
+
+      return caseA || caseD;
+    },
+    message: () => 'Closing tag must be on the same line as its inline content',
+    suggestion: () => 'Either keep the content and closing tag on the same line:\n' +
+      '  <p>\'hello\'</p>     // correct\n' +
+      '\n' +
+      'Or move the content to its own indented line:\n' +
+      '  <p>               // correct\n' +
+      '    \'hello\'\n' +
+      '  </p>',
+  },
 ];
 
 /**

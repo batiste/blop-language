@@ -6,7 +6,6 @@ type DogGameProps = {
   loading: boolean
 }
 
-
 def DogGame({ attributes: DogGameProps, children }: Component) {
   { state, loading } = attributes
   page = state.dogPage

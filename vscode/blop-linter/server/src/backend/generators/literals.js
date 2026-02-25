@@ -1,6 +1,8 @@
+import { ERROR_MESSAGES } from '../../constants.js';
+
 function createLiteralGenerators(context) {
   const { generateCode, validators } = context;
-  const { shouldBeDefined } = validators;
+  const { shouldBeDefined, generateError } = validators;
 
   return {
     'newline': () => ['\n'],
@@ -59,6 +61,13 @@ function createLiteralGenerators(context) {
     },
     'inner_str_expression': (node) => {
       const output = ['${'];
+      // Detect a virtual node embedded in string interpolation — it would be
+      // stringified to '[object Object]' at runtime.
+      const expChild = node.named.exp.children[0];
+      if (expChild && expChild.type === 'virtual_node_exp') {
+        const openingToken = expChild.named && expChild.named.opening;
+        generateError(openingToken || expChild, ERROR_MESSAGES.VIRTUAL_NODE_IN_STRING_INTERPOLATION());
+      }
       output.push(...generateCode(node.named.exp));
       output.push('}');
       

@@ -422,6 +422,16 @@ function stampInferredTypes(node) {
  * @param {String} _filename - Current filename being processed
  * @param {String} _phase - 'inference' or 'checking' - controls warning suppression
  */
+// Tracks how many virtual-node bodies we are currently inside.
+// Incremented before visiting a virtual_node's children, decremented after.
+// Used by pushVNodeType to distinguish a SCOPED_STATEMENT that is a direct
+// child of a function body (depth 0) from one that is nested inside a VNode.
+let virtualNodeDepth = 0;
+
+function enterVirtualNode() { virtualNodeDepth++; }
+function exitVirtualNode()  { virtualNodeDepth--; }
+function isInsideVirtualNode() { return virtualNodeDepth > 0; }
+
 function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filename, _phase = 'inference', _symbolTable = null) {
   warnings = _warnings;
   stream = _stream;
@@ -430,6 +440,7 @@ function initVisitor(_warnings, _stream, _functionScopes, _typeAliases, _filenam
   symbolTable = _symbolTable;
   currentFilename = _filename;
   inferencePhase = _phase;
+  virtualNodeDepth = 0;
 }
 
 /**
@@ -452,6 +463,9 @@ function getVisitorState() {
     pushInference,
     pushWarning,
     stampTypeAnnotation,
+    enterVirtualNode,
+    exitVirtualNode,
+    isInsideVirtualNode,
   };
 }
 

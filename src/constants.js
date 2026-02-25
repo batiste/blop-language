@@ -61,6 +61,10 @@ const ERROR_MESSAGES = {
   VIRTUAL_NODE_ASSIGNMENT_OUTSIDE: () => 
     `Virtual node assignment must be inside a virtual node.`,
   
+  VIRTUAL_NODE_IN_STRING_INTERPOLATION: () =>
+    `A virtual node cannot be used inside a string interpolation — it would be stringified to '[object Object]'. ` +
+    `Move the virtual node to a separate child on its own line.`,
+
   UNREACHABLE_CODE_AFTER_VIRTUAL_NODE: () => 
     `Code is unreachable after root virtual node.`,
   

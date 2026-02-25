@@ -207,14 +207,21 @@ function createLiteralHandlers(getState) {
     }
   }
 
-  // Shared helper: push a VNode type and register an implicit return
+  // Shared helper: push a VNode type and register an implicit return.
+  // Only registers as an implicit function return when the VNode is used as a
+  // top-level statement (parent.type === 'SCOPED_STATEMENT') AND we are not
+  // inside another virtual node's body (depth === 0). This prevents child
+  // virtual nodes inside a <parent> from polluting the enclosing function's
+  // return types.
   function pushVNodeType(node, parent) {
-    const { pushInference, getFunctionScope } = getState();
+    const { pushInference, getFunctionScope, isInsideVirtualNode } = getState();
     const VNodeType = Types.alias('VNode');
     pushInference(parent, VNodeType);
-    const functionScope = getFunctionScope();
-    if (functionScope?.__returnTypes) {
-      functionScope.__returnTypes.push(VNodeType);
+    if (parent?.type === 'SCOPED_STATEMENT' && !isInsideVirtualNode()) {
+      const functionScope = getFunctionScope();
+      if (functionScope?.__returnTypes) {
+        functionScope.__returnTypes.push(VNodeType);
+      }
     }
   }
 
@@ -272,12 +279,18 @@ function createLiteralHandlers(getState) {
     },
 
     virtual_node: (node, parent) => {
+      const { enterVirtualNode, exitVirtualNode } = getState();
+      enterVirtualNode();
       resolveTypes(node);
+      exitVirtualNode();
       pushVNodeType(node, parent);
     },
 
     virtual_node_exp: (node, parent) => {
+      const { enterVirtualNode, exitVirtualNode } = getState();
+      enterVirtualNode();
       visitChildren(node);
+      exitVirtualNode();
       pushVNodeType(node, parent);
     },
 

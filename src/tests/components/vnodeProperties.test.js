@@ -1,4 +1,5 @@
 import { expectCompilationError, expectCompiles } from '../testHelpers.js';
+import { compileSource } from '../../compile.js';
 
 describe('VNode type properties', () => {
   test('allows access to elm property on VNode', () => {
@@ -73,5 +74,52 @@ describe('VNode multiple children', () => {
   test('inline multiple children gives a clear error message', () => {
     const code = `content = <div><strong>'hello'</strong>'world'</div>`;
     expectCompilationError(code, 'Multiple virtual node children must be on separate lines');
+  });
+
+  test('virtual node inside string interpolation is an error', () => {
+    const code = `x = <p>'hello'<span>'world'</span></p>`;
+    expectCompilationError(code, 'virtual node cannot be used inside a string interpolation');
+  });
+
+  test('closing tag on a different line from inline content gives a clear error', () => {
+    const code = `
+      def f() {
+        _a = <p>'hello'
+        </p>
+      }
+    `;
+    expectCompilationError(code, 'Closing tag must be on the same line as its inline content');
+  });
+
+  test('virtual_node_exp as assignment RHS does not pollute function return type', () => {
+    // `_a = <p>...</p>` (inline) should NOT count as an implicit VNode return.
+    const code = `
+      def test(): number {
+        _a = <p>'This is a test'</p>
+        return 42
+      }
+    `;
+    const result = compileSource(code.trim(), 'test.blop', true);
+    const vnodeWarnings = (result.warnings ?? []).filter(w =>
+      w.message && w.message.includes('VNode')
+    );
+    expect(vnodeWarnings).toHaveLength(0);
+  });
+
+  test('multiline virtual_node as assignment RHS does not pollute function return type', () => {
+    // `_a = <p>\n  <span></span></p>` (multiline) should also NOT register as a
+    // function return — neither the outer <p> nor the inner <span>.
+    const code = `
+      def test(): number {
+        _a = <p>
+          <span></span></p>
+        return 1
+      }
+    `;
+    const result = compileSource(code.trim(), 'test.blop', true);
+    const vnodeWarnings = (result.warnings ?? []).filter(w =>
+      w.message && w.message.includes('VNode')
+    );
+    expect(vnodeWarnings).toHaveLength(0);
   });
 });
