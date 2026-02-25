@@ -218,13 +218,13 @@ def MyComp(ctx: Component): VNode {
     expect(destructuredAttr).toBeDefined();
     expect(destructuredAttr.inferredType.toString()).toBe('Record<string, any>');
 
-    // 'children' should be inferred as any[]
+    // 'children' should be inferred as (VNode | string)[]
     const childrenNodes = findNodesWithValue(tree, ['children']);
     const destructuredChildren = childrenNodes.find(n =>
-      n.inferredType && n.inferredType.toString() === 'any[]'
+      n.inferredType && n.inferredType.toString() === '(VNode | string)[]'
     );
     expect(destructuredChildren).toBeDefined();
-    expect(destructuredChildren.inferredType.toString()).toBe('any[]');
+    expect(destructuredChildren.inferredType.toString()).toBe('(VNode | string)[]');
   });
 
   it('should infer value type (any) when destructuring from a Record<string, any>', () => {

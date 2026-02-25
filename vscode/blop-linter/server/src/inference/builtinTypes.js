@@ -25,8 +25,7 @@ let builtinObjectTypes = {
     // attributes - Record<string, any>: open map of attribute name → value
     attributes: new RecordType(StringType, AnyType),
     // children - array of child VNodes passed to the component
-    children: Types.union([Types.array(Types.alias('VNode')), StringType]),  // could be VNode[] or (VNode | string)[] with more complex types
-
+    children: Types.array(Types.union([Types.alias('VNode'), StringType])),  // Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]
     // function state(key, initialValue) {
     //   return { value, setState: (newValue) => {}, getState: () => value };
     // }

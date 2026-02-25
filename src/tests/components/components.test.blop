@@ -193,10 +193,12 @@ def Container(ctx: Component) {
 }
 
 test('simple component', () => {
-  vnode = SimpleComponent({ attributes: {}, children: ['Hello'] })
+  children = ['Hello', <span>'World'</span>]
+  vnode = SimpleComponent({ attributes: {}, children: children })
   expect(vnode.sel).toBe('div')
   expect(vnode.data.attrs['class']).toBe('simple')
   expect(vnode.children[0].text).toBe('Hello')
+  expect(vnode.children[1].children[0].text).toBe('World')
 })
 
 test('component with attributes', () => {

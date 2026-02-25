@@ -729,7 +729,7 @@ function createStatementHandlers(getState) {
     },
 
     for_loop: (node, parent) => {
-      const { pushScope, popScope, pushWarning, typeAliases } = getState();
+      const { pushScope, popScope, pushWarning, typeAliases, inferencePhase } = getState();
       const scope = pushScope();
       
       // Get variable names
@@ -745,6 +745,9 @@ function createStatementHandlers(getState) {
       // Add variables to scope with their types
       if (key) {
         scope[key] = { type: keyType, node: node.named.key };
+        if (inferencePhase === 'inference') {
+          node.named.key.inferredType = keyType;
+        }
       }
       
       // Visit the expression being iterated
@@ -782,6 +785,9 @@ function createStatementHandlers(getState) {
         }
         
         scope[value] = { type: valueType, node: node.named.value };
+        if (inferencePhase === 'inference') {
+          node.named.value.inferredType = valueType;
+        }
       }
       
       // Visit loop body statements
