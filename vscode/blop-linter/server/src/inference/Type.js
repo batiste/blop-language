@@ -78,9 +78,16 @@ export class PrimitiveType extends Type {
     }
     
     // Resolve aliases and type member access (e.g. State.dogPage)
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
+      if (resolved === target) return false;
+      return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // Resolve keyof targets (e.g. keyof State → "a" | "b")
+    if (target instanceof KeyofType) {
+      const resolved = aliases.resolveKeyof(target);
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
     }
@@ -140,7 +147,7 @@ export class LiteralType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -186,7 +193,7 @@ export class ArrayType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -204,6 +211,82 @@ export class ArrayType extends Type {
     }
     
     return false;
+  }
+}
+
+/**
+ * Tuple types: [string, number, boolean]
+ * Fixed-length sequence where each position has its own type.
+ */
+export class TupleType extends Type {
+  /**
+   * @param {Type[]} elements - Type of each positional element
+   */
+  constructor(elements) {
+    super();
+    this.kind = 'tuple';
+    this.elements = elements; // Type[]
+  }
+
+  toString() {
+    return `[${this.elements.map(t => t.toString()).join(', ')}]`;
+  }
+
+  equals(other) {
+    if (!(other instanceof TupleType)) return false;
+    if (this.elements.length !== other.elements.length) return false;
+    return this.elements.every((el, i) => el.equals(other.elements[i]));
+  }
+
+  isCompatibleWith(target, aliases) {
+    if (target instanceof PrimitiveType && target.name === 'any') return true;
+
+    // Allow typed tuples to match the generic array alias
+    if (target instanceof TypeAlias && target.name === 'array') return true;
+
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+      const resolved = aliases.resolve(target);
+      if (resolved === target) return false;
+      return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // Tuple is compatible with another tuple of the same length and element types
+    if (target instanceof TupleType) {
+      if (this.elements.length !== target.elements.length) return false;
+      return this.elements.every((el, i) => el.isCompatibleWith(target.elements[i], aliases));
+    }
+
+    // A tuple [A, B] is assignable to (A | B)[] — i.e. a homogeneous array
+    // whose element type covers every element of the tuple.
+    if (target instanceof ArrayType) {
+      return this.elements.every(el => el.isCompatibleWith(target.elementType, aliases));
+    }
+
+    // Check if target is a union containing compatible types
+    if (target instanceof UnionType) {
+      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    }
+
+    return false;
+  }
+
+  /**
+   * Return the type at a numeric index, or null for out-of-bounds.
+   * @param {number} index
+   * @returns {Type|null}
+   */
+  getElementType(index) {
+    if (index < 0 || index >= this.elements.length) return null;
+    return this.elements[index];
+  }
+
+  /**
+   * The literal number type for the tuple's length.
+   * @returns {LiteralType}
+   */
+  getLengthType() {
+    return new LiteralType(this.elements.length, NumberType);
   }
 }
 
@@ -264,7 +347,7 @@ export class ObjectType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -372,7 +455,7 @@ export class RecordType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
@@ -490,7 +573,7 @@ export class UnionType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -618,7 +701,7 @@ export class IntersectionType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
     // Resolve aliases and type member access on the target side
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false; // Unresolvable alias
       return this.isCompatibleWith(resolved, aliases);
@@ -672,7 +755,7 @@ export class GenericType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -740,7 +823,7 @@ export class FunctionType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -781,6 +864,85 @@ export class FunctionType extends Type {
  * Singleton representing a function with unknown signature (used as a type marker)
  */
 export const AnyFunctionType = new FunctionType(null, AnyType);
+
+/**
+ * Predicate types: `x is string` in a function return annotation.
+ * A predicate function returns boolean at runtime, but the type system uses this
+ * class to carry the narrowing contract: "if this function returns true, the
+ * argument named `paramName` has type `guardType`".
+ */
+export class PredicateType extends Type {
+  /**
+   * @param {string} paramName - Name of the guarded parameter (e.g. 'x' in 'x is string')
+   * @param {Type} guardType   - The narrowed type (e.g. StringType for 'x is string')
+   */
+  constructor(paramName, guardType) {
+    super();
+    this.kind = 'predicate';
+    this.paramName = paramName;
+    this.guardType = guardType;
+  }
+
+  toString() {
+    return `${this.paramName} is ${this.guardType}`;
+  }
+
+  equals(other) {
+    return (
+      other instanceof PredicateType &&
+      this.paramName === other.paramName &&
+      this.guardType.equals(other.guardType)
+    );
+  }
+
+  isCompatibleWith(target, aliases) {
+    // A predicate type is a subtype of boolean (and of any)
+    if (target instanceof PrimitiveType && (target.name === 'any' || target.name === 'boolean')) return true;
+    if (target instanceof UnionType) return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target instanceof PredicateType) return this.guardType.isCompatibleWith(target.guardType, aliases);
+    return false;
+  }
+}
+
+/**
+ * Keyof type: `keyof T` — the union of all known property-name types for T.
+ *
+ * For an ObjectType with properties {a, b, c} it resolves to `"a" | "b" | "c"`.
+ * For a RecordType<K, V> it resolves to K.
+ * For `any` it resolves to `string | number`.
+ */
+export class KeyofType extends Type {
+  /**
+   * @param {Type} subjectType - The type whose keys are extracted (usually a TypeAlias)
+   */
+  constructor(subjectType) {
+    super();
+    this.kind = 'keyof';
+    this.subjectType = subjectType;
+  }
+
+  toString() {
+    return `keyof ${this.subjectType.toString()}`;
+  }
+
+  equals(other) {
+    return other instanceof KeyofType && this.subjectType.equals(other.subjectType);
+  }
+
+  /**
+   * Eagerly resolve this KeyofType to a concrete union (or primitive) type.
+   * @param {TypeAliasMap} aliases
+   * @returns {Type}
+   */
+  resolve(aliases) {
+    return aliases.resolveKeyof(this);
+  }
+
+  isCompatibleWith(target, aliases) {
+    const resolved = this.resolve(aliases);
+    return resolved.isCompatibleWith(target, aliases);
+  }
+}
 
 /**
  * Type member access: resolve a named property of a type alias at check time.
@@ -932,6 +1094,28 @@ export class TypeAliasMap {
   }
 
   /**
+   * Resolve a KeyofType to a concrete union of its subject's property-name types.
+   * @param {KeyofType} type
+   * @returns {Type}
+   */
+  resolveKeyof(type) {
+    const resolved = this.resolve(type.subjectType);
+    if (resolved instanceof ObjectType) {
+      const keys = [...resolved.properties.keys()];
+      if (keys.length === 0) return NeverType;
+      return createUnion(keys.map(k => new LiteralType(k, StringType)));
+    }
+    if (resolved instanceof RecordType) {
+      return resolved.keyType;
+    }
+    if (resolved instanceof PrimitiveType && resolved.name === 'any') {
+      return new UnionType([StringType, NumberType]);
+    }
+    // Unknown/unresolvable subject — fall back to string
+    return StringType;
+  }
+
+  /**
    * Resolve a type alias (recursive with cycle detection)
    * @param {Type} type
    * @returns {Type}
@@ -939,6 +1123,9 @@ export class TypeAliasMap {
   resolve(type) {
     if (type instanceof TypeMemberAccess) {
       return this.resolveMemberAccess(type);
+    }
+    if (type instanceof KeyofType) {
+      return this.resolveKeyof(type);
     }
     if (!(type instanceof TypeAlias)) {
       return type;
@@ -1019,6 +1206,10 @@ export function substituteTypeParams(type, substitutions) {
     return new ArrayType(substituteTypeParams(type.elementType, substitutions));
   }
   
+  if (type instanceof TupleType) {
+    return new TupleType(type.elements.map(el => substituteTypeParams(el, substitutions)));
+  }
+  
   if (type instanceof ObjectType) {
     const newProps = new Map();
     for (const [key, prop] of type.properties) {
@@ -1054,7 +1245,18 @@ export function substituteTypeParams(type, substitutions) {
       type.paramNames
     );
   }
-  
+
+  if (type instanceof PredicateType) {
+    return new PredicateType(
+      type.paramName,
+      substituteTypeParams(type.guardType, substitutions)
+    );
+  }
+
+  if (type instanceof KeyofType) {
+    return new KeyofType(substituteTypeParams(type.subjectType, substitutions));
+  }
+
   // Primitives and literals don't need substitution
   return type;
 }
@@ -1120,5 +1322,17 @@ export const Types = {
 
   record(keyType, valueType) {
     return new RecordType(keyType, valueType);
+  },
+
+  tuple(elements) {
+    return new TupleType(elements);
+  },
+
+  predicate(paramName, guardType) {
+    return new PredicateType(paramName, guardType);
+  },
+
+  keyof(subjectType) {
+    return new KeyofType(subjectType);
   }
 };

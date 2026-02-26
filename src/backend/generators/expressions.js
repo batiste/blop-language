@@ -7,6 +7,10 @@ function createExpressionGenerators(context) {
   return {
     'exp': (node) => {
       const output = [];
+      // Type assertion: expr as SomeType — emit just the expression, discard the type.
+      if (node.named?.type_cast) {
+        return generateCode(node.named.exp);
+      }
       if (node.children) {
         for (let i = 0; i < node.children.length; i++) {
           // Skip type_arguments — they are static type hints only, not emitted to JS

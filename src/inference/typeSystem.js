@@ -11,8 +11,9 @@
 
 import {
   Type, Types, TypeAliasMap,
-  PrimitiveType, LiteralType, ArrayType, ObjectType, UnionType,
+  PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
   IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
+  PredicateType,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
@@ -229,6 +230,29 @@ function getPropertyTypeFromType(type, propertyPath, aliases) {
     // Check primitive types (string, number, boolean)
     if (currentType instanceof PrimitiveType) {
       const memberType = getPrimitiveMemberType(currentType.name, propName);
+      if (memberType !== null) {
+        currentType = memberType;
+        continue;
+      }
+      return null;
+    }
+
+    // Check tuple types ([string, number, ...])
+    if (currentType instanceof TupleType) {
+      if (propName === 'length') {
+        currentType = currentType.getLengthType();
+        continue;
+      }
+      const index = parseInt(propName, 10);
+      if (!isNaN(index)) {
+        const elementType = currentType.getElementType(index);
+        if (elementType === null) return null; // out of bounds
+        currentType = elementType;
+        continue;
+      }
+      // Array methods — use union of all element types as T
+      const unionT = currentType.elements.length > 0 ? createUnion(currentType.elements) : AnyType;
+      const memberType = getArrayMemberType(new ArrayType(unionT), propName);
       if (memberType !== null) {
         currentType = memberType;
         continue;
@@ -634,6 +658,6 @@ function objectToMap(obj) {
 
 export {
   Type, Types, TypeAliasMap,
-  PrimitiveType, LiteralType, ArrayType, ObjectType, UnionType,
-  IntersectionType, GenericType, FunctionType, TypeAlias
+  PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
+  IntersectionType, GenericType, FunctionType, TypeAlias, PredicateType
 };

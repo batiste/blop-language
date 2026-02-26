@@ -4,11 +4,38 @@
 
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
 import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType, NullType, NeverType } from '../Type.js';
-import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
+import { parseTypeExpression } from '../typeParser.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType, PredicateType } from '../Type.js';
+import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { isBuiltinObjectType } from '../builtinTypes.js';
 import { extractExplicitTypeArguments, countFuncCallArgs } from './utils.js';
+
+/**
+ * Get the expression node at position `argIndex` in a func_call node's argument list.
+ * Returns null if the index is out of range.
+ */
+function getCallArgExpNode(funcCallNode, argIndex) {
+  let paramsNode = funcCallNode?.children?.find(c => c.type === 'func_call_params');
+  let idx = 0;
+  while (paramsNode) {
+    const expNode = paramsNode.children?.find(c => c.type === 'exp');
+    if (idx === argIndex) return expNode ?? null;
+    idx++;
+    paramsNode = paramsNode.children?.find(c => c.type === 'func_call_params');
+  }
+  return null;
+}
+
+/**
+ * Return the variable name if the expression is a plain variable reference, else null.
+ */
+function getSimpleVarName(expNode) {
+  if (!expNode) return null;
+  const firstChild = expNode.children?.[0];
+  if (firstChild?.type === 'name_exp') return firstChild.named?.name?.value ?? null;
+  return null;
+}
 
 /**
  * Handle dot-notation or optional-chain property access: obj.prop or obj?.prop.
@@ -149,6 +176,14 @@ function handleFuncCallAccess(expNode, parent, funcType, getState) {
   if (inferencePhase === 'inference') {
     expNode.inferredType = returnType;
     if (parent) pushInference(parent, returnType);
+    // When the function has a predicate return type, stamp the argument variable name
+    // so that detectPredicateGuard can apply narrowing in if-conditions.
+    if (returnType instanceof PredicateType) {
+      const paramIdx = Math.max(0, funcType.paramNames?.indexOf(returnType.paramName) ?? 0);
+      const argExpNode = getCallArgExpNode(funcCallNode, paramIdx);
+      const varName = getSimpleVarName(argExpNode);
+      if (varName) expNode.__predicateArg = varName;
+    }
   }
 }
 
@@ -335,6 +370,21 @@ function createExpressionHandlers(getState) {
     exp: (node, parent) => {
       const { left, obj } = node.named ?? {};
 
+      // Type assertion: expr as SomeType — override the inferred type with the asserted type.
+      // In inference phase: stamp asserted type; in checking phase: just visit children
+      // (no warning emitted — assertions are an explicit escape hatch).
+      if (node.named?.type_cast !== undefined) {
+        visitChildren(node);
+        const { inferencePhase, pushInference } = getState();
+        if (inferencePhase === 'inference') {
+          const assertedType = parseTypeExpression(node.named.type_cast);
+          node.inferredType = assertedType;
+          node.inference = [assertedType];
+          if (parent) pushInference(parent, assertedType);
+        }
+        return;
+      }
+
       // Binary operations — five inlined alternatives all have exp:left
       if (left !== undefined) {
         visitChildren(node);
@@ -363,9 +413,18 @@ function createExpressionHandlers(getState) {
       // `typeof expr` — always produces string at runtime, regardless of the
       // operand's static type. Visit children so operand is still type-checked,
       // then replace the inference with StringType.
+      //
+      // Special case: `typeof x == 'string'` is parsed by the grammar as
+      // `typeof(x == 'string')` because `['operand', 'exp']` greedily consumes
+      // the rest of the expression. When the inner exp is a boolean comparison
+      // (boolean_op), the expression is typed as BooleanType — it evaluates to
+      // a boolean check, not a string tag. This matches how the backend emits
+      // `typeof x === 'string'` and how detectTypeofCheck() understands it.
       if (firstChild?.type === 'operand' && firstChild.value?.includes('typeof')) {
         visitChildren(node);
-        node.inference = [StringType];
+        const innerExp = node.children?.[1];
+        const isComparisonPattern = !!(innerExp?.named?.boolean_op);
+        node.inference = isComparisonPattern ? [BooleanType] : [StringType];
         pushToParent(node, parent);
         return;
       }
@@ -385,6 +444,19 @@ function createExpressionHandlers(getState) {
           }
         }
         pushToParent(node, parent);
+        return;
+      }
+
+      // Unary math operator: `-expr`, `+expr`, `~expr` — always produces number.
+      // Operand must itself be numeric, but we infer the result as number regardless.
+      if (firstChild?.type === 'math_operator') {
+        visitChildren(node);
+        const { inferencePhase, pushInference } = getState();
+        if (inferencePhase === 'inference') {
+          node.inference = [NumberType];
+          node.inferredType = NumberType;
+          if (parent) pushInference(parent, NumberType);
+        }
         return;
       }
 
@@ -478,7 +550,7 @@ function createExpressionHandlers(getState) {
       // Visit condition so its children are type-checked
       if (exp1) visit(exp1, node);
 
-      const typeGuard = detectTypeofCheck(exp1) || detectEqualityCheck(exp1) || detectTruthinessCheck(exp1);
+      const typeGuard = detectTypeofCheck(exp1) || detectEqualityCheck(exp1) || detectTruthinessCheck(exp1) || detectPredicateGuard(exp1);
 
       // Visit true-branch — narrow the guard variable if a type guard is present
       const trueScratch = {};

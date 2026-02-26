@@ -7,7 +7,7 @@ import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
-import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
+import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
@@ -181,9 +181,13 @@ function createStatementHandlers(getState) {
             if (declaredReturnType && returnType !== AnyType) {
               if (!isTypeCompatible(returnType, declaredReturnType, typeAliases)) {
                 const displayType = getBaseTypeOfLiteral(returnType);
+                // Use the original annotation type for the message (predicate functions store
+                // BooleanType in __declaredReturnType for checking, but the annotation itself
+                // is the predicate — e.g. "x is string").
+                const displayDeclared = functionScope.__annotationReturnType ?? declaredReturnType;
                 pushWarning(
                   returnExpNode,
-                  `returns ${displayType} but declared as ${declaredReturnType}`
+                  `returns ${displayType} but declared as ${displayDeclared}`
                 );
               }
             }
@@ -527,14 +531,18 @@ function createStatementHandlers(getState) {
           `This condition will always be false: '${variable}' has type ${possibleValues.join(' | ')} and can never equal ${comparedValue}`
         );
       }
-      
-      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
+
       const returnsBeforeIf = getReturnTypeCount(functionScope);
-      
-      // Visit condition expression
+
+      // Visit condition expression FIRST. Predicate call nodes need inferredType stamped
+      // before detectPredicateGuard can identify them.
       if (node.named.exp) {
         visit(node.named.exp, node);
       }
+
+      // Detect type guard (syntax-based, then predicate which requires inferredType)
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp)
+        || detectTruthinessCheck(node.named.exp) || detectPredicateGuard(node.named.exp);
       
       // Visit if branch (with type-narrowing scope when a type guard is present)
       if (typeGuard) {
@@ -607,7 +615,8 @@ function createStatementHandlers(getState) {
       visit(node.named.exp, node);
 
       // Apply type narrowing for this elseif's own condition
-      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp) || detectTruthinessCheck(node.named.exp);
+      const typeGuard = detectTypeofCheck(node.named.exp) || detectEqualityCheck(node.named.exp)
+        || detectTruthinessCheck(node.named.exp) || detectPredicateGuard(node.named.exp);
       if (typeGuard) {
         const ifScope = pushScope();
         applyIfBranchGuard(ifScope, typeGuard, lookupVariable);

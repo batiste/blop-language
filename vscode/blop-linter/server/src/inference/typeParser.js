@@ -3,8 +3,8 @@
 // ============================================================================
 
 import {
-  Type, Types, TypeAlias, TypeMemberAccess, UnionType, IntersectionType, ArrayType, ObjectType,
-  GenericType, LiteralType, PrimitiveType,
+  Type, Types, TypeAlias, TypeMemberAccess, KeyofType, UnionType, IntersectionType, ArrayType, ObjectType,
+  TupleType, GenericType, LiteralType, PrimitiveType, PredicateType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType
 } from './Type.js';
@@ -16,18 +16,25 @@ import {
  */
 export function parseAnnotation(annotationNode) {
   if (!annotationNode) return Types.any;
-  
+
+  // Predicate annotation: ': paramName is SomeType'
+  if (annotationNode.named?.predicate_param) {
+    const paramName = annotationNode.named.predicate_param.value;
+    const guardType = parseTypeExpression(annotationNode.named.predicate_type);
+    return new PredicateType(paramName, guardType);
+  }
+
   // annotation.named.type is a type_expression
   if (annotationNode.named && annotationNode.named.type) {
     return parseTypeExpression(annotationNode.named.type);
   }
-  
+
   // Old format fallback: annotation.named.name
   if (annotationNode.named && annotationNode.named.name) {
     const name = annotationNode.named.name.value;
     return primitiveFromName(name);
   }
-  
+
   return Types.any;
 }
 
@@ -98,6 +105,30 @@ export function parseTypePrimary(typePrimaryNode) {
     return new FunctionType(paramTypes, returnType, [], paramNames);
   }
 
+  // Check for tuple type: [string, number, boolean]
+  if (typePrimaryNode.named.tuple) {
+    const tupleNode = typePrimaryNode.named.tuple;
+    const elements = parseTupleTypeElements(tupleNode.named?.elements);
+    const baseType = new TupleType(elements);
+    // Handle optional array suffix: [string, number][]
+    const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
+    if (arraySuffixNode) {
+      return parseArraySuffix(baseType, arraySuffixNode);
+    }
+    return baseType;
+  }
+
+  // Check for keyof type: keyof T
+  if (typePrimaryNode.named.subject) {
+    const subjectType = parseTypePrimary(typePrimaryNode.named.subject);
+    const baseType = new KeyofType(subjectType);
+    const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
+    if (arraySuffixNode) {
+      return parseArraySuffix(baseType, arraySuffixNode);
+    }
+    return baseType;
+  }
+
   let baseType = Types.any;
   
   // Check for object type
@@ -149,6 +180,25 @@ export function parseTypePrimary(typePrimaryNode) {
   }
   
   return baseType;
+}
+
+/**
+ * Recursively collect element types from a tuple_type_elements AST node.
+ * Grammar: element:type_expression (', ' rest:tuple_type_elements)?
+ * @param {Object|null} node - tuple_type_elements AST node
+ * @returns {Type[]}
+ */
+function parseTupleTypeElements(node) {
+  if (!node) return [];
+  const types = [];
+  let current = node;
+  while (current) {
+    if (current.named?.element) {
+      types.push(parseTypeExpression(current.named.element));
+    }
+    current = current.named?.rest ?? null;
+  }
+  return types;
 }
 
 /**

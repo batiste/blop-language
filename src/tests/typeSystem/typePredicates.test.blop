@@ -1,0 +1,44 @@
+// Runtime tests for user-defined type predicates.
+// `x is T` in a return annotation compiles to an ordinary boolean function —
+// the annotation is erased at runtime; only the narrowing contract is static.
+
+def isString(x: any): x is string {
+  return typeof x == 'string'
+}
+
+def isNumber(x: any): x is number {
+  return typeof x == 'number'
+}
+
+test('predicate function returns true for a string', () => {
+  val = 'hello'
+  expect(isString(val)).toBe(true)
+})
+
+test('predicate function returns false for a number', () => {
+  val = 42
+  expect(isString(val)).toBe(false)
+})
+
+test('predicate function isNumber returns true for a number', () => {
+  val = 123
+  expect(isNumber(val)).toBe(true)
+})
+
+test('predicate narrows type in if branch — runtime string property accessible', () => {
+  val: any = 'hello world'
+  if isString(val) {
+    expect(val.length).toBe(11)
+  }
+})
+
+test('predicate in else branch — original value unchanged', () => {
+  val: any = 99
+  result = 0
+  if isString(val) {
+    result := -1
+  } else {
+    result := val
+  }
+  expect(result).toBe(99)
+})

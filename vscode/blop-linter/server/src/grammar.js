@@ -91,6 +91,7 @@ const grammar = {
     ['type_expression:arg'],
   ],
   'annotation': [
+    ['colon', 'w', 'name:predicate_param', 'w', 'is', 'type_expression:predicate_type'],
     ['colon', 'w', 'type_expression:type'],
   ],
   'type_expression': [
@@ -101,6 +102,8 @@ const grammar = {
   'type_primary': [
     ['(', 'func_type_params:params', ')', 'w', '=>', 'w', 'type_expression:return'],
     ['(', ')', 'w', '=>', 'w', 'type_expression:return'],
+    ['keyof', 'type_primary:subject', 'array_suffix?'],
+    ['tuple_type:tuple', 'array_suffix?'],
     ['object_type', 'array_suffix?'],
     ['str:literal', 'array_suffix?'],
     ['number:literal', 'array_suffix?'],
@@ -116,6 +119,13 @@ const grammar = {
   ],
   'array_suffix': [
     ['[', ']', 'array_suffix?'],
+  ],
+  'tuple_type': [
+    ['[', 'tuple_type_elements:elements', ']'],
+  ],
+  'tuple_type_elements': [
+    ['type_expression:element', ',', 'w', 'tuple_type_elements:rest'],
+    ['type_expression:element'],
   ],
   'type_arg_list': [
     ['type_expression:arg', ',', 'w', 'type_arg_list:rest'],
@@ -299,6 +309,7 @@ const grammar = {
     ['exp:left', 'w', 'boolean_operator:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
+    ['exp:exp', 'w', 'as', 'type_expression:type_cast'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],
@@ -312,6 +323,7 @@ const grammar = {
     ['(', 'exp', ')'],
     ['operand', 'exp'],
     ['unary', 'exp'],
+    ['math_operator:math_op', 'exp'],
     ['object_literal'],
     ['array_literal'],
     ['await', 'exp'],

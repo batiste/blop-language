@@ -4,7 +4,7 @@
 
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, resolveTypeAlias, isTypeCompatible, getPropertyType, parseTypePrimary } from './typeSystem.js';
-import { ObjectType, ArrayType, AnyType, TypeAlias, RecordType, PrimitiveType } from './Type.js';
+import { ObjectType, ArrayType, TupleType, AnyType, TypeAlias, RecordType, PrimitiveType, LiteralType, createUnion } from './Type.js';
 import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 // Module state
@@ -286,6 +286,33 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
     const nameNode = accessNode?.children?.find(c => c.type === 'name');
     if (nameNode && nameNode.inferredType === undefined) nameNode.inferredType = propertyType;
     return propertyType;
+  }
+
+  // Handle tuple types
+  if (resolvedType instanceof TupleType) {
+    if (!propertyName) {
+      // Bracket access — try to resolve a literal numeric index for precise typing
+      const keyType = accessNode?.named?.key?.inferredType;
+      if (keyType instanceof LiteralType && typeof keyType.value === 'number') {
+        const elementType = resolvedType.getElementType(keyType.value);
+        if (elementType === null) {
+          pushWarning(accessNode, `Tuple index ${keyType.value} is out of bounds (tuple has ${resolvedType.elements.length} element${resolvedType.elements.length === 1 ? '' : 's'})`);
+          return AnyType;
+        }
+        return elementType;
+      }
+      // Unknown numeric index — return union of all element types
+      return createUnion(resolvedType.elements);
+    }
+    if (propertyName === 'length') {
+      return resolvedType.getLengthType();
+    }
+    // For array methods (push, pop, map, …) fall through to shared array-member lookup
+    // using the element union type as T.
+    const unionElementType = resolvedType.elements.length > 0
+      ? createUnion(resolvedType.elements)
+      : AnyType;
+    return getArrayMemberType(new ArrayType(unionElementType), propertyName);
   }
 
   // Handle array types with bracket access (element access)

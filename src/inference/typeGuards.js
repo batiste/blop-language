@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType, stringToType } from './typeSystem.js';
-import { LiteralType, StringType, NumberType, NullType, UndefinedType } from './Type.js';
+import { LiteralType, StringType, NumberType, NullType, UndefinedType, PredicateType } from './Type.js';
 
 /**
  * Detect typeof checks in expressions
@@ -409,10 +409,27 @@ function applyPostIfGuard(scope, typeGuard, lookupVariable) {
   }
 }
 
+/**
+ * Detect user-defined type predicate calls.
+ * Requires the expression to have already been visited (so inferredType is stamped)
+ * and for handleFuncCallAccess to have stamped __predicateArg on the call node.
+ * Returns { variable, checkType } if detected, null otherwise.
+ * @param {Object} expNode - Already-visited expression node
+ * @returns {Object|null}
+ */
+function detectPredicateGuard(expNode) {
+  if (!expNode?.inferredType) return null;
+  if (!(expNode.inferredType instanceof PredicateType)) return null;
+  const varName = expNode.__predicateArg;
+  if (!varName) return null;
+  return { variable: varName, checkType: expNode.inferredType.guardType, negated: false };
+}
+
 export {
   detectTypeofCheck,
   detectEqualityCheck,
   detectTruthinessCheck,
+  detectPredicateGuard,
   applyNarrowing,
   applyExclusion,
   applyIfBranchGuard,

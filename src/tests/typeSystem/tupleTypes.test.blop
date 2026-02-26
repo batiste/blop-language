@@ -1,0 +1,48 @@
+// Tuple type runtime tests.
+// Type-checking correctness is verified in tupleTypes.test.js.
+// These tests confirm that runtime behavior (array indexing, .length, etc.)
+// works correctly when tuple type annotations are in play.
+
+// Functions WITHOUT typed parameters so array literals are accepted freely.
+
+def first(pair) {
+  return pair[0]
+}
+
+def second(pair) {
+  return pair[1]
+}
+
+def len(pair) {
+  return pair.length
+}
+
+test('element access [0] returns first element', () => {
+  expect(first(['hello', 42])).toBe('hello')
+})
+
+test('element access [1] returns second element', () => {
+  expect(second(['world', 99])).toBe(99)
+})
+
+test('.length returns the element count', () => {
+  expect(len(['a', 1])).toBe(2)
+})
+
+test('array of tuples works at runtime', () => {
+  entries = [['x', 1], ['y', 2]]
+  expect(entries.length).toBe(2)
+  expect(entries[0][0]).toBe('x')
+  expect(entries[1][1]).toBe(2)
+})
+
+// Typed identity function — its presence here verifies that the tuple type
+// annotation is parsed correctly at compile time (no runtime call needed).
+def identity(x: [string, number]): [string, number] {
+  return x
+}
+
+def process(pair: [string, number]) {
+  return pair
+}
+// process([42, 'hello'])

@@ -10,7 +10,7 @@ import {
   resolveTypeAlias,
   getBaseTypeOfLiteral,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType, PredicateType, BooleanType } from '../Type.js';
 import { getBuiltinObjectType } from '../builtinTypes.js';
 
 /**
@@ -99,7 +99,16 @@ function setupDeclaredReturnType(scope, annotation, stampTypeAnnotation) {
   if (!annotation) return null;
   stampTypeAnnotation(annotation);
   const declaredType = getAnnotationType(annotation);
-  if (declaredType) scope.__declaredReturnType = declaredType;
+  if (declaredType) {
+    // Predicate functions must return boolean at runtime. Use BooleanType
+    // for per-statement return checking so that `return typeof x === 'string'`
+    // passes; the FunctionType's returnType keeps PredicateType so call sites
+    // can apply narrowing.
+    scope.__declaredReturnType = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
+    // Keep the original annotation type for error messages (so predicate
+    // warnings say "declared as x is string" not "declared as boolean").
+    scope.__annotationReturnType = declaredType;
+  }
   return declaredType ?? null;
 }
 
@@ -256,7 +265,9 @@ function finalizeFunctionReturnType({
   if (annotation) stampTypeAnnotation(annotation);
   const declaredType = annotation ? getAnnotationType(annotation) : null;
   const inferredType = collectReturnType(scope.__returnTypes);
-  if (declaredType && inferredType !== AnyType && !isTypeCompatible(inferredType, declaredType, typeAliases)) {
+  // Predicate functions must return boolean — compare against BooleanType, not PredicateType
+  const checkTarget = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
+  if (checkTarget && inferredType !== AnyType && !isTypeCompatible(inferredType, checkTarget, typeAliases)) {
     pushWarning(nameNode, `${warningLabel} returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
   }
   if (inferencePhase === 'inference' && nameNode?.inferredType === undefined) {
@@ -466,7 +477,8 @@ function createFunctionHandlers(getState) {
         pushInference(parent, new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames));
         if (declaredType && inferredType !== AnyType) {
           const { typeAliases } = getState();
-          if (!isTypeCompatible(inferredType, declaredType, typeAliases)) {
+          const checkTarget = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
+          if (!isTypeCompatible(inferredType, checkTarget, typeAliases)) {
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
             pushWarning(errorToken, `Function returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
           }
