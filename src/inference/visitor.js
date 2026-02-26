@@ -143,7 +143,7 @@ function handleAssignment(types, i, assignNode) {
     const isDestructurable = resolvedValueType instanceof ObjectType ||
       (resolvedValueType instanceof TypeAlias && isBuiltinObjectType(resolvedValueType.name));
     if (isDestructurable) {
-      for (const { propertyName, varName, node: varNode, annotationNode } of destructuredBindings) {
+      for (const { propertyPath, propertyName, varName, node: varNode, annotationNode } of destructuredBindings) {
         // Inline type annotation takes priority over the inferred property type
         const inlineAnnotationType = annotationNode ? getAnnotationType(annotationNode) : null;
         if (inlineAnnotationType) {
@@ -155,20 +155,21 @@ function handleAssignment(types, i, assignNode) {
           continue;
         }
 
-        // Look up property on the object using the PROPERTY NAME
-        const propertyType = getPropertyType(valueType, propertyName, typeAliases);
+        // Walk the full property path using getPropertyType which handles TypeAlias,
+        // UnionType, arrays, etc. For flat destructuring propertyPath = [propertyName].
+        const leafType = getPropertyType(valueType, propertyPath, typeAliases);
         
-        if (propertyType !== null) {
+        if (leafType !== null) {
           // Create variable definition with inferred type using the VARIABLE NAME
           const scope = getCurrentScope();
           scope[varName] = {
-            type: propertyType,
+            type: leafType,
             node: assignNode,
           };
           
           // Stamp hover type information - do this unconditionally like regular assignments
           if (varNode.inferredType === undefined) {
-            varNode.inferredType = propertyType;
+            varNode.inferredType = leafType;
           }
         } else {
           // Property doesn't exist on the object type
@@ -528,28 +529,36 @@ function extractDestructuredNames(destructuringNode) {
   
   if (!valuesNode) return [];
   
-  // Traverse the destructuring_values tree to extract property->variable mappings
-  const extractBindings = (node) => {
+  // Traverse the destructuring_values tree to extract property->variable mappings.
+  // parentPath accumulates the chain of property names to reach this level's variables.
+  const extractBindings = (node, parentPath = []) => {
     if (!node || node.type !== 'destructuring_values') return;
     
-    // Extract current binding
-    if (node.named?.name) {
+    if (node.named?.nested) {
+      // Nested pattern: e.g. `info: { score }` — descend into the nested pattern.
+      const intermediateProp = node.named.name.value;
+      const nestedValues = node.named.nested.named?.values;
+      if (nestedValues) {
+        extractBindings(nestedValues, [...parentPath, intermediateProp]);
+      }
+    } else if (node.named?.name) {
       const propertyName = node.named.name.value;
       const varName = node.named.rename?.value || propertyName;
       const varNode = node.named.rename || node.named.name;
       const annotationNode = node.named.annotation || null;
       
       bindings.push({
-        propertyName,
+        propertyPath: [...parentPath, propertyName],
+        propertyName,  // backward compat: last segment
         varName,
         node: varNode,
         annotationNode,
       });
     }
     
-    // Recurse for more values
+    // Recurse for sibling values (same depth)
     if (node.named?.more) {
-      extractBindings(node.named.more);
+      extractBindings(node.named.more, parentPath);
     }
   };
   

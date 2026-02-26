@@ -250,4 +250,71 @@ def MyComp(ctx: Component): VNode {
     expect(destructuredState).toBeDefined();
     expect(destructuredState.inferredType.toString()).toBe('any');
   });
+
+  it('should infer nested destructuring: { outer: { inner } } = obj', () => {
+    // Regression: nested destructuring { info: { score } } = u was throwing
+    // "Token score is undefined" because the grammar only supported flat patterns.
+    const code = `
+type U = { info: { score: number } }
+u: U = { info: { score: 9 } }
+{ info: { score } } = u
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // 'score' should be inferred as number (the leaf property type)
+    const scoreNodes = findNodesWithValue(tree, ['score']);
+    const destructuredScore = scoreNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'number'
+    );
+    expect(destructuredScore).toBeDefined();
+    expect(destructuredScore.inferredType.toString()).toBe('number');
+  });
+
+  it('should infer deeply nested destructuring (3 levels)', () => {
+    const code = `
+type U = { a: { b: { c: string } } }
+u: U = { a: { b: { c: 'hello' } } }
+{ a: { b: { c } } } = u
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    const cNodes = findNodesWithValue(tree, ['c']);
+    const destructuredC = cNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'string'
+    );
+    expect(destructuredC).toBeDefined();
+    expect(destructuredC.inferredType.toString()).toBe('string');
+  });
+
+  it('should infer mixed flat and nested destructuring in one pattern', () => {
+    const code = `
+type U = { name: string, info: { score: number } }
+u: U = { name: 'Alice', info: { score: 10 } }
+{ name, info: { score } } = u
+    `.trim();
+
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    // 'name' should be string
+    const nameNodes = findNodesWithValue(tree, ['name']);
+    const destructuredName = nameNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'string'
+    );
+    expect(destructuredName).toBeDefined();
+
+    // 'score' should be number
+    const scoreNodes = findNodesWithValue(tree, ['score']);
+    const destructuredScore = scoreNodes.find(n =>
+      n.inferredType && n.inferredType.toString() === 'number'
+    );
+    expect(destructuredScore).toBeDefined();
+  });
 });
