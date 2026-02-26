@@ -111,6 +111,10 @@ function createExpressionGenerators(context) {
           if (firstChild.type === 'str' || firstChild.type === 'str_expression') {
             isString = true;
           }
+          // Compound-exp string interpolation: a.b'text'
+          if (expNode.named?.left !== undefined && expNode.named?.str !== undefined) {
+            isString = true;
+          }
         }
       }
       
