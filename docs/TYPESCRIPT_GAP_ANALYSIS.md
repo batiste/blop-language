@@ -25,6 +25,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 | Return-type inference + declared-return checking | `statements.js` |
 | Two-phase inference (inference → checking) | `visitor.js` |
 | **Tuple types (`[string, number]`)** | `TupleType` — implemented, see below |
+| **`as` type assertion** | Grammar reuses the `as` keyword; inference stamps asserted type; backend erases the annotation |
 
 ### Limitations of the current tuple implementation
 
@@ -41,7 +42,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 | # | Feature | TS example | Blocked by |
 |---|---|---|---|
 | 1 | ~~Tuple types~~ | `[string, number]` | — |
-| 2 | `as` type assertion | `expr as SomeType` | Grammar rule needed |
+| 2 | ~~`as` type assertion~~ | `expr as SomeType` | — |
 | 3 | User-defined type predicates | `x is string` in return | Grammar + narrowing |
 | 4 | `keyof` operator | `keyof T` | Grammar rule needed |
 | 5 | Mapped types | `{ [K in keyof T]: T[K] }` | `keyof` + new `MappedType` |
@@ -71,6 +72,39 @@ This document tracks which TypeScript type-system features are present in Blop a
 | 19 | Exhaustiveness checking | Unreachable `never` warning | Control-flow analysis |
 | 20 | Declaration/interface merging | Same-name type aliases | Symbol table change |
 | 21 | Variance annotations | `in`/`out` on generics | New flag on `GenericType` |
+
+---
+
+## `as` Type Assertion — Design Notes
+
+### Keyword reuse
+
+`as` is already used in destructuring rename (`{ x as y } = obj`). The grammar can distinguish the two uses unambiguously: the rename form only appears inside `destructuring_values`, while the assertion form is an `exp`-level alternative. There is no syntactic ambiguity.
+
+### Syntax
+
+```typescript
+expr as SomeType
+```
+
+### Semantics
+
+- Pure escape hatch — no compatibility check between the expression type and the asserted type (same as TypeScript's unchecked `as`). The user is responsible for correctness.
+- The expression value is unchanged at runtime; the `as T` annotation is fully erased during code generation.
+- Downstream nodes see the asserted type as the expression's inferred type, suppressing any type mismatch that would otherwise be emitted.
+- Chaining is supported: `expr as any as string` is parsed as `(expr as any) as string` (left-associative, consistent with TS).
+
+### Implementation
+
+- New `exp` alternative in `src/grammar.js`: `['exp:exp', 'w', 'as', 'type_expression:type_cast']`
+- Inference handler in `src/inference/handlers/expressions.js`: detects `node.named.type_cast`, calls `parseTypeExpression`, stamps the asserted type, and short-circuits the rest of the handler
+- Backend generator in `src/backend/generators/expressions.js`: if `node.named.type_cast` is present, emits only the inner expression
+- Tests: `src/tests/typeSystem/typeAssertion.test.js` (10 unit tests) + `src/tests/typeSystem/typeAssertion.test.blop` (5 runtime tests)
+
+### Known limitations
+
+- No double-check: `42 as string` produces no warning. This matches TypeScript's `as` (not `satisfies`). A stricter operator (`satisfies`) is tracked separately as item #12.
+- `as const` is tracked separately as item #14 since it requires a different mechanism (literal freezing, not just type stamping).
 
 ---
 

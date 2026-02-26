@@ -4,6 +4,7 @@
 
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
 import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
+import { parseTypeExpression } from '../typeParser.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType, NullType, NeverType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
@@ -334,6 +335,21 @@ function createExpressionHandlers(getState) {
     },
     exp: (node, parent) => {
       const { left, obj } = node.named ?? {};
+
+      // Type assertion: expr as SomeType — override the inferred type with the asserted type.
+      // In inference phase: stamp asserted type; in checking phase: just visit children
+      // (no warning emitted — assertions are an explicit escape hatch).
+      if (node.named?.type_cast !== undefined) {
+        visitChildren(node);
+        const { inferencePhase, pushInference } = getState();
+        if (inferencePhase === 'inference') {
+          const assertedType = parseTypeExpression(node.named.type_cast);
+          node.inferredType = assertedType;
+          node.inference = [assertedType];
+          if (parent) pushInference(parent, assertedType);
+        }
+        return;
+      }
 
       // Binary operations — five inlined alternatives all have exp:left
       if (left !== undefined) {

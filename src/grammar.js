@@ -307,6 +307,7 @@ const grammar = {
     ['exp:left', 'w', 'boolean_operator:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
+    ['exp:exp', 'w', 'as', 'type_expression:type_cast'],
     ['str_expression'],
     ['name_exp'],
     ['func_def'],
