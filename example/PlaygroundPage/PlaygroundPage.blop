@@ -194,6 +194,9 @@ def PlaygroundPage(ctx: Component): VNode {
               },
 { name: 'Conditional rendering',
                 code: 'def StatusBadge({ attributes }: Component): VNode {\n  { status } = attributes\n\n  <div>\n    if status == \'ok\' {\n      <span class="badge badge-success">\'OK\'</span>\n    } elseif status == \'warn\' {\n      <span class="badge badge-warning">\'Warning\'</span>\n    } else {\n      <span class="badge badge-danger">\'Error\'</span>\n    }\n  </div>\n}'
+              },
+{ name: 'Type system',
+                code: 'type Status = \'idle\' | \'loading\' | \'success\'\n\ntype User = { name: string, age: number, role: \'admin\' | \'viewer\' }\n\ndef formatUser(user: User): string {\n  label = \'\'user.name\' (age: \'user.age\')\'\n  return label\n}\n\ndef TypeShowcase(ctx: Component): VNode {\n  { value as status, setState as setStatus } = ctx.state<Status>(\'status\', \'idle\')\n  { value as user, setState as setUser } = ctx.state<User | null>(\'user\', null)\n\n  def loadUser() {\n    setStatus(\'loading\')\n    setUser({ name: \'Alice\', age: 30, role: \'admin\' })\n    setStatus(\'success\')\n  }\n\n  <div style={ padding: \'2em\' }>\n    <h2>\'Type system demo\'</h2>\n    <p>\'Status: \'status</p>\n    if user {\n      <p>formatUser(user)</p>\n      <p>\'Role: \'user.role</p>\n    }\n    <button class="btn btn-primary" on={ click: loadUser }>\'Load user\'</button>\n  </div>\n}'
               }
               ]
 

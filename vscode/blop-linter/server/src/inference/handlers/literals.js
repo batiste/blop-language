@@ -178,8 +178,9 @@ function inferObjectLiteralStructure(node, lookupVariable) {
       let valueType = AnyType;
       
       if (exp.inference && exp.inference.length > 0) {
-        // Normalize literal types to their base types for object properties
-        valueType = getBaseTypeOfLiteral(exp.inference[0]);
+        // Preserve literal types so { role: 'admin' } is compatible with { role: 'admin' | 'viewer' }.
+        // LiteralType.isCompatibleWith already handles assignment to the base type (e.g. string).
+        valueType = exp.inference[0];
       }
       
       propertiesMap.set(key, { type: valueType, optional: false });
