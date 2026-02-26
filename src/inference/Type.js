@@ -859,6 +859,45 @@ export class FunctionType extends Type {
 export const AnyFunctionType = new FunctionType(null, AnyType);
 
 /**
+ * Predicate types: `x is string` in a function return annotation.
+ * A predicate function returns boolean at runtime, but the type system uses this
+ * class to carry the narrowing contract: "if this function returns true, the
+ * argument named `paramName` has type `guardType`".
+ */
+export class PredicateType extends Type {
+  /**
+   * @param {string} paramName - Name of the guarded parameter (e.g. 'x' in 'x is string')
+   * @param {Type} guardType   - The narrowed type (e.g. StringType for 'x is string')
+   */
+  constructor(paramName, guardType) {
+    super();
+    this.kind = 'predicate';
+    this.paramName = paramName;
+    this.guardType = guardType;
+  }
+
+  toString() {
+    return `${this.paramName} is ${this.guardType}`;
+  }
+
+  equals(other) {
+    return (
+      other instanceof PredicateType &&
+      this.paramName === other.paramName &&
+      this.guardType.equals(other.guardType)
+    );
+  }
+
+  isCompatibleWith(target, aliases) {
+    // A predicate type is a subtype of boolean (and of any)
+    if (target instanceof PrimitiveType && (target.name === 'any' || target.name === 'boolean')) return true;
+    if (target instanceof UnionType) return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target instanceof PredicateType) return this.guardType.isCompatibleWith(target.guardType, aliases);
+    return false;
+  }
+}
+
+/**
  * Type member access: resolve a named property of a type alias at check time.
  * Represents syntax like `State.dogPage` or `State['dogPage']`.
  */
@@ -1134,7 +1173,14 @@ export function substituteTypeParams(type, substitutions) {
       type.paramNames
     );
   }
-  
+
+  if (type instanceof PredicateType) {
+    return new PredicateType(
+      type.paramName,
+      substituteTypeParams(type.guardType, substitutions)
+    );
+  }
+
   // Primitives and literals don't need substitution
   return type;
 }
@@ -1204,5 +1250,9 @@ export const Types = {
 
   tuple(elements) {
     return new TupleType(elements);
+  },
+
+  predicate(paramName, guardType) {
+    return new PredicateType(paramName, guardType);
   }
 };

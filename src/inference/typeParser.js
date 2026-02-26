@@ -4,7 +4,7 @@
 
 import {
   Type, Types, TypeAlias, TypeMemberAccess, UnionType, IntersectionType, ArrayType, ObjectType,
-  TupleType, GenericType, LiteralType, PrimitiveType,
+  TupleType, GenericType, LiteralType, PrimitiveType, PredicateType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType
 } from './Type.js';
@@ -16,18 +16,25 @@ import {
  */
 export function parseAnnotation(annotationNode) {
   if (!annotationNode) return Types.any;
-  
+
+  // Predicate annotation: ': paramName is SomeType'
+  if (annotationNode.named?.predicate_param) {
+    const paramName = annotationNode.named.predicate_param.value;
+    const guardType = parseTypeExpression(annotationNode.named.predicate_type);
+    return new PredicateType(paramName, guardType);
+  }
+
   // annotation.named.type is a type_expression
   if (annotationNode.named && annotationNode.named.type) {
     return parseTypeExpression(annotationNode.named.type);
   }
-  
+
   // Old format fallback: annotation.named.name
   if (annotationNode.named && annotationNode.named.name) {
     const name = annotationNode.named.name.value;
     return primitiveFromName(name);
   }
-  
+
   return Types.any;
 }
 

@@ -91,6 +91,7 @@ const grammar = {
     ['type_expression:arg'],
   ],
   'annotation': [
+    ['colon', 'w', 'name:predicate_param', 'w', 'is', 'type_expression:predicate_type'],
     ['colon', 'w', 'type_expression:type'],
   ],
   'type_expression': [

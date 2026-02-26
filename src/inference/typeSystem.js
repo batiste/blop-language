@@ -13,6 +13,7 @@ import {
   Type, Types, TypeAliasMap,
   PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
   IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
+  PredicateType,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
@@ -658,5 +659,5 @@ function objectToMap(obj) {
 export {
   Type, Types, TypeAliasMap,
   PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
-  IntersectionType, GenericType, FunctionType, TypeAlias
+  IntersectionType, GenericType, FunctionType, TypeAlias, PredicateType
 };

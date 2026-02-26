@@ -26,6 +26,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 | Two-phase inference (inference → checking) | `visitor.js` |
 | **Tuple types (`[string, number]`)** | `TupleType` — implemented, see below |
 | **`as` type assertion** | Grammar reuses the `as` keyword; inference stamps asserted type; backend erases the annotation |
+| **User-defined type predicates (`x is T`)** | `PredicateType` — implemented, see below |
 
 ### Limitations of the current tuple implementation
 
@@ -43,7 +44,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 |---|---|---|---|
 | 1 | ~~Tuple types~~ | `[string, number]` | — |
 | 2 | ~~`as` type assertion~~ | `expr as SomeType` | — |
-| 3 | User-defined type predicates | `x is string` in return | Grammar + narrowing |
+| 3 | ~~User-defined type predicates~~ | `x is string` in return | — |
 | 4 | `keyof` operator | `keyof T` | Grammar rule needed |
 | 5 | Mapped types | `{ [K in keyof T]: T[K] }` | `keyof` + new `MappedType` |
 | 6 | Conditional types | `T extends U ? X : Y` | New `ConditionalType` |
@@ -72,6 +73,48 @@ This document tracks which TypeScript type-system features are present in Blop a
 | 19 | Exhaustiveness checking | Unreachable `never` warning | Control-flow analysis |
 | 20 | Declaration/interface merging | Same-name type aliases | Symbol table change |
 | 21 | Variance annotations | `in`/`out` on generics | New flag on `GenericType` |
+
+---
+
+## Type Predicates — Design Notes
+
+### Syntax
+
+```typescript
+def isString(x: any): x is string {
+  return typeof x == 'string'
+}
+
+def isPoint(v: any): v is Point {
+  return typeof v == 'object'
+}
+```
+
+### Semantics
+
+- A function annotated `paramName is T` is a **type predicate** (type guard function).
+- The function body must return `boolean`; the annotation is erased at runtime.
+- At call sites used as an `if` condition, the compiler narrows the predicate argument to `T` in the true branch and excludes `T` in the false branch.
+- Chained guards (`else if isNumber(x)`) also apply narrowing.
+- The **early-exit** pattern works: after `if !isString(x) { return }`, subsequent statements see `x` narrowed to `string`.
+
+### Implementation
+
+- `is` token added to `src/tokensDefinition.js` (trailing space, same pattern as `as`)
+- Annotation grammar extended in `src/grammar.js`: first alternative `['colon', 'w', 'name:predicate_param', 'w', 'is', 'type_expression:predicate_type']` (no extra `w` after `is` — the token already consumes the trailing space)
+- `PredicateType` class in `src/inference/Type.js` with `paramName` and `guardType` fields
+- `parseAnnotation()` in `src/inference/typeParser.js` detects `predicate_param` and returns `PredicateType`
+- `setupDeclaredReturnType()` in `src/inference/handlers/functions.js` stores `BooleanType` for body return-checking and the original `PredicateType` in `scope.__annotationReturnType` for error messages
+- `handleFuncCallAccess()` in `src/inference/handlers/expressions.js` stamps `expNode.__predicateArg` with the guarded variable name when the function's return type is `PredicateType`
+- `detectPredicateGuard()` in `src/inference/typeGuards.js` reads `__predicateArg` from stamped call nodes (requires inference phase to have visited the expression first)
+- `condition` handler in `src/inference/handlers/statements.js` visits the condition expression **before** detecting the type guard (syntax guards detect from raw AST; predicate guards need `inferredType` stamped first)
+- `typeof x == 'string'` fix in `exp` handler: when the grammar parses `['operand', 'exp']` with `typeof` and the inner exp is a boolean comparison, the outer exp is correctly typed as `BooleanType` (not `StringType`)
+- Tests: `src/tests/typeSystem/typePredicates.test.js` (19 unit/integration tests) + `src/tests/typeSystem/typePredicates.test.blop` (5 runtime tests)
+
+### Known limitations
+
+- Only simple variable references as predicate arguments get narrowed. `isString(obj.prop)` or `isString(arr[0])` will compile but the inner expression will not be narrowed (because `getSimpleVarName()` only handles `name_exp` children).
+- The predicate parameter must be the first parameter (or any named parameter) that `paramNames.indexOf(returnType.paramName)` resolves.
 
 ---
 

@@ -2822,6 +2822,96 @@ let annotation_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'annotation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['predicate_param'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'annotation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'is') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'annotation', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_5 = type_expression(stream, i);
+  if (!_rule_5) return false;
+  named['predicate_type'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+annotation_0 = memoize('annotation_0', annotation_0);
+
+
+let annotation_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'annotation',
+    sub_rule_index: 1, type: 'annotation', named,
+  };
+
+  if (stream[i].type !== 'colon') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'annotation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'annotation', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
   const _rule_2 = type_expression(stream, i);
   if (!_rule_2) return false;
   named['type'] = _rule_2;
@@ -2830,11 +2920,12 @@ let annotation_0 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-annotation_0 = memoize('annotation_0', annotation_0);
+annotation_1 = memoize('annotation_1', annotation_1);
 
 
 function annotation(stream, index) {
-  return annotation_0(stream, index);
+  return annotation_0(stream, index)
+    || annotation_1(stream, index);
 }
 let type_expression_0 = (stream, index) => {
   let i = index;
@@ -10535,6 +10626,9 @@ function _tokenize(tokenDef, input, char, stream) {
   }
   if (input.substr(char, 3) === 'as ') {
     return ['as ', 'as'];
+  }
+  if (input.substr(char, 3) === 'is ') {
+    return ['is ', 'is'];
   }
   if (input.substr(char, 6) === 'class ') {
     return ['class ', 'clazz'];
