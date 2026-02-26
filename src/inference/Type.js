@@ -208,6 +208,82 @@ export class ArrayType extends Type {
 }
 
 /**
+ * Tuple types: [string, number, boolean]
+ * Fixed-length sequence where each position has its own type.
+ */
+export class TupleType extends Type {
+  /**
+   * @param {Type[]} elements - Type of each positional element
+   */
+  constructor(elements) {
+    super();
+    this.kind = 'tuple';
+    this.elements = elements; // Type[]
+  }
+
+  toString() {
+    return `[${this.elements.map(t => t.toString()).join(', ')}]`;
+  }
+
+  equals(other) {
+    if (!(other instanceof TupleType)) return false;
+    if (this.elements.length !== other.elements.length) return false;
+    return this.elements.every((el, i) => el.equals(other.elements[i]));
+  }
+
+  isCompatibleWith(target, aliases) {
+    if (target instanceof PrimitiveType && target.name === 'any') return true;
+
+    // Allow typed tuples to match the generic array alias
+    if (target instanceof TypeAlias && target.name === 'array') return true;
+
+    // Resolve aliases and type member access
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess) {
+      const resolved = aliases.resolve(target);
+      if (resolved === target) return false;
+      return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // Tuple is compatible with another tuple of the same length and element types
+    if (target instanceof TupleType) {
+      if (this.elements.length !== target.elements.length) return false;
+      return this.elements.every((el, i) => el.isCompatibleWith(target.elements[i], aliases));
+    }
+
+    // A tuple [A, B] is assignable to (A | B)[] — i.e. a homogeneous array
+    // whose element type covers every element of the tuple.
+    if (target instanceof ArrayType) {
+      return this.elements.every(el => el.isCompatibleWith(target.elementType, aliases));
+    }
+
+    // Check if target is a union containing compatible types
+    if (target instanceof UnionType) {
+      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    }
+
+    return false;
+  }
+
+  /**
+   * Return the type at a numeric index, or null for out-of-bounds.
+   * @param {number} index
+   * @returns {Type|null}
+   */
+  getElementType(index) {
+    if (index < 0 || index >= this.elements.length) return null;
+    return this.elements[index];
+  }
+
+  /**
+   * The literal number type for the tuple's length.
+   * @returns {LiteralType}
+   */
+  getLengthType() {
+    return new LiteralType(this.elements.length, NumberType);
+  }
+}
+
+/**
  * Object types: { name: string, age: number }
  */
 export class ObjectType extends Type {
@@ -1019,6 +1095,10 @@ export function substituteTypeParams(type, substitutions) {
     return new ArrayType(substituteTypeParams(type.elementType, substitutions));
   }
   
+  if (type instanceof TupleType) {
+    return new TupleType(type.elements.map(el => substituteTypeParams(el, substitutions)));
+  }
+  
   if (type instanceof ObjectType) {
     const newProps = new Map();
     for (const [key, prop] of type.properties) {
@@ -1120,5 +1200,9 @@ export const Types = {
 
   record(keyType, valueType) {
     return new RecordType(keyType, valueType);
+  },
+
+  tuple(elements) {
+    return new TupleType(elements);
   }
 };

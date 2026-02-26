@@ -4,7 +4,7 @@
 
 import {
   Type, Types, TypeAlias, TypeMemberAccess, UnionType, IntersectionType, ArrayType, ObjectType,
-  GenericType, LiteralType, PrimitiveType,
+  TupleType, GenericType, LiteralType, PrimitiveType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType
 } from './Type.js';
@@ -98,6 +98,19 @@ export function parseTypePrimary(typePrimaryNode) {
     return new FunctionType(paramTypes, returnType, [], paramNames);
   }
 
+  // Check for tuple type: [string, number, boolean]
+  if (typePrimaryNode.named.tuple) {
+    const tupleNode = typePrimaryNode.named.tuple;
+    const elements = parseTupleTypeElements(tupleNode.named?.elements);
+    const baseType = new TupleType(elements);
+    // Handle optional array suffix: [string, number][]
+    const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
+    if (arraySuffixNode) {
+      return parseArraySuffix(baseType, arraySuffixNode);
+    }
+    return baseType;
+  }
+
   let baseType = Types.any;
   
   // Check for object type
@@ -149,6 +162,25 @@ export function parseTypePrimary(typePrimaryNode) {
   }
   
   return baseType;
+}
+
+/**
+ * Recursively collect element types from a tuple_type_elements AST node.
+ * Grammar: element:type_expression (', ' rest:tuple_type_elements)?
+ * @param {Object|null} node - tuple_type_elements AST node
+ * @returns {Type[]}
+ */
+function parseTupleTypeElements(node) {
+  if (!node) return [];
+  const types = [];
+  let current = node;
+  while (current) {
+    if (current.named?.element) {
+      types.push(parseTypeExpression(current.named.element));
+    }
+    current = current.named?.rest ?? null;
+  }
+  return types;
 }
 
 /**

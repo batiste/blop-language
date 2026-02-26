@@ -101,6 +101,7 @@ const grammar = {
   'type_primary': [
     ['(', 'func_type_params:params', ')', 'w', '=>', 'w', 'type_expression:return'],
     ['(', ')', 'w', '=>', 'w', 'type_expression:return'],
+    ['tuple_type:tuple', 'array_suffix?'],
     ['object_type', 'array_suffix?'],
     ['str:literal', 'array_suffix?'],
     ['number:literal', 'array_suffix?'],
@@ -116,6 +117,13 @@ const grammar = {
   ],
   'array_suffix': [
     ['[', ']', 'array_suffix?'],
+  ],
+  'tuple_type': [
+    ['[', 'tuple_type_elements:elements', ']'],
+  ],
+  'tuple_type_elements': [
+    ['type_expression:element', ',', 'w', 'tuple_type_elements:rest'],
+    ['type_expression:element'],
   ],
   'type_arg_list': [
     ['type_expression:arg', ',', 'w', 'type_arg_list:rest'],
