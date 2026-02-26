@@ -1,0 +1,30 @@
+// Runtime tests for `as` type assertion.
+// `as` is erased at runtime — values pass through unchanged.
+
+test('as on a number is transparent at runtime', () => {
+  x = 42 as number
+  expect(x).toBe(42)
+})
+
+test('as on a string is transparent at runtime', () => {
+  s = 'hello' as string
+  expect(s).toBe('hello')
+})
+
+test('as on an object is transparent at runtime — same reference', () => {
+  obj = { x: 1, y: 2 }
+  same = obj as any
+  expect(same.x).toBe(1)
+  expect(same.y).toBe(2)
+})
+
+test('as in an expression chain does not change value', () => {
+  arr = [1, 2, 3] as any
+  expect(arr.length).toBe(3)
+})
+
+test('as result can be assigned and used normally', () => {
+  raw = 'world'
+  greeting = 'hello ' + (raw as string)
+  expect(greeting).toBe('hello world')
+})
