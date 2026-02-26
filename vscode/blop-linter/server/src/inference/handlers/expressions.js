@@ -385,6 +385,18 @@ function createExpressionHandlers(getState) {
         return;
       }
 
+      // Compound-expression string interpolation: a.b'text 'val
+      // Grammar: ['exp:left', 'str:str', 'inner_str_expression?:str_exp']
+      // Always produces string; still visit children for type-checking.
+      if (left !== undefined && node.named?.str !== undefined) {
+        visitChildren(node);
+        const { pushInference } = getState();
+        node.inference = [StringType];
+        node.inferredType = StringType;
+        if (parent) pushInference(parent, StringType);
+        return;
+      }
+
       // Binary operations — five inlined alternatives all have exp:left
       if (left !== undefined) {
         visitChildren(node);

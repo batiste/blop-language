@@ -83,3 +83,39 @@ describe('Object type structural validation - negative tests', () => {
     expectCompilationError(code, 'score');
   });
 });
+
+describe('Object literal string literal union compatibility', () => {
+  test('object literal with string matching a union param compiles', () => {
+    const code = `
+      type User = { name: string, age: number, role: 'admin' | 'viewer' }
+      def buggy(newValue: User | null) {
+        console.log('User updated:', newValue)
+      }
+      buggy({ name: 'Alice', age: 30, role: 'admin' })
+    `;
+    expectCompiles(code);
+  });
+
+  test('rejects string value not in the union', () => {
+    const code = `
+      type User = { name: string, role: 'admin' | 'viewer' }
+      def f(u: User) { u }
+      f({ name: 'Alice', role: 'superuser' })
+    `;
+    expectCompilationError(code, 'role');
+  });
+
+  test('numeric literals in object literal still widen to number', () => {
+    const code = `
+      def test() {
+        obj = { a: 1, b: 2, c: 3 }
+        result = 0
+        for key, value in obj {
+          result := result + value
+        }
+        return result
+      }
+    `;
+    expectCompiles(code);
+  });
+});

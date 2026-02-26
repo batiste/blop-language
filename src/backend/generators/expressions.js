@@ -1,8 +1,8 @@
-import { OPERATORS, SCOPE_TYPES } from '../../constants.js';
+import { OPERATORS, SCOPE_TYPES, ERROR_MESSAGES } from '../../constants.js';
 
 function createExpressionGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;
-  const { shouldBeDefined } = validators;
+  const { shouldBeDefined, generateError } = validators;
 
   return {
     'exp': (node) => {
@@ -10,6 +10,26 @@ function createExpressionGenerators(context) {
       // Type assertion: expr as SomeType — emit just the expression, discard the type.
       if (node.named?.type_cast) {
         return generateCode(node.named.exp);
+      }
+      // Compound-expression string interpolation: a.b'text 'val
+      // Grammar: ['exp:left', 'str:str', 'inner_str_expression?:str_exp']
+      if (node.named?.left !== undefined && node.named?.str !== undefined) {
+        // A VNode on the left would stringify to '[object Object]' at runtime.
+        // Mirror the AST-level check used in inner_str_expression.
+        const leftFirstChild = node.named.left.children?.[0];
+        if (leftFirstChild && leftFirstChild.type === 'virtual_node_exp') {
+          generateError(leftFirstChild, ERROR_MESSAGES.VIRTUAL_NODE_IN_STRING_INTERPOLATION());
+        }
+        const out = ['`${'];
+        out.push(...generateCode(node.named.left));
+        out.push('}');
+        out.push(node.named.str.value.slice(1, -1));
+        if (node.named.str_exp) {
+          out.push(...generateCode(node.named.str_exp));
+        } else {
+          out.push('`');
+        }
+        return out;
       }
       if (node.children) {
         for (let i = 0; i < node.children.length; i++) {
@@ -89,6 +109,10 @@ function createExpressionGenerators(context) {
         if (expNode && expNode.children.length > 0) {
           const firstChild = expNode.children[0];
           if (firstChild.type === 'str' || firstChild.type === 'str_expression') {
+            isString = true;
+          }
+          // Compound-exp string interpolation: a.b'text'
+          if (expNode.named?.left !== undefined && expNode.named?.str !== undefined) {
             isString = true;
           }
         }

@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes } from '../visitor.js';
 import { getBaseTypeOfLiteral, ObjectType } from '../typeSystem.js';
-import { Types, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
+import { Types, LiteralType, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
 
 /**
  * Deduplicate types by their string representation, last write wins.
@@ -178,8 +178,12 @@ function inferObjectLiteralStructure(node, lookupVariable) {
       let valueType = AnyType;
       
       if (exp.inference && exp.inference.length > 0) {
-        // Normalize literal types to their base types for object properties
-        valueType = getBaseTypeOfLiteral(exp.inference[0]);
+        const rawType = exp.inference[0];
+        // Preserve string literal types so { role: 'admin' } is compatible with { role: 'admin' | 'viewer' }.
+        // Widen number/boolean literals – those properties are typically mutable and need the base type.
+        valueType = (rawType instanceof LiteralType && rawType.baseType !== StringType)
+          ? getBaseTypeOfLiteral(rawType)
+          : rawType;
       }
       
       propertiesMap.set(key, { type: valueType, optional: false });

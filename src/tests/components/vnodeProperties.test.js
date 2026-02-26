@@ -73,7 +73,7 @@ describe('VNode multiple children', () => {
 
   test('inline multiple children gives a clear error message', () => {
     const code = `content = <div><strong>'hello'</strong>'world'</div>`;
-    expectCompilationError(code, 'Multiple virtual node children must be on separate lines');
+    expectCompilationError(code, 'virtual node cannot be used inside a string interpolation');
   });
 
   test('virtual node inside string interpolation is an error', () => {
