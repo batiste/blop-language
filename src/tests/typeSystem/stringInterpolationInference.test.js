@@ -11,7 +11,7 @@ import { describe, it, expect } from 'vitest';
 import parser from '../../parser.js';
 import { tokensDefinition } from '../../tokensDefinition.js';
 import { inference } from '../../inference/index.js';
-import { findFunctionDefs, expectCompilationError } from '../testHelpers.js';
+import { findFunctionDefs, expectCompilationError, expectCompiles } from '../testHelpers.js';
 
 describe('String interpolation type inference', () => {
   it('infers str_expression as string type', () => {
@@ -65,5 +65,53 @@ def fullName() {
     const tree = parser.parse(stream);
     const warnings = inference(tree, stream);
     expect(warnings.filter(w => w.message?.includes('returns'))).toHaveLength(0);
+  });
+});
+
+describe('Compound-expression string interpolation (a.b\'text\')', () => {
+  it('member access prefix compiles and produces string', () => {
+    const code = `
+      type User = { name: string, age: number }
+      def format(user: User): string {
+        return user.name' is 'user.age' years old'
+      }
+    `;
+    expectCompiles(code);
+  });
+
+  it('call result prefix compiles', () => {
+    const code = `
+      def greet(name: string): string {
+        return name.toUpperCase()' !'
+      }
+    `;
+    expectCompiles(code);
+  });
+
+  it('multi-segment compound interpolation compiles', () => {
+    const code = `
+      type User = { name: string, age: number }
+      def format(user: User): string {
+        label = user.name' (age: 'user.age')'
+        return label
+      }
+    `;
+    expectCompiles(code);
+  });
+
+  it('infers compound interpolation return type as string', () => {
+    const code = `
+type User = { name: string }
+def format(user: User): string {
+    return user.name' here'
+}`;
+    const stream = parser.tokenize(tokensDefinition, code);
+    const tree = parser.parse(stream);
+    inference(tree, stream);
+
+    const funcDefs = findFunctionDefs(tree);
+    const fn = funcDefs.find(f => f.named?.name?.value === 'format');
+    expect(fn).toBeDefined();
+    expect(fn.named.name.inferredType?.toString()).toBe('(user: User) => string');
   });
 });

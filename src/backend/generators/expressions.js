@@ -1,8 +1,8 @@
-import { OPERATORS, SCOPE_TYPES } from '../../constants.js';
+import { OPERATORS, SCOPE_TYPES, ERROR_MESSAGES } from '../../constants.js';
 
 function createExpressionGenerators(context) {
   const { generateCode, validators, scopes, uid } = context;
-  const { shouldBeDefined } = validators;
+  const { shouldBeDefined, generateError } = validators;
 
   return {
     'exp': (node) => {
@@ -14,6 +14,12 @@ function createExpressionGenerators(context) {
       // Compound-expression string interpolation: a.b'text 'val
       // Grammar: ['exp:left', 'str:str', 'inner_str_expression?:str_exp']
       if (node.named?.left !== undefined && node.named?.str !== undefined) {
+        // A VNode on the left would stringify to '[object Object]' at runtime.
+        // Mirror the AST-level check used in inner_str_expression.
+        const leftFirstChild = node.named.left.children?.[0];
+        if (leftFirstChild && leftFirstChild.type === 'virtual_node_exp') {
+          generateError(leftFirstChild, ERROR_MESSAGES.VIRTUAL_NODE_IN_STRING_INTERPOLATION());
+        }
         const out = ['`${'];
         out.push(...generateCode(node.named.left));
         out.push('}');
