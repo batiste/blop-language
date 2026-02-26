@@ -5,7 +5,7 @@
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
 import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
 import { parseTypeExpression } from '../typeParser.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, BooleanType, NullType, NeverType, PredicateType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType, PredicateType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { isBuiltinObjectType } from '../builtinTypes.js';
@@ -444,6 +444,19 @@ function createExpressionHandlers(getState) {
           }
         }
         pushToParent(node, parent);
+        return;
+      }
+
+      // Unary math operator: `-expr`, `+expr`, `~expr` — always produces number.
+      // Operand must itself be numeric, but we infer the result as number regardless.
+      if (firstChild?.type === 'math_operator') {
+        visitChildren(node);
+        const { inferencePhase, pushInference } = getState();
+        if (inferencePhase === 'inference') {
+          node.inference = [NumberType];
+          node.inferredType = NumberType;
+          if (parent) pushInference(parent, NumberType);
+        }
         return;
       }
 

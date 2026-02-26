@@ -36,7 +36,7 @@ test('predicate in else branch — original value unchanged', () => {
   val: any = 99
   result = 0
   if isString(val) {
-    result := 999
+    result := -1
   } else {
     result := val
   }

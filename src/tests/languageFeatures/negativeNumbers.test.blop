@@ -1,0 +1,62 @@
+
+// Negative number literals
+a = -1
+b = -3.14
+c = -0
+
+// Unary plus
+d = +5
+
+// Unary bitwise NOT
+e = ~0
+
+// Negative numbers in expressions
+f = -1 + -2
+g = 10 + -3
+h = -10 - -5
+
+// Negative in array
+arr = [-1, -2, -3]
+
+// Negative in object
+obj = { x: -5, y: -10 }
+
+// Negative in function call
+def negate(n: number): number {
+  return -n
+}
+
+// Negative as function argument
+def double(n: number): number {
+  return n * 2
+}
+
+// Chained negation
+neg = -(-1)
+
+// Negative in comparison
+def isNegative(n: number): boolean {
+  return n < 0
+}
+
+test('negative numbers and unary operators', () => {
+  expect(a).toBe(-1)
+  expect(b).toBe(-3.14)
+  expect(c).toBe(-0)
+  expect(d).toBe(5)
+  expect(e).toBe(-1)
+  expect(f).toBe(-3)
+  expect(g).toBe(7)
+  expect(h).toBe(-5)
+  expect(arr[0]).toBe(-1)
+  expect(arr[1]).toBe(-2)
+  expect(arr[2]).toBe(-3)
+  expect(obj.x).toBe(-5)
+  expect(obj.y).toBe(-10)
+  expect(negate(5)).toBe(-5)
+  expect(negate(-3)).toBe(3)
+  expect(double(-4)).toBe(-8)
+  expect(neg).toBe(1)
+  expect(isNegative(-1)).toBe(true)
+  expect(isNegative(1)).toBe(false)
+})

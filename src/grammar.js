@@ -322,6 +322,7 @@ const grammar = {
     ['(', 'exp', ')'],
     ['operand', 'exp'],
     ['unary', 'exp'],
+    ['math_operator:math_op', 'exp'],
     ['object_literal'],
     ['array_literal'],
     ['await', 'exp'],
