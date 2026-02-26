@@ -3,7 +3,7 @@
 // ============================================================================
 
 import {
-  Type, Types, TypeAlias, TypeMemberAccess, UnionType, IntersectionType, ArrayType, ObjectType,
+  Type, Types, TypeAlias, TypeMemberAccess, KeyofType, UnionType, IntersectionType, ArrayType, ObjectType,
   TupleType, GenericType, LiteralType, PrimitiveType, PredicateType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType
@@ -111,6 +111,17 @@ export function parseTypePrimary(typePrimaryNode) {
     const elements = parseTupleTypeElements(tupleNode.named?.elements);
     const baseType = new TupleType(elements);
     // Handle optional array suffix: [string, number][]
+    const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
+    if (arraySuffixNode) {
+      return parseArraySuffix(baseType, arraySuffixNode);
+    }
+    return baseType;
+  }
+
+  // Check for keyof type: keyof T
+  if (typePrimaryNode.named.subject) {
+    const subjectType = parseTypePrimary(typePrimaryNode.named.subject);
+    const baseType = new KeyofType(subjectType);
     const arraySuffixNode = typePrimaryNode.children?.find(child => child.type === 'array_suffix');
     if (arraySuffixNode) {
       return parseArraySuffix(baseType, arraySuffixNode);

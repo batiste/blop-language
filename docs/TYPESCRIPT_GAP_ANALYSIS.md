@@ -27,6 +27,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 | **Tuple types (`[string, number]`)** | `TupleType` — implemented, see below |
 | **`as` type assertion** | Grammar reuses the `as` keyword; inference stamps asserted type; backend erases the annotation |
 | **User-defined type predicates (`x is T`)** | `PredicateType` — implemented, see below |
+| **`keyof` operator** | `KeyofType` — implemented, see below |
 
 ### Limitations of the current tuple implementation
 
@@ -45,7 +46,7 @@ This document tracks which TypeScript type-system features are present in Blop a
 | 1 | ~~Tuple types~~ | `[string, number]` | — |
 | 2 | ~~`as` type assertion~~ | `expr as SomeType` | — |
 | 3 | ~~User-defined type predicates~~ | `x is string` in return | — |
-| 4 | `keyof` operator | `keyof T` | Grammar rule needed |
+| 4 | ~~`keyof` operator~~ | `keyof T` | — |
 | 5 | Mapped types | `{ [K in keyof T]: T[K] }` | `keyof` + new `MappedType` |
 | 6 | Conditional types | `T extends U ? X : Y` | New `ConditionalType` |
 
@@ -183,3 +184,50 @@ x: [string, number][]
 - `parseTypePrimary()` in `src/inference/typeParser.js` handles the new `tuple_type` child node
 - `getArrayMemberType()` in `src/inference/builtinTypes.js` extended to return positional types for `TupleType`
 - Tests: `src/tests/typeSystem/tupleTypes.test.js`
+
+---
+
+## `keyof` Operator — Design Notes
+
+### Syntax
+
+```typescript
+// Annotation: variable whose type is the union of property keys
+k: keyof State = 'counter'
+
+// Return type
+def getKey(): keyof Config {
+  return 'host'
+}
+
+// As part of a union
+x: keyof State | null
+```
+
+### Semantics
+
+- `keyof ObjectType` → a string literal union of all declared property names, e.g. `keyof { a: string, b: number }` → `"a" | "b"`.
+- `keyof RecordType<K, V>` → the record's key type `K`.
+- `keyof any` → `string | number`.
+- Empty object `keyof {}` → `never`.
+- Unresolvable subjects fall back to `string` (no hard error).
+- The operator is erased at runtime (pure type annotation, same as TypeScript).
+
+### Implementation
+
+- `'keyof'` token added to `src/tokensDefinition.js` (`str: 'keyof '`)
+- `['keyof', 'type_primary:subject', 'array_suffix?']` alternative added to `type_primary` in `src/grammar.js`; parser regenerated
+- `KeyofType` class added to `src/inference/Type.js` with `subjectType`, `toString()`, `equals()`, `resolve(aliases)`, and `isCompatibleWith(target, aliases)`
+- `TypeAliasMap.resolveKeyof(type)` added: resolves the subject via `resolve()` then builds the key union from the resolved type
+- `TypeAliasMap.resolve()` dispatches on `KeyofType` so that `aliases.resolve(keyofT)` eagerly produces the union
+- All `isCompatibleWith` overrides in `Type.js` that check `TypeAlias || TypeMemberAccess` extended with `|| KeyofType` so any type can be assigned to a `keyof T` target correctly
+- `substituteTypeParams()` handles `KeyofType` (recursively substitutes through the subject type)
+- `Types.keyof(subjectType)` factory helper added
+- Tests: `src/tests/typeSystem/keyofType.test.js` (19 tests)
+
+### Known limitations
+
+- `keyof` only operates directly on type aliases or inline object/record types. Expressions like `keyof (A & B)` or `keyof Array<T>` are not yet handled — the subject must resolve to an `ObjectType` or `RecordType`.
+- No generic constraint syntax (`K extends keyof T`) yet — that requires mapped types / conditional-type infrastructure.
+- `keyof` of a union or intersection type is not supported (TypeScript computes the union of keys for intersections and the intersection of keys for unions).
+

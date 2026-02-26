@@ -102,6 +102,7 @@ const grammar = {
   'type_primary': [
     ['(', 'func_type_params:params', ')', 'w', '=>', 'w', 'type_expression:return'],
     ['(', ')', 'w', '=>', 'w', 'type_expression:return'],
+    ['keyof', 'type_primary:subject', 'array_suffix?'],
     ['tuple_type:tuple', 'array_suffix?'],
     ['object_type', 'array_suffix?'],
     ['str:literal', 'array_suffix?'],
