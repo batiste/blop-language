@@ -72,25 +72,26 @@ init()
 ## Key Features
 
 ### Language Features
-- **Native Virtual DOM** - HTML-like syntax built into the language
+
+- **Native HTML** - HTML-like syntax built into the language
 - **Fast Compilation** - Process 30,000+ lines per second
 - **Enhanced Error Messages** - Helpful suggestions and quick fixes
 - **Integrated Linter and Formatter** - No configuration needed, no discussions about rules
 - **VSCode Integration** - Syntax highlighting and real-time error checking
 - **Source Maps** - Debug with original source code
-- **Hot Module Reloading (HMR)** - Instant updates during development
-- **Type Annotations** - Optional type checking with inference warnings
+- **Advanced Type Annotations and Inference** - Optional type checking with intelligent inference
 - **Modern JavaScript** - ES6+ syntax with optional chaining, nullish coalescing, spread operators
 - **Component System** - Built-in lifecycle and state management
-- **Generics Support** - Type-safe generic functions and types
 
-### Build & Test
-- **100% Vite Compatible** - Modern build tooling
-- **Vitest Integration** - Fast, modern testing
+### Tooling
+- **SSR Support** - Server-side rendering capabilities
+- **Hot Module Reloading (HMR)** - Instant updates during development
+- **CLI Tool** - Compile, format, and manage Blop projects from the command line
+- **Vite Compatibility** - Seamless integration with modern build tools
+- **Vitest Integration** - Write and run tests with a modern testing framework
 - **Small Bundle Size** - ~15KB gzipped (Snabbdom + Blop runtime)
 
 ### What's Missing
-- Server-Side Rendering (SSR) - Removed in v1.1.0 with migration to Vite
 - Still in beta - API may change
 
 ## Setup
