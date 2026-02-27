@@ -5,7 +5,7 @@ import { Index } from './index.blop'
 
 // Render the application to an HTML string for the given URL.
 // Called by the SSR dev server for every incoming request.
-async def render(url: string) {
+def render(url: string) {
   proxiedState = createState()
 
   // Create a minimal window-like object that holds the request URL so the
@@ -18,5 +18,5 @@ async def render(url: string) {
 
   createRouter(proxiedState, ssrWindow)
 
-  return await renderComponentToString(() => Index(proxiedState))
+  return renderComponentToString(() => Index(proxiedState))
 }
