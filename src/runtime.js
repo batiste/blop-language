@@ -356,7 +356,7 @@ let animationRequest = false;
 
 function scheduleRender(node) {
   renderPipeline.push(node);
-  if (!animationRequest) {
+  if (!animationRequest && globalThis.window) {
     animationRequest = true;
     window.requestAnimationFrame(() => {
       renderPipeline.forEach(node => node.partialRender());
