@@ -9,26 +9,39 @@
  * }
  */
 
+import path from 'path';
 import { compileSource } from './compile.js';
+import { loadConfig } from './utils.js';
 import { RUNTIME_NAMESPACE } from './constants.js';
 
 const RUNTIME_IMPORT = 'blop-language/runtime';
 
 function blopPlugin(options = {}) {
-  const { debug = false, inference = true } = options;
+  let fileConfig = {};
 
   return {
     name: 'vite-plugin-blop',
-    
+
+    async configResolved(viteConfig) {
+      // Load blop.config.js once from the project root.
+      // Plugin options passed to blopPlugin() override file config.
+      const root = viteConfig.root || process.cwd();
+      const loaded = await loadConfig(path.join(root, '_placeholder.blop'));
+      fileConfig = { ...loaded, ...options };
+    },
+
     // Handle .blop files
-    transform(code, id) {
+    async transform(code, id) {
       if (!id.endsWith('.blop')) {
         return null;
       }
 
+      // Inference defaults to true in the Vite/dev context
+      const enableInference = fileConfig.inference ?? true;
+
       let result;
       try {
-        result = compileSource(code, id, inference);
+        result = compileSource(code, id, enableInference, fileConfig);
       } catch (error) {
         this.error({ message: error.message, loc: { file: id, line: error.blopLine ?? 1, column: error.blopColumn ?? 0 } });
       }

@@ -6,7 +6,7 @@ import { Printer } from './printer.js';
  * @typedef {Object} FormatOptions
  * @property {number} [indentSize=2]   - Spaces per indent level (default: 2)
  * @property {string} [indentChar=' '] - Indent character (default: space)
- * @property {number} [maxLineLength=80] - Max line length before breaking
+ * @property {number} [maxLineLength=120] - Max line length before breaking
  */
 
 /**

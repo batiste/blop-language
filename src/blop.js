@@ -4,6 +4,7 @@ import { program } from 'commander';
 import fs from 'fs';
 import vm from 'vm';
 import { compileSource } from './compile.js';
+import { loadConfig } from './utils.js';
 import { COLORS } from './constants.js';
 import { format } from './formatter/index.js';
 
@@ -31,15 +32,27 @@ if (!process.argv.slice(2).length || !options.input) {
   process.exit(0);
 }
 
-function execute() {
+async function execute() {
+  // Load blop.config.js, walking up from the input file's directory.
+  // CLI flags take precedence over config file values.
+  const fileConfig = await loadConfig(options.input);
+
+  // Merge: config file provides defaults, CLI flags override
+  const runtimeConfig = {
+    ...fileConfig,
+    ...(options.inference != null && { inference: !!options.inference }),
+    ...(options.sourceMap  != null && { sourceMap:  !!options.sourceMap  }),
+  };
+
   if (options.input) {
     const source = fs.readFileSync(options.input);
 
     if (options.format) {
       const formatted = format(source.toString(), {
-        indentSize: options.indentSize,
-        indentChar: options.indentChar,
-        maxLineLength: options.maxLineLength,
+        // CLI flags win; fall back to config file formatter section
+        indentSize:    options.indentSize    ?? fileConfig.formatter?.indentSize,
+        indentChar:    options.indentChar    ?? fileConfig.formatter?.indentChar,
+        maxLineLength: options.maxLineLength ?? fileConfig.formatter?.maxLineLength,
       });
       if (formatted != source.toString()) {  
         fs.writeFileSync(options.input, formatted);
@@ -52,7 +65,7 @@ function execute() {
     }
 
     try {
-      const result = compileSource(source.toString(), options.input, options.sourceMap, options.resolve, options.inference);
+      const result = compileSource(source.toString(), options.input, !!options.inference, runtimeConfig);
       
       // If validate flag is set, just report success and exit
       if (options.validate) {
@@ -60,7 +73,7 @@ function execute() {
         return;
       }
 
-      if (options.sourceMap) {
+      if (options.sourceMap || runtimeConfig.sourceMap) {
         const map = Buffer.from(JSON.stringify(result.sourceMap)).toString('base64');
         const prefix = '//# sourceMappingURL=data:application/json;charset=utf8;base64,';
         const inlineSourceMap = prefix + map;
@@ -97,4 +110,4 @@ function execute() {
   }
 }
 
-execute();
+await execute();

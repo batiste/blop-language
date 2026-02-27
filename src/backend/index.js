@@ -1,11 +1,10 @@
 import sourceMap from 'source-map';
-import utils from '../utils.js';
 import { SCOPE_TYPES } from '../constants.js';
 import { ScopesStack } from './scopes.js';
 import { createValidators } from './validators.js';
 import { createBackendHandlers } from './generators/index.js';
 
-function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack') {
+function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack', config = {}) {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -30,7 +29,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const dependencies = [];
   const imports = [];
 
-  const config = utils.getConfig(_filename);
   const keysCache = {};
 
   const uid = () => {
