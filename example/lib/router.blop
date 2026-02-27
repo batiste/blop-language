@@ -27,7 +27,7 @@ def createRegExp(str) {
   return { regexp: `^`escapedStr``, names }
 }
 
-mockWindow = window || {
+mockWindow = globalThis.window || {
   addEventListener: () => {},
   location: { pathname: '/' },
   history: { pushState: () => {} }

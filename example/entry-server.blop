@@ -1,0 +1,22 @@
+import { renderComponentToString } from '../src/renderToString.js'
+import { createState } from './state.blop'
+import { createRouter } from './routing.blop'
+import { Index } from './index.blop'
+
+// Render the application to an HTML string for the given URL.
+// Called by the SSR dev server for every incoming request.
+async def render(url: string) {
+  proxiedState = createState()
+
+  // Create a minimal window-like object that holds the request URL so the
+  // router can match the correct route without touching any real browser APIs.
+  ssrWindow = {
+    addEventListener: (_event, _handler) => {},
+    location: { pathname: url },
+    history: { pushState: (_s, _t, _u) => {} }
+  }
+
+  createRouter(proxiedState, ssrWindow)
+
+  return await renderComponentToString(() => Index(proxiedState))
+}

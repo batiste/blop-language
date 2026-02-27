@@ -873,6 +873,12 @@ export const builtinGlobals = {
   
   // Environment specific
   __dirname: { type: 'String' },
+
+  // Universal JS global
+  globalThis: { type: 'Value' },
+
+  // Node.js process global (also available via Vite/esbuild in browser bundles)
+  process: { type: 'Value' },
 };
 
 // ============================================================================

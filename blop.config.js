@@ -18,4 +18,9 @@ export default {
 
   // Development
   debug: false,             // Log tokenise/parse timing per file
+
+  // Extra global identifiers the backend should treat as known (no "undefined" error).
+  // Useful for environment-specific globals, e.g. for a Node SSR server:
+  //   globals: { __filename: true }
+  // globals: {},
 }

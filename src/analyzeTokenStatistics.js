@@ -164,12 +164,8 @@ function printTopStatistics(limit = 10) {
   }
 }
 
-// Main execution
-// if (require.main === module) {
-// const outputPath = path.join(__dirname, 'tokenStatistics.json');
-
 console.log('Analyzing blop files...\n');
-const results = analyzeAllBlopFiles('example');
+const results = analyzeAllBlopFiles('.');
 
 console.log(`\nAnalysis complete:`);
 console.log(`  Total files: ${results.total}`);
@@ -185,18 +181,7 @@ if (results.failedFiles.length > 0) {
 
 console.log('\nGenerating statistics...');
 const stats = generateStatisticsFile('src/tokenStatistics.json');
-
-printTopStatistics(5);
-
+// printTopStatistics(10);
 console.log(`\nTotal unique rules tracked: ${Object.keys(ruleTokenStats).length}`);
 console.log(`Total unique positions tracked: ${Object.keys(rulePositionStats).length}`);
 console.log(`\nRun 'npm run linter' to copy statistics to VSCode extension`);
-// }
-
-// export {
-//   analyzeBlopFile,
-//   analyzeAllBlopFiles,
-//   generateStatisticsFile,
-//   ruleTokenStats,
-//   rulePositionStats
-// };

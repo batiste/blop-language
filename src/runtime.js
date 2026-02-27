@@ -384,6 +384,18 @@ const newRoot = () => {
   currentNode = rootNode;
 };
 
+/**
+ * Render a component tree synchronously and return the root vnode.
+ * Intended for server-side rendering — does not touch the DOM.
+ * Pass the returned vnode to `renderToString()` from `blop-language/ssr`.
+ */
+function ssrRender(render) {
+  cache = {};
+  nextCache = {};
+  newRoot();
+  return render();
+}
+
 function mount(dom, render) {
   let vnode; let requested;
   cache = {};
@@ -440,5 +452,5 @@ function mount(dom, render) {
 }
 
 // ES module exports
-export { h, patch, mount, Component, trackRead, notifyWrite };
+export { h, patch, mount, Component, trackRead, notifyWrite, ssrRender };
 export const c = createComponent;

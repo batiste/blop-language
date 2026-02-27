@@ -55,7 +55,7 @@ export default defineConfig({
   
   // Optimize dependencies
   optimizeDeps: {
-    include: ['snabbdom', 'snabbdom-to-html'],
+    include: ['snabbdom'],
     exclude: [],
     esbuildOptions: {
       // Ensure CommonJS modules are properly converted

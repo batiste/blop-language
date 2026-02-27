@@ -130,7 +130,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       // Generate imports at the top in ESM format
       imports.forEach(imp => {
         if (imp.type === 'default') {
-          final.push(`import * as ${imp.as} from '${imp.path}';\n`);
+          final.push(imp.path.endsWith('.blop') ? `import * as ${imp.as} from '${imp.path}';\n` : `import ${imp.as} from '${imp.path}';\n`);
         } else if (imp.type === 'destructured') {
           if (imp.names.length === 0) return; // all names were type-only
           const specifiers = imp.names.map(n => 
