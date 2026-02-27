@@ -23,7 +23,7 @@
     "parser": "node src/generateParser",
     "start": "vite",
     "dev": "vite",
-    "ssr": "node src/blop.js -i server.blop -o server.js && node server.js",
+    "ssr": "node src/blop.js -i server.blop | node --input-type=module",
     "build:app": "vite build",
     "preview": "vite preview",
     "distribute": "vite build",
