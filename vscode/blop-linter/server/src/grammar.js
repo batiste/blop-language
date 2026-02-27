@@ -233,6 +233,9 @@ const grammar = {
     ['{', 'w', 'destructuring_values:values', 'single_space_or_newline', '}'],
   ],
   'destructuring_values': [
+    // Nested destructuring must come before annotation rules (both start with 'name:name colon').
+    // object_destructuring starts with '{', which is not a valid type_name, so the ordered
+    // choice gracefully falls through to the annotation alternatives when '{' is absent.
     ['name:name', 'colon', 'w', 'object_destructuring:nested', ',', 'single_space_or_newline', 'destructuring_values:more'],
     ['name:name', 'colon', 'w', 'object_destructuring:nested'],
     ['name:name', 'annotation:annotation', ',', 'single_space_or_newline', 'destructuring_values:more'],

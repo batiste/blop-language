@@ -10,18 +10,19 @@ import { resolve } from 'path'
 PORT = process.env.PORT || 3000
 ROOT = process.cwd()
 
+
 // In SSR, CSS files have no JS default export. This plugin stubs them so that
 // `import './style.css' as style` resolves to `{}` instead of crashing.
 def ssrCssStubPlugin() {
   CSS_STUB_PREFIX = '\0ssr-css-stub:'
   return {
     name: 'blop-ssr-css-stub',
-    resolveId: (id, _importer, opts) => {
+    resolveId: (id: string, _importer, opts) => {
       if opts?.ssr && (id.endsWith('.css') || id.endsWith('.scss') || id.endsWith('.sass') || id.endsWith('.less')) {
         return CSS_STUB_PREFIX + id
       }
     },
-    load: (id) => {
+    load: (id: string) => {
       if id.startsWith(CSS_STUB_PREFIX) {
         return 'export default {}'
       }

@@ -5,24 +5,47 @@ function createImportGenerators(context) {
   const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename, scopes } = context;
   const { registerName, resolveImport, getExports } = validators;
 
+  /**
+   * Generate just the destructuring pattern tokens (no `let` prefix).
+   * Used for nested patterns inside outer destructuring, e.g. `info: { score }`.
+   */
+  function destructuringPattern(objectDestructNode) {
+    const output = [];
+    for (let i = 0; i < objectDestructNode.children.length; i++) {
+      output.push(...generateCode(objectDestructNode.children[i]));
+    }
+    return output;
+  }
+
   function destructuringValues(node, exportKeys) {
     const output = [];
     let name;
-    if (exportKeys) {
-      exportKeys.push({
-        key: node.named.name.value, node: node.named.name,
-        rename: node.named.rename,
-      });
-    }
-    if (node.named.rename) {
-      name = node.named.rename.value;
-      registerName(name, node.named.rename);
-      output.push(`${node.named.name.value}: ${name}`);
+
+    if (node.named.nested) {
+      // Nested destructuring: e.g. `info: { score, rank }`
+      // `node.named.name` is the property key to extract; `node.named.nested` is the sub-pattern.
+      const propertyName = node.named.name.value;
+      output.push(propertyName);
+      output.push(': ');
+      output.push(...destructuringPattern(node.named.nested));
     } else {
-      name = node.named.name.value;
-      registerName(name, node.named.name);
-      output.push(...generateCode(node.named.name));
+      if (exportKeys) {
+        exportKeys.push({
+          key: node.named.name.value, node: node.named.name,
+          rename: node.named.rename,
+        });
+      }
+      if (node.named.rename) {
+        name = node.named.rename.value;
+        registerName(name, node.named.rename);
+        output.push(`${node.named.name.value}: ${name}`);
+      } else {
+        name = node.named.name.value;
+        registerName(name, node.named.name);
+        output.push(...generateCode(node.named.name));
+      }
     }
+
     if (node.named.more) {
       output.push(', ');
       output.push(...destructuringValues(node.named.more, exportKeys));
