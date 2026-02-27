@@ -25,8 +25,8 @@ def playgroundPageHandler(_params, _state) {
 }
 
 
-def createRouter(state) {
-  router = new Router(state, null, window)
+def createRouter(state, win=globalThis.window) {
+  router = new Router(state, null, win)
 
   router.add({ path: '/todo', name: 'todo', handler: todoPageHandler })
   router.add({ path: '/dogs/:breed/:image', name: 'doggy', handler: dogPageHandler })

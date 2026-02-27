@@ -70,18 +70,18 @@ def navigation(state): VNode {
         = navItem('ast', links.astExplorerPage, 'AST Explorer')
         = navItem('form', links.formPage, 'Form Builder')
       </ul>
-      <div class=style['right-buttons']>
+      <div class=(style || {})['right-buttons']>
         if (state.loading) {
           <div class="spinner-border text-primary" role="status" style={ marginRight: '1em' }>
             <span class="sr-only">'Loading...'</span>
           </div>
         }
         = if state.error => <p>'Error 'state.error</p>
-        <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "style.btn"">
+        <a href="https://github.com/batiste/blop-language" class="btn btn-secondary "(style || {}).btn"">
           = 'Fork on github'
         </a>
         <a href="https://github.com/batiste/blop-language/blob/master/docs/README.md"
-          class="btn btn-secondary "style.btn"">
+          class="btn btn-secondary "(style || {}).btn"">
           = 'Docs'
         </a>
       </div>
@@ -97,7 +97,7 @@ Index = (state): VNode => {
     if state.route.name == 'playground' || state.route.name == 'showcase' || state.route.name == 'root' {
       containerClass := 'container-fluid'
     }
-    <div class=''style.container' 'containerClass>
+    <div class=''(style || {}).container' 'containerClass>
       if state.route.name == 'showcase' {
         <ShowcasePage state=state></ShowcasePage>
       } elseif state.route.name == 'playground' {

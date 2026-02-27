@@ -140,8 +140,8 @@ const tokensDefinition = {
   'question': { str: '?' },
   '>': { str: '>' },
   '<': { str: '<' },
-  'attribute_name': { reg: /^[\w|$|_]+(-\w+)+/ },
-  'name': { reg: /^[\w|$|_]+/ },
+  'attribute_name': { reg: /^[\w$]+(-\w+)+/ },
+  'name': { reg: /^[\w$|]+/ },
   'regexp': { func: regExpDef }, // problematic with a / b / c
   'assign_operator': { reg: /^(\+=|-=|\*=|\/=)/, verbose: 'assignment operator' },
   'math_operator': { reg: /^(\+|\/|-|\*|\^|~|%)/ },

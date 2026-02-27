@@ -18,7 +18,7 @@
     "import_statement:1:3": {
       "destructuring_values": 1
     },
-    "destructuring_values:3:0": {
+    "destructuring_values:7:0": {
       "name": 1
     },
     "import_statement:1:4": {
@@ -45,24 +45,23 @@
     "GLOBAL_STATEMENTS:0:1": {
       "GLOBAL_STATEMENT": 1
     },
-    "destructuring_values:0:0": {
+    "destructuring_values:4:0": {
       "name": 1
     },
-    "destructuring_values:0:1": {
+    "destructuring_values:4:1": {
       ",": 1
     },
-    "destructuring_values:0:2": {
+    "destructuring_values:4:2": {
       "single_space_or_newline": 1
     },
     "single_space_or_newline:1:0": {
       "w": 1
     },
-    "destructuring_values:0:3": {
+    "destructuring_values:4:3": {
       "destructuring_values": 1
     },
     "START:0:2": {
-      "GLOBAL_STATEMENTS": 0.9333333333333333,
-      "EOS": 0.06666666666666667
+      "GLOBAL_STATEMENTS": 1
     },
     "GLOBAL_STATEMENTS:1:0": {
       "newline": 1
@@ -71,12 +70,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:0:4": {
-      "GLOBAL_STATEMENTS": 0.9285714285714286,
-      "EOS": 0.07142857142857142
-    },
-    "START:0:5": {
-      "GLOBAL_STATEMENTS": 0.9230769230769231,
-      "EOS": 0.07692307692307693
+      "GLOBAL_STATEMENTS": 0.92,
+      "EOS": 0.08
     },
     "GLOBAL_STATEMENTS:1:1": {
       "scomment": 1
@@ -84,9 +79,8 @@
     "scomment:0:0": {
       "comment": 1
     },
-    "START:0:6": {
-      "GLOBAL_STATEMENTS": 0.75,
-      "EOS": 0.25
+    "START:0:5": {
+      "GLOBAL_STATEMENTS": 1
     },
     "GLOBAL_STATEMENT:10:0": {
       "exp_statement": 1
@@ -94,28 +88,28 @@
     "exp_statement:0:0": {
       "exp": 1
     },
-    "exp:3:0": {
+    "exp:15:0": {
       "func_def": 1
     },
     "func_def:1:0": {
-      "def": 0.9516129032258065,
-      "async": 0.04838709677419355
+      "def": 0.989010989010989,
+      "async": 0.01098901098901099
     },
     "func_def:1:1": {
-      "name": 0.8548387096774194,
-      "def": 0.04838709677419355,
-      "(": 0.0967741935483871
+      "name": 0.9377289377289377,
+      "def": 0.01098901098901099,
+      "(": 0.05128205128205128
     },
     "func_def:1:2": {
-      "(": 0.8387096774193549,
-      "name": 0.04838709677419355,
-      "generic_params": 0.016129032258064516,
-      "func_def_params": 0.0967741935483871
+      "(": 0.8717948717948718,
+      "name": 0.01098901098901099,
+      "generic_params": 0.06593406593406594,
+      "func_def_params": 0.05128205128205128
     },
     "func_def:1:3": {
-      "func_def_params": 0.8387096774193549,
-      "(": 0.06451612903225806,
-      ")": 0.0967741935483871
+      "func_def_params": 0.8717948717948718,
+      "(": 0.07692307692307693,
+      ")": 0.05128205128205128
     },
     "func_def_params:5:0": {
       "name": 1
@@ -123,49 +117,51 @@
     "func_def_params:5:1": {
       "annotation": 1
     },
-    "annotation:0:0": {
+    "annotation:1:0": {
       "colon": 1
     },
-    "annotation:0:1": {
+    "annotation:1:1": {
       "w": 1
     },
-    "annotation:0:2": {
+    "annotation:1:2": {
       "type_expression": 1
     },
     "type_expression:2:0": {
       "type_primary": 1
     },
-    "type_primary:7:0": {
+    "type_primary:11:0": {
       "type_name": 1
     },
     "type_name:0:0": {
       "name": 1
     },
     "func_def:1:4": {
-      ")": 0.8387096774193549,
-      "func_def_params": 0.06451612903225806,
-      "w": 0.0967741935483871
+      ")": 0.8717948717948718,
+      "func_def_params": 0.07692307692307693,
+      "w": 0.04395604395604396,
+      "annotation": 0.007326007326007326
     },
     "func_def:1:5": {
-      "annotation": 0.25806451612903225,
-      "w": 0.5806451612903226,
-      ")": 0.06451612903225806,
-      "func_body": 0.0967741935483871
+      "annotation": 0.38095238095238093,
+      "w": 0.4981684981684982,
+      ")": 0.07692307692307693,
+      "func_body": 0.04395604395604396
     },
     "func_def:1:6": {
-      "w": 0.3392857142857143,
-      "func_body": 0.6428571428571429,
-      "annotation": 0.017857142857142856
+      "w": 0.41379310344827586,
+      "func_body": 0.5210727969348659,
+      "annotation": 0.06513409961685823
     },
     "func_def:1:7": {
-      "func_body": 0.95,
-      "w": 0.05
+      "func_body": 0.864,
+      "w": 0.136
     },
     "func_body:0:0": {
       "{": 1
     },
     "func_body:0:1": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.9916897506925207,
+      "wcomment": 0.008310249307479225
     },
     "SCOPED_STATEMENTS:0:0": {
       "newline": 1
@@ -209,78 +205,72 @@
     "assign:2:4": {
       "exp": 1
     },
-    "exp:1:0": {
+    "exp:14:0": {
       "name_exp": 1
     },
-    "name_exp:1:0": {
+    "name_exp:0:0": {
       "name": 1
     },
     "func_body:0:2": {
       "SCOPED_STATEMENTS": 1
     },
     "func_body:0:3": {
-      "SCOPED_STATEMENTS": 0.6907894736842105,
-      "}": 0.3092105263157895
+      "SCOPED_STATEMENTS": 0.5484764542936288,
+      "}": 0.4515235457063712
     },
     "SCOPED_STATEMENTS:1:0": {
       "newline": 1
     },
     "func_body:0:4": {
-      "SCOPED_STATEMENTS": 0.7523809523809524,
-      "}": 0.24761904761904763
+      "SCOPED_STATEMENTS": 0.5959595959595959,
+      "}": 0.40404040404040403
     },
-    "destructuring_values:1:0": {
+    "destructuring_values:5:0": {
       "name": 1
     },
-    "destructuring_values:1:1": {
+    "destructuring_values:5:1": {
       "w": 1
     },
-    "destructuring_values:1:2": {
+    "destructuring_values:5:2": {
       "as": 1
     },
-    "destructuring_values:1:3": {
+    "destructuring_values:5:3": {
       "name": 1
     },
-    "destructuring_values:1:4": {
+    "destructuring_values:5:4": {
       ",": 1
     },
-    "destructuring_values:1:5": {
+    "destructuring_values:5:5": {
       "single_space_or_newline": 1
     },
-    "destructuring_values:1:6": {
+    "destructuring_values:5:6": {
       "destructuring_values": 1
     },
-    "destructuring_values:2:0": {
+    "destructuring_values:6:0": {
       "name": 1
     },
-    "destructuring_values:2:1": {
+    "destructuring_values:6:1": {
       "w": 1
     },
-    "destructuring_values:2:2": {
+    "destructuring_values:6:2": {
       "as": 1
     },
-    "destructuring_values:2:3": {
+    "destructuring_values:6:3": {
       "name": 1
     },
-    "name_exp:0:0": {
-      "name": 1
+    "exp:3:0": {
+      "exp": 1
     },
-    "name_exp:0:1": {
-      "access_or_operation": 1
+    "exp:1:0": {
+      "exp": 1
     },
-    "access_or_operation:1:0": {
-      "object_access": 1
-    },
-    "object_access:1:0": {
+    "exp:1:1": {
       ".": 1
     },
-    "object_access:1:1": {
+    "exp:1:2": {
       "name": 1
     },
-    "object_access:1:2": {
-      "object_access": 1
-    },
-    "object_access:3:0": {
+    "exp:3:1": {
       "type_arguments": 1
     },
     "type_arguments:0:0": {
@@ -295,20 +285,20 @@
     "type_arguments:0:2": {
       ">": 1
     },
-    "object_access:3:1": {
+    "exp:3:2": {
       "func_call": 1
     },
     "func_call:0:0": {
       "(": 1
     },
     "func_call:0:1": {
-      "func_call_params": 0.9784630445423397,
-      "newline_and_space": 0.021536955457660302
+      "func_call_params": 0.9972606760260235,
+      "newline_and_space": 0.002739323973976422
     },
     "func_call_params:1:0": {
       "exp": 1
     },
-    "exp:9:0": {
+    "exp:21:0": {
       "str": 1
     },
     "func_call_params:1:1": {
@@ -323,136 +313,151 @@
     "func_call_params:2:0": {
       "exp": 1
     },
-    "access_or_operation:2:0": {
-      "w": 1
-    },
-    "access_or_operation:2:1": {
-      "operation": 1
-    },
-    "operation:3:0": {
-      "<": 1
-    },
-    "operation:3:1": {
-      "w": 1
-    },
-    "operation:3:2": {
+    "exp:9:0": {
       "exp": 1
     },
-    "exp:4:0": {
+    "exp:9:1": {
+      "w": 1
+    },
+    "exp:9:2": {
+      "<": 1
+    },
+    "exp:9:3": {
+      "w": 1
+    },
+    "exp:9:4": {
+      "exp": 1
+    },
+    "exp:16:0": {
       "number": 1
     },
     "func_call:0:2": {
-      ")": 0.9784630445423397,
-      "func_call_params": 0.021536955457660302
+      ")": 0.9972606760260235,
+      "func_call_params": 0.002739323973976422
     },
     "func_body:0:5": {
-      "SCOPED_STATEMENTS": 0.8354430379746836,
-      "}": 0.16455696202531644
+      "SCOPED_STATEMENTS": 0.6610169491525424,
+      "}": 0.3389830508474576
     },
     "func_body:0:6": {
-      "SCOPED_STATEMENTS": 0.8333333333333334,
-      "}": 0.16666666666666666
+      "SCOPED_STATEMENTS": 0.7051282051282052,
+      "}": 0.2948717948717949
     },
     "SCOPED_STATEMENT:10:0": {
       "exp_statement": 1
     },
     "func_def:0:0": {
-      "def": 1
+      "def": 0.9701492537313433,
+      "async": 0.029850746268656716
     },
     "func_def:0:1": {
-      "name": 1
+      "name": 0.9402985074626866,
+      "def": 0.029850746268656716,
+      "(": 0.029850746268656716
     },
     "func_def:0:2": {
-      "(": 1
+      "(": 0.9253731343283582,
+      "name": 0.029850746268656716,
+      "generic_params": 0.014925373134328358,
+      ")": 0.029850746268656716
     },
     "func_def:0:3": {
-      ")": 1
+      ")": 0.9253731343283582,
+      "(": 0.04477611940298507,
+      "w": 0.029850746268656716
     },
     "func_def:0:4": {
-      "w": 0.8260869565217391,
-      "annotation": 0.17391304347826086
+      "w": 0.7164179104477612,
+      "annotation": 0.208955223880597,
+      ")": 0.04477611940298507,
+      "func_body": 0.029850746268656716
     },
     "func_def:0:5": {
-      "func_body": 0.8260869565217391,
-      "w": 0.17391304347826086
+      "func_body": 0.7384615384615385,
+      "w": 0.24615384615384617,
+      "annotation": 0.015384615384615385
     },
-    "object_access:4:0": {
+    "exp:4:0": {
+      "exp": 1
+    },
+    "exp:4:1": {
       "func_call": 1
     },
-    "exp:13:0": {
+    "exp:25:0": {
       "unary": 1
     },
-    "exp:13:1": {
+    "exp:25:1": {
       "exp": 1
     },
     "SCOPED_STATEMENTS:1:1": {
       "W": 1
     },
     "func_body:0:7": {
-      "SCOPED_STATEMENTS": 0.7636363636363637,
-      "}": 0.23636363636363636
+      "SCOPED_STATEMENTS": 0.7454545454545455,
+      "}": 0.2545454545454545
     },
     "func_body:0:8": {
-      "SCOPED_STATEMENTS": 0.7619047619047619,
-      "}": 0.23809523809523808
+      "SCOPED_STATEMENTS": 0.8292682926829268,
+      "}": 0.17073170731707318
     },
     "SCOPED_STATEMENTS:1:2": {
       "scomment": 1
     },
     "func_body:0:9": {
-      "SCOPED_STATEMENTS": 0.6875,
-      "}": 0.3125
+      "SCOPED_STATEMENTS": 0.7058823529411765,
+      "}": 0.29411764705882354
     },
     "assign:1:0": {
       "name": 1
     },
     "assign:1:1": {
-      "w": 0.9954268292682927,
-      "annotation": 0.004573170731707317
+      "w": 0.9045592705167174,
+      "annotation": 0.09544072948328268
     },
     "assign:1:2": {
-      "=": 0.9954268292682927,
-      "w": 0.004573170731707317
+      "=": 0.9045592705167174,
+      "w": 0.09544072948328268
     },
     "assign:1:3": {
-      "w": 0.9954268292682927,
-      "=": 0.004573170731707317
+      "w": 0.9045592705167174,
+      "=": 0.09544072948328268
     },
     "assign:1:4": {
-      "exp": 0.9954268292682927,
-      "w": 0.004573170731707317
+      "exp": 0.9045592705167174,
+      "w": 0.09544072948328268
     },
-    "operation:2:0": {
-      "boolean_operator": 1
+    "exp:8:0": {
+      "exp": 1
     },
-    "operation:2:1": {
+    "exp:8:1": {
       "w": 1
     },
-    "operation:2:2": {
+    "exp:8:2": {
+      "boolean_operator": 1
+    },
+    "exp:8:3": {
+      "w": 1
+    },
+    "exp:8:4": {
       "exp": 1
     },
-    "exp:12:0": {
+    "exp:24:0": {
       "operand": 1
     },
-    "exp:12:1": {
+    "exp:24:1": {
       "exp": 1
-    },
-    "exp:2:0": {
-      "exp": 1
-    },
-    "exp:2:1": {
-      "access_or_operation": 1
     },
     "func_body:0:10": {
-      "SCOPED_STATEMENTS": 0.5454545454545454,
-      "}": 0.45454545454545453
+      "SCOPED_STATEMENTS": 0.75,
+      "}": 0.25
     },
     "func_body:0:11": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.7777777777777778,
+      "}": 0.2222222222222222
     },
     "func_body:0:12": {
-      "SCOPED_STATEMENTS": 0.8333333333333334,
-      "}": 0.16666666666666666
+      "SCOPED_STATEMENTS": 0.6428571428571429,
+      "}": 0.35714285714285715
     },
     "func_body:0:13": {
       "SCOPED_STATEMENTS": 1
@@ -460,7 +465,7 @@
     "func_body:0:14": {
       "SCOPED_STATEMENTS": 1
     },
-    "exp:14:0": {
+    "exp:27:0": {
       "object_literal": 1
     },
     "object_literal:0:0": {
@@ -487,7 +492,7 @@
     "object_literal_body:2:3": {
       "exp": 1
     },
-    "exp:0:0": {
+    "exp:13:0": {
       "str_expression": 1
     },
     "str_expression:1:0": {
@@ -524,8 +529,8 @@
       "}": 1
     },
     "func_body:0:15": {
-      "SCOPED_STATEMENTS": 0.8,
-      "}": 0.2
+      "SCOPED_STATEMENTS": 0.8888888888888888,
+      "}": 0.1111111111111111
     },
     "func_body:0:16": {
       "SCOPED_STATEMENTS": 0.75,
@@ -574,8 +579,8 @@
       "name": 1
     },
     "virtual_node:1:2": {
-      "virtual_node_attributes": 0.925498426023085,
-      ">": 0.07450157397691501
+      "virtual_node_attributes": 0.8881856540084389,
+      ">": 0.11181434599156118
     },
     "virtual_node_attributes:2:0": {
       "single_space_or_newline": 1
@@ -590,17 +595,17 @@
       "exp": 1
     },
     "virtual_node:1:3": {
-      ">": 0.7334732423924449,
-      "virtual_node_attributes": 0.19202518363064008,
-      "SCOPED_STATEMENTS": 0.06610703043022036,
-      "</": 0.008394543546694649
+      ">": 0.6339662447257384,
+      "virtual_node_attributes": 0.2542194092827004,
+      "SCOPED_STATEMENTS": 0.10126582278481013,
+      "</": 0.010548523206751054
     },
     "virtual_node:1:4": {
-      "SCOPED_STATEMENTS": 0.5362014690451207,
-      ">": 0.16369359916054566,
-      "</": 0.2633788037775446,
-      "virtual_node_attributes": 0.02833158447009444,
-      "name": 0.008394543546694649
+      "SCOPED_STATEMENTS": 0.4694092827004219,
+      ">": 0.23312236286919832,
+      "</": 0.26582278481012656,
+      "virtual_node_attributes": 0.02109704641350211,
+      "name": 0.010548523206751054
     },
     "SCOPED_STATEMENT:0:0": {
       "condition": 1
@@ -639,22 +644,22 @@
       "exp": 1
     },
     "condition:0:6": {
-      "}": 0.911190053285968,
-      "SCOPED_STATEMENTS": 0.08880994671403197
+      "}": 0.8877284595300261,
+      "SCOPED_STATEMENTS": 0.1122715404699739
     },
     "condition:0:7": {
-      "else_if": 0.911190053285968,
-      "SCOPED_STATEMENTS": 0.03907637655417407,
-      "}": 0.0497335701598579
+      "else_if": 0.8877284595300261,
+      "SCOPED_STATEMENTS": 0.057441253263707574,
+      "}": 0.05483028720626632
     },
     "virtual_node:1:5": {
-      "SCOPED_STATEMENTS": 0.6883525708289612,
-      "name": 0.2633788037775446,
-      "</": 0.011542497376705142,
-      "virtual_node_attributes": 0.005246589716684155,
-      ">": 0.03147953830010493
+      "SCOPED_STATEMENTS": 0.6466244725738397,
+      "name": 0.26582278481012656,
+      "</": 0.05590717299578059,
+      "virtual_node_attributes": 0.005274261603375527,
+      ">": 0.026371308016877638
     },
-    "exp:17:0": {
+    "exp:30:0": {
       "virtual_node_assign": 1
     },
     "virtual_node_assign:0:0": {
@@ -667,40 +672,41 @@
       "exp": 1
     },
     "virtual_node:1:6": {
-      "SCOPED_STATEMENTS": 0.5703703703703704,
-      ">": 0.2698412698412698,
-      "name": 0.01164021164021164,
-      "</": 0.14708994708994708,
-      "virtual_node_attributes": 0.0010582010582010583
+      "SCOPED_STATEMENTS": 0.4136460554371002,
+      ">": 0.27292110874200426,
+      "name": 0.05650319829424307,
+      "</": 0.255863539445629,
+      "virtual_node_attributes": 0.0010660980810234541
     },
     "virtual_node:1:7": {
-      "</": 0.5389048991354467,
-      "SCOPED_STATEMENTS": 0.24351585014409222,
-      ">": 0.01585014409221902,
-      "name": 0.20028818443804033,
-      "virtual_node_attributes": 0.001440922190201729
+      "</": 0.17055393586005832,
+      "SCOPED_STATEMENTS": 0.4008746355685131,
+      ">": 0.07725947521865889,
+      "name": 0.3498542274052478,
+      "virtual_node_attributes": 0.0014577259475218659
     },
     "virtual_node:1:8": {
-      "name": 0.5475841874084919,
-      "SCOPED_STATEMENTS": 0.12005856515373353,
-      ">": 0.20351390922401172,
-      "</": 0.1273792093704246,
-      "virtual_node_attributes": 0.0014641288433382138
+      "name": 0.1848341232227488,
+      "SCOPED_STATEMENTS": 0.09636650868878358,
+      ">": 0.3791469194312796,
+      "</": 0.3380726698262243,
+      "virtual_node_attributes": 0.001579778830963665
     },
     "virtual_node:1:9": {
-      ">": 0.6893382352941176,
-      "SCOPED_STATEMENTS": 0.08823529411764706,
-      "</": 0.0625,
-      "name": 0.15992647058823528
+      ">": 0.30025445292620867,
+      "SCOPED_STATEMENTS": 0.10687022900763359,
+      "</": 0.04834605597964377,
+      "name": 0.544529262086514
     },
     "condition:0:8": {
-      "}": 0.16,
-      "else_if": 0.56,
-      "SCOPED_STATEMENTS": 0.28
+      "}": 0.18604651162790697,
+      "else_if": 0.4883720930232558,
+      "SCOPED_STATEMENTS": 0.32558139534883723
     },
     "condition:0:9": {
       "else_if": 0.36363636363636365,
-      "}": 0.6363636363636364
+      "SCOPED_STATEMENTS": 0.18181818181818182,
+      "}": 0.45454545454545453
     },
     "else_if:2:0": {
       "w": 1
@@ -718,8 +724,8 @@
       "SCOPED_STATEMENTS": 1
     },
     "else_if:2:5": {
-      "}": 0.8873239436619719,
-      "SCOPED_STATEMENTS": 0.11267605633802817
+      "}": 0.9259259259259259,
+      "SCOPED_STATEMENTS": 0.07407407407407407
     },
     "virtual_node:2:0": {
       "<": 1
@@ -728,36 +734,36 @@
       "name": 1
     },
     "virtual_node:2:2": {
-      "virtual_node_attributes": 0.7315175097276264,
-      ">": 0.26848249027237353
+      "virtual_node_attributes": 0.6857142857142857,
+      ">": 0.3142857142857143
     },
     "virtual_node:2:3": {
-      ">": 0.688715953307393,
-      "exp": 0.26848249027237353,
-      "virtual_node_attributes": 0.042801556420233464
+      ">": 0.589010989010989,
+      "exp": 0.3142857142857143,
+      "virtual_node_attributes": 0.0967032967032967
     },
     "virtual_node:2:4": {
-      "exp": 0.688715953307393,
-      "</": 0.26848249027237353,
-      ">": 0.0311284046692607,
-      "virtual_node_attributes": 0.011673151750972763
+      "exp": 0.589010989010989,
+      "</": 0.3142857142857143,
+      ">": 0.08351648351648351,
+      "virtual_node_attributes": 0.013186813186813187
     },
     "virtual_node:2:5": {
-      "</": 0.688715953307393,
-      "name": 0.26848249027237353,
-      "exp": 0.0311284046692607,
-      ">": 0.011673151750972763
+      "</": 0.589010989010989,
+      "name": 0.3142857142857143,
+      "exp": 0.08351648351648351,
+      ">": 0.013186813186813187
     },
     "virtual_node:2:6": {
-      "name": 0.688715953307393,
-      ">": 0.26848249027237353,
-      "</": 0.0311284046692607,
-      "exp": 0.011673151750972763
+      "name": 0.589010989010989,
+      ">": 0.3142857142857143,
+      "</": 0.08351648351648351,
+      "exp": 0.013186813186813187
     },
     "virtual_node:2:7": {
-      ">": 0.9414893617021277,
-      "name": 0.0425531914893617,
-      "</": 0.015957446808510637
+      ">": 0.8589743589743589,
+      "name": 0.12179487179487179,
+      "</": 0.019230769230769232
     },
     "str_expression:0:0": {
       "str": 1
@@ -765,10 +771,13 @@
     "str_expression:0:1": {
       "inner_str_expression": 1
     },
-    "inner_str_expression:1:0": {
+    "inner_str_expression:2:0": {
       "exp": 1
     },
-    "inner_str_expression:1:1": {
+    "exp:12:0": {
+      "exp": 1
+    },
+    "exp:12:1": {
       "str": 1
     },
     "SCOPED_STATEMENT:6:0": {
@@ -814,47 +823,50 @@
       "name": 1
     },
     "virtual_node:0:2": {
-      "virtual_node_attributes": 0.910828025477707,
-      "w": 0.08917197452229299
+      "virtual_node_attributes": 0.91324200913242,
+      "w": 0.0867579908675799
     },
     "virtual_node:0:3": {
-      "virtual_node_attributes": 0.29936305732484075,
-      "/>": 0.08917197452229299,
-      "w": 0.6114649681528662
+      "virtual_node_attributes": 0.4657534246575342,
+      "/>": 0.0867579908675799,
+      "w": 0.4474885844748858
     },
-    "operation:1:0": {
-      "math_operator": 1
+    "exp:7:0": {
+      "exp": 1
     },
-    "operation:1:1": {
+    "exp:7:1": {
       "w": 1
     },
-    "operation:1:2": {
+    "exp:7:2": {
+      "math_operator": 1
+    },
+    "exp:7:3": {
+      "w": 1
+    },
+    "exp:7:4": {
       "exp": 1
     },
     "virtual_node:0:4": {
-      "virtual_node_attributes": 0.20279720279720279,
-      "w": 0.1258741258741259,
-      "/>": 0.6713286713286714
-    },
-    "inner_str_expression:2:0": {
-      "exp": 1
+      "virtual_node_attributes": 0.32,
+      "w": 0.19,
+      "/>": 0.49
     },
     "virtual_node:0:5": {
-      "w": 0.14893617021276595,
-      "virtual_node_attributes": 0.46808510638297873,
-      "/>": 0.3829787234042553
+      "w": 0.4117647058823529,
+      "virtual_node_attributes": 0.21568627450980393,
+      "/>": 0.37254901960784315
     },
     "virtual_node:0:6": {
-      "/>": 0.2413793103448276,
-      "virtual_node_attributes": 0.6896551724137931,
-      "w": 0.06896551724137931
+      "/>": 0.65625,
+      "virtual_node_attributes": 0.296875,
+      "w": 0.046875
     },
     "for_loop:2:11": {
       "SCOPED_STATEMENTS": 1
     },
     "for_loop:2:12": {
-      "}": 0.75,
-      "SCOPED_STATEMENTS": 0.25
+      "}": 0.7777777777777778,
+      "SCOPED_STATEMENTS": 0.2222222222222222
     },
     "else_if:0:0": {
       "w": 1
@@ -878,44 +890,44 @@
       "SCOPED_STATEMENTS": 1
     },
     "else_if:0:7": {
-      "SCOPED_STATEMENTS": 0.07534246575342465,
-      "}": 0.9246575342465754
+      "SCOPED_STATEMENTS": 0.08391608391608392,
+      "}": 0.916083916083916
     },
-    "exp:5:0": {
+    "exp:17:0": {
       "null": 1
     },
-    "exp:6:0": {
+    "exp:18:0": {
       "undefined": 1
     },
     "else_if:0:8": {
-      "SCOPED_STATEMENTS": 0.06164383561643835,
-      "else_if": 0.9246575342465754,
-      "}": 0.0136986301369863
+      "SCOPED_STATEMENTS": 0.06293706293706294,
+      "else_if": 0.916083916083916,
+      "}": 0.02097902097902098
     },
     "else_if:0:9": {
-      "}": 0.8181818181818182,
-      "else_if": 0.18181818181818182
+      "}": 0.75,
+      "else_if": 0.25
     },
     "else_if:0:10": {
       "else_if": 1
     },
     "virtual_node:1:10": {
-      "</": 0.11176470588235295,
-      "SCOPED_STATEMENTS": 0.17647058823529413,
-      "name": 0.2,
-      ">": 0.5117647058823529
+      "</": 0.050724637681159424,
+      "SCOPED_STATEMENTS": 0.10507246376811594,
+      "name": 0.06884057971014493,
+      ">": 0.7753623188405797
     },
     "virtual_node:1:11": {
-      "name": 0.2289156626506024,
-      "SCOPED_STATEMENTS": 0.3132530120481928,
-      ">": 0.40963855421686746,
-      "</": 0.04819277108433735
+      "name": 0.22580645161290322,
+      "SCOPED_STATEMENTS": 0.41935483870967744,
+      ">": 0.3064516129032258,
+      "</": 0.04838709677419355
     },
     "virtual_node:1:12": {
-      ">": 0.3877551020408163,
-      "SCOPED_STATEMENTS": 0.4489795918367347,
-      "</": 0.08163265306122448,
-      "name": 0.08163265306122448
+      ">": 0.32558139534883723,
+      "SCOPED_STATEMENTS": 0.5348837209302325,
+      "</": 0.06976744186046512,
+      "name": 0.06976744186046512
     },
     "func_body:0:25": {
       "SCOPED_STATEMENTS": 1
@@ -924,11 +936,13 @@
       "}": 0.3333333333333333,
       "SCOPED_STATEMENTS": 0.6666666666666666
     },
-    "START:0:7": {
-      "GLOBAL_STATEMENTS": 1
+    "START:0:6": {
+      "GLOBAL_STATEMENTS": 0.9130434782608695,
+      "EOS": 0.08695652173913043
     },
-    "START:0:8": {
-      "GLOBAL_STATEMENTS": 1
+    "START:0:7": {
+      "GLOBAL_STATEMENTS": 0.9523809523809523,
+      "EOS": 0.047619047619047616
     },
     "type_expression:0:0": {
       "type_primary": 1
@@ -948,47 +962,48 @@
     "type_name:1:0": {
       "null": 1
     },
-    "exp:8:0": {
+    "exp:20:0": {
       "false": 1
     },
     "else_if:2:6": {
-      "SCOPED_STATEMENTS": 0.25,
-      "}": 0.75
+      "SCOPED_STATEMENTS": 0.2857142857142857,
+      "}": 0.7142857142857143
     },
     "else_if:2:7": {
       "}": 1
     },
     "func_def:3:0": {
-      "(": 0.975,
-      "async": 0.025
+      "(": 0.9936305732484076,
+      "async": 0.006369426751592357
     },
     "func_def:3:1": {
-      ")": 0.975,
-      "(": 0.025
+      ")": 0.9936305732484076,
+      "(": 0.006369426751592357
     },
     "func_def:3:2": {
-      "w": 0.96875,
-      ")": 0.025,
-      "annotation": 0.00625
+      "w": 0.9893842887473461,
+      ")": 0.006369426751592357,
+      "annotation": 0.004246284501061571
     },
     "func_def:3:3": {
-      "=>": 0.96875,
-      "w": 0.03125
+      "=>": 0.9893842887473461,
+      "w": 0.010615711252653927
     },
     "func_def:3:4": {
-      "w": 0.96875,
-      "=>": 0.03125
+      "w": 0.9893842887473461,
+      "=>": 0.010615711252653927
     },
     "func_def:3:5": {
-      "func_body_fat": 0.96875,
-      "w": 0.03125
+      "func_body_fat": 0.9893842887473461,
+      "w": 0.010615711252653927
     },
     "func_body_fat:0:0": {
       "{": 1
     },
     "func_body_fat:0:1": {
-      "SCOPED_STATEMENTS": 0.9945205479452055,
-      "}": 0.005479452054794521
+      "SCOPED_STATEMENTS": 0.9828178694158075,
+      "}": 0.013745704467353952,
+      "wcomment": 0.003436426116838488
     },
     "func_call:1:0": {
       "(": 1
@@ -1000,12 +1015,12 @@
       "SCOPED_STATEMENTS": 1
     },
     "func_body_fat:0:3": {
-      "}": 0.46831955922865015,
-      "SCOPED_STATEMENTS": 0.5316804407713499
+      "}": 0.3362369337979094,
+      "SCOPED_STATEMENTS": 0.6637630662020906
     },
     "virtual_node:2:8": {
-      ">": 0.7272727272727273,
-      "name": 0.2727272727272727
+      ">": 0.8636363636363636,
+      "name": 0.13636363636363635
     },
     "func_def:2:0": {
       "(": 1
@@ -1017,20 +1032,20 @@
       ")": 1
     },
     "func_def:2:3": {
-      "w": 0.9951632406287787,
-      "annotation": 0.0048367593712212815
+      "w": 0.9867549668874173,
+      "annotation": 0.013245033112582781
     },
     "func_def:2:4": {
-      "=>": 0.9951632406287787,
-      "w": 0.0048367593712212815
+      "=>": 0.9867549668874173,
+      "w": 0.013245033112582781
     },
     "func_def:2:5": {
-      "w": 0.9951632406287787,
-      "=>": 0.0048367593712212815
+      "w": 0.9867549668874173,
+      "=>": 0.013245033112582781
     },
     "func_def:2:6": {
-      "func_body_fat": 0.9951632406287787,
-      "w": 0.0048367593712212815
+      "func_body_fat": 0.9867549668874173,
+      "w": 0.013245033112582781
     },
     "func_body_fat:1:0": {
       "exp": 1
@@ -1059,44 +1074,39 @@
     "for_loop:0:7": {
       "SCOPED_STATEMENTS": 1
     },
-    "inner_str_expression:0:0": {
-      "exp": 1
-    },
-    "inner_str_expression:0:1": {
-      "str": 1
-    },
-    "inner_str_expression:0:2": {
+    "exp:12:2": {
       "inner_str_expression": 1
     },
     "for_loop:0:8": {
       "SCOPED_STATEMENTS": 1
     },
     "for_loop:0:9": {
-      "}": 0.6923076923076923,
-      "SCOPED_STATEMENTS": 0.3076923076923077
+      "}": 0.8191489361702128,
+      "SCOPED_STATEMENTS": 0.18085106382978725
     },
     "virtual_node:1:13": {
-      "</": 0.06666666666666667,
-      "SCOPED_STATEMENTS": 0.6666666666666666,
-      "name": 0.13333333333333333,
-      ">": 0.13333333333333333
+      "</": 0.06896551724137931,
+      "SCOPED_STATEMENTS": 0.7241379310344828,
+      "name": 0.10344827586206896,
+      ">": 0.10344827586206896
     },
     "virtual_node:1:14": {
       "name": 0.07692307692307693,
-      "SCOPED_STATEMENTS": 0.7692307692307693,
-      ">": 0.15384615384615385
+      "SCOPED_STATEMENTS": 0.8076923076923077,
+      ">": 0.11538461538461539
     },
     "virtual_node:1:15": {
-      ">": 0.09090909090909091,
-      "SCOPED_STATEMENTS": 0.9090909090909091
+      ">": 0.08695652173913043,
+      "SCOPED_STATEMENTS": 0.8695652173913043,
+      "</": 0.043478260869565216
+    },
+    "START:0:8": {
+      "GLOBAL_STATEMENTS": 0.95,
+      "EOS": 0.05
     },
     "START:0:9": {
-      "GLOBAL_STATEMENTS": 0.7777777777777778,
-      "EOS": 0.2222222222222222
-    },
-    "START:0:10": {
-      "EOS": 0.2857142857142857,
-      "GLOBAL_STATEMENTS": 0.7142857142857143
+      "EOS": 0.05263157894736842,
+      "GLOBAL_STATEMENTS": 0.9473684210526315
     },
     "GLOBAL_STATEMENT:1:0": {
       "assign": 1
@@ -1117,19 +1127,24 @@
       "exp": 1
     },
     "func_body_fat:0:4": {
-      "SCOPED_STATEMENTS": 0.22279792746113988,
-      "}": 0.7772020725388601
+      "SCOPED_STATEMENTS": 0.44881889763779526,
+      "}": 0.5511811023622047
     },
     "func_body_fat:0:5": {
-      "}": 0.46511627906976744,
-      "SCOPED_STATEMENTS": 0.5348837209302325
+      "}": 0.49122807017543857,
+      "SCOPED_STATEMENTS": 0.5087719298245614
+    },
+    "START:0:10": {
+      "GLOBAL_STATEMENTS": 0.8888888888888888,
+      "EOS": 0.1111111111111111
     },
     "START:0:11": {
-      "GLOBAL_STATEMENTS": 0.8,
-      "EOS": 0.2
+      "GLOBAL_STATEMENTS": 0.9375,
+      "EOS": 0.0625
     },
     "START:0:12": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8666666666666667,
+      "EOS": 0.13333333333333333
     },
     "START:0:13": {
       "GLOBAL_STATEMENTS": 1
@@ -1138,47 +1153,150 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:0:15": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.7692307692307693,
+      "EOS": 0.23076923076923078
     },
     "START:0:16": {
-      "GLOBAL_STATEMENTS": 0.5,
-      "EOS": 0.5
+      "GLOBAL_STATEMENTS": 0.9,
+      "EOS": 0.1
     },
     "START:0:17": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8888888888888888,
+      "EOS": 0.1111111111111111
     },
     "START:0:18": {
       "GLOBAL_STATEMENTS": 1
-    },
-    "exp:7:0": {
-      "true": 1
-    },
-    "object_access:4:1": {
-      "object_access": 1
-    },
-    "operation:4:0": {
-      ">": 1
-    },
-    "operation:4:1": {
-      "w": 1
-    },
-    "operation:4:2": {
-      "exp": 1
     },
     "START:0:19": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:0:20": {
-      "EOS": 0.5,
-      "GLOBAL_STATEMENTS": 0.5
+      "GLOBAL_STATEMENTS": 1
     },
-    "object_access:0:0": {
-      "optional_chain": 1
+    "START:0:21": {
+      "GLOBAL_STATEMENTS": 1
     },
-    "object_access:0:1": {
+    "exp:19:0": {
+      "true": 1
+    },
+    "exp:10:0": {
+      "exp": 1
+    },
+    "exp:10:1": {
+      "w": 1
+    },
+    "exp:10:2": {
+      ">": 1
+    },
+    "exp:10:3": {
+      "w": 1
+    },
+    "exp:10:4": {
+      "exp": 1
+    },
+    "func_body_fat:0:6": {
+      "}": 0.4482758620689655,
+      "SCOPED_STATEMENTS": 0.5517241379310345
+    },
+    "START:0:22": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:23": {
+      "EOS": 0.125,
+      "GLOBAL_STATEMENTS": 0.875
+    },
+    "GLOBAL_STATEMENT:9:0": {
+      "type_alias": 1
+    },
+    "type_alias:0:0": {
+      "type": 1
+    },
+    "type_alias:0:1": {
       "name": 1
     },
-    "exp:18:0": {
+    "type_alias:0:2": {
+      "w": 0.9272727272727272,
+      "generic_params": 0.07272727272727272
+    },
+    "type_alias:0:3": {
+      "=": 0.9272727272727272,
+      "w": 0.07272727272727272
+    },
+    "type_alias:0:4": {
+      "w": 0.9272727272727272,
+      "=": 0.07272727272727272
+    },
+    "type_alias:0:5": {
+      "type_expression": 0.9272727272727272,
+      "w": 0.07272727272727272
+    },
+    "type_primary:4:0": {
+      "object_type": 1
+    },
+    "object_type:1:0": {
+      "{": 1
+    },
+    "object_type:1:1": {
+      "single_space_or_newline": 1
+    },
+    "object_type:1:2": {
+      "object_type_properties": 1
+    },
+    "object_type_properties:0:0": {
+      "object_type_property": 1
+    },
+    "object_type_property:1:0": {
+      "name": 1
+    },
+    "object_type_property:1:1": {
+      "colon": 1
+    },
+    "object_type_property:1:2": {
+      "w": 1
+    },
+    "object_type_property:1:3": {
+      "type_expression": 1
+    },
+    "object_type_properties:0:1": {
+      ",": 1
+    },
+    "object_type_properties:0:2": {
+      "single_space_or_newline": 1
+    },
+    "object_type_properties:0:3": {
+      "object_type_properties": 1
+    },
+    "object_type_properties:2:0": {
+      "object_type_property": 1
+    },
+    "object_type:1:3": {
+      "single_space_or_newline": 1
+    },
+    "object_type:1:4": {
+      "}": 1
+    },
+    "func_def_params:1:0": {
+      "object_destructuring": 1
+    },
+    "destructuring_values:2:0": {
+      "name": 1
+    },
+    "destructuring_values:2:1": {
+      "annotation": 1
+    },
+    "destructuring_values:2:2": {
+      ",": 1
+    },
+    "destructuring_values:2:3": {
+      "single_space_or_newline": 1
+    },
+    "destructuring_values:2:4": {
+      "destructuring_values": 1
+    },
+    "func_def_params:1:1": {
+      "annotation": 1
+    },
+    "exp:31:0": {
       "virtual_node_exp": 1
     },
     "virtual_node_exp:0:0": {
@@ -1191,65 +1309,59 @@
       "virtual_node_attributes": 1
     },
     "virtual_node_exp:0:3": {
-      "virtual_node_attributes": 1
+      "virtual_node_attributes": 0.41379310344827586,
+      "w": 0.5862068965517241
     },
     "virtual_node_exp:0:4": {
-      "virtual_node_attributes": 0.2,
-      "/>": 0.4,
-      "w": 0.4
+      "virtual_node_attributes": 0.3448275862068966,
+      "/>": 0.6551724137931034
     },
     "virtual_node_exp:0:5": {
-      "w": 0.3333333333333333,
-      "/>": 0.6666666666666666
+      "w": 1
     },
     "virtual_node_exp:0:6": {
       "/>": 1
     },
-    "exp:10:0": {
+    "exp:22:0": {
       "regexp": 1
     },
     "func_def_params:4:0": {
       "name": 1
     },
     "func_def_params:4:1": {
-      "annotation": 0.028169014084507043,
-      ",": 0.971830985915493
+      "annotation": 0.2032520325203252,
+      ",": 0.7967479674796748
     },
     "func_def_params:4:2": {
-      ",": 0.028169014084507043,
-      "single_space_or_newline": 0.971830985915493
+      ",": 0.2032520325203252,
+      "single_space_or_newline": 0.7967479674796748
     },
     "func_def_params:4:3": {
-      "single_space_or_newline": 0.028169014084507043,
-      "func_def_params": 0.971830985915493
+      "single_space_or_newline": 0.2032520325203252,
+      "func_def_params": 0.7967479674796748
     },
     "func_def_params:4:4": {
       "func_def_params": 1
     },
-    "access_or_operation:0:0": {
-      "object_access": 1
-    },
-    "access_or_operation:0:1": {
-      "w": 1
-    },
-    "access_or_operation:0:2": {
-      "operation": 1
-    },
-    "object_access:5:0": {
-      "[": 1
-    },
-    "object_access:5:1": {
+    "exp:5:0": {
       "exp": 1
     },
-    "object_access:5:2": {
+    "exp:5:1": {
+      "[": 1
+    },
+    "exp:5:2": {
+      "exp": 1
+    },
+    "exp:5:3": {
       "]": 1
     },
     "for_loop:0:10": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.47058823529411764,
+      "}": 0.5294117647058824
     },
     "for_loop:0:11": {
-      "}": 0.5,
-      "SCOPED_STATEMENTS": 0.5
+      "}": 0.75,
+      "SCOPED_STATEMENTS": 0.25
     },
     "func_body:0:27": {
       "SCOPED_STATEMENTS": 1
@@ -1258,62 +1370,76 @@
       "}": 1
     },
     "assign:3:0": {
-      "name": 1
+      "exp": 1
     },
     "assign:3:1": {
-      "object_access": 1
+      "w": 1
     },
     "assign:3:2": {
-      "w": 1
-    },
-    "assign:3:3": {
       "=": 1
     },
-    "assign:3:4": {
+    "assign:3:3": {
       "w": 1
     },
-    "assign:3:5": {
+    "assign:3:4": {
       "exp": 1
     },
-    "exp:11:0": {
+    "exp:23:0": {
       "(": 1
     },
-    "exp:11:1": {
+    "exp:23:1": {
       "exp": 1
     },
-    "operation:0:0": {
-      "nullish": 1
+    "exp:6:0": {
+      "exp": 1
     },
-    "operation:0:1": {
+    "exp:6:1": {
       "w": 1
     },
-    "operation:0:2": {
+    "exp:6:2": {
+      "nullish": 1
+    },
+    "exp:6:3": {
+      "w": 1
+    },
+    "exp:6:4": {
       "exp": 1
     },
-    "exp:11:2": {
+    "exp:23:2": {
       ")": 1
+    },
+    "exp:0:0": {
+      "exp": 1
+    },
+    "exp:0:1": {
+      "optional_chain": 1
+    },
+    "exp:0:2": {
+      "name": 1
     },
     "str_expression:1:2": {
       "inner_str_expression": 1
     },
     "virtual_node:1:16": {
-      "SCOPED_STATEMENTS": 0.95,
-      "</": 0.05
+      "SCOPED_STATEMENTS": 0.9047619047619048,
+      "name": 0.047619047619047616,
+      "</": 0.047619047619047616
     },
     "virtual_node:2:9": {
       ">": 1
     },
     "virtual_node:1:17": {
-      "SCOPED_STATEMENTS": 0.05,
-      "</": 0.9,
-      "name": 0.05
+      "SCOPED_STATEMENTS": 0.8095238095238095,
+      "</": 0.09523809523809523,
+      ">": 0.047619047619047616,
+      "name": 0.047619047619047616
     },
     "virtual_node:1:18": {
-      "SCOPED_STATEMENTS": 0.05,
-      "name": 0.9,
+      "SCOPED_STATEMENTS": 0.85,
+      "name": 0.1,
       ">": 0.05
     },
-    "exp:22:0": {
+    "exp:35:0": {
       "short_if_expression": 1
     },
     "short_if_expression:0:0": {
@@ -1350,23 +1476,28 @@
       "name": 1
     },
     "virtual_node_exp:2:2": {
-      ">": 1
+      ">": 0.9841269841269841,
+      "virtual_node_attributes": 0.015873015873015872
     },
     "virtual_node_exp:2:3": {
-      "exp": 1
+      "exp": 0.9841269841269841,
+      ">": 0.015873015873015872
     },
     "virtual_node_exp:2:4": {
-      "</": 1
+      "</": 0.9841269841269841,
+      "exp": 0.015873015873015872
     },
     "virtual_node_exp:2:5": {
-      "name": 1
+      "name": 0.9841269841269841,
+      "</": 0.015873015873015872
     },
     "virtual_node_exp:2:6": {
-      ">": 1
+      ">": 0.9841269841269841,
+      "name": 0.015873015873015872
     },
     "virtual_node:1:19": {
-      "SCOPED_STATEMENTS": 0.05263157894736842,
-      ">": 0.9473684210526315
+      "SCOPED_STATEMENTS": 0.8947368421052632,
+      ">": 0.10526315789473684
     },
     "virtual_node:1:20": {
       "SCOPED_STATEMENTS": 1
@@ -1383,10 +1514,10 @@
     "func_def:3:6": {
       "func_body_fat": 1
     },
-    "exp:16:0": {
+    "exp:29:0": {
       "await": 1
     },
-    "exp:16:1": {
+    "exp:29:1": {
       "exp": 1
     },
     "SCOPED_STATEMENT:5:0": {
@@ -1405,47 +1536,34 @@
       "SCOPED_STATEMENTS": 1
     },
     "try_catch:0:4": {
-      "}": 0.75,
-      "SCOPED_STATEMENTS": 0.25
+      "}": 1
     },
     "try_catch:0:5": {
-      "w": 0.75,
-      "SCOPED_STATEMENTS": 0.25
+      "w": 1
     },
     "try_catch:0:6": {
-      "catch": 0.75,
-      "}": 0.25
+      "catch": 1
     },
     "try_catch:0:7": {
-      "name": 0.75,
-      "w": 0.25
+      "name": 1
     },
     "try_catch:0:8": {
-      "w": 0.75,
-      "catch": 0.25
+      "w": 1
     },
     "try_catch:0:9": {
-      "{": 0.75,
-      "name": 0.25
+      "{": 1
     },
     "try_catch:0:10": {
-      "SCOPED_STATEMENTS": 0.75,
-      "w": 0.25
+      "SCOPED_STATEMENTS": 1
     },
     "try_catch:0:11": {
-      "SCOPED_STATEMENTS": 0.75,
-      "{": 0.25
+      "SCOPED_STATEMENTS": 1
     },
     "try_catch:0:12": {
       "SCOPED_STATEMENTS": 1
     },
     "try_catch:0:13": {
-      "SCOPED_STATEMENTS": 0.75,
-      "}": 0.25
-    },
-    "try_catch:0:14": {
-      "}": 0.6666666666666666,
-      "SCOPED_STATEMENTS": 0.3333333333333333
+      "}": 1
     },
     "START:2:0": {
       "scomment": 1
@@ -1470,13 +1588,13 @@
     },
     "virtual_node:0:7": {
       "virtual_node_attributes": 0.5,
-      "w": 0.4090909090909091,
-      "/>": 0.09090909090909091
+      "w": 0.36363636363636365,
+      "/>": 0.13636363636363635
     },
     "virtual_node:0:8": {
-      "w": 0.25,
-      "/>": 0.45,
-      "virtual_node_attributes": 0.3
+      "w": 0.2631578947368421,
+      "/>": 0.42105263157894735,
+      "virtual_node_attributes": 0.3157894736842105
     },
     "virtual_node:0:9": {
       "/>": 0.45454545454545453,
@@ -1492,14 +1610,15 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:6": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9444444444444444,
+      "EOS": 0.05555555555555555
     },
     "START:2:7": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:8": {
-      "GLOBAL_STATEMENTS": 0.6666666666666666,
-      "EOS": 0.3333333333333333
+      "GLOBAL_STATEMENTS": 0.8823529411764706,
+      "EOS": 0.11764705882352941
     },
     "START:2:9": {
       "GLOBAL_STATEMENTS": 1
@@ -1511,87 +1630,45 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:12": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9333333333333333,
+      "EOS": 0.06666666666666667
     },
     "START:2:13": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9285714285714286,
+      "EOS": 0.07142857142857142
     },
     "START:2:14": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:15": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9230769230769231,
+      "EOS": 0.07692307692307693
     },
     "START:2:16": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:17": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8333333333333334,
+      "EOS": 0.16666666666666666
     },
     "START:2:18": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.7,
+      "EOS": 0.3
     },
     "func_def:2:7": {
       "func_body_fat": 1
     },
-    "type_primary:2:0": {
-      "object_type": 1
-    },
-    "object_type:1:0": {
-      "{": 1
-    },
-    "object_type:1:1": {
-      "single_space_or_newline": 1
-    },
-    "object_type:1:2": {
-      "object_type_properties": 1
-    },
-    "object_type_properties:0:0": {
-      "object_type_property": 1
-    },
-    "object_type_property:1:0": {
-      "name": 1
-    },
-    "object_type_property:1:1": {
-      "colon": 1
-    },
-    "object_type_property:1:2": {
-      "w": 1
-    },
-    "object_type_property:1:3": {
-      "type_expression": 1
-    },
-    "object_type_properties:0:1": {
-      ",": 1
-    },
-    "object_type_properties:0:2": {
-      "single_space_or_newline": 1
-    },
-    "object_type_properties:0:3": {
-      "object_type_properties": 1
-    },
-    "object_type_properties:1:0": {
-      "object_type_property": 1
-    },
-    "object_type:1:3": {
-      "single_space_or_newline": 1
-    },
-    "object_type:1:4": {
-      "}": 1
-    },
-    "func_body_fat:0:6": {
-      "SCOPED_STATEMENTS": 1
-    },
     "func_body_fat:0:7": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.7083333333333334,
+      "}": 0.2916666666666667
     },
     "func_body_fat:0:8": {
-      "SCOPED_STATEMENTS": 0.8695652173913043,
-      "}": 0.13043478260869565
+      "SCOPED_STATEMENTS": 0.7058823529411765,
+      "}": 0.29411764705882354
     },
     "func_body_fat:0:9": {
-      "SCOPED_STATEMENTS": 0.2,
-      "}": 0.8
+      "SCOPED_STATEMENTS": 0.5833333333333334,
+      "}": 0.4166666666666667
     },
     "object_literal_body:1:0": {
       "spread": 1
@@ -1600,29 +1677,35 @@
       "exp": 1
     },
     "func_body_fat:0:10": {
+      "SCOPED_STATEMENTS": 0.7142857142857143,
+      "}": 0.2857142857142857
+    },
+    "func_body_fat:0:11": {
+      "SCOPED_STATEMENTS": 0.9,
+      "}": 0.1
+    },
+    "func_body_fat:0:12": {
+      "SCOPED_STATEMENTS": 0.8888888888888888,
+      "}": 0.1111111111111111
+    },
+    "func_body_fat:0:13": {
       "SCOPED_STATEMENTS": 0.75,
       "}": 0.25
     },
-    "func_body_fat:0:11": {
-      "SCOPED_STATEMENTS": 1
-    },
-    "func_body_fat:0:12": {
-      "SCOPED_STATEMENTS": 1
-    },
-    "func_body_fat:0:13": {
-      "SCOPED_STATEMENTS": 1
-    },
     "func_body_fat:0:14": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.8333333333333334,
+      "}": 0.16666666666666666
     },
     "func_body_fat:0:15": {
       "SCOPED_STATEMENTS": 1
     },
     "func_def:0:6": {
-      "func_body": 1
+      "func_body": 0.9411764705882353,
+      "w": 0.058823529411764705
     },
     "func_body_fat:0:16": {
-      "SCOPED_STATEMENTS": 1
+      "SCOPED_STATEMENTS": 0.8,
+      "}": 0.2
     },
     "func_body_fat:0:17": {
       "SCOPED_STATEMENTS": 1
@@ -1637,35 +1720,15 @@
       "SCOPED_STATEMENTS": 1
     },
     "func_body_fat:0:21": {
-      "}": 0.3333333333333333,
-      "SCOPED_STATEMENTS": 0.6666666666666666
+      "}": 0.5,
+      "SCOPED_STATEMENTS": 0.5
     },
     "START:2:19": {
       "GLOBAL_STATEMENTS": 1
     },
     "START:2:20": {
-      "EOS": 1
-    },
-    "GLOBAL_STATEMENT:9:0": {
-      "type_alias": 1
-    },
-    "type_alias:0:0": {
-      "type": 1
-    },
-    "type_alias:0:1": {
-      "name": 1
-    },
-    "type_alias:0:2": {
-      "w": 1
-    },
-    "type_alias:0:3": {
-      "=": 1
-    },
-    "type_alias:0:4": {
-      "w": 1
-    },
-    "type_alias:0:5": {
-      "type_expression": 1
+      "EOS": 0.14285714285714285,
+      "GLOBAL_STATEMENTS": 0.8571428571428571
     },
     "object_type_property:0:0": {
       "name": 1
@@ -1682,24 +1745,24 @@
     "object_type_property:0:4": {
       "type_expression": 1
     },
-    "type_primary:3:0": {
+    "type_primary:5:0": {
       "str": 1
     },
     "func_def_params:3:0": {
       "name": 1
     },
     "func_def_params:3:1": {
-      "annotation": 0.23076923076923078,
-      "=": 0.7692307692307693
+      "annotation": 0.4117647058823529,
+      "=": 0.5882352941176471
     },
     "func_def_params:3:2": {
-      "=": 0.23076923076923078,
-      "exp": 0.7692307692307693
+      "=": 0.4117647058823529,
+      "exp": 0.5882352941176471
     },
     "func_def_params:3:3": {
       "exp": 1
     },
-    "type_primary:2:1": {
+    "type_primary:4:1": {
       "array_suffix": 1
     },
     "array_suffix:0:0": {
@@ -1708,15 +1771,15 @@
     "array_suffix:0:1": {
       "]": 1
     },
-    "exp:15:0": {
+    "exp:28:0": {
       "array_literal": 1
     },
     "array_literal:0:0": {
       "[": 1
     },
     "array_literal:0:1": {
-      "array_literal_body": 0.75,
-      "newline": 0.25
+      "array_literal_body": 0.8924418604651163,
+      "newline": 0.10755813953488372
     },
     "array_literal_body:0:0": {
       "exp": 1
@@ -1737,11 +1800,8 @@
       "exp": 1
     },
     "array_literal:0:2": {
-      "]": 0.75,
-      "W": 0.25
-    },
-    "object_access:5:3": {
-      "object_access": 1
+      "]": 0.8924418604651163,
+      "W": 0.10755813953488372
     },
     "generic_params:0:0": {
       "<": 1
@@ -1758,17 +1818,9 @@
     "func_def:1:8": {
       "func_body": 1
     },
-    "START:0:21": {
-      "GLOBAL_STATEMENTS": 1
-    },
-    "START:0:22": {
-      "GLOBAL_STATEMENTS": 1
-    },
-    "START:0:23": {
-      "GLOBAL_STATEMENTS": 1
-    },
     "START:0:24": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8571428571428571,
+      "EOS": 0.14285714285714285
     },
     "START:0:25": {
       "GLOBAL_STATEMENTS": 1
@@ -1779,11 +1831,9 @@
     "START:0:27": {
       "GLOBAL_STATEMENTS": 1
     },
-    "assign:1:5": {
-      "exp": 1
-    },
     "START:0:28": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8333333333333334,
+      "EOS": 0.16666666666666666
     },
     "START:0:29": {
       "GLOBAL_STATEMENTS": 1
@@ -1797,8 +1847,12 @@
     "START:0:32": {
       "GLOBAL_STATEMENTS": 1
     },
+    "assign:1:5": {
+      "exp": 1
+    },
     "START:0:33": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.8,
+      "EOS": 0.2
     },
     "START:0:34": {
       "GLOBAL_STATEMENTS": 1
@@ -1819,7 +1873,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:0:40": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.75,
+      "EOS": 0.25
     },
     "START:0:41": {
       "GLOBAL_STATEMENTS": 1
@@ -1870,7 +1925,24 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:0:57": {
-      "EOS": 1
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:58": {
+      "GLOBAL_STATEMENTS": 0.6666666666666666,
+      "EOS": 0.3333333333333333
+    },
+    "START:0:59": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:60": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:61": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:62": {
+      "EOS": 0.5,
+      "GLOBAL_STATEMENTS": 0.5
     },
     "import_statement:2:0": {
       "import": 1
@@ -1923,7 +1995,7 @@
     "SCOPED_STATEMENT:9:1": {
       "exp": 1
     },
-    "exp:19:0": {
+    "exp:32:0": {
       "new_expression": 1
     },
     "new_expression:0:0": {
@@ -1939,8 +2011,8 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:2": {
-      "GLOBAL_STATEMENTS": 0.6666666666666666,
-      "EOS": 0.3333333333333333
+      "GLOBAL_STATEMENTS": 0.9523809523809523,
+      "EOS": 0.047619047619047616
     },
     "type_primary:0:0": {
       "(": 1
@@ -1996,7 +2068,7 @@
     "type_primary:0:6": {
       "type_expression": 1
     },
-    "type_primary:7:1": {
+    "type_primary:11:1": {
       "array_suffix": 1
     },
     "START:1:3": {
@@ -2036,14 +2108,16 @@
       "GLOBAL_STATEMENTS": 1
     },
     "START:1:13": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9,
+      "EOS": 0.1
     },
     "START:1:14": {
-      "GLOBAL_STATEMENTS": 0.5,
-      "EOS": 0.5
+      "GLOBAL_STATEMENTS": 0.9444444444444444,
+      "EOS": 0.05555555555555555
     },
     "START:1:15": {
-      "GLOBAL_STATEMENTS": 1
+      "GLOBAL_STATEMENTS": 0.9411764705882353,
+      "EOS": 0.058823529411764705
     },
     "GLOBAL_STATEMENT:4:0": {
       "class_def": 1
@@ -2061,7 +2135,67 @@
       "{": 1
     },
     "class_def:1:4": {
+      "CLASS_STATEMENT": 0.8571428571428571,
+      "wcomment": 0.14285714285714285
+    },
+    "CLASS_STATEMENT:0:0": {
+      "newline": 1
+    },
+    "CLASS_STATEMENT:0:1": {
+      "W": 1
+    },
+    "CLASS_STATEMENT:0:2": {
+      "class_func_def": 1
+    },
+    "class_func_def:1:0": {
+      "def": 0.9090909090909091,
+      "async": 0.09090909090909091
+    },
+    "class_func_def:1:1": {
+      "name": 0.9090909090909091,
+      "def": 0.09090909090909091
+    },
+    "class_func_def:1:2": {
+      "(": 0.9090909090909091,
+      "name": 0.09090909090909091
+    },
+    "class_func_def:1:3": {
+      "func_def_params": 0.9090909090909091,
+      "(": 0.09090909090909091
+    },
+    "type_name:2:0": {
+      "undefined": 1
+    },
+    "class_func_def:1:4": {
+      ")": 0.9090909090909091,
+      "func_def_params": 0.09090909090909091
+    },
+    "class_func_def:1:5": {
+      "w": 0.9090909090909091,
+      ")": 0.09090909090909091
+    },
+    "class_func_def:1:6": {
+      "func_body": 0.9090909090909091,
+      "w": 0.09090909090909091
+    },
+    "class_def:1:5": {
       "CLASS_STATEMENT": 1
+    },
+    "CLASS_STATEMENT:2:0": {
+      "newline": 1
+    },
+    "class_def:1:6": {
+      "}": 0.14285714285714285,
+      "CLASS_STATEMENT": 0.8571428571428571
+    },
+    "START:1:16": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:17": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:18": {
+      "GLOBAL_STATEMENTS": 1
     },
     "CLASS_STATEMENT:1:0": {
       "newline": 1
@@ -2078,52 +2212,6 @@
     "class_member_def:0:1": {
       "annotation": 1
     },
-    "class_def:1:5": {
-      "CLASS_STATEMENT": 1
-    },
-    "CLASS_STATEMENT:2:0": {
-      "newline": 1
-    },
-    "class_def:1:6": {
-      "CLASS_STATEMENT": 1
-    },
-    "CLASS_STATEMENT:0:0": {
-      "newline": 1
-    },
-    "CLASS_STATEMENT:0:1": {
-      "W": 1
-    },
-    "CLASS_STATEMENT:0:2": {
-      "class_func_def": 1
-    },
-    "class_func_def:1:0": {
-      "def": 0.75,
-      "async": 0.25
-    },
-    "class_func_def:1:1": {
-      "name": 0.75,
-      "def": 0.25
-    },
-    "class_func_def:1:2": {
-      "(": 0.75,
-      "name": 0.25
-    },
-    "class_func_def:1:3": {
-      "func_def_params": 0.75,
-      "(": 0.25
-    },
-    "class_func_def:1:4": {
-      ")": 0.75,
-      "func_def_params": 0.25
-    },
-    "class_func_def:1:5": {
-      "w": 0.75,
-      ")": 0.25
-    },
-    "class_func_def:1:6": {
-      "func_body": 0.75,
-      "w": 0.25
-    },
     "newline_and_space:0:0": {
       "newline": 1
     },
@@ -2134,7 +2222,8 @@
       ")": 1
     },
     "class_def:1:7": {
-      "CLASS_STATEMENT": 1
+      "CLASS_STATEMENT": 0.6666666666666666,
+      "}": 0.3333333333333333
     },
     "class_func_def:0:0": {
       "def": 1
@@ -2149,13 +2238,16 @@
       ")": 1
     },
     "class_func_def:0:4": {
-      "w": 1
+      "w": 0.8,
+      "annotation": 0.2
     },
     "class_func_def:0:5": {
-      "func_body": 1
+      "func_body": 0.8,
+      "w": 0.2
     },
     "class_def:1:8": {
-      "CLASS_STATEMENT": 1
+      "CLASS_STATEMENT": 0.5,
+      "}": 0.5
     },
     "class_def:1:9": {
       "CLASS_STATEMENT": 1
@@ -2203,11 +2295,12 @@
       "SCOPED_STATEMENTS": 1
     },
     "for_loop:3:12": {
-      "}": 0.7619047619047619,
-      "SCOPED_STATEMENTS": 0.23809523809523808
+      "}": 0.6333333333333333,
+      "SCOPED_STATEMENTS": 0.36666666666666664
     },
     "class_def:1:10": {
-      "CLASS_STATEMENT": 1
+      "CLASS_STATEMENT": 0.5,
+      "}": 0.5
     },
     "class_func_def:1:7": {
       "func_body": 1
@@ -2218,50 +2311,25 @@
     "class_def:1:12": {
       "}": 1
     },
-    "START:1:16": {
+    "START:1:19": {
       "GLOBAL_STATEMENTS": 1
     },
-    "START:1:17": {
-      "EOS": 1
+    "START:1:20": {
+      "EOS": 0.0625,
+      "GLOBAL_STATEMENTS": 0.9375
     },
-    "exp:20:0": {
+    "exp:33:0": {
       "delete": 1
     },
-    "exp:20:1": {
+    "exp:33:1": {
       "exp": 1
     },
     "condition:0:10": {
+      "}": 0.2857142857142857,
+      "else_if": 0.7142857142857143
+    },
+    "condition:0:11": {
       "else_if": 1
-    },
-    "SCOPED_STATEMENT:2:0": {
-      "assign_op": 1
-    },
-    "assign_op:1:0": {
-      "name": 1
-    },
-    "assign_op:1:1": {
-      "object_access": 1
-    },
-    "assign_op:1:2": {
-      "w": 1
-    },
-    "assign_op:1:3": {
-      "assign_operator": 1
-    },
-    "assign_op:1:4": {
-      "w": 1
-    },
-    "assign_op:1:5": {
-      "exp": 1
-    },
-    "virtual_node_attributes:3:0": {
-      "single_space_or_newline": 1
-    },
-    "virtual_node_attributes:3:1": {
-      "name": 1
-    },
-    "for_loop:2:13": {
-      "}": 1
     },
     "array_literal:0:3": {
       "array_literal_body": 1
@@ -2270,38 +2338,17 @@
       "newline": 1
     },
     "array_literal:0:5": {
-      "W": 1
+      "W": 0.8918918918918919,
+      "]": 0.10810810810810811
     },
     "array_literal:0:6": {
       "]": 1
     },
-    "object_access:0:2": {
-      "object_access": 1
-    },
-    "object_literal_key:0:0": {
-      "str": 1
-    },
-    "try_catch:0:15": {
-      "SCOPED_STATEMENTS": 1
-    },
-    "try_catch:0:16": {
-      "}": 1
-    },
-    "func_def_params:1:0": {
-      "object_destructuring": 1
-    },
-    "func_def_params:1:1": {
-      "annotation": 1
-    },
-    "exp:21:0": {
+    "exp:34:0": {
       "spread": 1
     },
-    "exp:21:1": {
+    "exp:34:1": {
       "exp": 1
-    },
-    "for_loop:3:13": {
-      "}": 0.2,
-      "SCOPED_STATEMENTS": 0.8
     },
     "for_loop:0:12": {
       "}": 1
@@ -2320,6 +2367,12 @@
     },
     "import_statement:0:4": {
       "str": 1
+    },
+    "virtual_node_attributes:3:0": {
+      "single_space_or_newline": 1
+    },
+    "virtual_node_attributes:3:1": {
+      "name": 1
     },
     "func_body_fat:0:22": {
       "}": 0.5,
@@ -2436,21 +2489,1142 @@
     "func_body_fat:0:47": {
       "SCOPED_STATEMENTS": 1
     },
+    "for_loop:3:13": {
+      "SCOPED_STATEMENTS": 0.8181818181818182,
+      "}": 0.18181818181818182
+    },
     "for_loop:3:14": {
       "SCOPED_STATEMENTS": 1
     },
     "for_loop:3:15": {
-      "}": 1
+      "}": 0.8888888888888888,
+      "SCOPED_STATEMENTS": 0.1111111111111111
     },
     "func_body_fat:0:48": {
       "SCOPED_STATEMENTS": 1
     },
     "func_body_fat:0:49": {
       "}": 1
+    },
+    "START:2:21": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:22": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:23": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:24": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:25": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:26": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:27": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:28": {
+      "GLOBAL_STATEMENTS": 0.8333333333333334,
+      "EOS": 0.16666666666666666
+    },
+    "START:2:29": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:30": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:31": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:32": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:33": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:34": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:35": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:36": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:37": {
+      "EOS": 0.2,
+      "GLOBAL_STATEMENTS": 0.8
+    },
+    "START:0:63": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:64": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:65": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:66": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:67": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:68": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:69": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:70": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:71": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:72": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:73": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:74": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:75": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:76": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:77": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:78": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:79": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:80": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:81": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:82": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:83": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:84": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:0:85": {
+      "EOS": 1
+    },
+    "object_literal_body:0:0": {
+      "spread": 1
+    },
+    "object_literal_body:0:1": {
+      "exp": 1
+    },
+    "object_literal_body:0:2": {
+      ",": 1
+    },
+    "object_literal_body:0:3": {
+      "single_space_or_newline": 1
+    },
+    "object_literal_body:0:4": {
+      "object_literal_body": 1
+    },
+    "exp:2:0": {
+      "exp": 1
+    },
+    "exp:2:1": {
+      "optional_chain": 1
+    },
+    "exp:2:2": {
+      "[": 1
+    },
+    "exp:2:3": {
+      "exp": 1
+    },
+    "exp:2:4": {
+      "]": 1
+    },
+    "START:2:38": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:39": {
+      "GLOBAL_STATEMENTS": 0.75,
+      "EOS": 0.25
+    },
+    "START:2:40": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:41": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:42": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:43": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:44": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:45": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:46": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:47": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:48": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:49": {
+      "GLOBAL_STATEMENTS": 0.6666666666666666,
+      "EOS": 0.3333333333333333
+    },
+    "START:2:50": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:51": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:52": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:53": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:54": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:55": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:56": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:57": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:58": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:59": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:60": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:61": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:62": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:63": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:64": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:65": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:66": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:67": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:68": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:69": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:70": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:71": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:72": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:73": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:74": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:75": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:76": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:77": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:78": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:79": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:80": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:81": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:82": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:83": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:84": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:85": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:86": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:87": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:88": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:89": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:90": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:91": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:92": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:93": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:94": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:95": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:96": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:97": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:98": {
+      "EOS": 0.5,
+      "GLOBAL_STATEMENTS": 0.5
+    },
+    "import_statement:3:0": {
+      "import": 1
+    },
+    "import_statement:3:1": {
+      "str": 1
+    },
+    "GLOBAL_STATEMENT:6:0": {
+      "for_loop": 1
+    },
+    "class_def:0:0": {
+      "clazz": 1
+    },
+    "class_def:0:1": {
+      "name": 1
+    },
+    "class_def:0:2": {
+      "w": 1
+    },
+    "class_def:0:3": {
+      "extends": 1
+    },
+    "class_def:0:4": {
+      "name": 1
+    },
+    "class_def:0:5": {
+      "w": 1
+    },
+    "class_def:0:6": {
+      "{": 1
+    },
+    "class_def:0:7": {
+      "CLASS_STATEMENT": 1
+    },
+    "class_def:0:8": {
+      "CLASS_STATEMENT": 1
+    },
+    "class_def:0:9": {
+      "CLASS_STATEMENT": 1
+    },
+    "class_def:0:10": {
+      "}": 1
+    },
+    "class_func_def:0:6": {
+      "func_body": 1
+    },
+    "START:1:21": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:22": {
+      "GLOBAL_STATEMENTS": 0.8666666666666667,
+      "EOS": 0.13333333333333333
+    },
+    "START:1:23": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:24": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:25": {
+      "GLOBAL_STATEMENTS": 0.9230769230769231,
+      "EOS": 0.07692307692307693
+    },
+    "START:1:26": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:27": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:28": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:29": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:30": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:31": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:32": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:33": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:34": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:35": {
+      "GLOBAL_STATEMENTS": 0.9166666666666666,
+      "EOS": 0.08333333333333333
+    },
+    "START:1:36": {
+      "GLOBAL_STATEMENTS": 0.9090909090909091,
+      "EOS": 0.09090909090909091
+    },
+    "START:1:37": {
+      "GLOBAL_STATEMENTS": 0.9,
+      "EOS": 0.1
+    },
+    "START:1:38": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:39": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:40": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:41": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:42": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:43": {
+      "GLOBAL_STATEMENTS": 0.8888888888888888,
+      "EOS": 0.1111111111111111
+    },
+    "START:1:44": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:45": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:46": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:47": {
+      "GLOBAL_STATEMENTS": 0.875,
+      "EOS": 0.125
+    },
+    "START:1:48": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:49": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:50": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:51": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:52": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:53": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:54": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:55": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:56": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:57": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:58": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:59": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:60": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:61": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:62": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:63": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:64": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:65": {
+      "GLOBAL_STATEMENTS": 0.8571428571428571,
+      "EOS": 0.14285714285714285
+    },
+    "START:1:66": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:67": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:68": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:69": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:70": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:71": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:72": {
+      "EOS": 0.16666666666666666,
+      "GLOBAL_STATEMENTS": 0.8333333333333334
+    },
+    "GLOBAL_STATEMENT:2:0": {
+      "assign_op": 1
+    },
+    "assign_op:0:0": {
+      "name": 1
+    },
+    "assign_op:0:1": {
+      "w": 1
+    },
+    "assign_op:0:2": {
+      "assign_operator": 1
+    },
+    "assign_op:0:3": {
+      "w": 1
+    },
+    "assign_op:0:4": {
+      "exp": 1
+    },
+    "assign_op:1:0": {
+      "exp": 1
+    },
+    "assign_op:1:1": {
+      "w": 1
+    },
+    "assign_op:1:2": {
+      "assign_operator": 1
+    },
+    "assign_op:1:3": {
+      "w": 1
+    },
+    "assign_op:1:4": {
+      "exp": 1
+    },
+    "for_loop:2:13": {
+      "}": 1
+    },
+    "func_def_params:2:0": {
+      "name": 1
+    },
+    "func_def_params:2:1": {
+      "annotation": 1
+    },
+    "func_def_params:2:2": {
+      "=": 1
+    },
+    "func_def_params:2:3": {
+      "exp": 1
+    },
+    "func_def_params:2:4": {
+      ",": 1
+    },
+    "func_def_params:2:5": {
+      "single_space_or_newline": 1
+    },
+    "func_def_params:2:6": {
+      "func_def_params": 1
+    },
+    "scomment:1:0": {
+      "multiline_comment": 1
+    },
+    "object_type:0:0": {
+      "{": 1
+    },
+    "object_type:0:1": {
+      "wcomment": 1
+    },
+    "object_type:0:2": {
+      "newline": 1
+    },
+    "object_type:0:3": {
+      "W": 1
+    },
+    "object_type:0:4": {
+      "object_type_properties": 1
+    },
+    "object_type:0:5": {
+      "single_space_or_newline": 1
+    },
+    "object_type:0:6": {
+      "}": 1
+    },
+    "GLOBAL_STATEMENTS:0:2": {
+      "wcomment": 1
+    },
+    "wcomment:1:0": {
+      "w": 1
+    },
+    "wcomment:1:1": {
+      "multiline_comment": 1
+    },
+    "CLASS_STATEMENT:0:3": {
+      "wcomment": 1
+    },
+    "GLOBAL_STATEMENT:7:0": {
+      "while_loop": 1
+    },
+    "while_loop:0:0": {
+      "while": 1
+    },
+    "while_loop:0:1": {
+      "exp": 1
+    },
+    "while_loop:0:2": {
+      "w": 1
+    },
+    "while_loop:0:3": {
+      "{": 1
+    },
+    "while_loop:0:4": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "while_loop:0:5": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "SCOPED_STATEMENT:11:0": {
+      "break": 1
+    },
+    "while_loop:0:6": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "while_loop:0:7": {
+      "SCOPED_STATEMENTS": 1
+    },
+    "while_loop:0:8": {
+      "}": 1
+    },
+    "SCOPED_STATEMENT:12:0": {
+      "continue": 1
+    },
+    "for_loop:3:16": {
+      "}": 1
+    },
+    "exp:26:0": {
+      "math_operator": 1
+    },
+    "exp:26:1": {
+      "exp": 1
+    },
+    "START:1:73": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:74": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:75": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:76": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:77": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:78": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:79": {
+      "GLOBAL_STATEMENTS": 0.8,
+      "EOS": 0.2
+    },
+    "START:1:80": {
+      "EOS": 0.25,
+      "GLOBAL_STATEMENTS": 0.75
+    },
+    "GLOBAL_STATEMENT:0:0": {
+      "condition": 1
+    },
+    "generic_param_list:0:0": {
+      "name": 1
+    },
+    "generic_param_list:0:1": {
+      ",": 1
+    },
+    "generic_param_list:0:2": {
+      "w": 1
+    },
+    "generic_param_list:0:3": {
+      "generic_param_list": 1
+    },
+    "type_argument_list:0:0": {
+      "type_expression": 1
+    },
+    "type_argument_list:0:1": {
+      ",": 1
+    },
+    "type_argument_list:0:2": {
+      "w": 1
+    },
+    "type_argument_list:0:3": {
+      "type_argument_list": 1
+    },
+    "type_alias:0:6": {
+      "type_expression": 1
+    },
+    "type_primary:7:0": {
+      "type_name": 1
+    },
+    "type_primary:7:1": {
+      "<": 1
+    },
+    "type_primary:7:2": {
+      "type_arg_list": 1
+    },
+    "type_arg_list:1:0": {
+      "type_expression": 1
+    },
+    "type_primary:7:3": {
+      ">": 1
+    },
+    "type_arg_list:0:0": {
+      "type_expression": 1
+    },
+    "type_arg_list:0:1": {
+      ",": 1
+    },
+    "type_arg_list:0:2": {
+      "w": 1
+    },
+    "type_arg_list:0:3": {
+      "type_arg_list": 1
+    },
+    "START:2:99": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:100": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:101": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:102": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:103": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:104": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:105": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:106": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:107": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:108": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:109": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:110": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:111": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:112": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:113": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:114": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:115": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:116": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:117": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:118": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:119": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:120": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:121": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:122": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "func_def:0:7": {
+      "func_body": 1
+    },
+    "START:2:123": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:124": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:125": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:126": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:127": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:2:128": {
+      "EOS": 1
+    },
+    "type_primary:6:0": {
+      "number": 1
+    },
+    "type_name:3:0": {
+      "true": 1
+    },
+    "type_name:4:0": {
+      "false": 1
+    },
+    "object_type:2:0": {
+      "{": 1
+    },
+    "object_type:2:1": {
+      "}": 1
+    },
+    "array_suffix:0:2": {
+      "array_suffix": 1
+    },
+    "type_primary:3:0": {
+      "tuple_type": 1
+    },
+    "tuple_type:0:0": {
+      "[": 1
+    },
+    "tuple_type:0:1": {
+      "tuple_type_elements": 1
+    },
+    "tuple_type_elements:0:0": {
+      "type_expression": 1
+    },
+    "tuple_type_elements:0:1": {
+      ",": 1
+    },
+    "tuple_type_elements:0:2": {
+      "w": 1
+    },
+    "tuple_type_elements:0:3": {
+      "tuple_type_elements": 1
+    },
+    "tuple_type_elements:1:0": {
+      "type_expression": 1
+    },
+    "tuple_type:0:2": {
+      "]": 1
+    },
+    "START:1:81": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:82": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:83": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:84": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:85": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:86": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:87": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:88": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:89": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:90": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:91": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:92": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:93": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:94": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:95": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:96": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:97": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:98": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:99": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:100": {
+      "EOS": 0.3333333333333333,
+      "GLOBAL_STATEMENTS": 0.6666666666666666
+    },
+    "exp:11:0": {
+      "exp": 1
+    },
+    "exp:11:1": {
+      "w": 1
+    },
+    "exp:11:2": {
+      "as": 1
+    },
+    "exp:11:3": {
+      "type_expression": 1
+    },
+    "START:1:101": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:102": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:103": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:104": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:105": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:106": {
+      "GLOBAL_STATEMENTS": 0.5,
+      "EOS": 0.5
+    },
+    "START:1:107": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:108": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:109": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:110": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:111": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:112": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:113": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:114": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:115": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:116": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:117": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:118": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:119": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:120": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:121": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:122": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:123": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:124": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:125": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:126": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:127": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:128": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:129": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:130": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:131": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:132": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:133": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:134": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:135": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:136": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:137": {
+      "GLOBAL_STATEMENTS": 1
+    },
+    "START:1:138": {
+      "EOS": 1
+    },
+    "annotation:0:0": {
+      "colon": 1
+    },
+    "annotation:0:1": {
+      "w": 1
+    },
+    "annotation:0:2": {
+      "name": 1
+    },
+    "annotation:0:3": {
+      "w": 1
+    },
+    "annotation:0:4": {
+      "is": 1
+    },
+    "annotation:0:5": {
+      "type_expression": 1
+    },
+    "virtual_node_exp:2:7": {
+      ">": 1
     }
   },
   "metadata": {
-    "generatedAt": "2026-02-23T13:39:39.025Z",
+    "generatedAt": "2026-02-27T07:57:33.811Z",
     "version": "1.0.0"
   }
 }

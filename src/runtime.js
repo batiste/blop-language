@@ -356,7 +356,7 @@ let animationRequest = false;
 
 function scheduleRender(node) {
   renderPipeline.push(node);
-  if (!animationRequest) {
+  if (!animationRequest && globalThis.window) {
     animationRequest = true;
     window.requestAnimationFrame(() => {
       renderPipeline.forEach(node => node.partialRender());
@@ -383,6 +383,18 @@ const newRoot = () => {
   rootNode = new Component(() => {}, {}, [], 'root');
   currentNode = rootNode;
 };
+
+/**
+ * Render a component tree synchronously and return the root vnode.
+ * Intended for server-side rendering — does not touch the DOM.
+ * Pass the returned vnode to `renderToString()` from `blop-language/ssr`.
+ */
+function ssrRender(render) {
+  cache = {};
+  nextCache = {};
+  newRoot();
+  return render();
+}
 
 function mount(dom, render) {
   let vnode; let requested;
@@ -440,5 +452,5 @@ function mount(dom, render) {
 }
 
 // ES module exports
-export { h, patch, mount, Component, trackRead, notifyWrite };
+export { h, patch, mount, Component, trackRead, notifyWrite, ssrRender };
 export const c = createComponent;

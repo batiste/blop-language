@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { createRequire } from 'module';
+import { pathToFileURL } from 'url';
 import { PATHS } from './constants.js';
 
 
@@ -31,41 +31,42 @@ function lookUp(dir, name) {
   }
 }
 
-function getConfig(filename) {
-  // In browser environments, config files aren't supported
-  // Check early to avoid any Node.js module operations
+/**
+ * Asynchronously load blop.config.js by walking up from the given filename's
+ * directory. Uses dynamic import() so ESM config files work correctly.
+ * Returns {} when no config file is found or loading fails.
+ *
+ * @param {string} filename - absolute path to a .blop file (used as start dir)
+ * @returns {Promise<object>}
+ */
+async function loadConfig(filename) {
   if (typeof window !== 'undefined' || typeof process === 'undefined') {
     return {};
   }
-  
   if (!filename) {
     return {};
   }
-  
   try {
     const dirname = path.dirname(filename) || process.cwd();
-    const config = lookUp(dirname, PATHS.CONFIG_FILE);
-    if (!config) {
+    const configPath = lookUp(dirname, PATHS.CONFIG_FILE);
+    if (!configPath) {
       return {};
     }
-    
-    // Use createRequire to dynamically load the config file
-    const requireFn = createRequire(import.meta.url);
-    return requireFn(config);
-  } catch (e) {
-    // If require fails (browser or other error), return empty config
+    const { default: config } = await import(pathToFileURL(configPath).href);
+    return config ?? {};
+  } catch {
     return {};
   }
 }
 
 export {
-  getConfig,
+  loadConfig,
   lookUp,
   printTree,
 };
 
 export default {
-  getConfig,
+  loadConfig,
   lookUp,
   printTree,
 };

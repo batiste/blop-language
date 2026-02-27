@@ -28,11 +28,15 @@ const TypeChecker = {
         // String concatenation is valid but style suggestion to use templates
         return { valid: true, resultType: StringType, warning: 'Use template strings instead of \'++\' for string concatenation' };
       }
+      // any + anything or anything + any: skip strict checks, result is unknown
+      if (isAnyType(leftType) || isAnyType(rightType)) {
+        return { valid: true, resultType: AnyType };
+      }
       // Strict concatenation: no mixing of strings and numbers
       if (isStringBase(leftBase) || isStringBase(rightBase)) {
         return { valid: false, resultType: AnyType, warning: `Cannot apply '+' operator to ${leftType} and ${rightType}. String concatenation requires both operands to be strings.` };
       }
-      if ((isNumberBase(leftBase) || isBooleanBase(leftBase) || isAnyType(leftType)) && (isNumberBase(rightBase) || isBooleanBase(rightBase) || isAnyType(rightType))) {
+      if ((isNumberBase(leftBase) || isBooleanBase(leftBase)) && (isNumberBase(rightBase) || isBooleanBase(rightBase))) {
         return { valid: true, resultType: NumberType };
       }
       return { valid: false, resultType: AnyType, warning: `Cannot apply '+' operator to ${leftType} and ${rightType}` };

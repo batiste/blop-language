@@ -89,17 +89,29 @@ function widenLiteralTypes(type) {
 }
 
 /**
- * Extract destructuring bindings recursively from destructuring_values node
- * Returns array of {propertyName, varName, node}
+ * Extract destructuring bindings recursively from destructuring_values node.
+ * Returns array of {propertyPath, propertyName, varName, node, annotationNode}.
+ *
+ * `propertyPath` is an ordered array of property keys needed to reach the bound
+ * variable from the RHS object, e.g. ['info', 'score'] for `{ info: { score } }`.
+ * `propertyName` (the last element of propertyPath) is retained for backward compat.
  */
-function extractDestructuringBindings(node) {
+function extractDestructuringBindings(node, parentPath = []) {
   const bindings = [];
   
   if (node.type === 'destructuring_values') {
-    // Destructuring value with possible rename or simple name
-    if (node.named.name && node.named.rename) {
+    if (node.named.nested) {
+      // Nested destructuring: e.g. `info: { score, rank }`
+      // `node.named.name` is the intermediate property; descend into the nested pattern.
+      const intermediateProp = node.named.name.value;
+      const nestedValues = node.named.nested.named?.values;
+      if (nestedValues) {
+        bindings.push(...extractDestructuringBindings(nestedValues, [...parentPath, intermediateProp]));
+      }
+    } else if (node.named.name && node.named.rename) {
       // Renamed: x as xPos
       bindings.push({
+        propertyPath: [...parentPath, node.named.name.value],
         propertyName: node.named.name.value,
         varName: node.named.rename.value,
         node: node.named.rename,
@@ -108,20 +120,21 @@ function extractDestructuringBindings(node) {
     } else if (node.named.name) {
       // Simple name or typed: attributes, or attributes: DogGameProps
       bindings.push({
+        propertyPath: [...parentPath, node.named.name.value],
         propertyName: node.named.name.value,
         varName: node.named.name.value,
         node: node.named.name,
         annotationNode: node.named.annotation || null,
       });
     }
-    // Recurse for nested destructuring through 'more' property or children
+    // Recurse for siblings through 'more' (same parent path level)
     if (node.named.more) {
-      bindings.push(...extractDestructuringBindings(node.named.more));
+      bindings.push(...extractDestructuringBindings(node.named.more, parentPath));
     } else if (node.children) {
       // Find nested destructuring_values in children
       for (const child of node.children) {
         if (child.type === 'destructuring_values') {
-          bindings.push(...extractDestructuringBindings(child));
+          bindings.push(...extractDestructuringBindings(child, parentPath));
         }
       }
     }
@@ -129,7 +142,7 @@ function extractDestructuringBindings(node) {
     // For other container nodes, recurse through children
     for (const child of node.children) {
       if (child.type === 'destructuring_values') {
-        bindings.push(...extractDestructuringBindings(child));
+        bindings.push(...extractDestructuringBindings(child, parentPath));
       }
     }
   }
@@ -393,43 +406,52 @@ function createStatementHandlers(getState) {
           
           // Extract destructured variable names and stamp them with property types
           if (resolvedValueType instanceof ObjectType) {
-            for (const {propertyName, varName, node, annotationNode} of bindings) {
-              // For destructuring, get the raw property type WITHOUT removing undefined
-              // (which getPropertyType does for regular property access)
-              let propertyType = null;
-              
-              if (resolvedValueType instanceof ObjectType) {
-                const prop = resolvedValueType.properties.get(propertyName);
-                if (prop) {
-                  propertyType = prop.type;
-                  // For optional properties, include undefined in the union
-                  if (prop.optional && propertyType) {
-                    propertyType = new UnionType([propertyType, UndefinedType]);
-                  }
-                }
-              } else {
-                // Fall back to getPropertyType for other types
-                propertyType = getPropertyType(valueType, propertyName, typeAliases);
-              }
-              
+            for (const {propertyPath, propertyName, varName, node: varNode, annotationNode} of bindings) {
               if (annotationNode) {
                 // Inline type annotation overrides the inferred property type
                 const annotationType = getAnnotationType(annotationNode);
                 if (annotationType) {
-                  node.inferredType = annotationType;
+                  varNode.inferredType = annotationType;
                   // Update the live scope so subsequent lookups of this variable
                   // (e.g. as the rhs of another destructuring) use the declared type.
                   getCurrentScope()[varName] = { type: annotationType };
                 }
-              } else if (propertyType !== null) {
-                // Widen literal types to their abstract base types
-                const widenedType = widenLiteralTypes(propertyType);
-                node.inferredType = widenedType;
               } else {
-                pushWarning(
-                  destNode,
-                  `Property '${propertyName}' does not exist on type ${valueType}`
-                );
+                // Walk propertyPath using raw property map to preserve optional markers.
+                // getPropertyType() strips nullish/undefined which would drop optional?.
+                let leafType = null;
+                let currentObjType = resolvedValueType;
+
+                for (const propName of propertyPath) {
+                  const resolved = resolveTypeAlias(currentObjType, typeAliases);
+                  if (resolved instanceof ObjectType) {
+                    const prop = resolved.properties.get(propName);
+                    if (prop) {
+                      leafType = prop.type;
+                      if (prop.optional && leafType) {
+                        leafType = new UnionType([leafType, UndefinedType]);
+                      }
+                      currentObjType = prop.type;
+                    } else {
+                      leafType = null;
+                      break;
+                    }
+                  } else {
+                    leafType = null;
+                    break;
+                  }
+                }
+
+                if (leafType !== null) {
+                  // Widen literal types to their abstract base types
+                  const widenedType = widenLiteralTypes(leafType);
+                  varNode.inferredType = widenedType;
+                } else {
+                  pushWarning(
+                    destNode,
+                    `Property '${propertyName}' does not exist on type ${valueType}`
+                  );
+                }
               }
             }
           }

@@ -61,4 +61,31 @@ describe('Operator Type Validation for Function Call Returns', () => {
     `;
     expectCompiles(code);
   });
+
+  it('allows string + any', () => {
+    const code = `
+      s = "hello"
+      a: any = 42
+      result = s + a
+    `;
+    expectCompiles(code);
+  });
+
+  it('allows any + string', () => {
+    const code = `
+      a: any = "world"
+      s = "hello"
+      result = a + s
+    `;
+    expectCompiles(code);
+  });
+
+  it('allows any + any', () => {
+    const code = `
+      a: any = 1
+      b: any = 2
+      result = a + b
+    `;
+    expectCompiles(code);
+  });
 });

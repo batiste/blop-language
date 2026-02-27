@@ -1,11 +1,10 @@
 import sourceMap from 'source-map';
-import utils from '../utils.js';
 import { SCOPE_TYPES } from '../constants.js';
 import { ScopesStack } from './scopes.js';
 import { createValidators } from './validators.js';
 import { createBackendHandlers } from './generators/index.js';
 
-function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack') {
+function _backend(node, _stream, _input, _filename = false, rootSource, resolve = false, env = 'webpack', config = {}) {
   let uid_i = 0;
   if (!_stream) {
     throw _stream;
@@ -30,7 +29,6 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
   const dependencies = [];
   const imports = [];
 
-  const config = utils.getConfig(_filename);
   const keysCache = {};
 
   const uid = () => {
@@ -130,7 +128,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       // Generate imports at the top in ESM format
       imports.forEach(imp => {
         if (imp.type === 'default') {
-          final.push(`import * as ${imp.as} from '${imp.path}';\n`);
+          final.push((imp.path.startsWith('.') || imp.path.startsWith('/')) ? `import * as ${imp.as} from '${imp.path}';\n` : `import ${imp.as} from '${imp.path}';\n`);
         } else if (imp.type === 'destructured') {
           if (imp.names.length === 0) return; // all names were type-only
           const specifiers = imp.names.map(n => 
