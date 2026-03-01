@@ -369,7 +369,7 @@ export function getAnnotationType(annotationNode) {
 }
 
 // Re-export from typeParser for backward compatibility
-export { parseTypeExpression, parseGenericParams } from './typeParser.js';
+export { parseTypeExpression, parseGenericParams, parseGenericConstraints } from './typeParser.js';
 
 // Re-export structured parsing functions
 export { parseAnnotation, parseTypePrimary, parseObjectType } from './typeParser.js';

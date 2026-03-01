@@ -784,7 +784,7 @@ export class GenericType extends Type {
  * Function types: (a: string, b: number) => boolean
  */
 export class FunctionType extends Type {
-  constructor(params, returnType, genericParams = [], paramNames = [], paramHasDefault = null) {
+  constructor(params, returnType, genericParams = [], paramNames = [], paramHasDefault = null, genericConstraints = null) {
     super();
     this.kind = 'function';
     this.params = params; // Type[]
@@ -792,12 +792,16 @@ export class FunctionType extends Type {
     this.genericParams = genericParams; // string[]
     this.paramNames = paramNames; // string[]
     this.paramHasDefault = paramHasDefault; // boolean[] | null
+    this.genericConstraints = genericConstraints; // Map<string, Type> | null
     this.funcName = null; // string | null — set by inference for error messages
   }
   
   toString() {
-    const generics = this.genericParams.length > 0 
-      ? `<${this.genericParams.join(', ')}>` 
+    const generics = this.genericParams.length > 0
+      ? `<${this.genericParams.map(p => {
+          const c = this.genericConstraints?.get(p);
+          return c ? `${p} extends ${c.toString()}` : p;
+        }).join(', ')}>`
       : '';
     let params = '';
     if (this.params) {
@@ -1051,10 +1055,11 @@ export class TypeAliasMap {
    * @param {string} name
    * @param {Type} type
    * @param {string[]} genericParams
+   * @param {Map<string, Type>|null} genericConstraints
    */
-  define(name, type, genericParams = []) {
+  define(name, type, genericParams = [], genericConstraints = null) {
     if (genericParams.length > 0) {
-      this.aliases.set(name, { type, genericParams });
+      this.aliases.set(name, { type, genericParams, genericConstraints: genericConstraints?.size > 0 ? genericConstraints : null });
     } else {
       this.aliases.set(name, type);
     }
@@ -1238,12 +1243,16 @@ export function substituteTypeParams(type, substitutions) {
   
   if (type instanceof FunctionType) {
     if (type.params === null) return type; // AnyFunctionType — no substitution needed
-    return new FunctionType(
+    const ft = new FunctionType(
       type.params.map(t => substituteTypeParams(t, substitutions)),
       substituteTypeParams(type.returnType, substitutions),
       type.genericParams,
-      type.paramNames
+      type.paramNames,
+      type.paramHasDefault,
+      type.genericConstraints
     );
+    ft.funcName = type.funcName;
+    return ft;
   }
 
   if (type instanceof PredicateType) {

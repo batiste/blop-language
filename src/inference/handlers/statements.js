@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
+import { parseTypeExpression, parseGenericParams, parseGenericConstraints, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
@@ -224,10 +224,13 @@ function createStatementHandlers(getState) {
       const aliasName = node.named.name.value;
       const aliasType = parseTypeExpression(node.named.type);
       
-      // Parse generic parameters if present
+      // Parse generic parameters and constraints if present
       const genericParams = node.named.generic_params 
         ? parseGenericParams(node.named.generic_params)
         : [];
+      const genericConstraints = node.named.generic_params
+        ? parseGenericConstraints(node.named.generic_params)
+        : null;
       
       // Store the type alias
       if (genericParams.length > 0) {
@@ -235,6 +238,7 @@ function createStatementHandlers(getState) {
         typeAliases[aliasName] = {
           type: aliasType,
           genericParams,
+          genericConstraints: genericConstraints?.size > 0 ? genericConstraints : null,
         };
       } else {
         // Store as regular type alias (maintain backward compatibility)

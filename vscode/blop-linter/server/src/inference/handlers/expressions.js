@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
-import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
+import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral, isTypeCompatible } from '../typeSystem.js';
 import { parseTypeExpression } from '../typeParser.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType, PredicateType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
@@ -158,10 +158,29 @@ function handleFuncCallAccess(expNode, parent, funcType, getState) {
           if (explicitTypeArgs.length !== funcType.genericParams.length) {
             pushWarning(expNode, `Expected ${funcType.genericParams.length} type arguments but got ${explicitTypeArgs.length}`);
           }
+          // Validate explicit type args against constraints
+          if (funcType.genericConstraints) {
+            for (let j = 0; j < Math.min(funcType.genericParams.length, explicitTypeArgs.length); j++) {
+              const paramName = funcType.genericParams[j];
+              const constraint = funcType.genericConstraints.get(paramName);
+              if (constraint && !isTypeCompatible(explicitTypeArgs[j], constraint, typeAliases)) {
+                pushWarning(expNode, `Type '${explicitTypeArgs[j]}' does not satisfy constraint '${constraint}' for type parameter '${paramName}'`);
+              }
+            }
+          }
         } else {
           const result = inferGenericArguments(funcType.genericParams, funcType.params ?? [], argTypes, typeAliases);
           subs = result.substitutions;
           result.errors.forEach(e => pushWarning(expNode, e));
+          // Validate inferred type args against constraints
+          if (funcType.genericConstraints) {
+            for (const [paramName, inferredTypeVal] of subs instanceof Map ? subs.entries() : Object.entries(subs)) {
+              const constraint = funcType.genericConstraints.get(paramName);
+              if (constraint && !isTypeCompatible(inferredTypeVal, constraint, typeAliases)) {
+                pushWarning(expNode, `Type '${inferredTypeVal}' does not satisfy constraint '${constraint}' for type parameter '${paramName}'`);
+              }
+            }
+          }
         }
         const substitutedParams = funcType.params.map(p => substituteType(p, subs));
         const result = TypeChecker.checkFunctionCall(argTypes, substitutedParams, funcCallName, typeAliases);
@@ -271,7 +290,8 @@ function handleSimpleVariable(name, parent, definition, getState) {
           definition.type ?? AnyType,
           definition.genericParams ?? [],
           definition.paramNames ?? [],
-          definition.paramHasDefault ?? null
+          definition.paramHasDefault ?? null,
+          definition.genericConstraints ?? null
         )
       : AnyFunctionType;
     if (definition.params) {

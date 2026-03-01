@@ -2,7 +2,7 @@
 // Symbol Table - Phase 1: Binding (collecting all definitions)
 // ============================================================================
 
-import { getAnnotationType, parseGenericParams, parseTypeExpression } from './typeSystem.js';
+import { getAnnotationType, parseGenericParams, parseGenericConstraints, parseTypeExpression } from './typeSystem.js';
 import { AnyType, FunctionType, ObjectType } from './Type.js';
 
 /**
@@ -23,10 +23,11 @@ class SymbolTable {
    * @param {string} name - Alias name
    * @param {string} type - Type expression
    * @param {Array} genericParams - Generic parameters if any
+   * @param {Map|null} genericConstraints - Constraints per parameter if any
    */
-  addTypeAlias(name, type, genericParams = []) {
+  addTypeAlias(name, type, genericParams = [], genericConstraints = null) {
     if (genericParams.length > 0) {
-      this.typeAliases[name] = { type, genericParams };
+      this.typeAliases[name] = { type, genericParams, genericConstraints: genericConstraints?.size > 0 ? genericConstraints : null };
     } else {
       this.typeAliases[name] = type;
     }
@@ -173,8 +174,11 @@ function createBindingHandlers() {
       const genericParams = node.named.generic_params
         ? parseGenericParams(node.named.generic_params)
         : [];
+      const genericConstraints = node.named.generic_params
+        ? parseGenericConstraints(node.named.generic_params)
+        : null;
 
-      symbolTable.addTypeAlias(aliasName, aliasType, genericParams);
+      symbolTable.addTypeAlias(aliasName, aliasType, genericParams, genericConstraints);
     },
 
     /**
@@ -216,12 +220,18 @@ function createBindingHandlers() {
         ? parseGenericParams(node.named.generic_params)
         : [];
 
+      // Extract generic constraints (T extends X)
+      const genericConstraints = node.named?.generic_params
+        ? parseGenericConstraints(node.named.generic_params)
+        : null;
+
       symbolTable.addFunction(functionName, {
         type: returnTypeAnnotation ?? AnyType, // Will be refined by inference phase
         params: paramTypes,
         paramNames: paramNames,
         paramHasDefault,
         genericParams: genericParams.length > 0 ? genericParams : undefined,
+        genericConstraints: genericConstraints?.size > 0 ? genericConstraints : undefined,
         node,
       });
 

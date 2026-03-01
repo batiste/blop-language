@@ -80,6 +80,8 @@ const grammar = {
     ['<', 'generic_param_list:params', '>'],
   ],
   'generic_param_list': [
+    ['name:param', 'w', 'extends', 'type_expression:constraint', ',', 'w', 'generic_param_list:rest'],
+    ['name:param', 'w', 'extends', 'type_expression:constraint'],
     ['name:param', ',', 'w', 'generic_param_list:rest'],
     ['name:param'],
   ],

@@ -7,6 +7,7 @@ import {
   getAnnotationType, 
   isTypeCompatible,
   parseGenericParams,
+  parseGenericConstraints,
   resolveTypeAlias,
   getBaseTypeOfLiteral,
 } from '../typeSystem.js';
@@ -57,6 +58,9 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
   const genericParams = methodNode.named?.generic_params
     ? parseGenericParams(methodNode.named.generic_params)
     : [];
+  const genericConstraints = methodNode.named?.generic_params
+    ? parseGenericConstraints(methodNode.named.generic_params)
+    : new Map();
 
   // Return type from annotation if present, otherwise AnyType placeholder
   let returnType = AnyType;
@@ -71,20 +75,27 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
     returnType = wrapInPromise(returnType);
   }
 
-  return new FunctionType(params, returnType, genericParams, paramNames);
+  return new FunctionType(params, returnType, genericParams, paramNames, null,
+    genericConstraints.size > 0 ? genericConstraints : null);
 }
 
 /**
  * Parse generic params from a node and register them in the given scope as
  * valid type placeholders. Returns the parsed param name array.
+ * When a constraint is declared (T extends X), the constraint type is used as
+ * the scope entry type so property access on T inside the function body
+ * type-checks against the constraint.
  */
 function registerGenericParams(scope, genericParamsNode) {
   if (!genericParamsNode) return [];
   const genericParams = parseGenericParams(genericParamsNode);
+  const genericConstraints = parseGenericConstraints(genericParamsNode);
   if (genericParams.length > 0) {
     scope.__genericParams = genericParams;
+    scope.__genericConstraints = genericConstraints.size > 0 ? genericConstraints : undefined;
     for (const param of genericParams) {
-      scope[param] = { type: param, isGenericParam: true };
+      const constraintType = genericConstraints.get(param);
+      scope[param] = { type: constraintType ?? param, isGenericParam: true };
     }
   }
   return genericParams;
@@ -258,7 +269,7 @@ function warnDeadCode(bodyNode, pushWarning) {
  * and stamp the name node for hover. Returns { declaredType, inferredType }.
  */
 function finalizeFunctionReturnType({
-  scope, annotation, nameNode, genericParams,
+  scope, annotation, nameNode, genericParams, genericConstraints,
   warningLabel, pushWarning, stampTypeAnnotation,
   inferencePhase, typeAliases,
 }) {
@@ -273,7 +284,8 @@ function finalizeFunctionReturnType({
   if (inferencePhase === 'inference' && nameNode?.inferredType === undefined) {
     nameNode.inferredType = new FunctionType(
       scope.__currentFctParams, declaredType ?? inferredType,
-      genericParams, scope.__currentFctParamNames
+      genericParams, scope.__currentFctParamNames, null,
+      genericConstraints?.size > 0 ? genericConstraints : null
     );
   }
   return { declaredType, inferredType };
@@ -436,9 +448,10 @@ function createFunctionHandlers(getState) {
       if (node.named.name) {
         // Named function: validate return type and stamp hover type
         const { inferencePhase, typeAliases } = getState();
+        const genericConstraints = scope.__genericConstraints;
         const { declaredType, inferredType } = finalizeFunctionReturnType({
           scope, annotation, nameNode: node.named.name,
-          genericParams,
+          genericParams, genericConstraints,
           warningLabel: `Function '${node.named.name.value}'`,
           pushWarning, stampTypeAnnotation,
           inferencePhase, typeAliases,
@@ -452,7 +465,8 @@ function createFunctionHandlers(getState) {
         if (isAsync && inferencePhase === 'inference') {
           node.named.name.inferredType = new FunctionType(
             scope.__currentFctParams, externalReturnType,
-            genericParams, scope.__currentFctParamNames
+            genericParams, scope.__currentFctParamNames, null,
+            genericConstraints?.size > 0 ? genericConstraints : null
           );
         }
         parentScope[node.named.name.value] = {
@@ -465,6 +479,7 @@ function createFunctionHandlers(getState) {
           paramNames: scope.__currentFctParamNames,
           paramHasDefault: scope.__currentFctParamHasDefault,
           genericParams: genericParams.length > 0 ? genericParams : undefined,
+          genericConstraints: genericConstraints?.size > 0 ? genericConstraints : undefined,
         };
       } else if (parent) {
         // Anonymous function as expression: infer function type and validate
@@ -575,9 +590,10 @@ function createFunctionHandlers(getState) {
       visitChildren(node);
 
       warnDeadCode(node.named.body, pushWarning);
+      const genericConstraints = scope.__genericConstraints;
       const { declaredType: methodDeclaredType, inferredType: methodInferredType } = finalizeFunctionReturnType({
         scope, annotation, nameNode: node.named.name,
-        genericParams,
+        genericParams, genericConstraints,
         warningLabel: `Method '${node.named.name?.value}'`,
         pushWarning, stampTypeAnnotation, inferencePhase,
         typeAliases: getState().typeAliases,
@@ -588,7 +604,8 @@ function createFunctionHandlers(getState) {
         const externalReturnType = wrapInPromise(methodDeclaredType ?? methodInferredType);
         node.named.name.inferredType = new FunctionType(
           scope.__currentFctParams, externalReturnType,
-          genericParams, scope.__currentFctParamNames
+          genericParams, scope.__currentFctParamNames, null,
+          genericConstraints?.size > 0 ? genericConstraints : null
         );
       }
 

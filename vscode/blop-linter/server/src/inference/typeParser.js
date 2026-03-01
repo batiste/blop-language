@@ -327,6 +327,32 @@ export function parseGenericParams(genericParamsNode) {
 }
 
 /**
+ * Parse generic parameter constraints from generic_params node.
+ * Returns a Map from parameter name to its constraint type (from `T extends X`).
+ * Parameters without a constraint are absent from the map.
+ * @param {Object} genericParamsNode - The generic_params AST node
+ * @returns {Map<string, import('./Type.js').Type>}
+ */
+export function parseGenericConstraints(genericParamsNode) {
+  const constraints = new Map();
+  if (!genericParamsNode?.named?.params) return constraints;
+
+  function collectConstraints(node) {
+    if (!node) return;
+    if (node.named?.param && node.named?.constraint) {
+      const constraintType = parseTypeExpression(node.named.constraint);
+      if (constraintType) {
+        constraints.set(node.named.param.value, constraintType);
+      }
+    }
+    if (node.named?.rest) collectConstraints(node.named.rest);
+  }
+
+  collectConstraints(genericParamsNode.named.params);
+  return constraints;
+}
+
+/**
  * Convert a type name string to a Type object
  * Handles primitive types, boolean literals, and type alias references
  * @param {string} name - Type name

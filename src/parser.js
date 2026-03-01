@@ -2590,7 +2590,7 @@ let generic_param_list_0 = (stream, index) => {
   named['param'] = stream[i];
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== ',') {
+  if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'generic_param_list', sub_rule_index: 0,
@@ -2604,7 +2604,7 @@ let generic_param_list_0 = (stream, index) => {
 
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== 'w') {
+  if (stream[i].type !== 'extends') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'generic_param_list', sub_rule_index: 0,
@@ -2617,11 +2617,44 @@ let generic_param_list_0 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_3 = generic_param_list(stream, i);
+  const _rule_3 = type_expression(stream, i);
   if (!_rule_3) return false;
-  named['rest'] = _rule_3;
+  named['constraint'] = _rule_3;
   children.push(_rule_3);
   i = _rule_3.last_index;
+
+  if (stream[i].type !== ',') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_6 = generic_param_list(stream, i);
+  if (!_rule_6) return false;
+  named['rest'] = _rule_6;
+  children.push(_rule_6);
+  i = _rule_6.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -2651,15 +2684,141 @@ let generic_param_list_1 = (stream, index) => {
 
   named['param'] = stream[i];
   children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'extends') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_3 = type_expression(stream, i);
+  if (!_rule_3) return false;
+  named['constraint'] = _rule_3;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
 generic_param_list_1 = memoize('generic_param_list_1', generic_param_list_1);
 
 
+let generic_param_list_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'generic_param_list',
+    sub_rule_index: 2, type: 'generic_param_list', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['param'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== ',') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_3 = generic_param_list(stream, i);
+  if (!_rule_3) return false;
+  named['rest'] = _rule_3;
+  children.push(_rule_3);
+  i = _rule_3.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+generic_param_list_2 = memoize('generic_param_list_2', generic_param_list_2);
+
+
+let generic_param_list_3 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'generic_param_list',
+    sub_rule_index: 3, type: 'generic_param_list', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'generic_param_list', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['param'] = stream[i];
+  children.push(stream[i]); i++;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+generic_param_list_3 = memoize('generic_param_list_3', generic_param_list_3);
+
+
 function generic_param_list(stream, index) {
   return generic_param_list_0(stream, index)
-    || generic_param_list_1(stream, index);
+    || generic_param_list_1(stream, index)
+    || generic_param_list_2(stream, index)
+    || generic_param_list_3(stream, index);
 }
 let type_arguments_0 = (stream, index) => {
   let i = index;
