@@ -64,7 +64,8 @@ function compile(source, options = {}) {
       success: true,
       errors: [],
       warnings: [...(result.warnings || []), ...inferenceWarnings],
-      dependencies: result.dependencies || []
+      dependencies: result.dependencies || [],
+      exportKeys: result.exportKeys || [],
     };
   } catch (error) {
     return {

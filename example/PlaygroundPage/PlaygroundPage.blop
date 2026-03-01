@@ -3,15 +3,44 @@
 import { compile } from '../../src/compile-browser.js'
 import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
+import 'blop' as blopRuntime
 
 def PlaygroundPage(ctx: Component): VNode {
-  defaultCode = 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'This code was compiled in the browser.\'</p>\n  </div>\n}'
+  defaultCode = 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'This code was compiled in the browser.\'</p>\n  </div>\n}\n\ndef main(): VNode {\n  <Greeting name=\'World\' />\n}'
 
   { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
   { value as output, setState as setOutput } = ctx.state<string>('output', '')
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
   { value as warning, setState as setWarning } = ctx.state<string | null>('warning', null)
   { value as isCompiling, setState as setIsCompiling } = ctx.state<boolean>('isCompiling', false)
+  { value as activeTab, setState as setActiveTab } = ctx.state<string>('activeTab', 'js')
+  { value as previewFn, setState as setPreviewFn } = ctx.state<any>('previewFn', null)
+  { value as previewKey, setState as setPreviewKey } = ctx.state<number>('previewKey', 0)
+  { value as previewError, setState as setPreviewError } = ctx.state<string | null>('previewError', null)
+
+  def executePreview(compiledCode, exportKeys) {
+    if !compiledCode || !exportKeys || exportKeys.length == 0 {
+      return null
+    }
+    entryKey = exportKeys.find((k) => k == 'main')
+    if !entryKey {
+      return null
+    }
+    exportIdx = compiledCode.lastIndexOf('\nexport {')
+    cutAt = exportIdx
+    if exportIdx < 0 {
+      cutAt := compiledCode.length
+    }
+    execCode = compiledCode.substring(0, cutAt) + '\nreturn { ' + exportKeys.join(', ') + ' };'
+    try {
+      fn = new Function('blop', execCode)
+      result = fn(blopRuntime)
+      return result[entryKey]
+    } catch e {
+      console.log('Error executing preview code', e)
+      return null
+    }
+  }
 
   def handleCodeChange(e) {
     setCode(e.target.value)
@@ -30,10 +59,15 @@ def PlaygroundPage(ctx: Component): VNode {
       result.warnings.forEach((_warning) => {
         setWarning(_warning.message)
       })
+      previewHtml = executePreview(result.code, result.exportKeys)
+      setPreviewFn(previewHtml)
+      setPreviewKey(previewKey + 1)
+      setPreviewError(null)
     } else {
       errorMsg = result.errors[0].message || 'Compilation failed'
       setError(errorMsg)
       setOutput('')
+      setPreviewFn(null)
     }
     setIsCompiling(false)
   }
@@ -105,9 +139,20 @@ def PlaygroundPage(ctx: Component): VNode {
         <div class="card h-100">
           <div class="card-header" style={ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               fontSize: '0.85em', color: '#6c757d' }>
-            <span>'Output — JavaScript'</span>
+            <div style={ display: 'flex', gap: '0.4em' }>
+              <button
+                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'js', 'btn-outline-secondary': activeTab != 'js' }
+                on={ click: () => setActiveTab('js') }>
+                'JavaScript'
+              </button>
+              <button
+                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'preview', 'btn-outline-secondary': activeTab != 'preview' }
+                on={ click: () => setActiveTab('preview') }>
+                'Preview'
+              </button>
+            </div>
             if output {
-              <span style={ color: '#198754' }>'Compiled successfully'</span>
+              <span style={ color: '#198754' }>'✓ Compiled'</span>
             } elseif error {
               <span style={ color: '#dc3545' }>'Compilation error'</span>
             }
@@ -128,45 +173,83 @@ def PlaygroundPage(ctx: Component): VNode {
               </div>
             }
 
-            if error {
-              <pre style={
-                  height: editorHeight,
-                  margin: '0',
-                  padding: '1.25em 1.5em',
-                  backgroundColor: '#2d1a1a',
-                  color: '#f8b4b4',
-                  fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
-                  fontSize: '13px',
-                  overflowY: 'auto',
-                  border: 'none',
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: '1.65'
-              }><code>error</code></pre>
-            } elseif output {
-              <pre style={
-                  height: editorHeight,
-                  margin: '0',
-                  padding: '1.25em 1.5em',
-                  backgroundColor: '#1a202c',
-                  color: '#e2e8f0',
-                  fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
-                  fontSize: '13px',
-                  overflowY: 'auto',
-                  border: 'none',
-                  lineHeight: '1.65'
-              }><code>output</code></pre>
-            } else {
+            if activeTab == 'js' {
+              if error {
+                <pre style={
+                    height: editorHeight,
+                    margin: '0',
+                    padding: '1.25em 1.5em',
+                    backgroundColor: '#2d1a1a',
+                    color: '#f8b4b4',
+                    fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
+                    fontSize: '13px',
+                    overflowY: 'auto',
+                    border: 'none',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: '1.65'
+                }><code>error</code></pre>
+              } elseif output {
+                <pre style={
+                    height: editorHeight,
+                    margin: '0',
+                    padding: '1.25em 1.5em',
+                    backgroundColor: '#1a202c',
+                    color: '#e2e8f0',
+                    fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
+                    fontSize: '13px',
+                    overflowY: 'auto',
+                    border: 'none',
+                    lineHeight: '1.65'
+                }><code>output</code></pre>
+              } else {
+                <div style={
+                    height: editorHeight,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#adb5bd',
+                    fontSize: '0.95em'
+                }>
+                  'Press Compile to see output'
+                </div>
+              }
+            }
+            // Preview tab — previewFn is rendered as a real component in the normal tree
+            previewDisplay = 'none'
+            if activeTab == 'preview' {
+              previewDisplay := 'block'
+            }
+            if previewError {
               <div style={
                   height: editorHeight,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#adb5bd',
-                  fontSize: '0.95em'
+                  padding: '1em 1.5em',
+                  backgroundColor: '#fff8e1',
+                  color: '#6d4c00',
+                  fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
+                  fontSize: '13px',
+                  borderBottom: '1px solid #dee2e6',
+                  whiteSpace: 'pre-wrap'
               }>
-                'Press Compile to see output'
+                <strong style={ display: 'block', marginBottom: '0.5em', fontFamily: 'inherit' }>'Preview error'</strong>
+                = previewError
               </div>
             }
+            <div style={ height: editorHeight, overflowY: 'auto', backgroundColor: '#ffffff', display: previewDisplay }>
+              if previewFn {
+                = blopRuntime.c(previewFn, { key: previewKey }, [], 'preview')
+              } elseif !output {
+                <div style={
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#adb5bd',
+                    fontSize: '0.95em'
+                }>
+                  'Press Compile to see preview'
+                </div>
+              }
+            </div>
           </div>
           <div class="card-footer" style={ padding: '0.75em 1em', fontSize: '0.85em', color: '#6c757d' }>
             'The compiler runs in-browser via compile-browser.js — no server required.'
@@ -184,19 +267,19 @@ def PlaygroundPage(ctx: Component): VNode {
             <div style={ display: 'flex', gap: '0.5em', flexWrap: 'wrap' }>
               examples = [
               { name: 'Simple component',
-                code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'Welcome to Blop.\'</p>\n  </div>\n}'
+                code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'Welcome to Blop.\'</p>\n  </div>\n}\n\ndef main(): VNode {\n  <Greeting name=\'World\' />\n}'
               },
 { name: 'Counter with state',
-                code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  <div style={ textAlign: \'center\', padding: \'2em\' }>\n    <div style={ fontSize: \'3em\', fontWeight: \'bold\', marginBottom: \'1em\' }>count</div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-primary"\n        on={ click: () => setState(count + 1) }>\n        \'Increment\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n    </div>\n  </div>\n}'
+                code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  <div style={ textAlign: \'center\', padding: \'2em\' }>\n    <div style={ fontSize: \'3em\', fontWeight: \'bold\', marginBottom: \'1em\' }>count</div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-primary"\n        on={ click: () => setState(count + 1) }>\n        \'Increment\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n    </div>\n  </div>\n}\n\ndef main(): VNode {\n  <Counter />\n}'
               },
 { name: 'List with for loop',
-                code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n\n  <ul class="list-group">\n    for index, item of items {\n      <li class="list-group-item">\n        <span style={ color: \'#6c757d\', fontSize: \'0.85em\', marginRight: \'0.5em\' }>\'#\'(index + 1)</span>\n        = item\n      </li>\n    }\n  </ul>\n}'
+                code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n\n  <ul class="list-group">\n    for index, item of items {\n      <li class="list-group-item">\n        <span style={ color: \'#6c757d\', fontSize: \'0.85em\', marginRight: \'0.5em\' }>\'#\'(index + 1)</span>\n        = item\n      </li>\n    }\n  </ul>\n}\n\ndef main(): VNode {\n  items = [\'Apple\', \'Banana\', \'Cherry\']\n  <ItemList items=items />\n}'
               },
 { name: 'Conditional rendering',
-                code: 'def StatusBadge({ attributes }: Component): VNode {\n  { status } = attributes\n\n  <div>\n    if status == \'ok\' {\n      <span class="badge badge-success">\'OK\'</span>\n    } elseif status == \'warn\' {\n      <span class="badge badge-warning">\'Warning\'</span>\n    } else {\n      <span class="badge badge-danger">\'Error\'</span>\n    }\n  </div>\n}'
+                code: 'def StatusBadge({ attributes }: Component): VNode {\n  { status } = attributes\n\n  <div>\n    if status == \'ok\' {\n      <span class="badge badge-success">\'OK\'</span>\n    } elseif status == \'warn\' {\n      <span class="badge badge-warning">\'Warning\'</span>\n    } else {\n      <span class="badge badge-danger">\'Error\'</span>\n    }\n  </div>\n}\n\ndef main(): VNode {\n  <StatusBadge status=\'ok\' />\n}'
               },
 { name: 'Type system',
-                code: 'type Status = \'idle\' | \'loading\' | \'success\'\n\ntype User = { name: string, age: number, role: \'admin\' | \'viewer\' }\n\ndef formatUser(user: User): string {\n  label = \'\'user.name\' (age: \'user.age\')\'\n  return label\n}\n\ndef TypeShowcase(ctx: Component): VNode {\n  { value as status, setState as setStatus } = ctx.state<Status>(\'status\', \'idle\')\n  { value as user, setState as setUser } = ctx.state<User | null>(\'user\', null)\n\n  def loadUser() {\n    setStatus(\'loading\')\n    setUser({ name: \'Alice\', age: 30, role: \'admin\' })\n    setStatus(\'success\')\n  }\n\n  <div style={ padding: \'2em\' }>\n    <h2>\'Type system demo\'</h2>\n    <p>\'Status: \'status</p>\n    if user {\n      <p>formatUser(user)</p>\n      <p>\'Role: \'user.role</p>\n    }\n    <button class="btn btn-primary" on={ click: loadUser }>\'Load user\'</button>\n  </div>\n}'
+                code: 'type Status = \'idle\' | \'loading\' | \'success\'\n\ntype User = { name: string, age: number, role: \'admin\' | \'viewer\' }\n\ndef formatUser(user: User): string {\n  label = user.name\' (age: \'user.age\')\'\n  return label\n}\n\ndef TypeShowcase(ctx: Component): VNode {\n  { value as status, setState as setStatus } = ctx.state<Status>(\'status\', \'idle\')\n  { value as user, setState as setUser } = ctx.state<User | null>(\'user\', null)\n\n  def loadUser() {\n    setStatus(\'loading\')\n    setUser({ name: \'Alice\', age: 30, role: \'admin\' })\n    setStatus(\'success\')\n  }\n\n  <div style={ padding: \'2em\' }>\n    <h2>\'Type system demo\'</h2>\n    <p>\'Status: \'status</p>\n    if user {\n      <p>formatUser(user)</p>\n      <p>\'Role: \'user.role</p>\n    }\n    <button class="btn btn-primary" on={ click: loadUser }>\'Load user\'</button>\n  </div>\n}\n\ndef main(): VNode {\n  <TypeShowcase />\n}'
               }
               ]
 
@@ -208,6 +291,7 @@ def PlaygroundPage(ctx: Component): VNode {
                       setOutput('')
                       setError(null)
                       setWarning(null)
+                      setPreviewFn(null)
                   } }>
                   = example.name
                 </button>
@@ -244,3 +328,5 @@ def PlaygroundPage(ctx: Component): VNode {
     </div>
   </div>
 }
+
+

@@ -876,6 +876,7 @@ export const builtinGlobals = {
 
   // Universal JS global
   globalThis: { type: 'Value' },
+  Function: { type: 'Value' },
 
   // Node.js process global (also available via Vite/esbuild in browser bundles)
   process: { type: 'Value' },
