@@ -55,6 +55,11 @@ function createImportGenerators(context) {
   }
 
   return {
+    'dynamic_import': (node) => {
+      const fileNode = node.named.file;
+      dependencies.push(fileNode.value);
+      return [`import(${fileNode.value})`];
+    },
     'import_statement': (node) => {
       const fileNode = node.named.file || node.named.module;
       let importedFilename;

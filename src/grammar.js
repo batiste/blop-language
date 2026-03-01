@@ -304,6 +304,9 @@ const grammar = {
   'new_expression': [
     ['new', 'exp:exp'],
   ],
+  'dynamic_import': [
+    ['import_call', 'str:file', ')'],
+  ],
   'exp': [
     ['exp:obj', 'optional_chain:optional', 'name:prop'],
     ['exp:obj', '.', 'name:prop'],
@@ -338,6 +341,7 @@ const grammar = {
     ['virtual_node_assign'],
     ['virtual_node_exp'],
     ['new_expression'],
+    ['dynamic_import'],
     ['delete', 'exp'],
     ['spread', 'exp'],
     ['short_if_expression'],

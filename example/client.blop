@@ -9,7 +9,7 @@ router = createRouter(proxiedState, window)
 // The render function for this application
 render = () => {
   proxiedState.$.flush() // full re-render: we can flush all recorded state changes
-  tree = Index(proxiedState)
+  tree = <Index state=proxiedState />
   return tree
 }
 

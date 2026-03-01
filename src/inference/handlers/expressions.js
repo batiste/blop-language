@@ -510,6 +510,12 @@ function createExpressionHandlers(getState) {
       const definition = lookupVariable(name.value);
       handleSimpleVariable(name, parent, definition, getState);
     },
+    dynamic_import: (node, _parent) => {
+      // dynamic import('./path') returns Promise<any>
+      // No deeper inference needed; the module shape is unknown at compile time.
+      const { pushInference } = getState();
+      pushInference(_parent, new GenericType(new TypeAlias('Promise'), [AnyType]));
+    },
     new_expression: (node, parent) => {
       const { pushInference, lookupVariable } = getState();
       resolveTypes(node);

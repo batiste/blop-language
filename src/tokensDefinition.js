@@ -117,6 +117,7 @@ const tokensDefinition = {
   'break': { func: breakDef, verbose: 'break' },
   'continue': { func: continueDef, verbose: 'continue' },
   'throw': { str: 'throw ', verbose: 'throw' },
+  'import_call': { str: 'import(' },
   'import': { str: 'import ' },
   'spread': { str: '...' },
   'from': { str: 'from ' },

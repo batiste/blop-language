@@ -1,4 +1,3 @@
-import { DogPage } from './DogPage/DogPage.blop'
 import { ASTExplorer } from './ASTExplorer/ASTExplorer.blop'
 import { TodoListPage } from './TodoListPage/TodoListPage.blop'
 import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
@@ -89,7 +88,17 @@ def navigation(state): VNode {
   </nav>
 }
 
-Index = (state): VNode => {
+
+
+Index = (ctx: Component): VNode => {
+  { state } = ctx.attributes
+  { value as DogGamePage, setState as setDogGame } = ctx.state('dogGame', null)
+
+  async def loadDog() {
+    dogGamePageModule = await import('./DogPage/DogBreedGame.blop')
+    setDogGame(dogGamePageModule.DogGame)
+  }
+
   <div>
     = navigation(state)
     console.log('Rendering page with state 'state.route.name)
@@ -105,7 +114,12 @@ Index = (state): VNode => {
       } elseif state.route.name == 'form' {
         <FormBuilderPage></FormBuilderPage>
       } elseif state.route.name == 'doggy' || state.route.name == 'dog' {
-        <DogPage state=state></DogPage>
+        if DogGamePage {
+          <DogGamePage state=state></DogGamePage>
+        } else {
+          loadDog()
+          <p>'Loading dog game...'</p>
+        }
       } elseif state.route.name == 'todo' {
         <TodoListPage todo=state></TodoListPage>
       } elseif state.route.name == 'ast' {
