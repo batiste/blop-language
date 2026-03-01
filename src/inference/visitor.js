@@ -271,7 +271,11 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
   if (resolvedType.toString() === '{}') return AnyType;
 
   if (resolvedType instanceof ObjectType) {
-    if (!propertyName) return AnyType;
+    if (!propertyName) {
+      // Bracket access: if the type has an index signature, return the value type
+      if (resolvedType.indexSignature) return resolvedType.indexSignature.valueType;
+      return AnyType;
+    }
     const propertyType = getPropertyType(objectType, propertyName, typeAliases);
     if (propertyType === null) {
       // Class instances may have constructor-assigned properties not tracked in ObjectType.

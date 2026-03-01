@@ -218,9 +218,6 @@ def complex<T, U, V, W, X>(a: T, b: U, c: V, d: W, e: X) { ... }  // ❌ Too man
 
 ## Current Limitations
 
-1. **No type constraints** - Can't use `T extends SomeType` yet
-2. **No explicit type arguments** - Can't write `func<number>(42)` yet  
-3. **Limited type narrowing** - `typeof` checks don't narrow generic parameters yet
 4. **No variadic generics** - Can't use `...T` for variable length type parameters
 
 ## See Also

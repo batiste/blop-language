@@ -34,7 +34,7 @@ Blop uses Python-inspired syntax where `def` defines functions. It's shorter and
 
 ```typescript
 def greet(name) {
-  return 'Hello ' name
+  return 'Hello 'name
 }
 ```
 
@@ -56,7 +56,7 @@ In Blop, strings are concatenated by placing them next to each other (no space):
 
 ```typescript
 name = 'Alice'
-greeting = 'Hello ' name  // "Hello Alice"
+greeting = 'Hello 'name  // "Hello Alice"
 
 count = 42
 message = 'The answer is 'count // "The answer is 42"
