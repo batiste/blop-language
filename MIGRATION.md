@@ -85,9 +85,8 @@ Explicit coercion is required:
 let msg = "Count: " + count
 
 // after
-let msg = "Count: " + string(count)
 // or use string interpolation
-let msg = "Count: {count}"
+let msg = "Count: "count.toString()
 ```
 
 ### Removed `use` prefix on hook-like helpers
