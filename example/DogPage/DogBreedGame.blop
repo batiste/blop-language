@@ -6,10 +6,17 @@ type DogGameProps = {
   loading: boolean
 }
 
-def DogGame({ attributes: DogGameProps, children }: Component) {
-  { state, loading } = attributes
+def DogGame(ctx: Component) {
+  { state, loading }: DogGameProps = ctx.attributes
+  { children } = ctx
   page = state.dogPage
   dog = page.choice
+
+  ctx.mount(async () => {
+    if !state.dogPage.choice.breed {
+      await getNewDog(state)
+    }
+  })
 
   input = <input type="text"
     class="form-control" placeholder="Breed" />
@@ -161,7 +168,7 @@ def DogGame({ attributes: DogGameProps, children }: Component) {
     </form>
 
     <div style={ minHeight: '400px' }>
-      = if dog && !loading => <img
+      = if dog && dog.breed && !loading => <img
         src='https://images.dog.ceo/breeds/'dog.breed'/'dog.image''
         style={ maxWidth: '400px' }/> else <h3>'Loading...'</h3>
     </div>

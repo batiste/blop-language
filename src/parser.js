@@ -1234,22 +1234,14 @@ let assign_2 = (stream, index) => {
   named['destructuring'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
-
-  if (stream[i].type !== 'w') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'assign', sub_rule_index: 2,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
+  const _rule_1 = annotation(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    named['annotation'] = _rule_1;
+    i = _rule_1.last_index;
   }
 
-  children.push(stream[i]); i++;
-
-  if (stream[i].type !== '=') {
+  if (stream[i].type !== 'w') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'assign', sub_rule_index: 2,
@@ -1263,7 +1255,7 @@ let assign_2 = (stream, index) => {
 
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== 'w') {
+  if (stream[i].type !== '=') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'assign', sub_rule_index: 2,
@@ -1276,11 +1268,25 @@ let assign_2 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
-  const _rule_4 = exp(stream, i);
-  if (!_rule_4) return false;
-  named['exp'] = _rule_4;
-  children.push(_rule_4);
-  i = _rule_4.last_index;
+
+  if (stream[i].type !== 'w') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'assign', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_5 = exp(stream, i);
+  if (!_rule_5) return false;
+  named['exp'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };

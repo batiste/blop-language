@@ -92,11 +92,11 @@ def navigation(state): VNode {
 
 Index = (ctx: Component): VNode => {
   { state } = ctx.attributes
-  { value as DogGamePage, setState as setDogGame } = ctx.state('dogGame', null)
+  { value as DogPage, setState as setDogPage } = ctx.state('dogPage', null)
 
   async def loadDog() {
-    dogGamePageModule = await import('./DogPage/DogBreedGame.blop')
-    setDogGame(dogGamePageModule.DogGame)
+    dogPageModule = await import('./DogPage/DogPage.blop')
+    setDogPage(dogPageModule.DogPage)
   }
 
   <div>
@@ -114,8 +114,8 @@ Index = (ctx: Component): VNode => {
       } elseif state.route.name == 'form' {
         <FormBuilderPage></FormBuilderPage>
       } elseif state.route.name == 'doggy' || state.route.name == 'dog' {
-        if DogGamePage {
-          <DogGamePage state=state></DogGamePage>
+        if DogPage {
+          <DogPage state=state></DogPage>
         } else {
           loadDog()
           <p>'Loading dog game...'</p>

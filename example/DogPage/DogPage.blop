@@ -3,17 +3,20 @@ import { getNewDog } from './services.blop'
 
 
 def DogPage(ctx: Component): VNode {
+  { value as loading, setState as setLoading } = ctx.state('loading', false)
   { attributes } = ctx
   { state } = attributes
 
   ctx.mount(async () => {
     // Using optional chaining to safely check nested property
     if (state.dogPage.choice.breed == '') {
+      setLoading(true)
       await getNewDog(state)
+      setLoading(false)
     }
   })
 
-  <DogGame state=state>
+  <DogGame state=state loading=loading>
     = 'Dog breed game'
   </DogGame>
 }

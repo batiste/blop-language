@@ -393,12 +393,19 @@ function createStatementHandlers(getState) {
       
       if (node.named.destructuring) {
         // Handle destructuring assignment: { total, text } = attributes
+        // Optional annotation: { a, b }: MyType = expr
+        if (node.named.annotation) {
+          stampTypeAnnotation(node.named.annotation);
+        }
         visit(node.named.exp, node);
         const expNode = node.named.exp;
         // The type may be on expNode.inference (when visited via resolveTypes) OR
         // on node.inference (when the exp is a name_exp visited directly as a child,
         // which pushes its result to the parent statement node).
-        const valueType = expNode?.inference?.[0] || node.inference?.[0];
+        const expValueType = expNode?.inference?.[0] || node.inference?.[0];
+        // Annotation overrides the inferred RHS type for property lookup purposes
+        const annotationType = node.named.annotation ? getAnnotationType(node.named.annotation) : null;
+        const valueType = annotationType || expValueType;
         
         const destNode = node.named.destructuring.named.values;
         const bindings = extractDestructuringBindings(destNode);
