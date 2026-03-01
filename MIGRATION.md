@@ -125,18 +125,3 @@ import { go } from 'blop/navigation'
 
 You can now remove `example/lib/state.blop`, `example/lib/router.blop`, and
 `example/lib/navigation.blop` (or `src/lib/…`) from your project entirely.
-
-### `extends` constraint on type parameters
-
-Generic type parameters now support an `extends` constraint:
-
-```typescript
-type Comparable<T extends { id: number }> = {
-  item: T,
-  compare: (other: T) => boolean,
-}
-```
-
-This is a purely additive change, but be aware that unconstrained code that previously
-compiled may now produce errors if the inferred type does not satisfy a new constraint
-you add.

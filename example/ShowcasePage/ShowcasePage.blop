@@ -201,6 +201,7 @@ def ShowcasePage(ctx: Component): VNode {
 { id: 'counter', label: 'State' },
 { id: 'loops', label: 'For loops' },
 { id: 'conditionals', label: 'Conditionals' },
+{ id: 'types', label: 'Types' },
 { id: 'comparison', label: 'Blop vs JSX' }
       ]
 
@@ -608,6 +609,180 @@ for key, value in config {
           <div style={ padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px', fontSize: '0.9em',
               color: '#495057', lineHeight: '1.6' }>
             'These comparisons show the structural difference: Blop requires no expression-wrapping ceremony because its template parser understands statements. The tradeoff is that Blop is a new language with its own toolchain, while JSX runs on the widely-supported TypeScript/Babel ecosystem.'
+          </div>
+        </div>
+      } elseif activeTab == 'types' {
+        <div style={ maxWidth: '1100px' }>
+          <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.35em', color: '#212529' }>
+            'Type system'
+          </h2>
+          <p style={ color: '#6c757d', marginBottom: '2em', fontSize: '0.95em' }>
+            'Blop has structural, optional type annotations with inference. Types are erased at compile time: they exist only to catch mistakes in the editor and CLI. It is possible that in future versions, some type information may be preserved at runtime Python style.'
+          </p>
+
+          // Basic annotations
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+            'Function annotations'
+          </h3>
+          <div class="row" style={ marginBottom: '2.5em' }>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="Annotated parameters and return type"
+                code="def greet(name: string, age: number): string {
+  return 'Hello 'name', you are 'age
+}
+
+// Annotations are optional — inference fills in the gaps
+def add(a: number, b: number) {
+  return a + b   // inferred as number
+}" />
+            </div>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="Type aliases and object shapes"
+                code="type Point = { x: number, y: number }
+
+def distance(a: Point, b: Point): number {
+  dx = a.x - b.x
+  dy = a.y - b.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+// Optional properties
+type User = {
+  name: string,
+  email: string,
+  avatar?: string    // may be absent
+}" />
+            </div>
+          </div>
+
+          // Union and literal types
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+            'Union types and literal types'
+          </h3>
+          <div class="row" style={ marginBottom: '2.5em' }>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="String literal union"
+                code="type Status = 'active' | 'pending' | 'inactive'
+type Direction = 'north' | 'south' | 'east' | 'west'
+
+def statusLabel(s: Status): string {
+  if s == 'active'  { return 'Running' }
+  if s == 'pending' { return 'Waiting' }
+  return 'Stopped'
+}
+
+// Mixed primitive union
+type Id = string | number" />
+            </div>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="Type narrowing in if / else"
+                code="type Result = { ok: true, data: string } | { ok: false, error: string }
+
+def show(r: Result): string {
+  if r.ok {
+    // r.data is available here
+    return 'Got: 'r.data
+  } else {
+    // r.error is available here
+    return 'Error: 'r.error
+  }
+}" />
+            </div>
+          </div>
+
+          // Generics
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+            'Generics'
+          </h3>
+          <div class="row" style={ marginBottom: '2.5em' }>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="Generic functions"
+                code="def first<T>(items: T[]): T | undefined {
+  return items[0]
+}
+
+def wrap<T>(value: T): { value: T } {
+  return { value }
+}
+
+// ctx.state uses the same mechanism
+{ value as count, setState } =
+  ctx.state<number>('count', 0)" />
+            </div>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="Generic type aliases and extends constraints"
+                code="// A paginated API response
+type Page<T> = {
+  items: T[],
+  total: number,
+  page: number
+}
+
+// Constrained type parameter
+type WithId<T extends { id: number }> = {
+  item: T,
+  index: number
+}
+
+type UserPage = Page<User>" />
+            </div>
+          </div>
+
+          // Import / export
+          <h3 style={ fontSize: '1em', fontWeight: '600', color: '#495057', marginBottom: '1em',
+              borderBottom: '1px solid #dee2e6', paddingBottom: '0.5em' }>
+            'Sharing types across files'
+          </h3>
+          <div class="row" style={ marginBottom: '2em' }>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="types.blop"
+                code="// Top-level declarations are exported automatically
+type User = {
+  id: number,
+  name: string,
+  role: 'admin' | 'user'
+}
+
+type ApiResponse<T> = {
+  data: T,
+  status: number
+}" />
+            </div>
+            <div class="col-md-6" style={ marginBottom: '1em' }>
+              <CodeBlock
+                title="profile.blop"
+                code="import { User, ApiResponse } from './types.blop'
+
+def fetchUser(id: number): ApiResponse<User> {
+  // return type is checked against the alias
+  return { data: { id, name: 'Alice', role: 'user' }, status: 200 }
+}
+
+def Profile({ attributes }: Component): VNode {
+  user: User = attributes.user
+  <div>
+    <h2>user.name</h2>
+    if user.role == 'admin' {
+      <span class=\"badge\">'admin'</span>
+    }
+  </div>
+}" />
+            </div>
+          </div>
+
+          <div style={ padding: '1.25em 1.5em', backgroundColor: '#f8f9fa', borderRadius: '6px', fontSize: '0.9em',
+              color: '#495057', lineHeight: '1.6' }>
+            'All type annotations are optional. The inference engine fills in types from usage, so you can start without annotations and add them progressively where they add the most clarity or catch the most bugs.'
           </div>
         </div>
       }
