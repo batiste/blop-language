@@ -1,0 +1,37 @@
+// Tests that a short_if_expression is valid as a VNode attribute value.
+// e.g. <li class=if done => 'done' else 'todo'>
+
+import { test, expect } from 'vitest'
+
+test('short_if_expression as attribute value - two-branch', () => {
+  done = true
+
+  def render(): VNode {
+    <li class=if done => 'done' else 'todo'>'item'</li>
+  }
+
+  node = render()
+  expect(node).toBeTruthy()
+})
+
+test('short_if_expression as attribute value - one-branch (no else)', () => {
+  active = false
+
+  def render(): VNode {
+    <button class=if active => 'active'>'click'</button>
+  }
+
+  node = render()
+  expect(node).toBeTruthy()
+})
+
+test('short_if_expression attribute alongside other attributes', () => {
+  done = true
+
+  def render(): VNode {
+    <li class=if done => 'done' else 'todo' style={ color: 'red' }>'item'</li>
+  }
+
+  node = render()
+  expect(node).toBeTruthy()
+})

@@ -573,12 +573,11 @@ for key, value in config {
               <p style={ fontSize: '0.8em', color: '#198754', fontWeight: '600', marginBottom: '0.5em' }>'Blop'</p>
               <CodeBlock
                 code="def TodoItem(ctx: Component): VNode {
-  { value as done, setState } =
-    ctx.state<boolean>('done', false)
+  { value, setState } = ctx.state('done', false)
 
   <li
-    class={ done => 'done' else 'todo' }
-    on={ click: () => setState(!done) }
+    class=if done => 'done' else 'todo'
+    on={ click: () => setState(!value) 
   >
     = ctx.attributes.todo.title
     = if done => <span class=\"check\">'checkmark'</span>
@@ -715,7 +714,7 @@ def wrap<T>(value: T): { value: T } {
 
 // ctx.state uses the same mechanism
 { value as count, setState } =
-  ctx.state<number>('count', 0)" />
+  ctx.state('count', 0)" />
             </div>
             <div class="col-md-6" style={ marginBottom: '1em' }>
               <CodeBlock
