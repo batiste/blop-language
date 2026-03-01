@@ -29,7 +29,7 @@ Blop includes a lightweight client-side router in the example project. The route
 The router is located at `example/lib/router.blop`. Copy it to your project:
 
 ```typescript
-import { Router } from './lib/router.blop'
+import { Router } from 'blop/router'
 ```
 
 ## Basic Setup
@@ -37,8 +37,8 @@ import { Router } from './lib/router.blop'
 ### 1. Create Router Instance
 
 ```typescript
-import { Router } from './lib/router.blop'
-import { createState } from './lib/state.blop'
+import { Router } from 'blop/router'
+import { createState } from 'blop/state'
 
 // State includes a route slice that the router keeps up to date
 state = createState({
@@ -50,7 +50,7 @@ state = createState({
 router = new Router(state)
 ```
 
-> The router registers a `go()` function into `lib/navigation.blop` on construction.
+> The router registers a `go()` function into `blop/navigation` on construction.
 > Components import `go` directly from there — no need to thread the router through state.
 
 ### 2. Define Route Handlers
@@ -109,7 +109,7 @@ def createRouter(state, window) {
 ```typescript
 // client.blop
 import { mount } from 'blop'
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 import { createRouter } from './routing.blop'
 import { App } from './App.blop'
 
@@ -256,7 +256,7 @@ def NavigationMenu(state) {
 For proper handling with `preventDefault`:
 
 ```typescript
-import { go } from './lib/navigation.blop'
+import { go } from 'blop/navigation'
 
 def Links() {
   def navigateTo(path) {
@@ -352,7 +352,7 @@ def createRouter(state) {
 
 ```typescript
 // client.blop
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 import { createRouter } from './routing.blop'
 
 state = createState({
@@ -381,7 +381,7 @@ App = (state) => {
 
 ```typescript
 // routing.blop
-import { Router } from './lib/router.blop'
+import { Router } from 'blop/router'
 
 // Route handlers only do data loading — no state.page mutations needed
 def homeHandler(_params, _state) {
@@ -439,7 +439,7 @@ export def App(state) {
 
 ```typescript
 // components/Navigation.blop
-import { go } from '../lib/navigation.blop'
+import { go } from 'blop/navigation'
 
 export def Navigation(state) {
   def navigate(path) {
@@ -470,7 +470,7 @@ export def Navigation(state) {
 ```typescript
 // client.blop
 import { mount } from 'blop'
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 import { createRouter } from './routing.blop'
 import { App } from './App.blop'
 

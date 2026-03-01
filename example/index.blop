@@ -5,7 +5,7 @@ import { ShowcasePage } from './ShowcasePage/ShowcasePage.blop'
 import { PlaygroundPage } from './PlaygroundPage/PlaygroundPage.blop'
 import { FormBuilderPage } from './FormBuilderPage/FormBuilderPage.blop'
 import './style.css' as style
-import { go } from './lib/navigation.blop'
+import { go } from 'blop/navigation'
 
 def navigationLinks() {
   def indexPage(e) {

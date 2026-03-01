@@ -10,7 +10,7 @@ Blop is a typed language for the Web that generates Virtual DOM. It has a gramma
 
 - **Run tests**: `npx vitest run`
 - **Debug AST**: `node --experimental-vm-modules src/tests/yourDebugFile.js`
-- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`). Do not do it, the user will decide when to do it.
+- **Build linter for VSCode**: `npm run linter` (regenerates `vscode/blop-linter/blop-linter/server/src`). The user will decide when to do it not you.
 
 ## Development Principles
 
@@ -30,7 +30,7 @@ Blop is a typed language for the Web that generates Virtual DOM. It has a gramma
 ## Code Structure
 
 ### Files & Directories
-- **Auto-generated**: `vscode/blop-linter/blop-linter/server/src/` — do not modify except `server.ts`
+- **Auto-generated**: `vscode/blop-linter/blop-linter/server/src/`: do not modify except `server.ts`. DO NOT mirror changes from `src/`.
 - Grammar definition: `src/grammar.js`
 - Type system: `src/inference/`
 - Code generation (and some type checks): `src/backend/`

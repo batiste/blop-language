@@ -1,0 +1,110 @@
+import { trackRead, notifyWrite } from 'blop'
+
+PROXY_TAG = Symbol('blop.proxy')
+
+def isObject(value) {
+  if value == null || value == undefined {
+    return false
+  }
+  return value.constructor == Object || typeof value == 'object'
+}
+
+def joinPath(base, prop) {
+  if base == '' {
+    return prop
+  }
+  return base'.'prop
+}
+
+
+def create(state, options={ readOnly: false }) {
+  modifications = []
+  callbacks = []
+  { readOnly } = options
+  hasNeverBeenFlushed = true
+  def flush() {
+    modifications.splice(0, modifications.length) // retain the ref. on the array
+    hasNeverBeenFlushed := false
+  }
+  def listen(callback) {
+    callbacks.push(callback)
+  }
+  def trigger(path) {
+    callbacks.forEach((fct) => fct(path))
+  }
+  root = {
+    flush,
+    listen,
+    trigger,
+    modifications,
+    raw: state
+  }
+  def handler(currentState, path='') {
+    def hasChanged(extrapath='') {
+      // just to return true the first time
+      if hasNeverBeenFlushed {
+        return true
+      }
+      completePath = joinPath(path, extrapath)
+      return !!modifications.find(
+      (modification) => modification.path.startsWith(completePath))
+    }
+    return {
+      get: def (obj, prop) {
+        if prop == PROXY_TAG {
+          return true
+        }
+        if prop == '$' {
+          return root
+        }
+        if prop == 'hasChanged' {
+          return hasChanged
+        }
+        // Track this read so the currently-rendering component subscribes to
+        // this path. Any reactive source can call trackRead — the runtime
+        // handles the association with the current component.
+        trackRead(joinPath(path, prop))
+        // be sure to not double wrap a Proxy — use Symbol to avoid false positives
+        if isObject(obj[prop]) && !obj[prop][PROXY_TAG] {
+          return new Proxy(
+          currentState[prop],
+          handler(currentState[prop],
+          joinPath(path, prop), currentState))
+        }
+        return obj[prop]
+      },
+      set: def (obj, prop, value) {
+        if readOnly {
+          throw new Error(``obj`.`prop` is read only`)
+        }
+        if prop == '$' {
+          throw new Error(`You cannot redefine the $ property in a proxied state`)
+        }
+
+        fullPath = joinPath(path, prop)
+        modifications.push({ path: fullPath, action: 'set', value })
+        obj[prop] = value
+        trigger(fullPath)
+        notifyWrite(fullPath)
+        return true
+      },
+      deleteProperty: def (target, prop) {
+        if readOnly {
+          throw new Error(`target.`prop` is read only`)
+        }
+
+        if target.hasOwnProperty(prop) {
+          fullPath = joinPath(path, prop)
+          modifications.push({ path: fullPath, action: 'delete' })
+          delete target[prop]
+          trigger(fullPath)
+          notifyWrite(fullPath)
+        } else {
+          return false
+        }
+        return true
+      }
+    }
+  }
+  return new Proxy(state, handler(state))
+}

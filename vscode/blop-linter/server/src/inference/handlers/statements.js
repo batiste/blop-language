@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { isStdlibImport, resolveStdlibPath } from '../../stdlib.js';
 import { resolveTypes, pushToParent, visitChildren, visit } from '../visitor.js';
 import { parseTypeExpression, parseGenericParams, parseGenericConstraints, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
 import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
@@ -265,13 +266,15 @@ function createStatementHandlers(getState) {
       const importPath = fileNode.value.slice(1, -1); // Remove quotes
       
       // Only process .blop file imports (skip node_modules, etc.)
-      if (!importPath.startsWith('.')) {
+      if (!importPath.startsWith('.') && !isStdlibImport(importPath)) {
         return;
       }
       
       try {
         // Resolve the import path relative to current file
-        const resolvedPath = path.resolve(path.dirname(currentFilename), importPath);
+        const resolvedPath = isStdlibImport(importPath)
+          ? resolveStdlibPath(importPath)
+          : path.resolve(path.dirname(currentFilename), importPath);
         
         // Check if it's a .blop file
         if (!resolvedPath.endsWith('.blop')) {

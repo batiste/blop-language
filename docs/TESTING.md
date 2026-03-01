@@ -177,7 +177,7 @@ describe('Counter component', () => {
 // TodoList.test.blop
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from 'blop'
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 
 TodoList = (state) => {
   addTodo = () => {

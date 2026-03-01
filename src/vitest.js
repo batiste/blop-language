@@ -1,6 +1,7 @@
 import { compileSource } from './compile.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { isStdlibImport, resolveStdlibPath } from './stdlib.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,15 @@ function blopPlugin() {
   
   return {
     name: 'vite-plugin-blop',
+    
+    // Resolve 'blop/X' stdlib imports to the absolute path of the .blop source
+    // file so the transform hook can compile them like any other .blop file.
+    resolveId(id) {
+      if (isStdlibImport(id)) {
+        return resolveStdlibPath(id);
+      }
+      return null;
+    },
     
     // Transform .blop files to JavaScript
     transform(source, id) {

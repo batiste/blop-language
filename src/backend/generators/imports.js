@@ -1,5 +1,6 @@
 import path from 'path';
 import { RUNTIME_NAMESPACE } from '../../constants.js';
+import { isStdlibImport, resolveStdlibPath } from '../../stdlib.js';
 
 function createImportGenerators(context) {
   const { generateCode, validators, dependencies, imports, hasBlopImports, checkFilename, scopes } = context;
@@ -69,7 +70,15 @@ function createImportGenerators(context) {
         } else {
           dependencies.push(fileNode.value);
           modulePath = rawPath;
-          importedFilename = rawPath;
+          if (isStdlibImport(rawPath)) {
+            // Stdlib import (e.g. 'blop/router') — resolve to the absolute path
+            // of the .blop source file so key validation can inspect it,
+            // but keep the original 'blop/X' path in the JS output so that
+            // the Vite/Vitest resolveId hook can redirect it correctly.
+            importedFilename = resolveStdlibPath(rawPath);
+          } else {
+            importedFilename = rawPath;
+          }
         }
       }
       
@@ -158,7 +167,7 @@ function createImportGenerators(context) {
         
         // If importing from a .blop file, mark that we have blop imports
         // This allows type validation to be more lenient
-        if (checkFilename && importedFilename.startsWith('.') && importedFilename.endsWith('.blop')){
+        if (checkFilename && (importedFilename.startsWith('.') || path.isAbsolute(importedFilename)) && importedFilename.endsWith('.blop')){
           hasBlopImports.value = true;
         }
       }

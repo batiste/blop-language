@@ -1,0 +1,109 @@
+
+import { register } from './navigation.blop'
+
+type Route = {
+  path: string,
+  name: string,
+  handler?: (params: object, state: object) => void,
+  reg?: RegExp,
+  params?: string[]
+}
+
+// test: Route[] = []
+// result = test.find((route) => route.path == '/test/:id')
+// result && result.path
+
+def escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
+}
+
+def createRegExp(str) {
+  escapedStr = escapeRegExp(str)
+  names = []
+  escapedStr := escapedStr.replace(/\:(\w+)/g, (_a, b) => {
+    names.push(b)
+    return '([\\w\\.\\-\\_]+)'
+  })
+  return { regexp: `^`escapedStr``, names }
+}
+
+mockWindow = globalThis.window || {
+  addEventListener: () => {},
+  location: { pathname: '/' },
+  history: { pushState: () => {} }
+}
+
+
+class Test {
+  def constructor(state: object, initial: function | undefined) {
+    console.log(state, initial)
+  }
+}
+
+
+class Router {
+  routes: Route[]
+
+  def constructor(state: object, initial: function | null, global=mockWindow) {
+    this.routes = []
+    this.state = state
+    this.global = global
+    register((path) => this.go(path))
+    global.addEventListener('popstate', (e) => {
+      if e.state == null {
+        initial && initial()
+      } else {
+        matchedRoute = this.routes.find(
+        (route) => route.path == e.state.path)
+        matchedRoute && matchedRoute.handler(e.state.params, this.state)
+      }
+    })
+  }
+  def init() {
+    this.go(this.global.location.pathname, false)
+  }
+  def add(route: Route) {
+    { regexp, names } = createRegExp(route.path)
+    route.reg = new RegExp(regexp)
+    route.params = names
+    this.routes.push(route)
+  }
+  def match(path: string) {
+    m = null
+    params = {}
+    matchedRoute = this.routes.find((route) => {
+      m := path.match(route.reg)
+      if m {
+        if route.params {
+          for index, value of route.params {
+            params[value] = m[1 + index]
+          }
+        }
+        return true
+      }
+    })
+    if matchedRoute {
+      return { route: matchedRoute, params: params }
+    }
+    return null
+  }
+  async def go(path: string, push=true) {
+    m = this.match(path)
+    if !m {
+      console.log('No route for path 'path)
+      return
+    }
+    if push {
+      this.global.history.pushState({
+        name: m.route.name,
+        path: m.route.path,
+        params: m.params
+      },
+      m.route.name, path)
+    }
+    this.state.route = { name: m.route.name, params: m.params, loading: true }
+    if m.route.handler {
+      await m.route.handler(m.params, this.state)
+    }
+  }
+}

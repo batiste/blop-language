@@ -143,7 +143,10 @@ function createValidators(context) {
     }
     let filename;
     try {
-      if (name.startsWith('.')) {
+      if (path.isAbsolute(name)) {
+        // Already an absolute path (e.g. a resolved stdlib lib file).
+        filename = name;
+      } else if (name.startsWith('.')) {
         // Relative import — resolve directly with path.resolve
         // (createRequire rejects .blop extensions and would throw)
         filename = path.resolve(path.dirname(checkFilename), name);

@@ -17,17 +17,19 @@ export default defineConfig({
   // Resolve configuration
   resolve: {
     extensions: ['.js', '.blop', '.ts'],
-    alias: {
-      'blop': path.resolve(__dirname, 'src/index.js'),
-      '@': path.resolve(__dirname, 'src'),
+    alias: [
+      // Exact match for the bare 'blop' runtime namespace — must NOT match 'blop/router' etc.
+      // (Rollup alias resolves string keys as prefixes, so a regex is required here.)
+      { find: /^blop$/, replacement: path.resolve(__dirname, 'src/index.js') },
+      { find: '@', replacement: path.resolve(__dirname, 'src') },
       // Provide empty modules for Node.js built-ins when used in browser
-      'module': path.resolve(__dirname, 'src/browser-stubs/module.js'),
-      'fs': path.resolve(__dirname, 'src/browser-stubs/fs.js'),
-      'path': path.resolve(__dirname, 'src/browser-stubs/path.js'),
-      'chalk': path.resolve(__dirname, 'src/browser-stubs/chalk.js'),
-      'perf_hooks': path.resolve(__dirname, 'src/browser-stubs/perf_hooks.js'),
-      'url': path.resolve(__dirname, 'src/browser-stubs/url.js'),
-    },
+      { find: 'module',     replacement: path.resolve(__dirname, 'src/browser-stubs/module.js') },
+      { find: 'fs',         replacement: path.resolve(__dirname, 'src/browser-stubs/fs.js') },
+      { find: 'path',       replacement: path.resolve(__dirname, 'src/browser-stubs/path.js') },
+      { find: 'chalk',      replacement: path.resolve(__dirname, 'src/browser-stubs/chalk.js') },
+      { find: 'perf_hooks', replacement: path.resolve(__dirname, 'src/browser-stubs/perf_hooks.js') },
+      { find: 'url',        replacement: path.resolve(__dirname, 'src/browser-stubs/url.js') },
+    ],
   },
   
   // Development server configuration

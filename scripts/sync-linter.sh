@@ -23,6 +23,8 @@ FILES=(
   "selectBestFailure.js"
   "tokenStatistics.json"
 )
+# NOTE: stdlib.js is intentionally NOT synced — the vscode/server version uses a
+# different LIB_DIR path so it resolves correctly from the compiled out/ directory.
 
 # Copy individual files
 for file in "${FILES[@]}"; do
@@ -32,6 +34,7 @@ done
 # Copy directories
 cp -r "$SOURCE/backend" "$DEST/"
 cp -r "$SOURCE/inference" "$DEST/"
+cp -r "$SOURCE/lib" "$DEST/"
 
 echo "📦 Installing dependencies..."
 cd vscode/blop-linter

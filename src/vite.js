@@ -13,6 +13,7 @@ import path from 'path';
 import { compileSource } from './compile.js';
 import { loadConfig } from './utils.js';
 import { RUNTIME_NAMESPACE } from './constants.js';
+import { isStdlibImport, resolveStdlibPath } from './stdlib.js';
 
 const RUNTIME_IMPORT = 'blop-language/runtime';
 
@@ -21,6 +22,15 @@ function blopPlugin(options = {}) {
 
   return {
     name: 'vite-plugin-blop',
+
+    // Resolve 'blop/X' stdlib imports to the absolute path of the .blop source
+    // file so the transform hook can compile them like any other .blop file.
+    resolveId(id) {
+      if (isStdlibImport(id)) {
+        return resolveStdlibPath(id);
+      }
+      return null;
+    },
 
     async configResolved(viteConfig) {
       // Load blop.config.js once from the project root.

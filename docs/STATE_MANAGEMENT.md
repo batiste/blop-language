@@ -31,7 +31,7 @@ The state management library is located in the example project at `example/lib/s
 ### Installation
 
 ```typescript
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 ```
 
 ## Creating State
@@ -39,7 +39,7 @@ import { createState } from './lib/state.blop'
 Create a proxied state object with initial data:
 
 ```typescript
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 
 // Create state with initial values
 state = createState({
@@ -117,7 +117,7 @@ re-rendering the whole application tree:
 
 ```typescript
 import { mount } from 'blop'
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 
 state = createState({ count: 0 })
 
@@ -239,7 +239,7 @@ Here's a complete example of a Blop application with state management:
 ```typescript
 // client.blop
 import { mount } from 'blop'
-import { createState } from './lib/state.blop'
+import { createState } from 'blop/state'
 import { Index } from './index.blop'
 import { createRouter } from './routing.blop'
 
