@@ -141,12 +141,14 @@ def PlaygroundPage(ctx: Component): VNode {
               fontSize: '0.85em', color: '#6c757d' }>
             <div style={ display: 'flex', gap: '0.4em' }>
               <button
-                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'js', 'btn-outline-secondary': activeTab != 'js' }
+                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'js',
+                  'btn-outline-secondary': activeTab != 'js' }
                 on={ click: () => setActiveTab('js') }>
                 'JavaScript'
               </button>
               <button
-                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'preview', 'btn-outline-secondary': activeTab != 'preview' }
+                class={ 'btn': true, 'btn-sm': true, 'btn-secondary': activeTab == 'preview',
+                  'btn-outline-secondary': activeTab != 'preview' }
                 on={ click: () => setActiveTab('preview') }>
                 'Preview'
               </button>
@@ -328,5 +330,3 @@ def PlaygroundPage(ctx: Component): VNode {
     </div>
   </div>
 }
-
-

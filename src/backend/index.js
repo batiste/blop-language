@@ -23,6 +23,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
 
   const exportObjects = {};
   let exportKeys = [];
+  let runtimeExportKeys = [];
   const typeAliases = {}; // Track type aliases for export
   const hasBlopImports = { value: false }; // Track if file has .blop imports
   const genericTypeParams = []; // Stack of generic type parameter scopes
@@ -149,7 +150,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
       // Generate exports in ESM format
       // NOTE: Types are tracked in exportObjects but not exported at runtime (yet)
       // When types become first-class citizens, remove the isType filter
-      const runtimeExportKeys = exportKeys.filter(key => !scope.names[key].isType);
+      runtimeExportKeys = exportKeys.filter(key => !scope.names[key].isType);
       if (runtimeExportKeys.length > 0) {
         final.push('\nexport { ');
         final.push(runtimeExportKeys.join(', '));
@@ -178,6 +179,7 @@ function _backend(node, _stream, _input, _filename = false, rootSource, resolve 
     perfect: errors.length === 0 && warnings.length === 0,
     dependencies,
     exportKeys,
+    runtimeExportKeys,
     exportObjects,
     typeAliases,
     warnings,
