@@ -96,6 +96,56 @@ If the goal is maximum practical value for Blop programs written today, the sugg
 
 ---
 
+## Index Signatures — Design Notes
+
+### Syntax
+
+```typescript
+// Pure index signature
+x: { [key: string]: number } = {}
+
+// Mixed: named property + index signature
+type Config = { host: string, [key: string]: string }
+
+// As a function parameter
+def lookup(dict: { [key: string]: number }, key: string): number {
+  return dict[key]
+}
+```
+
+### Semantics
+
+- An index signature `{ [key: K]: V }` says: any property of key type `K` has value type `V`.
+- Named properties in the same object type take precedence over the index signature.
+- Bracket access `obj[key]` on an indexed object type returns `V`.
+- An object literal `{ x: 1, y: 2 }` is compatible with `{ [key: string]: number }` only when all its property values are compatible with `V`.
+- A pure `{ [key: string]: V }` is compatible with a named object target (e.g. `{ name: string }`) if `V` is compatible with all required target property types.
+- Blop matches TypeScript's default mode (no `noUncheckedIndexedAccess`): indexed access returns `V` directly, not `V | undefined`.
+
+### Implementation
+
+- `['[', 'name:keyName', 'colon', 'w?', 'type_expression:keyType', ']', 'colon', 'w?', 'type_expression:valueType']` alternative added first in `object_type_property` in `src/grammar.js`; parser regenerated
+- `indexSignature: { keyType: Type, valueType: Type } | null` field added to `ObjectType` in `src/inference/Type.js`
+- `ObjectType` constructor gains a third `indexSignature = null` parameter
+- `toString()` prepends the index signature entry before named properties
+- `equals()` compares index signatures
+- `isCompatibleWith()` extended for three cases: (1) target has index sig → check all source property values; (2) source has index sig → covers missing named target properties; (3) source index sig assigning to `RecordType`
+- `getPropertyType()` falls back to `indexSignature.valueType` when the named property is not found
+- `excessPropertiesAgainst()` returns empty when the target has an index signature (no key is excess)
+- `substituteTypeParams()` propagates through `indexSignature` key/value types
+- `Types.object(properties, indexSignature)` factory updated
+- `parseObjectType()` in `src/inference/typeParser.js`: detects `node.named.keyName` to distinguish index signature properties from named properties
+- `validateObjectPropertyAccess()` in `src/inference/visitor.js`: bracket access (`!propertyName`) on an `ObjectType` with an index signature now returns the signature value type
+- `checkObjectStructuralCompatibility()` in `src/inference/typeSystem.js`: when target has an index signature, produces per-property mismatch errors instead of generic "excess property" errors
+- Tests: `src/tests/typeSystem/indexSignatures.test.js` (27 tests)
+
+### Known limitations
+
+- `keyType` is stored but not yet enforced at bracket-access sites: `dict[42]` where `dict: { [key: string]: V }` does not warn about the numeric key. A future pass could emit a warning when the access key type is incompatible with `indexSignature.keyType`.
+- Mixed named + index signature: the named properties are NOT checked for value-type consistency with the index signature (TypeScript enforces compatible named-property types in the presence of an index signature). This stricter check is future work.
+
+---
+
 ## Type Predicates — Design Notes
 
 ### Syntax
