@@ -247,6 +247,70 @@ if data {
 name = data?.user?.profile?.name
 ```
 
+## Dynamic Import / Lazy Loading
+
+Blop supports native dynamic `import()` expressions, which enable code splitting and on-demand loading of modules.
+
+### Syntax
+
+```typescript
+mod = await import('./MyPage.blop')
+```
+
+The `import()` call is compiled directly to a native ES dynamic import, so the bundler (Vite) automatically splits it into a separate chunk that is only downloaded when first needed.
+
+### Lazy-loading a Page Component
+
+The recommended pattern is to store the loaded component function in `ctx.state` and use a guarded `if` to either render it or trigger the load:
+
+```typescript
+Index = (ctx: Component) => {
+  { state } = ctx.attributes
+  { value as DogPage, setState: setDogPage } = ctx.state('dogPage', null)
+
+  async def loadDogPage() {
+    mod = await import('./DogPage/DogBreedGame.blop')
+    setDogPage(mod.DogGame)
+  }
+
+  <div>
+    if state.route.name == 'dog' {
+      if DogPage {
+        <DogPage state=state />
+      } else {
+        loadDogPage()
+        <p>'Loading...'</p>
+      }
+    }
+  </div>
+}
+```
+
+Key points:
+- The first time the `dog` route is rendered, `DogPage` is `null` so `loadDogPage()` is called.
+- `setDogPage()` schedules a re-render of `Index`; on the next frame `DogPage` is set and the real component is rendered.
+- Subsequent renders re-use the cached instance — `loadDogPage()` is never called again.
+
+### Annotated Destructuring After Import
+
+Use `{ value as Mod }: MyType = ctx.state(...)` to give the lazily-loaded component a declared type:
+
+```typescript
+type DogPageModule = { DogGame: any }
+{ value as mod, setState: setMod }: DogPageModule = ctx.state('mod', null)
+```
+
+### Dependency Tracking
+
+The compiler registers dynamic import paths in the module's dependency list, so Vite's module graph stays accurate and HMR works correctly with lazily loaded modules.
+
+### Use Cases
+
+- Route-level code splitting (load a page module only when the user navigates to it)
+- Heavy components (rich-text editors, charts, WebGL canvases)
+- Conditional features (load a debug panel only in development)
+- Plugin systems
+
 ## Testing
 
 Tests for modern features are in [src/tests/modern-features.test.blop](../src/tests/modern-features.test.blop).

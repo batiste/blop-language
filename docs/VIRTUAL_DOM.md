@@ -695,6 +695,67 @@ init([
 - **Memory**: Lightweight vnodes (~100 bytes each)
 - **Batching**: Uses `requestAnimationFrame` (60fps)
 
+## Server-Side Rendering
+
+Blop includes a lightweight SSR API that serialises a component tree to an HTML string synchronously, without any DOM dependency.
+
+### Setup
+
+In a Node.js / Vite SSR environment, install blop-language (already a dependency) and import the SSR helper:
+
+```javascript
+import { renderComponentToString } from 'blop-language/ssr'
+```
+
+### API
+
+#### `renderComponentToString(render)`
+
+The primary SSR function. Accepts a zero-argument function that returns a vnode and returns a plain HTML string:
+
+```javascript
+const html = renderComponentToString(() => <MyApp state={state} />)
+```
+
+Before the render the runtime cache is reset so that concurrent or repeated SSR calls do not bleed state.
+
+#### `renderToString(vnode)`
+
+Lower-level helper. Serialises an already-computed snabbdom vnode:
+
+```javascript
+import { renderToString } from 'blop-language/ssr'
+import { ssrRender } from 'blop-language'
+
+const vnode = ssrRender(() => <MyApp />)
+const html = renderToString(vnode)
+```
+
+### Example: Express SSR Handler
+
+```javascript
+import express from 'express'
+import { renderComponentToString } from 'blop-language/ssr'
+import { createState } from './src/state.blop'
+import { Index } from './src/index.blop'
+
+const app = express()
+
+app.get('*', (req, res) => {
+  const state = createState()
+  state.route.name = req.path.slice(1) || 'root'
+
+  const html = renderComponentToString(() => <Index state={state} />)
+  res.send(`<!DOCTYPE html><html><body>${html}</body></html>`)
+})
+```
+
+### Caveats
+
+- `ctx.mount()` callbacks are **not called** during SSR (no DOM, no `requestAnimationFrame`).
+- Dynamic `import()` inside components triggered at render time won't resolve synchronously — lazily loaded components should be pre-loaded before calling `renderComponentToString`.
+- Event handlers (`on={ click: ... }`) are serialised as attributes but are non-functional in the static HTML; attach them on the client side (hydration).
+
 ## See Also
 
 - [Syntax Reference](SYNTAX_REFERENCE.md) - Virtual DOM syntax in detail

@@ -265,7 +265,48 @@ user: { name: string, age: number } = { name: 'Alice', age: 30 }
 
 ### Does Blop support Server-Side Rendering (SSR)?
 
-No. SSR was removed in v1.1.0 when Blop migrated to Vite. Blop focuses on client-side applications.
+Yes. Import `renderComponentToString` from `blop-language/ssr`:
+
+```javascript
+import { renderComponentToString } from 'blop-language/ssr'
+const html = renderComponentToString(() => <MyApp state={state} />)
+```
+
+The runtime cache is reset on each call, so concurrent or repeated SSR calls do not bleed state. Lifecycle hooks (`ctx.mount`) are skipped during SSR since there is no DOM.
+
+### Does Blop support lazy loading / code splitting?
+
+Yes. Use the `import()` expression, which Blop compiles directly to a native dynamic import:
+
+```typescript
+// Load a component module on demand
+MyPageModule = await import('./MyPage.blop')
+setPage(MyPageModule.MyPage)
+```
+
+A typical pattern for lazy-loading a page component:
+
+```typescript
+Index = (ctx: Component) => {
+  { value as Page, setState: setPage } = ctx.state('page', null)
+
+  async def loadPage() {
+    mod = await import('./HeavyPage.blop')
+    setPage(mod.HeavyPage)
+  }
+
+  <div>
+    if Page {
+      <Page />
+    } else {
+      loadPage()
+      <p>'Loading...'</p>
+    }
+  </div>
+}
+```
+
+Vite automatically splits the dynamic import into a separate chunk, so the module is only downloaded when the user first visits that route.
 
 ## Performance
 

@@ -14,12 +14,14 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 - [Virtual DOM](./VIRTUAL_DOM.md) - Understanding Blop's rendering system
 
 ### Advanced Features
-- [Modern JavaScript Features](./MODERN_FEATURES.md) - Object spread, optional chaining, nullish coalescing
+- [Modern JavaScript Features](./MODERN_FEATURES.md) - Object spread, optional chaining, nullish coalescing, dynamic import
+- [Lazy Loading](./MODERN_FEATURES.md#dynamic-import--lazy-loading) - Code splitting and on-demand component loading
 - [Generics](./GENERICS_QUICK_REFERENCE.md) - Type system and generics
 
 ### Application Architecture
 - [State Management](./STATE_MANAGEMENT.md) - Managing application state with Proxies
 - [Routing](./ROUTING.md) - Client-side routing
+- [Server-Side Rendering](./VIRTUAL_DOM.md#server-side-rendering) - SSR with `renderComponentToString`
 - [Testing](./TESTING.md) - Testing Blop applications with Vitest
 
 ### Tools & Development
@@ -28,30 +30,3 @@ Welcome to the Blop language documentation! This guide will help you learn and m
 ### Help & Reference
 - [FAQ](./FAQ.md) - Frequently asked questions
 - [Troubleshooting](./INSTALLATION.md#troubleshooting) - Common issues and solutions
-
-### Contributing
-- [Style Guide](./STYLE_GUIDE.md) - Code style and best practices
-- [Statistical Error Prioritization](./STATISTICAL_ERROR_PRIORITIZATION.md) - Error message system
-
-## 🔗 Quick Links
-
-- [Example Project](https://batiste.github.io/blop/example/) - Live demo
-- [GitHub Repository](https://github.com/batiste/blop-language)
-- [NPM Package](https://www.npmjs.com/package/blop-language)
-
-## 🆘 Need Help?
-
-- Check our [FAQ](./FAQ.md)
-- Browse [Example Code](../example/)
-- Open an [Issue](https://github.com/batiste/blop-language/issues)
-
-## 📖 Documentation Updates
-
-The documentation was migrated from the GitHub Wiki to this repository in February 2026 for better:
-- **Version control** - Docs versioned with code
-- **Review process** - Changes reviewed via pull requests
-- **Maintainability** - Single source of truth
-- **Search** - Everything in one place
-- **Offline access** - Available with git clone
-
-The old wiki is still available but **no longer maintained**: https://github.com/batiste/blop-language/wiki

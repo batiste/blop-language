@@ -60,12 +60,10 @@ init()
 
 ### Advanced Topics
 - **[CLI Usage](docs/CLI_USAGE.md)** - Command-line interface
-- **[Modern JS Features](docs/MODERN_FEATURES.md)** - Spread, optional chaining, nullish coalescing
+- **[Modern JS Features](docs/MODERN_FEATURES.md)** - Spread, optional chaining, nullish coalescing, dynamic `import()`
+- **[Lazy Loading](docs/MODERN_FEATURES.md#dynamic-import--lazy-loading)** - Code splitting and on-demand component loading
+- **[Server-Side Rendering](docs/VIRTUAL_DOM.md#server-side-rendering)** - `renderComponentToString` API
 - **[Generics](docs/GENERICS_QUICK_REFERENCE.md)** - Generic types and functions
-
-### For Contributors
-- **[Style Guide](docs/STYLE_GUIDE.md)** - Code standards and best practices
-- **[Error Prioritization](docs/STATISTICAL_ERROR_PRIORITIZATION.md)** - Error message system
 
 **[Browse All Documentation](docs/README.md)**
 
@@ -80,11 +78,12 @@ init()
 - **VSCode Integration** - Syntax highlighting and real-time error checking
 - **Source Maps** - Debug with original source code
 - **Advanced Type Annotations and Inference** - Optional type checking with intelligent inference
-- **Modern JavaScript** - ES6+ syntax with optional chaining, nullish coalescing, spread operators
+- **Modern JavaScript** - ES6+ including optional chaining, nullish coalescing, spread, dynamic `import()`
+- **Lazy Loading** - Dynamic `import()` for code splitting and on-demand component loading
 - **Component System** - Built-in lifecycle and state management
 
 ### Tooling
-- **SSR Support** - Server-side rendering capabilities
+- **SSR Support** - `renderComponentToString()` for server-side rendering
 - **Hot Module Reloading (HMR)** - Instant updates during development
 - **CLI Tool** - Compile, format, and manage Blop projects from the command line
 - **Vite Compatibility** - Seamless integration with modern build tools
@@ -241,12 +240,3 @@ my-blop-app/
 
 MIT License - see [LICENSE.txt](LICENSE.txt)
 
----
-
-## Note on Documentation
-
-**The documentation has been migrated from the GitHub Wiki to the main repository** (in the `/docs` folder) for better version control, review process, and maintainability. All wiki content has been preserved and enhanced.
-
-If you're looking for older documentation, the wiki is still available but **no longer maintained**: https://github.com/batiste/blop-language/wiki
-
-**Please use the [documentation in the /docs folder](docs/README.md) instead.**
