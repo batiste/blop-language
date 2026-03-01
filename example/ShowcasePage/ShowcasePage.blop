@@ -278,7 +278,7 @@ def ShowcasePage(ctx: Component): VNode {
           <ul style={ color: '#495057', lineHeight: '2', paddingLeft: '1.5em' }>
             <li>
               <strong>'Flexible templates'</strong>
-              ' — for, if/elseif/else, and variable declarations are valid anywhere'
+              ': for, if/elseif/else, and variable declarations are valid anywhere'
             </li>
             <li>
               <strong>'Compiled to Virtual DOM'</strong>
@@ -289,7 +289,7 @@ def ShowcasePage(ctx: Component): VNode {
               ' with inference. Generics are supported.'</li>
             <li>
               <strong>'No return statement'</strong>
-              ' — The top-level node in a component function is its output'</li>
+              ': The top-level HTML node in a component is its output'</li>
             <li>
               <strong>'Built-in reactivity'</strong>
               ' via ctx.state() with typed initial values'</li>
