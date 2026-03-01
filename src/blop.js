@@ -56,7 +56,7 @@ async function execute() {
       });
       if (formatted != source.toString()) {  
         fs.writeFileSync(options.input, formatted);
-        console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${options.input} formatted`);
+        console.log(`${COLORS.GREEN}[blop] ${COLORS.YELLOW}✔${COLORS.RESET} ${options.input} formatted`);
         return;
       } else {
         console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${options.input} is already correctly formatted`);
