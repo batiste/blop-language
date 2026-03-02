@@ -294,38 +294,45 @@ export class TupleType extends Type {
  * Object types: { name: string, age: number }
  */
 export class ObjectType extends Type {
-  constructor(properties = new Map(), name = null) {
+  constructor(properties = new Map(), name = null, indexSignature = null) {
     super();
     this.kind = 'object';
     this.properties = properties; // Map<string, {type: Type, optional: boolean}>
     this.name = name; // Optional class name for display (e.g. 'Router')
+    this.indexSignature = indexSignature; // { keyType: Type, valueType: Type } | null
   }
   
   toString() {
     if (this.name) return this.name;
-    if (this.properties.size === 0) return '{}';
-    
-    const props = Array.from(this.properties.entries())
-      .map(([key, prop]) => {
-        const optMarker = prop.optional ? '?' : '';
-        return `${key}${optMarker}: ${prop.type.toString()}`;
-      })
-      .join(', ');
-    
-    return `{${props}}`;
+    const parts = [];
+    if (this.indexSignature) {
+      parts.push(`[key: ${this.indexSignature.keyType}]: ${this.indexSignature.valueType}`);
+    }
+    for (const [key, prop] of this.properties) {
+      const optMarker = prop.optional ? '?' : '';
+      parts.push(`${key}${optMarker}: ${prop.type.toString()}`);
+    }
+    if (parts.length === 0) return '{}';
+    return `{${parts.join(', ')}}`;
   }
   
   equals(other) {
     if (!(other instanceof ObjectType)) return false;
     if (this.properties.size !== other.properties.size) return false;
-    
+    // Compare index signatures
+    const thisHas = !!this.indexSignature;
+    const otherHas = !!other.indexSignature;
+    if (thisHas !== otherHas) return false;
+    if (thisHas && otherHas) {
+      if (!this.indexSignature.keyType.equals(other.indexSignature.keyType)) return false;
+      if (!this.indexSignature.valueType.equals(other.indexSignature.valueType)) return false;
+    }
     for (const [key, prop] of this.properties) {
       const otherProp = other.properties.get(key);
       if (!otherProp) return false;
       if (prop.optional !== otherProp.optional) return false;
       if (!prop.type.equals(otherProp.type)) return false;
     }
-    
     return true;
   }
   
@@ -357,6 +364,12 @@ export class ObjectType extends Type {
     // An ObjectType is compatible with a RecordType if all its property values
     // are compatible with the record's value type (structural index match)
     if (target instanceof RecordType) {
+      // If source has an index signature, check its value type too
+      if (this.indexSignature) {
+        if (!this.indexSignature.valueType.isCompatibleWith(target.valueType, aliases)) {
+          return false;
+        }
+      }
       for (const [, prop] of this.properties) {
         if (!prop.type.isCompatibleWith(target.valueType, aliases)) {
           return false;
@@ -367,9 +380,27 @@ export class ObjectType extends Type {
 
     // Check structural compatibility
     if (target instanceof ObjectType) {
+      // If target has an index signature, all source properties must be compatible with it
+      if (target.indexSignature) {
+        for (const [, prop] of this.properties) {
+          if (!prop.type.isCompatibleWith(target.indexSignature.valueType, aliases)) {
+            return false;
+          }
+        }
+        if (this.indexSignature) {
+          if (!this.indexSignature.valueType.isCompatibleWith(target.indexSignature.valueType, aliases)) {
+            return false;
+          }
+        }
+        return true;
+      }
       // Check all required properties in target exist in this object
       for (const [key, targetProp] of target.properties) {
         if (!targetProp.optional && !this.properties.has(key)) {
+          // If source has an index signature that covers this property, allow it
+          if (this.indexSignature && this.indexSignature.valueType.isCompatibleWith(targetProp.type, aliases)) {
+            continue;
+          }
           return false; // Missing required property
         }
         
@@ -403,7 +434,9 @@ export class ObjectType extends Type {
    */
   getPropertyType(propertyName) {
     const prop = this.properties.get(propertyName);
-    return prop ? prop.type : null;
+    if (prop) return prop.type;
+    if (this.indexSignature) return this.indexSignature.valueType;
+    return null;
   }
 
   /**
@@ -416,6 +449,8 @@ export class ObjectType extends Type {
    */
   excessPropertiesAgainst(target) {
     if (!(target instanceof ObjectType)) return [];
+    // If target has an index signature, any string key is valid — no excess properties
+    if (target.indexSignature) return [];
     const excess = [];
     for (const key of this.properties.keys()) {
       if (!target.properties.has(key)) {
@@ -1223,7 +1258,11 @@ export function substituteTypeParams(type, substitutions) {
         optional: prop.optional
       });
     }
-    return new ObjectType(newProps);
+    const newIndexSig = type.indexSignature ? {
+      keyType: substituteTypeParams(type.indexSignature.keyType, substitutions),
+      valueType: substituteTypeParams(type.indexSignature.valueType, substitutions),
+    } : null;
+    return new ObjectType(newProps, type.name, newIndexSig);
   }
   
   if (type instanceof UnionType) {
@@ -1305,8 +1344,8 @@ export const Types = {
     return new ArrayType(elementType);
   },
   
-  object(properties) {
-    return new ObjectType(properties);
+  object(properties, indexSignature = null) {
+    return new ObjectType(properties, null, indexSignature);
   },
   
   union(types) {

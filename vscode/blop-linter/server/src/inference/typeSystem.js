@@ -562,8 +562,28 @@ export function checkObjectStructuralCompatibility(valueType, targetType, aliase
     }
     return { compatible: true, errors: [] };
   }
+
+  // If target has an index signature, report per-property value type mismatches
+  if (targetType.indexSignature) {
+    const expectedValueType = targetType.indexSignature.valueType;
+    for (const [key, valueProp] of valueType.properties) {
+      if (!valueProp.type.isCompatibleWith(expectedValueType, aliasMap)) {
+        errors.push(
+          `Property '${key}' has type ${typeToString(valueProp.type)} but index signature expects ${typeToString(expectedValueType)}`
+        );
+      }
+    }
+    if (valueType.indexSignature) {
+      if (!valueType.indexSignature.valueType.isCompatibleWith(expectedValueType, aliasMap)) {
+        errors.push(
+          `Index signature value type ${typeToString(valueType.indexSignature.valueType)} is not compatible with ${typeToString(expectedValueType)}`
+        );
+      }
+    }
+    return { compatible: false, errors };
+  }
   
-  // Generate detailed errors
+  // Generate detailed errors for named-property targets
   for (const [key, targetProp] of targetType.properties) {
     if (!targetProp.optional && !valueType.properties.has(key)) {
       errors.push(`Missing property '${key}'`);

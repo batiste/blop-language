@@ -104,11 +104,31 @@ class Component {
     
     const parentNode = currentNode;
     currentNode = this;
+    // Snapshot direct children before reset so we can destroy any that
+    // are no longer present after the re-render.
+    const prevChildren = new Map(this.componentsChildren.map(c => [c.path, c]));
     this._resetForRender();
     const newVnode = this.renderComponent();
     const thunk = patch(this.vnode, newVnode);
     copyToThunk(thunk, this.vnode);
     currentNode = parentNode;
+    // Destroy components that were removed during this render.
+    // Any descendant of a removed path `p` will have a cache key starting
+    // with `p.`, so a single scan over the flat cache is sufficient —
+    // no recursive tree walk needed.
+    const newChildPaths = new Set(this.componentsChildren.map(c => c.path));
+    const removedPaths = [];
+    prevChildren.forEach((_, path) => {
+      if (!newChildPaths.has(path)) removedPaths.push(path);
+    });
+    if (removedPaths.length > 0) {
+      Object.keys(cache).forEach(cachedPath => {
+        if (removedPaths.some(p => cachedPath === p || cachedPath.startsWith(p + '.'))) {
+          cache[cachedPath]._destroy();
+          delete cache[cachedPath];
+        }
+      });
+    }
   }
 
   refresh() {
@@ -265,7 +285,7 @@ class Component {
   }
 }
 
-function isClass(v) {
+function isComponent(v) {
   return typeof v === 'function' && CLASS_DEFINITION_PATTERN.test(v.toString());
 }
 
@@ -277,7 +297,7 @@ function createComponent(ComponentFct, attributes, children, name, userKey) {
     return cache[path]._render(attributes, children);
   }
   let component;
-  if (isClass(ComponentFct)) {
+  if (isComponent(ComponentFct)) {
     component = new ComponentFct(null, attributes, children, name);
   } else {
     component = new Component(ComponentFct, attributes, children, name);

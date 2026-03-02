@@ -65,7 +65,7 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^10.0.1",
-    "snabbdom": "==3.5.1",
+    "snabbdom": "==3.6.3",
     "source-map": "^0.7.6"
   }
 }

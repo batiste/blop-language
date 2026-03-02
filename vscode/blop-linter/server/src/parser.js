@@ -4540,7 +4540,7 @@ let object_type_property_0 = (stream, index) => {
     sub_rule_index: 0, type: 'object_type_property', named,
   };
 
-  if (stream[i].type !== 'name') {
+  if (stream[i].type !== '[') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 0,
@@ -4552,13 +4552,24 @@ let object_type_property_0 = (stream, index) => {
     return false;
   }
 
-  named['key'] = stream[i];
   children.push(stream[i]); i++;
-  if (stream[i].type === 'w') {
-    children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
   }
 
-  if (stream[i].type !== 'question') {
+  named['keyName'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'colon') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 0,
@@ -4570,14 +4581,35 @@ let object_type_property_0 = (stream, index) => {
     return false;
   }
 
-  named['optional'] = stream[i];
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_4 = type_expression(stream, i);
+  if (!_rule_4) return false;
+  named['keyType'] = _rule_4;
+  children.push(_rule_4);
+  i = _rule_4.last_index;
+
+  if (stream[i].type !== ']') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 5,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
   children.push(stream[i]); i++;
 
   if (stream[i].type !== 'colon') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 0,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 6,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4589,11 +4621,11 @@ let object_type_property_0 = (stream, index) => {
   if (stream[i].type === 'w') {
     children.push(stream[i]); i++;
   }
-  const _rule_5 = type_expression(stream, i);
-  if (!_rule_5) return false;
-  named['valueType'] = _rule_5;
-  children.push(_rule_5);
-  i = _rule_5.last_index;
+  const _rule_8 = type_expression(stream, i);
+  if (!_rule_8) return false;
+  named['valueType'] = _rule_8;
+  children.push(_rule_8);
+  i = _rule_8.last_index;
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -4627,10 +4659,79 @@ let object_type_property_1 = (stream, index) => {
     children.push(stream[i]); i++;
   }
 
+  if (stream[i].type !== 'question') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['optional'] = stream[i];
+  children.push(stream[i]); i++;
+
   if (stream[i].type !== 'colon') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_5 = type_expression(stream, i);
+  if (!_rule_5) return false;
+  named['valueType'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_type_property_1 = memoize('object_type_property_1', object_type_property_1);
+
+
+let object_type_property_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_type_property',
+    sub_rule_index: 2, type: 'object_type_property', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['key'] = stream[i];
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+
+  if (stream[i].type !== 'colon') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -4651,12 +4752,13 @@ let object_type_property_1 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-object_type_property_1 = memoize('object_type_property_1', object_type_property_1);
+object_type_property_2 = memoize('object_type_property_2', object_type_property_2);
 
 
 function object_type_property(stream, index) {
   return object_type_property_0(stream, index)
-    || object_type_property_1(stream, index);
+    || object_type_property_1(stream, index)
+    || object_type_property_2(stream, index);
 }
 let type_name_0 = (stream, index) => {
   let i = index;

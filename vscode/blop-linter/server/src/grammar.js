@@ -144,6 +144,7 @@ const grammar = {
     ['object_type_property'],
   ],
   'object_type_property': [
+    ['[', 'name:keyName', 'colon', 'w?', 'type_expression:keyType', ']', 'colon', 'w?', 'type_expression:valueType'],
     ['name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
     ['name:key', 'w?', 'colon', 'w?', 'type_expression:valueType'],
   ],

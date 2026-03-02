@@ -4,8 +4,8 @@
  * Tests for state, context, and component lifecycle
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { Component } from '../../runtime.js';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Component, h, mount, c } from '../../runtime.js';
 
 describe('Component.state', () => {
   let component;
@@ -382,5 +382,83 @@ describe('Component mount cleanup', () => {
     component._unmount();
     
     expect(component.life.mountCleanup).toEqual([]);
+  });
+});
+
+describe('partialRender - child component cleanup', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('destroys child component removed by conditional re-render', () => {
+    const unmountSpy = vi.fn();
+    let parentComponent;
+    let childInstance;
+
+    function Child(ctx) {
+      childInstance = ctx;
+      ctx.unmount(unmountSpy);
+      return h('span', {}, ['child']);
+    }
+
+    function Parent(ctx) {
+      parentComponent = ctx;
+      if (ctx.stateMap['show'] !== false) {
+        return c(Child, {}, [], 'Child');
+      }
+      return h('div', {}, ['no child']);
+    }
+
+    const dom = document.createElement('div');
+    const { init } = mount(dom, () => c(Parent, {}, [], 'Parent'));
+    init();
+
+    expect(childInstance).toBeDefined();
+    expect(childInstance.destroyed).toBe(false);
+    expect(unmountSpy).not.toHaveBeenCalled();
+
+    // Directly trigger a partial re-render without the child
+    parentComponent.stateMap['show'] = false;
+    parentComponent.partialRender();
+
+    expect(childInstance.destroyed).toBe(true);
+    expect(unmountSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test('destroys nested child subtree removed by conditional re-render', () => {
+    const grandchildUnmount = vi.fn();
+    let parentComponent;
+    let grandchildInstance;
+
+    function Grandchild(ctx) {
+      grandchildInstance = ctx;
+      ctx.unmount(grandchildUnmount);
+      return h('em', {}, ['grandchild']);
+    }
+
+    function Child() {
+      return c(Grandchild, {}, [], 'Grandchild');
+    }
+
+    function Parent(ctx) {
+      parentComponent = ctx;
+      if (ctx.stateMap['show'] !== false) {
+        return c(Child, {}, [], 'Child');
+      }
+      return h('div', {}, []);
+    }
+
+    const dom = document.createElement('div');
+    const { init } = mount(dom, () => c(Parent, {}, [], 'Parent'));
+    init();
+
+    expect(grandchildInstance).toBeDefined();
+    expect(grandchildInstance.destroyed).toBe(false);
+
+    parentComponent.stateMap['show'] = false;
+    parentComponent.partialRender();
+
+    expect(grandchildInstance.destroyed).toBe(true);
+    expect(grandchildUnmount).toHaveBeenCalledTimes(1);
   });
 });

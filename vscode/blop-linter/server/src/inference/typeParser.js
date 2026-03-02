@@ -233,12 +233,22 @@ export function parseObjectType(objectTypeNode) {
   }
   
   const properties = new Map();
+  let indexSignature = null;
   
   function collectProperties(node) {
     if (!node) return;
     
     // Check if this is a single property node
     if (node.type === 'object_type_property') {
+      // Index signature: [keyName: keyType]: valueType
+      if (node.named?.keyName) {
+        indexSignature = {
+          keyType: parseTypeExpression(node.named.keyType),
+          valueType: parseTypeExpression(node.named.valueType),
+        };
+        return;
+      }
+
       const key = node.named.key?.value;
       const optional = !!node.named.optional;
       const valueType = parseTypeExpression(node.named.valueType);
@@ -270,7 +280,7 @@ export function parseObjectType(objectTypeNode) {
   
   collectProperties(objectTypeNode.named.properties);
   
-  return Types.object(properties);
+  return Types.object(properties, indexSignature);
 }
 
 /**
