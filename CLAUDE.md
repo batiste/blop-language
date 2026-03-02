@@ -79,3 +79,17 @@ inference(ast, stream, 'debug.blop');
 // now ast nodes have .inferredType stamped on them
 ```
 
+### Writing Blop
+
+Blop is similar to TypeScript but different. Here are some key differences:
+
+| Feature | Blop |
+|---------|------|
+| Named function | `def foo() {}` |
+| Variable declaration | `x = 1` |
+| Variable reassignment | `x := 2` |
+| Significant whitespace | `a = 1 // a  =1 is wrong on both side of =` |
+| String interpolation | `'Hello 'name` |
+| Ternary and conditionals | `if cond => a else b`, `if {} elseif {} else {}` |
+| Namespace import | `import * as m from 'pkg'`, `import 'pkg' as m` |
+| Semicolons | not used |
