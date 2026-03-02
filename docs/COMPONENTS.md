@@ -322,7 +322,7 @@ TodoListPage = (ctx: Component): VNode => {
   { todo } = attributes          // todo is a sub-proxy of the global state
 
   todoList = todo.todoList       // ← subscribes to "todoList"
-  filter   = todo.filter         // ← subscribes to "filter"
+  filter = todo.filter           // ← subscribes to "filter"
 
   setFilter = (f) => {
     todo.filter = f              // ← notifies "filter" subscribers → only this component re-renders

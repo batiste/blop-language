@@ -83,8 +83,8 @@ async def fetchData(url) {
 }
 
 // Arrow functions — single-expression or block body
-add      = (a, b): number => a + b
-square   = (a) => a * a
+add = (a, b): number => a + b
+square = (a) => a * a
 multiply = (a, b) => {
   return a * b
 }
@@ -168,14 +168,14 @@ Place a string and expression **immediately adjacent** (no spaces) to concatenat
 name = 'World'
 
 // string + variable + string
-message  = 'Hello, 'name'!'   // "Hello, World!"
+message = 'Hello, 'name'!'   // "Hello, World!"
 
 // variable + string + variable
 greeting = 'hello'
-result   = greeting' 'name    // "hello world"
+result = greeting' 'name    // "hello world"
 
 // Mix any quote style
-mixed    = "Hello, "name`!`   // "Hello, World!"
+mixed = "Hello, "name`!`   // "Hello, World!"
 ```
 
 ### Inline expressions
@@ -183,13 +183,15 @@ mixed    = "Hello, "name`!`   // "Hello, World!"
 Put the expression directly against the string without whitespace:
 
 ```typescript
-count   = 42
+count = 42
 message = 'The answer is 'count     // "The answer is 42"
-url     = `https://api.example.com/`id
+url = `https://api.example.com/`id
 
 // Computed expressions in-line
 text = 'Result: '(a + b)''           // "Result: 3"
 ```
+
+> **Safe rule:** use a single space between tokens that should stay separate. Multi-space alignment (e.g. `url     = ...`) is invalid — the parser uses whitespace to determine expression boundaries.
 
 ---
 
@@ -201,20 +203,20 @@ Blop uses ES6-style object and array literals, destructuring, and spread.
 // Object literal
 person = {
   name: 'Alice',
-  age:  30,
+  age: 30,
   city: 'Paris'
 }
 
 // Array literal
 numbers = [1, 2, 3, 4, 5]
-mixed   = [1, 'two', { three: 3 }]
+mixed = [1, 'two', { three: 3 }]
 
 // Object destructuring
 { name, age } = person
 
 // Object spread — later keys override earlier ones
 defaults = { timeout: 5000, retries: 3 }
-options  = { ...defaults, timeout: 10000 }
+options = { ...defaults, timeout: 10000 }
 
 // Array spread
 arr1 = [1, 2, 3]
@@ -233,7 +235,7 @@ class ExampleClass {
 
   def constructor(something=false) {
     this.routes = [1, 2, 3]
-    this.state  = { hello: 1, world: 2 }
+    this.state = { hello: 1, world: 2 }
   }
 
   async def fetchData(id) {
@@ -262,14 +264,14 @@ Use `type` to name a type for reuse across annotations.
 
 ```typescript
 // Primitive alias
-type UserId   = number
+type UserId = number
 type Username = string
 
 // Object type
 type User = {
-  id:       number,
-  name:     string,
-  role?:    'Admin' | 'User'
+  id: number,
+  name: string,
+  role?: 'Admin' | 'User'
 }
 
 // Union alias
@@ -296,7 +298,7 @@ def greet(u: User): string {
 ```typescript
 try {
   response = await fetch('/api/data')
-  data     = await response.json()
+  data = await response.json()
 } catch error {
   console.log('Request failed:', error)
 }
@@ -314,11 +316,11 @@ throw new Error('Something went wrong')
 Shorthand operators update a variable in place.
 
 ```typescript
-count  = 0
+count = 0
 count += 1    // 1
 count -= 1    // 0
 count *= 4    // 0  (0 * 4)
-count  = 10
+count = 10
 count /= 2    // 5
 
 // Works on properties too
@@ -438,7 +440,7 @@ Available hooks: `pre`, `init`, `create`, `insert`, `prepatch`, `update`, `postp
 Safely access a property that may not exist — returns `undefined` instead of throwing:
 
 ```typescript
-name  = user?.profile?.name
+name = user?.profile?.name
 first = list?.[0]
 value = obj?.['key']
 ```
@@ -449,8 +451,8 @@ Use a fallback only when a value is `null` or `undefined`.
 Unlike `||`, it does **not** fall back on `0`, `''`, or `false`:
 
 ```typescript
-count  = value   ?? 0
-text   = message ?? 'No message'
+count = value ?? 0
+text = message ?? 'No message'
 result = a ?? b ?? c ?? 'default'
 ```
 
