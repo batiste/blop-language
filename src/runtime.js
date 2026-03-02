@@ -279,7 +279,6 @@ class Component {
     this.parent = null;
     this.children = [];
     this.stateMap = {};
-    // delete cache[this.name];
     this.contextMap = {};
     this.componentsChildren = [];
   }
@@ -474,3 +473,13 @@ function mount(dom, render) {
 // ES module exports
 export { h, patch, mount, Component, trackRead, notifyWrite, ssrRender };
 export const c = createComponent;
+
+/**
+ * Resets the RAF-batch scheduling state. Only intended for use in tests:
+ * the module-level `animationRequest` flag and `renderPipeline` are not
+ * otherwise accessible, so stale state from one test can bleed into the next.
+ */
+export function __resetScheduler() {
+  renderPipeline = [];
+  animationRequest = false;
+}
