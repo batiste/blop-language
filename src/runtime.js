@@ -349,6 +349,10 @@ function h(name, attributes, children) {
       // Use props module for form element values
       if (!props) props = {};
       props[index] = value;
+    } else if (index === 'innerHTML') {
+      // Use props module to set innerHTML directly on the DOM element (for raw HTML injection)
+      if (!props) props = {};
+      props[index] = value;
     } else {
       attrs[index] = value;
     }

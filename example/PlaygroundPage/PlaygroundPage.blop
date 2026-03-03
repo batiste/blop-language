@@ -1,6 +1,7 @@
 // PlaygroundPage - Blop compiler running in the browser
 
 import { compile } from '../../src/compile-browser.js'
+import { highlightCodeForEditor } from '../highlight.js'
 import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
 import 'blop' as blopRuntime
@@ -17,6 +18,12 @@ def PlaygroundPage(ctx: Component): VNode {
   { value as previewFn, setState as setPreviewFn } = ctx.state<any>('previewFn', null)
   { value as previewKey, setState as setPreviewKey } = ctx.state<number>('previewKey', 0)
   { value as previewError, setState as setPreviewError } = ctx.state<string | null>('previewError', null)
+  { value as highlightedInput, setState as setHighlightedInput } = ctx.state<string>('highlightedInput', '')
+
+  ctx.mount(async () => {
+    html = await highlightCodeForEditor(code, 'blop')
+    setHighlightedInput(html)
+  })
 
   def executePreview(compiledCode, exportKeys) {
     if !compiledCode || !exportKeys || exportKeys.length == 0 {
@@ -42,16 +49,40 @@ def PlaygroundPage(ctx: Component): VNode {
     }
   }
 
-  def handleCodeChange(e) {
-    setCode(e.target.value)
+  def applyHighlight(vnode) {
+    vnode.elm.innerHTML = highlightedInput
   }
 
-  def compileCode() {
+  def syncScroll(textarea) {
+    preEl = if textarea.previousElementSibling => textarea.previousElementSibling.querySelector('pre') else null
+    if preEl {
+      preEl.scrollTop = textarea.scrollTop
+      preEl.scrollLeft = textarea.scrollLeft
+    }
+  }
+
+  def handleCodeChange(e) {
+    newCode = e.target.value
+    setCode(newCode)
+    syncScroll(e.target)
+    highlightCodeForEditor(newCode, 'blop').then((html) => {
+      setHighlightedInput(html)
+    })
+  }
+
+  def handleScroll(e) {
+    syncScroll(e.target)
+  }
+
+  editorHeight = '520px'
+
+  def compileCode(sourceCode) {
+    src = if sourceCode => sourceCode else code
     setIsCompiling(true)
     setError(null)
     setOutput('')
 
-    result = compile(code, { inference: true })
+    result = compile(src, { inference: true })
     if result.success {
       setOutput(result.code)
       setError(null)
@@ -72,7 +103,19 @@ def PlaygroundPage(ctx: Component): VNode {
     setIsCompiling(false)
   }
 
-  editorHeight = '520px'
+  def loadExample(exampleCode) {
+    return () => {
+      setCode(exampleCode)
+      setOutput('')
+      setError(null)
+      setWarning(null)
+      setPreviewFn(null)
+      highlightCodeForEditor(exampleCode, 'blop').then((html) => {
+        setHighlightedInput(html)
+      })
+      compileCode(exampleCode)
+    }
+  }
 
   <div style={ padding: '0 1.5em 2em' }>
     // Header
@@ -98,24 +141,35 @@ def PlaygroundPage(ctx: Component): VNode {
               fontSize: '0.85em', color: '#6c757d' }>
             <span>'Input — Blop'</span>
           </div>
-          <div class="card-body" style={ padding: '0' }>
+          <div class="card-body" style={ padding: '0', position: 'relative', height: editorHeight, overflow: 'hidden', backgroundColor: '#1a202c' }>
+            <div
+              hooks={ insert: applyHighlight, update: applyHighlight }
+              style={ position: 'absolute', top: '0', left: '0', right: '0', bottom: '0',
+                overflow: 'hidden', pointerEvents: 'none', zIndex: '1' } />
             <textarea
               style={
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                bottom: '0',
                 height: editorHeight,
                 width: '100%',
                 border: 'none',
                 fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
                 fontSize: '13px',
                 resize: 'none',
-                backgroundColor: '#1a202c',
-                color: '#e2e8f0',
+                backgroundColor: 'transparent',
+                color: 'transparent',
+                caretColor: '#e2e8f0',
                 padding: '1.25em 1.5em',
                 outline: 'none',
                 lineHeight: '1.65',
-                display: 'block'
+                zIndex: '2'
             }
               value=code
-              on={ input: handleCodeChange }
+              on={ input: handleCodeChange, scroll: handleScroll }
+              spellcheck="false"
               placeholder="Write your Blop code here..." />
           </div>
           <div class="card-footer" style={ padding: '0.75em 1em', display: 'flex', alignItems: 'center', gap: '1em' }>
@@ -125,7 +179,7 @@ def PlaygroundPage(ctx: Component): VNode {
                 'Compiling...'
               </button>
             } else {
-              <button class="btn btn-sm btn-primary" on={ click: compileCode }>
+              <button class="btn btn-sm btn-primary" on={ click: () => compileCode(null) }>
                 'Compile'
               </button>
             }
@@ -288,13 +342,7 @@ def PlaygroundPage(ctx: Component): VNode {
               for example in examples {
                 <button
                   class="btn btn-sm btn-outline-secondary"
-                  on={ click: () => {
-                      setCode(example.code)
-                      setOutput('')
-                      setError(null)
-                      setWarning(null)
-                      setPreviewFn(null)
-                  } }>
+                  on={ click: loadExample(example.code) }>
                   = example.name
                 </button>
               }

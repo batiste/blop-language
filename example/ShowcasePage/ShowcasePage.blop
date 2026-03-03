@@ -1,12 +1,20 @@
 // ShowcasePage - Blop language overview and feature demonstration
+import { highlightCode } from '../highlight.js'
 
-def CodeBlock({ attributes }: Component): VNode {
-  { code, title } = attributes
+def CodeBlock(ctx: Component): VNode {
+  { code, title, language } = ctx.attributes
+  { value as highlightedHtml, setState as setHighlightedHtml } = ctx.state<string | null>('html', null)
 
   borderRadius = '6px'
   if title {
     borderRadius := '0 0 6px 6px'
   }
+
+  lang = language || 'blop'
+  ctx.mount(async () => {
+    html = await highlightCode(code, lang, borderRadius)
+    setHighlightedHtml(html)
+  })
 
   <div style={ marginTop: '1em' }>
     if title {
@@ -22,16 +30,20 @@ def CodeBlock({ attributes }: Component): VNode {
         = title
       </div>
     }
-    <pre style={
-        backgroundColor: '#1a202c',
-        color: '#e2e8f0',
-        padding: '1.25em 1.5em',
-        borderRadius,
-        overflow: 'auto',
-        margin: '0',
-        fontSize: '0.875em',
-        lineHeight: '1.65'
-    }><code>code</code></pre>
+    if highlightedHtml {
+      <div innerHTML=highlightedHtml />
+    } else {
+      <pre style={
+          backgroundColor: '#1a202c',
+          color: '#e2e8f0',
+          padding: '1.25em 1.5em',
+          borderRadius,
+          overflow: 'auto',
+          margin: '0',
+          fontSize: '0.875em',
+          lineHeight: '1.65'
+      }><code>code</code></pre>
+    }
   </div>
 }
 
@@ -252,6 +264,7 @@ def ShowcasePage(ctx: Component): VNode {
             <div class="col-md-6" style={ marginBottom: '1.5em' }>
               <CodeBlock
                 title="Equivalent React / JSX"
+                language="jsx"
                 code="function UserList({ users }) {
   return (
     <ul>
@@ -499,6 +512,7 @@ for key, value in config {
             <div class="col-md-6" style={ marginBottom: '1em' }>
               <p style={ fontSize: '0.8em', color: '#6c757d', fontWeight: '600', marginBottom: '0.5em' }>'React / JSX'</p>
               <CodeBlock
+                language="jsx"
                 code="<ul>
   {items.map((item, index) => (
     <li key={index}>
@@ -542,6 +556,7 @@ for key, value in config {
             <div class="col-md-6" style={ marginBottom: '1em' }>
               <p style={ fontSize: '0.8em', color: '#6c757d', fontWeight: '600', marginBottom: '0.5em' }>'React / JSX'</p>
               <CodeBlock
+                language="jsx"
                 code="<div>
   {(() => {
     const userName = user?.name ?? 'Guest';
@@ -587,6 +602,7 @@ for key, value in config {
             <div class="col-md-6" style={ marginBottom: '1em' }>
               <p style={ fontSize: '0.8em', color: '#6c757d', fontWeight: '600', marginBottom: '0.5em' }>'React / JSX'</p>
               <CodeBlock
+                language="jsx"
                 code="function TodoItem({ todo }) {
   const [done, setDone] = useState(false);
 
