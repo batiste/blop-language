@@ -61,15 +61,6 @@ def PlaygroundPage(ctx: Component): VNode {
     }
   }
 
-  def handleCodeChange(e) {
-    newCode = e.target.value
-    setCode(newCode)
-    syncScroll(e.target)
-    highlightCodeForEditor(newCode, 'blop').then((html) => {
-      setHighlightedInput(html)
-    })
-  }
-
   def handleScroll(e) {
     syncScroll(e.target)
   }
@@ -101,6 +92,19 @@ def PlaygroundPage(ctx: Component): VNode {
       setPreviewFn(null)
     }
     setIsCompiling(false)
+  }
+
+  def handleCodeChange(e) {
+    newCode = e.target.value
+    setCode(newCode)
+    syncScroll(e.target)
+    highlightCodeForEditor(newCode, 'blop').then((html) => {
+      setHighlightedInput(html)
+    })
+    clearTimeout(ctx.state._debounceTimer)
+    ctx.state._debounceTimer = setTimeout(() => {
+      compileCode(newCode)
+    }, 300)
   }
 
   def loadExample(exampleCode) {
