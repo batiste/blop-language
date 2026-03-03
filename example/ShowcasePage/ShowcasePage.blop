@@ -470,55 +470,91 @@ def ShowcasePage(ctx: Component): VNode {
             <div class="col-lg-6" style={ marginBottom: '1.5em' }>
               <CodeBlock
                 title="ConditionalDemo.blop"
-                code="def ConditionalDemo(ctx: Component): VNode {
-  { value as status, setState as setStatus } =
-    ctx.state<string>('status', 'online')
-  { value as showDetails, setState as setShowDetails } =
-    ctx.state<boolean>('showDetails', false)
+                code=`def ConditionalDemo(ctx: Component): VNode {
+  { value as status, setState as setStatus } = ctx.state<string>('status', 'online')
+  { value as showDetails, setState as setShowDetails } = ctx.state<boolean>('showDetails', false)
 
-  // Derive display values from current status
+  statuses = ['online', 'degraded', 'offline']
+
   dotColor = '#6c757d'
+  cardBorder = '#dee2e6'
   statusText = 'Unknown'
+  statusColor = '#6c757d'
+  bgColor = '#f8f9fa'
   if status == 'online' {
     dotColor := '#198754'
+    cardBorder := '#a3cfbb'
     statusText := 'All systems operational'
+    statusColor := '#146c43'
+    bgColor := '#d1e7dd'
   } elseif status == 'degraded' {
     dotColor := '#fd7e14'
+    cardBorder := '#fecba1'
     statusText := 'Partial outage detected'
+    statusColor := '#984c0c'
+    bgColor := '#ffe5d0'
   } else {
     dotColor := '#dc3545'
+    cardBorder := '#f1aeb5'
     statusText := 'Major outage in progress'
+    statusColor := '#842029'
+    bgColor := '#f8d7da'
   }
 
-  <div>
-    <div style={ display: 'flex', alignItems: 'center', gap: '0.75em' }>
-      <div style={ backgroundColor: dotColor, borderRadius: '50%',
-          width: '12px', height: '12px' } />
-      <strong>statusText</strong>
-    </div>
-
-    if showDetails {
-      services = ['API', 'Database', 'CDN', 'Auth']
-      for svc in services {
-        svcOk = status == 'online' || svc != 'CDN'
+  <div style={ padding: '1em', maxWidth: '360px' }>
+    // Status card
+    <div style={ border: '1px solid 'cardBorder, borderRadius: '8px', overflow: 'hidden',
+        backgroundColor: bgColor, marginBottom: '1em', transition: 'all 0.2s' }>
+      <div style={ padding: '1em 1.25em', display: 'flex', alignItems: 'center', gap: '0.75em' }>
+        <div style={ width: '12px', height: '12px', borderRadius: '50%',
+            backgroundColor: dotColor, flexShrink: '0' } />
         <div>
-          svc': 'if svcOk => 'Operational' else 'Down'
+          <div style={ fontWeight: '600', fontSize: '0.95em', color: statusColor }>
+            = statusText
+          </div>
+          <div style={ fontSize: '0.8em', color: statusColor, opacity: '0.8', marginTop: '0.15em' }>
+            if status == 'online' {
+              'Last checked: just now'
+            } elseif status == 'degraded' {
+              'Investigating since 14:32'
+            } else {
+              'Incident started at 13:55'
+            }
+          </div>
+        </div>
+      </div>
+
+      if showDetails {
+        <div style={ borderTop: '1px solid 'cardBorder, padding: '0.75em 1.25em',
+            fontSize: '0.82em', color: statusColor }>
+          services = ['API', 'Database', 'CDN', 'Auth']
+          for svc in services {
+            svcOk = status == 'online' || (status == 'degraded' && svc != 'CDN')
+            <div style={ display: 'flex', justifyContent: 'space-between',
+                padding: '0.2em 0', borderBottom: '1px solid 'cardBorder, opacity: '0.9' }>
+              <span>svc</span>
+              <span style={ color: if svcOk => '#146c43' else '#842029', fontWeight: '600' }>
+                = if svcOk => 'Operational' else 'Down'
+              </span>
+            </div>
+          }
         </div>
       }
-    }
+    </div>
 
-    statuses = ['online', 'degraded', 'offline']
-    for s in statuses {
-      isActive = s == status
-      cls = if isActive => 'btn btn-sm btn-secondary'
-              else 'btn btn-sm btn-outline-secondary'
-      <button class=cls on={ click: () => setStatus(s) }>s</button>
-    }
-    <button on={ click: () => setShowDetails(!showDetails) }>
-      = if showDetails => 'Hide details' else 'Show details'
+    // Controls
+    <div style={ display: 'flex', gap: '0.4em', flexWrap: 'wrap', marginBottom: '0.75em' }>
+      for s in statuses {
+        isActive = s == status
+        btnStyle = if isActive => 'btn btn-sm btn-secondary' else 'btn btn-sm btn-outline-secondary'
+        <button class=btnStyle on={ click: () => setStatus(s) }>s</button>
+      }
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" on={ click: () => setShowDetails(!showDetails) }>
+      = if showDetails => 'Hide details' else 'Show service details'
     </button>
   </div>
-}" />
+}` />
             </div>
 
             <div class="col-lg-6">
