@@ -682,7 +682,7 @@ for key, value in config {
 
   <li
     class=if done => 'done' else 'todo'
-    on={ click: () => setState(!value) 
+    on={ click: () => setState(!value) }
   >
     = ctx.attributes.todo.title
     = if done => <span class=\"check\">'checkmark'</span>

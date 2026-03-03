@@ -4,12 +4,14 @@ import { compile } from '../../src/compile-browser.js'
 import { highlightCodeForEditor } from '../highlight.js'
 import { grammar } from '../../src/grammar.js'
 import { tokensDefinition } from '../../src/tokensDefinition.js'
+import { examples } from './examples.blop'
 import 'blop' as blopRuntime
 
-def PlaygroundPage(ctx: Component): VNode {
-  defaultCode = 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  color = \'#6c757d\'\n  message = \'Start counting!\'\n  if count > 0 {\n    color := \'#198754\'\n    message := \'Positive\'\n  } elseif count < 0 {\n    color := \'#dc3545\'\n    message := \'Negative\'\n  }\n\n  <div style={ textAlign: \'center\', padding: \'2em\', fontFamily: \'system-ui\' }>\n    <div style={ fontSize: \'4em\', fontWeight: \'bold\', color, lineHeight: \'1\',\n        marginBottom: \'0.25em\' }>\n      count\n    </div>\n    <div style={ color, fontSize: \'0.9em\', marginBottom: \'1.5em\' }>\n      = message\n    </div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-outline-danger"\n        on={ click: () => setState(count - 1) }>\n        \'−\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n      <button class="btn btn-outline-success"\n        on={ click: () => setState(count + 1) }>\n        \'+\'\n      </button>\n    </div>\n  </div>\n}\n\ndef main(): VNode {\n  <Counter />\n}'
 
-  { value as code, setState as setCode } = ctx.state<string>('code', defaultCode)
+
+def PlaygroundPage(ctx: Component): VNode {
+
+  { value as code, setState as setCode } = ctx.state<string>('code', examples[0].code)
   { value as output, setState as setOutput } = ctx.state<string>('output', '')
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
   { value as warning, setState as setWarning } = ctx.state<string | null>('warning', null)
@@ -331,23 +333,6 @@ def PlaygroundPage(ctx: Component): VNode {
           <div class="card-header" style={ fontSize: '0.85em', color: '#6c757d' }>'Load example'</div>
           <div class="card-body" style={ padding: '1em' }>
             <div style={ display: 'flex', gap: '0.5em', flexWrap: 'wrap' }>
-              examples = [
-              { name: 'Simple component',
-                code: 'def Greeting({ attributes }: Component): VNode {\n  { name } = attributes\n\n  <div style={ padding: \'2em\' }>\n    <h1>\'Hello, \'name</h1>\n    <p>\'Welcome to Blop.\'</p>\n  </div>\n}\n\ndef main(): VNode {\n  <Greeting name=\'World\' />\n}'
-              },
-{ name: 'Counter with state',
-                code: 'def Counter(ctx: Component): VNode {\n  { value as count, setState } = ctx.state<number>(\'count\', 0)\n\n  <div style={ textAlign: \'center\', padding: \'2em\' }>\n    <div style={ fontSize: \'3em\', fontWeight: \'bold\', marginBottom: \'1em\' }>count</div>\n    <div style={ display: \'flex\', gap: \'0.5em\', justifyContent: \'center\' }>\n      <button class="btn btn-primary"\n        on={ click: () => setState(count + 1) }>\n        \'Increment\'\n      </button>\n      <button class="btn btn-outline-secondary"\n        on={ click: () => setState(0) }>\n        \'Reset\'\n      </button>\n    </div>\n  </div>\n}\n\ndef main(): VNode {\n  <Counter />\n}'
-              },
-{ name: 'List with for loop',
-                code: 'def ItemList({ attributes }: Component): VNode {\n  { items } = attributes\n\n  <ul class="list-group">\n    for index, item of items {\n      <li class="list-group-item">\n        <span style={ color: \'#6c757d\', fontSize: \'0.85em\', marginRight: \'0.5em\' }>\'#\'(index + 1)</span>\n        = item\n      </li>\n    }\n  </ul>\n}\n\ndef main(): VNode {\n  items = [\'Apple\', \'Banana\', \'Cherry\']\n  <ItemList items=items />\n}'
-              },
-{ name: 'Conditional rendering',
-                code: 'def StatusBadge(ctx: Component): VNode {\n  { value as status, setState as setStatus } = ctx.state<string>(\'status\', \'online\')\n\n  statuses = [\'online\', \'degraded\', \'offline\']\n\n  <div style={ padding: \'1.5em\', fontFamily: \'system-ui\' }>\n    if status == \'online\' {\n      <p style={ color: \'#198754\' }>\'✓ All systems operational\'</p>\n    } elseif status == \'degraded\' {\n      <p style={ color: \'#fd7e14\' }>\'⚠ Partial outage\'</p>\n    } else {\n      <p style={ color: \'#dc3545\' }>\'✗ Major outage\'</p>\n    }\n    <div style={ display: \'flex\', gap: \'0.4em\', marginTop: \'1em\' }>\n      for s in statuses {\n        cls = if s == status => \'btn btn-sm btn-secondary\' else \'btn btn-sm btn-outline-secondary\'\n        <button class=cls on={ click: () => setStatus(s) }>s</button>\n      }\n    </div>\n  </div>\n}\n\ndef main(): VNode {\n  <StatusBadge />\n}'
-              },
-{ name: 'Type system',
-                code: 'type Status = \'idle\' | \'loading\' | \'success\'\n\ntype User = { name: string, age: number, role: \'admin\' | \'viewer\' }\n\ndef formatUser(user: User): string {\n  label = user.name\' (age: \'user.age\')\'\n  return label\n}\n\ndef TypeShowcase(ctx: Component): VNode {\n  { value as status, setState as setStatus } = ctx.state<Status>(\'status\', \'idle\')\n  { value as user, setState as setUser } = ctx.state<User | null>(\'user\', null)\n\n  def loadUser() {\n    setStatus(\'loading\')\n    setUser({ name: \'Alice\', age: 30, role: \'admin\' })\n    setStatus(\'success\')\n  }\n\n  <div style={ padding: \'2em\' }>\n    <h2>\'Type system demo\'</h2>\n    <p>\'Status: \'status</p>\n    if user {\n      <p>formatUser(user)</p>\n      <p>\'Role: \'user.role</p>\n    }\n    <button class="btn btn-primary" on={ click: loadUser }>\'Load user\'</button>\n  </div>\n}\n\ndef main(): VNode {\n  <TypeShowcase />\n}'
-              }
-              ]
 
               for example in examples {
                 <button
