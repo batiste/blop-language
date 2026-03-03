@@ -234,22 +234,24 @@ def PlaygroundPage(ctx: Component): VNode {
               </div>
             }
 
-            if activeTab == 'js' {
-              if error {
-                <pre style={
-                    height: editorHeight,
-                    margin: '0',
-                    padding: '1.25em 1.5em',
-                    backgroundColor: '#2d1a1a',
-                    color: '#f8b4b4',
-                    fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
-                    fontSize: '13px',
-                    overflowY: 'auto',
-                    border: 'none',
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: '1.65'
-                }><code>error</code></pre>
-              } elseif output {
+            if error {
+              <pre style={
+                  height: editorHeight,
+                  margin: '0',
+                  padding: '1.25em 1.5em',
+                  backgroundColor: '#2d1a1a',
+                  color: '#f8b4b4',
+                  fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, monospace',
+                  fontSize: '13px',
+                  overflowY: 'auto',
+                  border: 'none',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: '1.65'
+              }><code>error</code></pre>
+            }
+
+            if activeTab == 'js' && !error {
+              if output {
                 <pre style={
                     height: editorHeight,
                     margin: '0',
@@ -277,7 +279,7 @@ def PlaygroundPage(ctx: Component): VNode {
             }
             // Preview tab — previewFn is rendered as a real component in the normal tree
             previewDisplay = 'none'
-            if activeTab == 'preview' {
+            if activeTab == 'preview' && !error {
               previewDisplay := 'block'
             }
             if previewError {
