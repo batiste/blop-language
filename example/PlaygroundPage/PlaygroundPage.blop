@@ -14,16 +14,13 @@ def PlaygroundPage(ctx: Component): VNode {
   { value as error, setState as setError } = ctx.state<string | null>('error', null)
   { value as warning, setState as setWarning } = ctx.state<string | null>('warning', null)
   { value as isCompiling, setState as setIsCompiling } = ctx.state<boolean>('isCompiling', false)
-  { value as activeTab, setState as setActiveTab } = ctx.state<string>('activeTab', 'js')
+  { value as activeTab, setState as setActiveTab } = ctx.state<string>('activeTab', 'preview')
   { value as previewFn, setState as setPreviewFn } = ctx.state<any>('previewFn', null)
   { value as previewKey, setState as setPreviewKey } = ctx.state<number>('previewKey', 0)
   { value as previewError, setState as setPreviewError } = ctx.state<string | null>('previewError', null)
   { value as highlightedInput, setState as setHighlightedInput } = ctx.state<string>('highlightedInput', '')
 
-  ctx.mount(async () => {
-    html = await highlightCodeForEditor(code, 'blop')
-    setHighlightedInput(html)
-  })
+
 
   def executePreview(compiledCode, exportKeys) {
     if !compiledCode || !exportKeys || exportKeys.length == 0 {
@@ -120,6 +117,12 @@ def PlaygroundPage(ctx: Component): VNode {
       compileCode(exampleCode)
     }
   }
+
+  ctx.mount(async () => {
+    html = await highlightCodeForEditor(code, 'blop')
+    setHighlightedInput(html)
+    compileCode(code)
+  })
 
   <div style={ padding: '0 1.5em 2em' }>
     // Header

@@ -234,7 +234,7 @@ def ShowcasePage(ctx: Component): VNode {
     // Tab Content
     <div style={ padding: '2em', backgroundColor: 'white', minHeight: '500px' }>
       if activeTab == 'overview' {
-        <div style={ maxWidth: '1100px' }>
+        <div key="overview" style={ maxWidth: '1100px' }>
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '1.5em', color: '#212529' }>
             'How Blop differs from JSX-based frameworks'
           </h2>
@@ -319,7 +319,7 @@ def ShowcasePage(ctx: Component): VNode {
           </div>
         </div>
       } elseif activeTab == 'counter' {
-        <div>
+        <div key="counter">
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.5em', color: '#212529' }>
             'Reactive state'
           </h2>
@@ -365,7 +365,7 @@ def ShowcasePage(ctx: Component): VNode {
           </div>
         </div>
       } elseif activeTab == 'loops' {
-        <div>
+        <div key="loops">
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.5em', color: '#212529' }>
             'For loops in templates'
           </h2>
@@ -419,7 +419,7 @@ def ShowcasePage(ctx: Component): VNode {
           </div>
         </div>
       } elseif activeTab == 'conditionals' {
-        <div>
+        <div key="conditionals">
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.5em', color: '#212529' }>
             'Conditional rendering'
           </h2>
@@ -478,7 +478,7 @@ def ShowcasePage(ctx: Component): VNode {
           </div>
         </div>
       } elseif activeTab == 'comparison' {
-        <div style={ maxWidth: '1100px' }>
+        <div key="comparison" style={ maxWidth: '1100px' }>
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.35em', color: '#212529' }>
             'Blop vs React / JSX — side by side'
           </h2>
@@ -627,7 +627,7 @@ for key, value in config {
           </div>
         </div>
       } elseif activeTab == 'types' {
-        <div style={ maxWidth: '1100px' }>
+        <div key="types" style={ maxWidth: '1100px' }>
           <h2 style={ fontSize: '1.25em', fontWeight: '600', marginBottom: '0.35em', color: '#212529' }>
             'Type system'
           </h2>
