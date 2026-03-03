@@ -141,7 +141,8 @@ def PlaygroundPage(ctx: Component): VNode {
               fontSize: '0.85em', color: '#6c757d' }>
             <span>'Input — Blop'</span>
           </div>
-          <div class="card-body" style={ padding: '0', position: 'relative', height: editorHeight, overflow: 'hidden', backgroundColor: '#1a202c' }>
+          <div class="card-body" style={ padding: '0', position: 'relative', height: editorHeight, overflow: 'hidden',
+              backgroundColor: '#1a202c' }>
             <div
               hooks={ insert: applyHighlight, update: applyHighlight }
               style={ position: 'absolute', top: '0', left: '0', right: '0', bottom: '0',
