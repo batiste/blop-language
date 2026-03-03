@@ -544,3 +544,41 @@ describe('Edge cases', () => {
     }
   `));
 });
+
+// ─── ERROR MESSAGE QUALITY ───────────────────────────────────────────────────
+describe('Error message quality', () => {
+  test('trailing + operator shows helpful message', () =>
+    expectCompilationError(
+      `setState(count + )`,
+      'Expected an expression after `+`'
+    )
+  );
+
+  test('trailing - operator shows helpful message', () =>
+    expectCompilationError(
+      `setState(count - )`,
+      'Expected an expression after `-`'
+    )
+  );
+
+  test('trailing && operator shows helpful message', () =>
+    expectCompilationError(
+      `b = (isActive && )`,
+      'Expected an expression after `&&`'
+    )
+  );
+
+  test('trailing comma in function call shows helpful message', () =>
+    expectCompilationError(
+      `def f(a) {}\nf(1, )`,
+      'Trailing comma'
+    )
+  );
+
+  test('trailing comma in array literal shows helpful message', () =>
+    expectCompilationError(
+      `x = [1, 2, ]`,
+      'Trailing comma'
+    )
+  );
+});
