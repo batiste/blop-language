@@ -128,7 +128,7 @@ describe('Arity checking', () => {
   });
 
   describe('skips arity check for untyped functions', () => {
-    test('does not warn when params have no type annotations', () => {
+    test('does not warn when params have no type annotations (zero args — VNode component pattern)', () => {
       // Untyped params (AnyType) indicate VNode/component functions whose
       // props are optional at the call site — arity check is intentionally skipped.
       const code = `
@@ -138,6 +138,27 @@ describe('Arity checking', () => {
         component()
       `;
       expectCompiles(code);
+    });
+
+    test('still warns when too many args are passed to an untyped-param function', () => {
+      // Too-many-args is never valid, even for untyped params.
+      const code = `
+        def call(_a) {
+          return 1
+        }
+        call(1, 1)
+      `;
+      expectCompilationError(code, 'function call takes 1 argument but got 2');
+    });
+
+    test('still warns when too many args are passed to a component-style untyped function', () => {
+      const code = `
+        def component(props) {
+          <div>'hello'</div>
+        }
+        component(1, 2)
+      `;
+      expectCompilationError(code, 'function component takes 1 argument but got 2');
     });
   });
 });
