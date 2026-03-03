@@ -1,22 +1,25 @@
 // Syntax highlighting via Shiki using the Blop TextMate grammar from the VSCode extension.
-// The highlighter is initialized once and reused across all code blocks.
+// Uses shiki/core + JS regex engine (no WASM, no full language registry) so the
+// build only includes the two grammars we actually need.
 
-import { createHighlighter } from 'shiki'
+import { createHighlighterCore } from 'shiki/core'
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
+import langJsx from 'shiki/langs/jsx.mjs'
+import themeGithubDark from 'shiki/themes/github-dark.mjs'
 import blopGrammar from '../vscode/blop-syntax-highlighter/blop.json'
 
 let highlighterPromise = null
 
 function getHighlighter() {
   if (!highlighterPromise) {
-    highlighterPromise = createHighlighter({
-      themes: ['github-dark'],
+    highlighterPromise = createHighlighterCore({
+      themes: [themeGithubDark],
       langs: [
-        // Built-in Shiki languages
-        'jsx',
-        'javascript',
+        langJsx,
         // Custom Blop language from the VSCode syntax highlighter extension
         { ...blopGrammar, name: 'blop' },
       ],
+      engine: createJavaScriptRegexEngine(),
     })
   }
   return highlighterPromise
