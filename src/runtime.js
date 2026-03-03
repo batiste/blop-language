@@ -293,6 +293,10 @@ function createComponent(ComponentFct, attributes, children, name, userKey) {
   const key = userKey !== undefined ? userKey : attributes.key;
   const path = componentPath(name, key);
   if (cache[path]) {
+    // Update componentFct if it changed (e.g. dynamically compiled functions in the Playground)
+    if (!isComponent(ComponentFct) && cache[path].componentFct !== ComponentFct) {
+      cache[path].componentFct = ComponentFct;
+    }
     return cache[path]._render(attributes, children);
   }
   let component;
@@ -475,8 +479,9 @@ function mount(dom, render) {
 }
 
 // ES module exports
-export { h, patch, mount, Component, trackRead, notifyWrite, ssrRender };
-export const c = createComponent;
+const c = createComponent;
+export { h, patch, mount, Component, trackRead, notifyWrite, ssrRender, c };
+
 
 /**
  * Resets the RAF-batch scheduling state. Only intended for use in tests:

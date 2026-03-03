@@ -803,3 +803,35 @@ describe('mount.refresh() full-cycle cleanup', () => {
     vi.useRealTimers();
   });
 });
+
+describe('createComponent - dynamic function replacement', () => {
+  test('updates componentFct when a new function is passed for the same cached path', () => {
+    // Simulates the Playground use-case: a component function is recompiled and
+    // passed to c() with the same name/key, but the runtime must use the NEW
+    // function rather than the one stored in cache.
+    let parentCtx;
+    let currentFn;
+
+    function v1() { return h('span', {}, ['v1']); }
+    function v2() { return h('span', {}, ['v2']); }
+
+    currentFn = v1;
+
+    function Parent(ctx) {
+      parentCtx = ctx;
+      return c(currentFn, {}, [], 'Dynamic');
+    }
+
+    const dom = document.createElement('div');
+    const { init } = mount(dom, () => c(Parent, {}, [], 'Parent'));
+    const vnode1 = init();
+
+    expect(vnode1.children[0].text).toBe('v1');
+
+    // Swap in the new function and re-render the parent
+    currentFn = v2;
+    parentCtx.partialRender();
+
+    expect(parentCtx.vnode.children[0].text).toBe('v2');
+  });
+});

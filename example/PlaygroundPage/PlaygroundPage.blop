@@ -8,6 +8,8 @@ import { examples } from './examples.blop'
 import 'blop' as blopRuntime
 
 
+_debounceTimer: any = null
+
 
 def PlaygroundPage(ctx: Component): VNode {
 
@@ -100,8 +102,8 @@ def PlaygroundPage(ctx: Component): VNode {
     highlightCodeForEditor(newCode, 'blop').then((html) => {
       setHighlightedInput(html)
     })
-    clearTimeout(ctx.state._debounceTimer)
-    ctx.state._debounceTimer = setTimeout(() => {
+    clearTimeout(_debounceTimer)
+    _debounceTimer := setTimeout(() => {
       compileCode(newCode)
     }, 300)
   }
@@ -193,7 +195,6 @@ def PlaygroundPage(ctx: Component): VNode {
                 'Compile'
               </button>
             }
-            <span style={ fontSize: '0.85em', color: '#6c757d' }>'Ctrl+Enter also works in most browsers'</span>
           </div>
         </div>
       </div>
