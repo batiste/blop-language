@@ -81,7 +81,7 @@ inference(ast, stream, 'debug.blop');
 
 ### Writing Blop
 
-Blop is similar to TypeScript but different. Here are some key differences:
+Blop is similar to TypeScript but with key differences:
 
 | Feature | Blop |
 |---------|------|
@@ -90,6 +90,6 @@ Blop is similar to TypeScript but different. Here are some key differences:
 | Variable reassignment | `x := 2` |
 | Significant whitespace | `a = 1 // a  =1 is wrong on both side of =` |
 | String interpolation | `'Hello 'name` |
-| Ternary and conditionals | `if cond => a else b`, `if {} elseif {} else {}` |
+| Ternary and conditionals | `if cond => a else b`, `if { ... } elseif* { ... } else { ... }` |
 | Namespace import | `import * as m from 'pkg'`, `import 'pkg' as m` |
 | Semicolons | not used |

@@ -118,49 +118,88 @@ def ListDemo(ctx: Component): VNode {
 }
 
 def ConditionalDemo(ctx: Component): VNode {
-  { value as visible, setState as setVisible } = ctx.state<boolean>('visible', true)
-  { value as status, setState as setStatus } = ctx.state<string>('status', 'active')
+  { value as status, setState as setStatus } = ctx.state<string>('status', 'online')
+  { value as showDetails, setState as setShowDetails } = ctx.state<boolean>('showDetails', false)
 
-  statuses = ['active', 'pending', 'inactive']
+  statuses = ['online', 'degraded', 'offline']
 
-  <div style={ padding: '1em' }>
-    <div style={ marginBottom: '1.5em' }>
-      btnText = 'Hide'
-      if !visible {
-        btnText := 'Show'
-      }
-      <button class="btn btn-sm btn-outline-primary" on={ click: () => setVisible(!visible) }>
-        = btnText
-      </button>
+  dotColor = '#6c757d'
+  cardBorder = '#dee2e6'
+  statusText = 'Unknown'
+  statusColor = '#6c757d'
+  bgColor = '#f8f9fa'
+  if status == 'online' {
+    dotColor := '#198754'
+    cardBorder := '#a3cfbb'
+    statusText := 'All systems operational'
+    statusColor := '#146c43'
+    bgColor := '#d1e7dd'
+  } elseif status == 'degraded' {
+    dotColor := '#fd7e14'
+    cardBorder := '#fecba1'
+    statusText := 'Partial outage detected'
+    statusColor := '#984c0c'
+    bgColor := '#ffe5d0'
+  } else {
+    dotColor := '#dc3545'
+    cardBorder := '#f1aeb5'
+    statusText := 'Major outage in progress'
+    statusColor := '#842029'
+    bgColor := '#f8d7da'
+  }
 
-      if visible {
-        <div class="alert alert-secondary" style={ marginTop: '1em', marginBottom: '0' }>
-          'Content is visible. Toggle with the button above.'
+  <div style={ padding: '1em', maxWidth: '360px' }>
+    // Status card
+    <div style={ border: '1px solid 'cardBorder, borderRadius: '8px', overflow: 'hidden',
+        backgroundColor: bgColor, marginBottom: '1em', transition: 'all 0.2s' }>
+      <div style={ padding: '1em 1.25em', display: 'flex', alignItems: 'center', gap: '0.75em' }>
+        <div style={ width: '12px', height: '12px', borderRadius: '50%',
+            backgroundColor: dotColor, flexShrink: '0' } />
+        <div>
+          <div style={ fontWeight: '600', fontSize: '0.95em', color: statusColor }>
+            = statusText
+          </div>
+          <div style={ fontSize: '0.8em', color: statusColor, opacity: '0.8', marginTop: '0.15em' }>
+            if status == 'online' {
+              'Last checked: just now'
+            } elseif status == 'degraded' {
+              'Investigating since 14:32'
+            } else {
+              'Incident started at 13:55'
+            }
+          </div>
+        </div>
+      </div>
+
+      if showDetails {
+        <div style={ borderTop: '1px solid 'cardBorder, padding: '0.75em 1.25em',
+            fontSize: '0.82em', color: statusColor }>
+          services = ['API', 'Database', 'CDN', 'Auth']
+          for svc in services {
+            svcOk = status == 'online' || (status == 'degraded' && svc != 'CDN')
+            <div style={ display: 'flex', justifyContent: 'space-between',
+                padding: '0.2em 0', borderBottom: '1px solid 'cardBorder, opacity: '0.9' }>
+              <span>svc</span>
+              <span style={ color: if svcOk => '#146c43' else '#842029', fontWeight: '600' }>
+                = if svcOk => 'Operational' else 'Down'
+              </span>
+            </div>
+          }
         </div>
       }
     </div>
 
-    <div>
-      <p style={ marginBottom: '0.5em', fontSize: '0.9em', color: '#6c757d' }>'Status:'</p>
-      <div style={ display: 'flex', gap: '0.5em', flexWrap: 'wrap' }>
-        for s in statuses {
-          isActive = s == status
-          btnClass = if isActive => 'btn btn-sm btn-secondary' else 'btn btn-sm btn-outline-secondary'
-          <button class=btnClass on={ click: () => setStatus(s) }>s</button>
-        }
-      </div>
-
-      <div style={ marginTop: '1em', padding: '0.75em 1em', backgroundColor: '#f8f9fa', borderRadius: '4px',
-          fontSize: '0.9em' }>
-        if status == 'active' {
-          <span style={ color: '#198754' }>'Active — all systems running'</span>
-        } elseif status == 'pending' {
-          <span style={ color: '#fd7e14' }>'Pending — awaiting confirmation'</span>
-        } else {
-          <span style={ color: '#6c757d' }>'Inactive — service is stopped'</span>
-        }
-      </div>
+    // Controls
+    <div style={ display: 'flex', gap: '0.4em', flexWrap: 'wrap', marginBottom: '0.75em' }>
+      for s in statuses {
+        isActive = s == status
+        btnStyle = if isActive => 'btn btn-sm btn-secondary' else 'btn btn-sm btn-outline-secondary'
+        <button class=btnStyle on={ click: () => setStatus(s) }>s</button>
+      }
     </div>
+    <button class="btn btn-sm btn-outline-secondary" on={ click: () => setShowDetails(!showDetails) }>
+      = if showDetails => 'Hide details' else 'Show service details'
+    </button>
   </div>
 }
 
@@ -432,37 +471,52 @@ def ShowcasePage(ctx: Component): VNode {
               <CodeBlock
                 title="ConditionalDemo.blop"
                 code="def ConditionalDemo(ctx: Component): VNode {
-  { value as visible, setState as setVisible } =
-    ctx.state<boolean>('visible', true)
   { value as status, setState as setStatus } =
-    ctx.state<string>('status', 'active')
+    ctx.state<string>('status', 'online')
+  { value as showDetails, setState as setShowDetails } =
+    ctx.state<boolean>('showDetails', false)
 
-  statuses = ['active', 'pending', 'inactive']
+  // Derive display values from current status
+  dotColor = '#6c757d'
+  statusText = 'Unknown'
+  if status == 'online' {
+    dotColor := '#198754'
+    statusText := 'All systems operational'
+  } elseif status == 'degraded' {
+    dotColor := '#fd7e14'
+    statusText := 'Partial outage detected'
+  } else {
+    dotColor := '#dc3545'
+    statusText := 'Major outage in progress'
+  }
 
   <div>
-    <button on={ click: () => setVisible(!visible) }>
-      if visible => 'Hide' else 'Show'
-    </button>
+    <div style={ display: 'flex', alignItems: 'center', gap: '0.75em' }>
+      <div style={ backgroundColor: dotColor, borderRadius: '50%',
+          width: '12px', height: '12px' } />
+      <strong>statusText</strong>
+    </div>
 
-    if visible {
-      <div class=\"alert alert-secondary\">
-        'Content is visible.'
-      </div>
+    if showDetails {
+      services = ['API', 'Database', 'CDN', 'Auth']
+      for svc in services {
+        svcOk = status == 'online' || svc != 'CDN'
+        <div>
+          svc': 'if svcOk => 'Operational' else 'Down'
+        </div>
+      }
     }
 
+    statuses = ['online', 'degraded', 'offline']
     for s in statuses {
       isActive = s == status
-      btnClass = if isActive => 'btn btn-sm btn-secondary' else 'btn btn-sm btn-outline-secondary'
-      <button class=btnClass on={ click: () => setStatus(s) }>s</button>
+      cls = if isActive => 'btn btn-sm btn-secondary'
+              else 'btn btn-sm btn-outline-secondary'
+      <button class=cls on={ click: () => setStatus(s) }>s</button>
     }
-
-    if status == 'active' {
-      <p>'Active — all systems running'</p>
-    } elseif status == 'pending' {
-      <p>'Pending — awaiting confirmation'</p>
-    } else {
-      <p>'Inactive'</p>
-    }
+    <button on={ click: () => setShowDetails(!showDetails) }>
+      = if showDetails => 'Hide details' else 'Show details'
+    </button>
   </div>
 }" />
             </div>
