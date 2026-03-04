@@ -33,8 +33,6 @@ TodoListItem = ({ attributes }: Component): VNode => {
 
   <div class="card" style=cardStyle key=attributes.key>
     <div class="card-body" style={ padding: '10px' }>
-
-    
       <div class="form-row align-items-center">
         <div class="col-auto">
           <input type="checkbox" checked=completed on={ change: toggleComplete } style={ width: '20px', height: '20px',
