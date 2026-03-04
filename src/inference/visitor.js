@@ -4,7 +4,7 @@
 
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, resolveTypeAlias, isTypeCompatible, getPropertyType, parseTypePrimary } from './typeSystem.js';
-import { ObjectType, ArrayType, TupleType, AnyType, TypeAlias, RecordType, PrimitiveType, LiteralType, createUnion } from './Type.js';
+import { ObjectType, ArrayType, TupleType, AnyType, TypeAlias, RecordType, PrimitiveType, LiteralType, createUnion, UnionType, NullType, UndefinedType } from './Type.js';
 import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 // Module state
@@ -266,6 +266,18 @@ function validateObjectPropertyAccess(objectType, propertyName, accessNode) {
   if (!objectType || objectType === AnyType) return AnyType;
 
   const resolvedType = resolveTypeAlias(objectType, typeAliases);
+
+  // Warn when accessing a NAMED property on a possibly-null/undefined value (no optional chaining).
+  // accessNode is null in the inference phase, so this only fires during checking.
+  // We skip bracket/index access (propertyName === null) to avoid false positives on array element access.
+  if (accessNode && propertyName && resolvedType instanceof UnionType) {
+    const hasNull = resolvedType.types.some(t => t === NullType || (t instanceof PrimitiveType && t.name === 'null'));
+    const hasUndefined = resolvedType.types.some(t => t === UndefinedType || (t instanceof PrimitiveType && t.name === 'undefined'));
+    if (hasNull || hasUndefined) {
+      const nullishPart = [hasNull && 'null', hasUndefined && 'undefined'].filter(Boolean).join(' | ');
+      pushWarning(accessNode, `Object is possibly ${nullishPart}`);
+    }
+  }
 
   // Skip empty object type — often produced when inference fails
   if (resolvedType.toString() === '{}') return AnyType;

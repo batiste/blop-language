@@ -134,6 +134,32 @@ describe('property path narrowing — builtin types', () => {
       }
     `);
   });
+
+  test('vnode.elm narrowed via negated truthiness guard (!vnode.elm)', () => {
+    expectCompiles(`
+      def insert(vnode: VNode) {
+        if !vnode.elm {
+          return
+        }
+        vnode.elm.focus()
+        vnode.elm.select()
+      }
+    `);
+  });
+
+  test('vnode.elm narrowed via negated truthiness in arrow-function hook', () => {
+    expectCompiles(`
+      hooks = {
+        insert: (vnode: VNode) => {
+          if !vnode.elm {
+            return
+          }
+          vnode.elm.focus()
+          vnode.elm.select()
+        }
+      }
+    `);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -150,5 +176,52 @@ describe('property path narrowing — no false narrowing', () => {
         n: number = cfg.host
       }
     `, 'number');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Warn on unguarded nullable property access
+// ---------------------------------------------------------------------------
+
+describe('property path narrowing — unguarded nullable access', () => {
+  test('warns when accessing property on DOMElement | undefined without guard', () => {
+    expectCompilationError(`
+      def insert(vnode: VNode) {
+        vnode.elm.focus()
+      }
+    `, 'possibly undefined');
+  });
+
+  test('no warning when accessing property after elm guard', () => {
+    expectCompiles(`
+      def insert(vnode: VNode) {
+        if vnode.elm {
+          vnode.elm.focus()
+        }
+      }
+    `);
+  });
+
+  test('no warning when using optional chaining on nullish property', () => {
+    expectCompiles(`
+      def insert(vnode: VNode) {
+        vnode.elm?.focus()
+      }
+    `);
+  });
+
+  test('warns when accessing named property on null | object without guard', () => {
+    expectCompilationError(`
+      def findUser(id: number): object | null {
+        if id == 0 {
+          return null
+        }
+        return { name: 'User', id }
+      }
+      def test() {
+        user = findUser(1)
+        name = user.name
+      }
+    `, 'possibly null');
   });
 });

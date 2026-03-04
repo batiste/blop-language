@@ -4,11 +4,8 @@ TodoListItem = ({ attributes }: Component): VNode => {
 
   hooks = {
     insert: (vnode: VNode) => {
-      if vnode.elm == undefined {
-        return
-      }
-      vnode.elm.focus()
-      vnode.elm.select()
+      vnode.elm?.focus()
+      vnode.elm?.select()
     }
   }
 
@@ -60,23 +57,4 @@ TodoListItem = ({ attributes }: Component): VNode => {
       </div>
     </div>
   </div>
-}
-
-
-def insert(vnode: VNode) {
-  if typeof vnode.elm == 'undefined' {
-    return
-  }
-  vnode.elm.focus()
-  vnode.elm.select()
-}
-
-hooks = {
-  insert: (vnode: VNode) => {
-    if !vnode.elm {
-      return
-    }
-    vnode.elm.focus()
-    vnode.elm.select()
-  }
 }

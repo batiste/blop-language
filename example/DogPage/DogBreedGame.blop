@@ -86,13 +86,16 @@ def DogGame(ctx: Component) {
 
   def check() {
     elm = input.elm
+    if !elm {
+      return
+    }
     userGuess = elm.value
 
     if !userGuess || userGuess.trim().length == 0 {
       return
     }
 
-    input.elm.value = ''
+    elm.value = ''
     page.attempt = (page.attempt ?? 0) + 1
 
     score = scoreGuess(dog?.breed ?? '', userGuess)
@@ -110,7 +113,11 @@ def DogGame(ctx: Component) {
   }
 
   def hint() {
-    input.elm.value = dog.breed.slice(0, 2)
+    elm = input.elm
+    if !elm {
+      return
+    }
+    elm.value = dog.breed.slice(0, 2)
   }
 
   <div>

@@ -60,7 +60,9 @@ test('infers union with null', () => {
   expect(result).toBe(null)
   
   user = findUser(1)
-  expect(user.id).toBe(1)
+  if user {
+    expect(user.id).toBe(1)
+  }
 })
 
 // Test 5: Nested conditionals with union

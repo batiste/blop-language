@@ -344,9 +344,9 @@ function detectEqualityCheck(expNode) {
 }
 
 /**
- * Detect truthiness checks: bare `if val { }` patterns.
- * Returns { variable, truthiness: true } when the condition is a plain variable
- * with no operators, enabling null/undefined exclusion in the if-branch.
+ * Detect truthiness checks: bare `if val { }` or negated `if !val { }` patterns,
+ * including property access forms: `if obj.prop { }` / `if !obj.prop { }`.
+ * Returns { variable, property?, truthiness: true, negated } when detected.
  * @param {Object} expNode - Expression node to analyze
  * @returns {Object|null} Type guard info or null
  */
@@ -354,16 +354,25 @@ function detectTruthinessCheck(expNode) {
   if (!expNode) return null;
 
   let variableName = null;
+  let isNegated = false;
   let hasComplexity = false;
+  let propertyAccessCandidates = [];
 
   const checkNode = (node) => {
     if (!node || hasComplexity) return;
 
-    // Any operator or typeof makes this a complex expression
+    // A single leading `!` is allowed — mark negated and continue scanning inside
+    if (node.type === 'unary' && node.value === '!') {
+      isNegated = true;
+      if (node.children) node.children.forEach(checkNode);
+      return;
+    }
+
+    // Any other operator makes this too complex to narrow
     if (
       node.type === 'boolean_operator' ||
       node.type === 'math_operator' ||
-      node.type === 'unary' ||
+      node.type === 'unary' || // second unary after the one above already returned
       node.type === 'func_call' ||
       (node.type === 'operand' && node.value?.includes('typeof'))
     ) {
@@ -371,10 +380,25 @@ function detectTruthinessCheck(expNode) {
       return;
     }
 
+    // Collect property access nodes (named.obj + named.prop)
+    if (node.named?.prop && node.named?.obj) {
+      const findFirstName = (n) => {
+        if (!n) return null;
+        if (n.type === 'name') return n.value;
+        for (const c of (n.children || [])) { const r = findFirstName(c); if (r) return r; }
+        return null;
+      };
+      const objName = findFirstName(node.named.obj);
+      const propName = node.named.prop.value;
+      if (objName && propName) propertyAccessCandidates.push({ obj: objName, prop: propName });
+      // Don't recurse further — we've captured the property access
+      return;
+    }
+
     // A name_exp with no access = plain variable reference
     if (node.type === 'name_exp' && !node.named?.access && node.named?.name) {
       variableName = node.named.name.value;
-      return; // don't recurse further into this subtree
+      return;
     }
 
     if (node.children) node.children.forEach(checkNode);
@@ -387,8 +411,15 @@ function detectTruthinessCheck(expNode) {
 
   checkNode(expNode);
 
-  if (!hasComplexity && variableName) {
-    return { variable: variableName, truthiness: true };
+  if (hasComplexity) return null;
+
+  if (propertyAccessCandidates.length > 0) {
+    const { obj, prop } = propertyAccessCandidates[0];
+    return { variable: obj, property: prop, truthiness: true, negated: isNegated };
+  }
+
+  if (variableName) {
+    return { variable: variableName, truthiness: true, negated: isNegated };
   }
 
   return null;
@@ -401,6 +432,15 @@ function detectTruthinessCheck(expNode) {
 function applyNullishExclusion(scope, variable, lookupVariable) {
   applyExclusion(scope, variable, NullType, lookupVariable);
   applyExclusion(scope, variable, UndefinedType, lookupVariable);
+}
+
+/**
+ * Exclude both null and undefined from a named property of an object in scope.
+ * Used for property truthiness narrowing.
+ */
+function applyPropertyNullishExclusion(scope, variable, property, lookupVariable, typeAliases) {
+  applyPropertyTypeEffect(excludeType, scope, variable, property, NullType, lookupVariable, typeAliases);
+  applyPropertyTypeEffect(excludeType, scope, variable, property, UndefinedType, lookupVariable, typeAliases);
 }
 
 /**
@@ -453,7 +493,11 @@ function applyPropertyTypeEffect(typeOp, scope, variable, property, effectType, 
  */
 function applyIfBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
   if (typeGuard.property) {
-    if (typeGuard.negated) {
+    if (typeGuard.truthiness) {
+      // `if obj.prop { }` → if-branch is truthy → exclude null/undefined
+      // `if !obj.prop { }` → if-branch is falsy → no useful narrowing
+      if (!typeGuard.negated) applyPropertyNullishExclusion(scope, typeGuard.variable, typeGuard.property, lookupVariable, typeAliases);
+    } else if (typeGuard.negated) {
       applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
     } else {
       applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
@@ -462,7 +506,9 @@ function applyIfBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
   }
 
   if (typeGuard.truthiness) {
-    applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
+    // `if val { }` → if-branch is truthy → exclude null/undefined
+    // `if !val { }` → if-branch is falsy → no useful narrowing
+    if (!typeGuard.negated) applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
   } else if (typeGuard.negated) {
     applyExclusion(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
   } else {
@@ -479,7 +525,11 @@ function applyIfBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
  */
 function applyElseBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
   if (typeGuard.property) {
-    if (typeGuard.negated) {
+    if (typeGuard.truthiness) {
+      // `if obj.prop { } else { }` → else is falsy → no narrowing
+      // `if !obj.prop { } else { }` → else is truthy → exclude null/undefined
+      if (typeGuard.negated) applyPropertyNullishExclusion(scope, typeGuard.variable, typeGuard.property, lookupVariable, typeAliases);
+    } else if (typeGuard.negated) {
       applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
     } else {
       applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
@@ -487,7 +537,9 @@ function applyElseBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
     return;
   }
   if (typeGuard.truthiness) {
-    // falsy branch: we don't know which falsy value it is — leave type unchanged
+    // `if val { } else { }` → else is falsy → no narrowing
+    // `if !val { } else { }` → else is truthy → exclude null/undefined
+    if (typeGuard.negated) applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
   } else if (typeGuard.negated) {
     applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
   } else {
@@ -502,7 +554,11 @@ function applyElseBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
  */
 function applyPostIfGuard(scope, typeGuard, lookupVariable, typeAliases) {
   if (typeGuard.property) {
-    if (typeGuard.negated) {
+    if (typeGuard.truthiness) {
+      // `if obj.prop { return }` → post-if: elm was falsy → no narrowing
+      // `if !obj.prop { return }` → post-if: elm must be truthy → exclude null/undefined
+      if (typeGuard.negated) applyPropertyNullishExclusion(scope, typeGuard.variable, typeGuard.property, lookupVariable, typeAliases);
+    } else if (typeGuard.negated) {
       applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
     } else {
       applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
@@ -510,7 +566,9 @@ function applyPostIfGuard(scope, typeGuard, lookupVariable, typeAliases) {
     return;
   }
   if (typeGuard.truthiness) {
-    // no narrowing — callers can only reach here when val was falsy (unknown)
+    // `if val { return }` → post-if: val was falsy → no narrowing
+    // `if !val { return }` → post-if: val must be truthy → exclude null/undefined
+    if (typeGuard.negated) applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
   } else if (typeGuard.negated) {
     applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
   } else {

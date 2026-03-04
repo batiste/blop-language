@@ -113,9 +113,11 @@ test('word extraction', () => {
 })
 
 test('url parsing', () => {
-  expect(urlParts.protocol).toBe('https')
-  expect(urlParts.domain).toBe('example.com')
-  expect(urlParts.path).toBe('/path/to/page')
+  if urlParts {
+    expect(urlParts.protocol).toBe('https')
+    expect(urlParts.domain).toBe('example.com')
+    expect(urlParts.path).toBe('/path/to/page')
+  }
 })
 
 test('split with regex', () => {

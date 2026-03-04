@@ -171,7 +171,7 @@ let builtinObjectTypes = {
   VNode: {
     sel: Types.union([StringType, UndefinedType]),        // CSS selector string or undefined
     data: Types.alias('VNodeData'),                       // VNodeData (props, attrs, class, style, dataset, on, hooks, etc.)
-    children: Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]),  // Array of VNode | string, or undefined
+    children: Types.union([Types.array(Types.alias('VNode')), StringType]),  // Array of VNode | string (always initialized by the Blop code generator)
     elm: Types.union([Types.alias('DOMElement'), UndefinedType]),  // The actual DOM element, or undefined
     text: Types.union([StringType, UndefinedType]),       // Text content, or undefined
     key: Types.union([Types.alias('PropertyKey'), UndefinedType]),  // PropertyKey (used for keyed elements), or undefined

@@ -13,23 +13,27 @@ describe('VNode type properties', () => {
     expectCompiles(code);
   });
 
-  test('allows access to elm.value property chain on VNode', () => {
+  test('allows access to elm.value property chain on VNode after guard', () => {
     const code = `
       input = <input type="text" />
       
       def test() {
-        val = input.elm.value
+        if input.elm {
+          val = input.elm.value
+        }
       }
     `;
     expectCompiles(code);
   });
 
-  test('allows assignment to elm.value on VNode', () => {
+  test('allows assignment to elm.value on VNode after guard', () => {
     const code = `
       input = <input type="text" />
       
       def test() {
-        input.elm.value = 'hello'
+        if input.elm {
+          input.elm.value = 'hello'
+        }
       }
     `;
     expectCompiles(code);
