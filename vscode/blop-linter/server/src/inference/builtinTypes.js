@@ -74,14 +74,96 @@ let builtinObjectTypes = {
   },
 
   DOMElement: {
+    // Identity / content
     tagName: StringType,
     id: StringType,
     className: StringType,
+    classList: AnyType,            // DOMTokenList
     innerHTML: StringType,
     outerHTML: StringType,
-    textContent: StringType,
+    textContent: Types.union([StringType, NullType]),
+    innerText: StringType,
+    // Node relationships
+    nodeType: NumberType,
+    nodeName: StringType,
+    nodeValue: Types.union([StringType, NullType]),
+    parentNode: AnyType,           // Node | null
+    parentElement: AnyType,        // DOMElement | null
+    children: AnyType,             // HTMLCollection
+    childNodes: AnyType,           // NodeList
+    firstChild: AnyType,           // Node | null
+    lastChild: AnyType,            // Node | null
+    firstElementChild: AnyType,    // DOMElement | null
+    lastElementChild: AnyType,     // DOMElement | null
+    nextSibling: AnyType,          // Node | null
+    previousSibling: AnyType,      // Node | null
+    nextElementSibling: AnyType,   // DOMElement | null
+    previousElementSibling: AnyType,
+    // Attributes / data
+    attributes: AnyType,           // NamedNodeMap
+    dataset: AnyType,              // DOMStringMap
+    style: AnyType,                // CSSStyleDeclaration
+    // Layout / scroll
+    offsetWidth: NumberType,
+    offsetHeight: NumberType,
+    offsetTop: NumberType,
+    offsetLeft: NumberType,
+    clientWidth: NumberType,
+    clientHeight: NumberType,
+    scrollWidth: NumberType,
+    scrollHeight: NumberType,
+    scrollTop: NumberType,
+    scrollLeft: NumberType,
+    // Common form/media properties
+    value: StringType,
+    checked: BooleanType,
+    disabled: BooleanType,
+    hidden: BooleanType,
+    tabIndex: NumberType,
+    type: StringType,
+    name: StringType,
+    src: StringType,
+    href: StringType,
+    alt: StringType,
+    title: StringType,
+    placeholder: StringType,
+    // Focus / interaction
     focus: new FunctionType([], UndefinedType, [], []),
-    // ... more properties and methods can be added as needed
+    blur: new FunctionType([], UndefinedType, [], []),
+    click: new FunctionType([], UndefinedType, [], []),
+    select: new FunctionType([], UndefinedType, [], []),
+    scrollIntoView: new FunctionType([AnyType], UndefinedType, [], ['arg']),
+    getBoundingClientRect: new FunctionType([], AnyType, [], []),   // DOMRect
+    // Attribute methods
+    getAttribute: new FunctionType([StringType], Types.union([StringType, NullType]), [], ['name']),
+    setAttribute: new FunctionType([StringType, StringType], UndefinedType, [], ['name', 'value']),
+    removeAttribute: new FunctionType([StringType], UndefinedType, [], ['name']),
+    hasAttribute: new FunctionType([StringType], BooleanType, [], ['name']),
+    toggleAttribute: new FunctionType([StringType], BooleanType, [], ['name']),
+    // Query / traversal
+    querySelector: new FunctionType([StringType], AnyType, [], ['selector']),
+    querySelectorAll: new FunctionType([StringType], AnyType, [], ['selector']),
+    getElementsByClassName: new FunctionType([StringType], AnyType, [], ['className']),
+    getElementsByTagName: new FunctionType([StringType], AnyType, [], ['tagName']),
+    matches: new FunctionType([StringType], BooleanType, [], ['selector']),
+    closest: new FunctionType([StringType], AnyType, [], ['selector']),
+    contains: new FunctionType([AnyType], BooleanType, [], ['other']),
+    // Mutation
+    append: new FunctionType([AnyType], UndefinedType, [], ['nodes']),
+    prepend: new FunctionType([AnyType], UndefinedType, [], ['nodes']),
+    before: new FunctionType([AnyType], UndefinedType, [], ['nodes']),
+    after: new FunctionType([AnyType], UndefinedType, [], ['nodes']),
+    remove: new FunctionType([], UndefinedType, [], []),
+    replaceWith: new FunctionType([AnyType], UndefinedType, [], ['node']),
+    cloneNode: new FunctionType([BooleanType], AnyType, [], ['deep']),
+    appendChild: new FunctionType([AnyType], AnyType, [], ['child']),
+    removeChild: new FunctionType([AnyType], AnyType, [], ['child']),
+    insertBefore: new FunctionType([AnyType, AnyType], AnyType, [], ['newNode', 'refNode']),
+    replaceChild: new FunctionType([AnyType, AnyType], AnyType, [], ['newChild', 'oldChild']),
+    // Events
+    addEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    removeEventListener: new FunctionType([StringType, AnyFunctionType], UndefinedType, [], ['event', 'handler']),
+    dispatchEvent: new FunctionType([AnyType], BooleanType, [], ['event']),
   },
 
   // Snabbdom VNode type – represents a virtual DOM node
@@ -90,7 +172,7 @@ let builtinObjectTypes = {
     sel: Types.union([StringType, UndefinedType]),        // CSS selector string or undefined
     data: Types.alias('VNodeData'),                       // VNodeData (props, attrs, class, style, dataset, on, hooks, etc.)
     children: Types.union([Types.array(Types.alias('VNode')), StringType, UndefinedType]),  // Array of VNode | string, or undefined
-    elm: AnyType, // Types.union([Types.alias('Node'), UndefinedType]),  // The actual DOM Node, or undefined
+    elm: Types.union([Types.alias('DOMElement'), UndefinedType]),  // The actual DOM element, or undefined
     text: Types.union([StringType, UndefinedType]),       // Text content, or undefined
     key: Types.union([Types.alias('PropertyKey'), UndefinedType]),  // PropertyKey (used for keyed elements), or undefined
   },

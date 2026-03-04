@@ -2,10 +2,15 @@
 TodoListItem = ({ attributes }: Component): VNode => {
   { value, changeItem as change, removeItem, editItem, editMode, completed, toggleComplete } = attributes
 
-  hooks = { insert: (vnode) => {
+  hooks = {
+    insert: (vnode: VNode) => {
+      if vnode.elm == undefined {
+        return
+      }
       vnode.elm.focus()
       vnode.elm.select()
-    } }
+    }
+  }
 
   // Styling based on completion status
   textDecoration = 'none'
@@ -55,4 +60,23 @@ TodoListItem = ({ attributes }: Component): VNode => {
       </div>
     </div>
   </div>
+}
+
+
+def insert(vnode: VNode) {
+  if typeof vnode.elm == 'undefined' {
+    return
+  }
+  vnode.elm.focus()
+  vnode.elm.select()
+}
+
+hooks = {
+  insert: (vnode: VNode) => {
+    if !vnode.elm {
+      return
+    }
+    vnode.elm.focus()
+    vnode.elm.select()
+  }
 }

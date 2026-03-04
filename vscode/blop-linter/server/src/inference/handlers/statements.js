@@ -596,7 +596,7 @@ function createStatementHandlers(getState) {
       // Visit if branch (with type-narrowing scope when a type guard is present)
       if (typeGuard) {
         const ifScope = pushScope();
-        applyIfBranchGuard(ifScope, typeGuard, lookupVariable);
+        applyIfBranchGuard(ifScope, typeGuard, lookupVariable, typeAliases);
         node.named.stats?.forEach(stat => visit(stat, node));
         popScope();
       } else {
@@ -612,7 +612,7 @@ function createStatementHandlers(getState) {
       if (isSimpleElse) {
         if (typeGuard) {
           const elseScope = pushScope();
-          applyElseBranchGuard(elseScope, typeGuard, lookupVariable);
+          applyElseBranchGuard(elseScope, typeGuard, lookupVariable, typeAliases);
           elseNode.named.stats.forEach(stat => visit(stat, node));
           popScope();
         } else {
@@ -621,7 +621,7 @@ function createStatementHandlers(getState) {
       } else if (elseNode) {
         if (typeGuard) {
           const elseifScope = pushScope();
-          applyElseBranchGuard(elseifScope, typeGuard, lookupVariable);
+          applyElseBranchGuard(elseifScope, typeGuard, lookupVariable, typeAliases);
           visit(elseNode, node);
           popScope();
         } else {
@@ -641,7 +641,7 @@ function createStatementHandlers(getState) {
         elseNode.named?.elseif
       );
       if (typeGuard && !elseHasContent && ifBranchAlwaysReturns) {
-        applyPostIfGuard(getCurrentScope(), typeGuard, lookupVariable);
+        applyPostIfGuard(getCurrentScope(), typeGuard, lookupVariable, typeAliases);
       }
       
       pushToParent(node, parent);

@@ -3,7 +3,8 @@
 // ============================================================================
 
 import { narrowType, excludeType, parseUnionType, isUnionType, resolveTypeAlias, getPropertyType, stringToType } from './typeSystem.js';
-import { LiteralType, StringType, NumberType, NullType, UndefinedType, PredicateType } from './Type.js';
+import { LiteralType, StringType, NumberType, NullType, UndefinedType, PredicateType, ObjectType, TypeAlias } from './Type.js';
+import { getBuiltinObjectType, isBuiltinObjectType } from './builtinTypes.js';
 
 /**
  * Detect typeof checks in expressions
@@ -16,54 +17,71 @@ function detectTypeofCheck(expNode) {
     return null;
   }
   
-  // Look for pattern: typeof variable == 'type'
-  // Collect all relevant nodes first
+  // Look for pattern: typeof variable == 'type' OR typeof obj.prop == 'type'
   let hasTypeof = false;
-  let typeofVar = null;
-  let comparisonType = null;
   let hasComparison = false;
   let isNegated = false;
-  
-  // Walk the entire expression tree and collect pieces
-  const checkNode = (node) => {
+  let comparisonType = null;
+  // property access candidate (obj.prop)
+  let typeofVar = null;
+  let typeofProp = null;
+
+  // Pass 1: collect typeof presence, comparison operator, comparison string, and any property access
+  // We need typeof to be present before relying on the property access, so do one flat scan first.
+  let propertyAccessCandidates = []; // {obj, prop} pairs
+
+  const scan = (node) => {
     if (!node) return;
-    
-    // Check for typeof operand
     if (node.type === 'operand' && node.value && node.value.includes('typeof')) {
       hasTypeof = true;
     }
-    
-    // Check for variable name
-    if (node.type === 'name' && hasTypeof && !typeofVar) {
-      typeofVar = node.value;
-    }
-    
-    // Check for comparison type (string literal)
-    if (node.type === 'str' && hasTypeof) {
-      // Extract string value (remove quotes) and convert to Type object
-      const strValue = node.value.slice(1, -1);
-      comparisonType = stringToType(strValue);
-    }
-    
-    // Check for comparison operator
-    if (node.type === 'boolean_operator' && (node.value === '==' || node.value === '!=' || node.value === '===' || node.value === '!==')) {
+    if (node.type === 'boolean_operator' && ['==', '===', '!=', '!=='].includes(node.value)) {
       hasComparison = true;
       if (node.value === '!=' || node.value === '!==') isNegated = true;
     }
-    
-    // Recurse into children
-    if (node.children) {
-      node.children.forEach(checkNode);
+    if (node.type === 'str' && node.value) {
+      const strValue = node.value.slice(1, -1);
+      comparisonType = stringToType(strValue);
     }
+    // Collect property access nodes (named.obj + named.prop)
+    if (node.named?.prop && node.named?.obj) {
+      const findFirstName = (n) => {
+        if (!n) return null;
+        if (n.type === 'name') return n.value;
+        for (const c of (n.children || [])) { const r = findFirstName(c); if (r) return r; }
+        return null;
+      };
+      const objName = findFirstName(node.named.obj);
+      const propName = node.named.prop.value;
+      if (objName && propName) propertyAccessCandidates.push({ obj: objName, prop: propName });
+    }
+    if (node.children) node.children.forEach(scan);
   };
-  
-  checkNode(expNode);
-  
-  if (hasTypeof && typeofVar && comparisonType && hasComparison) {
-    return { variable: typeofVar, checkType: comparisonType, negated: isNegated };
+  scan(expNode);
+
+  if (!hasTypeof || !hasComparison || !comparisonType) return null;
+
+  // Pass 2: resolve variable/property — prefer property access over plain name
+  if (propertyAccessCandidates.length > 0) {
+    typeofVar = propertyAccessCandidates[0].obj;
+    typeofProp = propertyAccessCandidates[0].prop;
+  } else {
+    // Fall back to first plain name token
+    const findFirstName = (node) => {
+      if (!node) return null;
+      if (node.type === 'name') return node.value;
+      for (const c of (node.children || [])) { const r = findFirstName(c); if (r) return r; }
+      return null;
+    };
+    typeofVar = findFirstName(expNode);
   }
-  
-  return null;
+
+  if (!typeofVar) return null;
+
+  if (typeofProp) {
+    return { variable: typeofVar, property: typeofProp, checkType: comparisonType, negated: isNegated };
+  }
+  return { variable: typeofVar, checkType: comparisonType, negated: isNegated };
 }
 
 /**
@@ -237,11 +255,12 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
 function detectEqualityCheck(expNode) {
   if (!expNode) return null;
 
-  let variableName = null;
   let comparedType = null;
   let hasEqualityCheck = false;
   let isNegated = false;
   let hasTypeofKeyword = false;
+  let propertyAccessCandidates = []; // {obj, prop} pairs
+  let firstPlainName = null;
 
   const checkNode = (node) => {
     if (!node) return;
@@ -252,9 +271,22 @@ function detectEqualityCheck(expNode) {
       return;
     }
 
-    // Capture the first plain variable name (the narrowing target)
-    if (node.type === 'name' && !variableName) {
-      variableName = node.value;
+    // Collect property access nodes (named.obj + named.prop) — takes priority over plain name
+    if (node.named?.prop && node.named?.obj) {
+      const findFirstName = (n) => {
+        if (!n) return null;
+        if (n.type === 'name') return n.value;
+        for (const c of (n.children || [])) { const r = findFirstName(c); if (r) return r; }
+        return null;
+      };
+      const objName = findFirstName(node.named.obj);
+      const propName = node.named.prop.value;
+      if (objName && propName) propertyAccessCandidates.push({ obj: objName, prop: propName });
+    }
+
+    // Capture first plain variable name as fallback
+    if (node.type === 'name' && !firstPlainName) {
+      firstPlainName = node.value;
     }
 
     // null literal
@@ -296,8 +328,16 @@ function detectEqualityCheck(expNode) {
 
   checkNode(expNode);
 
-  if (!hasTypeofKeyword && hasEqualityCheck && variableName && comparedType) {
-    return { variable: variableName, checkType: comparedType, negated: isNegated };
+  if (hasTypeofKeyword || !hasEqualityCheck || !comparedType) return null;
+
+  // Prefer property access over plain name
+  if (propertyAccessCandidates.length > 0) {
+    const { obj, prop } = propertyAccessCandidates[0];
+    return { variable: obj, property: prop, checkType: comparedType, negated: isNegated };
+  }
+
+  if (firstPlainName) {
+    return { variable: firstPlainName, checkType: comparedType, negated: isNegated };
   }
 
   return null;
@@ -364,12 +404,63 @@ function applyNullishExclusion(scope, variable, lookupVariable) {
 }
 
 /**
+ * Apply a type transformation to a single named property of an object in scope.
+ * Rebuilds the object type with the property type updated.
+ * @param {Function} typeOp - narrowType or excludeType
+ * @param {Object} scope - Scope to update
+ * @param {string} variable - Object variable name
+ * @param {string} property - Property name to narrow
+ * @param {*} effectType - Type operand for the operation
+ * @param {Function} lookupVariable - Function to lookup variables in scope chain
+ * @param {Object} typeAliases - Type aliases map
+ */
+function applyPropertyTypeEffect(typeOp, scope, variable, property, effectType, lookupVariable, typeAliases) {
+  const def = lookupVariable(variable);
+  if (!def?.type) return;
+
+  let resolvedType = resolveTypeAlias(def.type, typeAliases);
+  // Fallback: if alias not in user typeAliases, check builtin object types (e.g. VNode)
+  if (resolvedType instanceof TypeAlias && isBuiltinObjectType(resolvedType.name)) {
+    const builtinMembers = getBuiltinObjectType(resolvedType.name);
+    const props = new Map();
+    for (const [key, val] of Object.entries(builtinMembers)) {
+      props.set(key, { type: val, optional: false });
+    }
+    resolvedType = new ObjectType(props, null);
+  }
+  if (!(resolvedType instanceof ObjectType)) return;
+
+  const propEntry = resolvedType.properties.get(property);
+  if (!propEntry) return;
+
+  const newPropType = typeOp(propEntry.type, effectType);
+  const newProps = new Map(resolvedType.properties);
+  newProps.set(property, { ...propEntry, type: newPropType });
+
+  const newType = new ObjectType(newProps, resolvedType.indexSignature);
+  if (resolvedType.readonly) newType.readonly = true;
+  if (resolvedType.isClassInstance) newType.isClassInstance = true;
+
+  scope[variable] = { ...def, type: newType, narrowed: true };
+}
+
+/**
  * Apply the correct scope effect for the if/true branch of a type guard.
  * - normal: narrows to the checked type
  * - negated: excludes the checked type
  * - truthiness: excludes null and undefined
+ * @param {Object} typeAliases - Required when typeGuard.property is set
  */
-function applyIfBranchGuard(scope, typeGuard, lookupVariable) {
+function applyIfBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
+  if (typeGuard.property) {
+    if (typeGuard.negated) {
+      applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    } else {
+      applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    }
+    return;
+  }
+
   if (typeGuard.truthiness) {
     applyNullishExclusion(scope, typeGuard.variable, lookupVariable);
   } else if (typeGuard.negated) {
@@ -384,8 +475,17 @@ function applyIfBranchGuard(scope, typeGuard, lookupVariable) {
  * - normal: excludes the checked type
  * - negated: narrows to the checked type
  * - truthiness: no narrowing (falsy branch includes unknown falsy values)
+ * @param {Object} typeAliases - Required when typeGuard.property is set
  */
-function applyElseBranchGuard(scope, typeGuard, lookupVariable) {
+function applyElseBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
+  if (typeGuard.property) {
+    if (typeGuard.negated) {
+      applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    } else {
+      applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    }
+    return;
+  }
   if (typeGuard.truthiness) {
     // falsy branch: we don't know which falsy value it is — leave type unchanged
   } else if (typeGuard.negated) {
@@ -398,8 +498,17 @@ function applyElseBranchGuard(scope, typeGuard, lookupVariable) {
 /**
  * Apply the correct scope effect to the outer scope after an early-return if guard.
  * Same semantics as applyElseBranchGuard: code past the if block is the "false" path.
+ * @param {Object} typeAliases - Required when typeGuard.property is set
  */
-function applyPostIfGuard(scope, typeGuard, lookupVariable) {
+function applyPostIfGuard(scope, typeGuard, lookupVariable, typeAliases) {
+  if (typeGuard.property) {
+    if (typeGuard.negated) {
+      applyPropertyTypeEffect(narrowType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    } else {
+      applyPropertyTypeEffect(excludeType, scope, typeGuard.variable, typeGuard.property, typeGuard.checkType, lookupVariable, typeAliases);
+    }
+    return;
+  }
   if (typeGuard.truthiness) {
     // no narrowing — callers can only reach here when val was falsy (unknown)
   } else if (typeGuard.negated) {
