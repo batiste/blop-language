@@ -46,7 +46,7 @@ import properties from './properties.js';
 import { enhanceErrorMessage, formatEnhancedError, displayError, tokenPosition } from './errorMessages.js';
 import { selectBestFailure } from './selectBestFailure.js';
 import { parseTypeExpression, parseObjectTypeString, getPropertyType } from './inference/typeSystem.js';
-import { ArrayType } from './inference/Type.js';
+import { ArrayType, UnionType } from './inference/Type.js';
 
 // Load global metadata for autocomplete
 const globalMetadata = getGlobalMetadata();
@@ -213,7 +213,8 @@ connection.onInitialize((params: InitializeParams) => {
 			textDocumentSync: TextDocumentSyncKind.Full,
 			// Tell the client that the server supports code completion
 			completionProvider: {
-				resolveProvider: true
+				resolveProvider: true,
+				triggerCharacters: ['.']
 			},
 			// Tell the client that the server supports code actions (quick fixes)
 			codeActionProvider: {
@@ -644,7 +645,11 @@ function reparseForPropertyCompletion(
 
 	// Build sanitised text: truncate the cursor line at the dot
 	if (dotIdx > 0) {
-		lines[cursorLine] = lineText.slice(0, dotIdx);
+		// Truncate at the dot, then strip any trailing '?' so that optional-chain
+		// syntax (e.g. `vnode.elm?.`) collapses to a valid expression (`vnode.elm`).
+		let truncated = lineText.slice(0, dotIdx);
+		if (truncated.endsWith('?')) truncated = truncated.slice(0, -1);
+		lines[cursorLine] = truncated;
 	} else {
 		// No dot found — just blank the line so it parses
 		lines[cursorLine] = '';
@@ -682,6 +687,27 @@ function reparseForPropertyCompletion(
  */
 function resolveTypeToPropertiesMap(inferredType: any): { name: string; typeStr: string; optional: boolean }[] | null {
 	if (!inferredType) return null;
+
+	// Case -1: UnionType — strip null/undefined and resolve the non-nullish members
+	if (inferredType instanceof UnionType) {
+		const nonNullish = (inferredType.types as any[]).filter(
+			(t: any) => t?.toString?.() !== 'null' && t?.toString?.() !== 'undefined'
+		);
+		if (nonNullish.length === 0) return null;
+		if (nonNullish.length === 1) return resolveTypeToPropertiesMap(nonNullish[0]);
+		// Multiple non-nullish members: merge their properties (e.g. A | B)
+		const combined: { name: string; typeStr: string; optional: boolean }[] = [];
+		const seen = new Set<string>();
+		for (const t of nonNullish) {
+			const props = resolveTypeToPropertiesMap(t);
+			if (props) {
+				for (const p of props) {
+					if (!seen.has(p.name)) { seen.add(p.name); combined.push(p); }
+				}
+			}
+		}
+		return combined.length > 0 ? combined : null;
+	}
 
 	// Case 0: ArrayType (e.g. number[], string[]) — expose all array members with
 	// element-type-aware signatures via getArrayMemberType
@@ -815,9 +841,9 @@ connection.onCompletion(
 		const astInfo = documentASTs.get(_textDocumentPosition.textDocument.uri);
 
 		// ----------------------------------------------------------------
-		// Property completion: after 'varName.'
+		// Property completion: after 'varName.' or 'varName?.'
 		// ----------------------------------------------------------------
-		const propertyReg = /(\w+)\.(\w*)$/;
+		const propertyReg = /(\w+)\??\.(\w*)$/;
 		const propertyMatch = propertyReg.exec(text);
 		if (propertyMatch) {
 			const varName = propertyMatch[1];

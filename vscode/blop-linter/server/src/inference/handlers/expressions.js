@@ -53,9 +53,11 @@ function handlePropertyAccess(expNode, parent, objType, getState) {
   expNode.__propertyName = propName;
 
   if (inferencePhase === 'inference') {
-    const resolvedType = isOptional
-      ? validateObjectPropertyAccess(objType, propName, null)
-      : validateObjectPropertyAccess(objType, propName, expNode);
+    // Always pass expNode (not null) even for optional chains.
+    // In the inference phase pushWarning is a no-op, so no false warnings fire.
+    // Passing expNode ensures the property name sub-node gets its inferredType
+    // stamped, which is required for hover support and completion lookup.
+    const resolvedType = validateObjectPropertyAccess(objType, propName, expNode);
     // Tag FunctionType with the property name so handleFuncCallAccess can use it in error messages
     if (resolvedType instanceof FunctionType && propName && resolvedType.funcName === null) {
       resolvedType.__callerName = propName;
