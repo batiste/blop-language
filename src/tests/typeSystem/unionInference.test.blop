@@ -58,7 +58,7 @@ def findUser(id: number): object | null {
 test('infers union with null', () => {
   result = findUser(0)
   expect(result).toBe(null)
-  
+
   user = findUser(1)
   if user {
     expect(user.id).toBe(1)
@@ -145,7 +145,7 @@ def getCollection(asArray: boolean): number[] | string {
 test('infers union with array types', () => {
   result1 = getCollection(true)
   expect(result1.length).toBe(3)
-  
+
   result2 = getCollection(false)
   expect(result2).toBe('not an array')
 })
@@ -193,7 +193,7 @@ def outerFunction(flag: boolean) {
     }
     return 123
   }
-  
+
   if flag {
     return innerFunction(true)
   }
