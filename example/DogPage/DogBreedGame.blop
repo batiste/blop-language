@@ -125,8 +125,6 @@ def DogGame(ctx: Component) {
     }
     <p>'Score: 'success' / 'attempt' ('percent'%)'</p>
 
-
-
     if page.lastResult {
       <div style={ marginTop: '1em', padding: '1em', borderRadius: '0.5em', marginBottom: '1em' }>
         if page.lastResult.result == 'correct' {

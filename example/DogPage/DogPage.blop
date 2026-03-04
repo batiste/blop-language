@@ -1,7 +1,6 @@
 import { DogGame } from './DogBreedGame.blop'
 import { getNewDog } from './services.blop'
 
-
 def DogPage(ctx: Component): VNode {
   { value as loading, setState as setLoading } = ctx.state('loading', false)
   { attributes } = ctx

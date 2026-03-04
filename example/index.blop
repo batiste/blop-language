@@ -88,8 +88,6 @@ def navigation(state): VNode {
   </nav>
 }
 
-
-
 Index = (ctx: Component): VNode => {
   { state } = ctx.attributes
   { value as DogPage, setState as setDogPage } = ctx.state('dogPage', null)

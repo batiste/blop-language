@@ -225,6 +225,7 @@ export class Printer {
       }
     }
 
-    return parts.join('').trimEnd() + '\n';
+    // Collapse 3+ consecutive newlines to 2 (= at most 1 blank line between statements).
+    return parts.join('').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
   }
 }

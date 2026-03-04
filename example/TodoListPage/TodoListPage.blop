@@ -1,8 +1,6 @@
 
 import { TodoListItem } from './TodoListItem.blop'
 
-
-
 AutoFocusInput = (ctx: Component) => {
   { attributes } = ctx
   hooks = { insert: (vnode) => vnode.elm.focus() }

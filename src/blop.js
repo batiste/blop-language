@@ -8,9 +8,43 @@ import { loadConfig } from './utils.js';
 import { COLORS } from './constants.js';
 import { format } from './formatter/index.js';
 
+/**
+ * Recursively collect all *.blop files under a directory.
+ * @param {string} dir
+ * @param {string[]} [acc=[]]
+ * @returns {string[]}
+ */
+function findBlopFiles(dir, acc = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      findBlopFiles(full, acc);
+    } else if (entry.isFile() && entry.name.endsWith('.blop')) {
+      acc.push(full);
+    }
+  }
+  return acc;
+}
+
+/**
+ * Format a single .blop file in-place.
+ * @param {string} filePath
+ * @param {object} formatOptions
+ */
+function formatFile(filePath, formatOptions) {
+  const source = fs.readFileSync(filePath, 'utf8');
+  const formatted = format(source, formatOptions);
+  if (formatted !== source) {
+    fs.writeFileSync(filePath, formatted);
+    console.log(`${COLORS.GREEN}[blop] ${COLORS.YELLOW}✔${COLORS.RESET} ${filePath} formatted`);
+  } else {
+    console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${filePath} is already correctly formatted`);
+  }
+}
+
 program
   .version('0.1.0')
-  .option('-i, --input <file>', 'file input')
+  .option('-i, --input <path>', 'file or directory input')
   .option('-o, --output <file>', 'file output')
   .option('-e, --execute', 'execute the input')
   .option('-r, --resolve', 'resolve import statements')
@@ -45,23 +79,40 @@ async function execute() {
   };
 
   if (options.input) {
+    // ── DIRECTORY INPUT ──────────────────────────────────────────────────────
+    const stat = fs.statSync(options.input, { throwIfNoEntry: false });
+    if (stat && stat.isDirectory()) {
+      if (!options.format) {
+        console.error(`${COLORS.RED}Error:${COLORS.RESET} Directory input is only supported with the --format flag`);
+        process.exit(1);
+      }
+      const files = findBlopFiles(options.input);
+      if (files.length === 0) {
+        console.log(`${COLORS.GREEN}[blop]${COLORS.RESET} No .blop files found in ${options.input}`);
+        return;
+      }
+      const formatOptions = {
+        indentSize:    options.indentSize    ?? fileConfig.formatter?.indentSize,
+        indentChar:    options.indentChar    ?? fileConfig.formatter?.indentChar,
+        maxLineLength: options.maxLineLength ?? fileConfig.formatter?.maxLineLength,
+      };
+      for (const file of files) {
+        formatFile(file, formatOptions);
+      }
+      return;
+    }
+
+    // ── SINGLE FILE INPUT ────────────────────────────────────────────────────
     const source = fs.readFileSync(options.input);
 
     if (options.format) {
-      const formatted = format(source.toString(), {
+      formatFile(options.input, {
         // CLI flags win; fall back to config file formatter section
         indentSize:    options.indentSize    ?? fileConfig.formatter?.indentSize,
         indentChar:    options.indentChar    ?? fileConfig.formatter?.indentChar,
         maxLineLength: options.maxLineLength ?? fileConfig.formatter?.maxLineLength,
       });
-      if (formatted != source.toString()) {  
-        fs.writeFileSync(options.input, formatted);
-        console.log(`${COLORS.GREEN}[blop] ${COLORS.YELLOW}✔${COLORS.RESET} ${options.input} formatted`);
-        return;
-      } else {
-        console.log(`${COLORS.GREEN}[blop] ✔${COLORS.RESET} ${options.input} is already correctly formatted`);
-        return;
-      }
+      return;
     }
 
     try {

@@ -24,7 +24,6 @@ def playgroundPageHandler(_params, _state) {
   console.log('playground page')
 }
 
-
 def createRouter(state, win=globalThis.window) {
   router = new Router(state, null, win)
 
