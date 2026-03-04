@@ -3437,10 +3437,44 @@ let type_primary_2 = (stream, index) => {
     sub_rule_index: 2, type: 'type_primary', named,
   };
 
-  if (stream[i].type !== 'keyof') {
+  if (stream[i].type !== 'readonly') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['readonly'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_1 = type_primary(stream, i);
+  if (!_rule_1) return false;
+  named['inner'] = _rule_1;
+  children.push(_rule_1);
+  i = _rule_1.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_primary_2 = memoize('type_primary_2', type_primary_2);
+
+
+let type_primary_3 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_primary',
+    sub_rule_index: 3, type: 'type_primary', named,
+  };
+
+  if (stream[i].type !== 'keyof') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_primary', sub_rule_index: 3,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -3463,30 +3497,6 @@ let type_primary_2 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-type_primary_2 = memoize('type_primary_2', type_primary_2);
-
-
-let type_primary_3 = (stream, index) => {
-  let i = index;
-  const children = [];
-  const named = {};
-  const node = {
-    children, stream_index: index, name: 'type_primary',
-    sub_rule_index: 3, type: 'type_primary', named,
-  };
-  const _rule_0 = tuple_type(stream, i);
-  if (!_rule_0) return false;
-  named['tuple'] = _rule_0;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
-  const _rule_1 = array_suffix(stream, i);
-  if (_rule_1) {
-    children.push(_rule_1);
-    i = _rule_1.last_index;
-  }
-  node.success = i === stream.length; node.last_index = i;
-  return node;
-};
 type_primary_3 = memoize('type_primary_3', type_primary_3);
 
 
@@ -3498,8 +3508,9 @@ let type_primary_4 = (stream, index) => {
     children, stream_index: index, name: 'type_primary',
     sub_rule_index: 4, type: 'type_primary', named,
   };
-  const _rule_0 = object_type(stream, i);
+  const _rule_0 = tuple_type(stream, i);
   if (!_rule_0) return false;
+  named['tuple'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
   const _rule_1 = array_suffix(stream, i);
@@ -3521,21 +3532,10 @@ let type_primary_5 = (stream, index) => {
     children, stream_index: index, name: 'type_primary',
     sub_rule_index: 5, type: 'type_primary', named,
   };
-
-  if (stream[i].type !== 'str') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'type_primary', sub_rule_index: 5,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  named['literal'] = stream[i];
-  children.push(stream[i]); i++;
+  const _rule_0 = object_type(stream, i);
+  if (!_rule_0) return false;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
   const _rule_1 = array_suffix(stream, i);
   if (_rule_1) {
     children.push(_rule_1);
@@ -3556,7 +3556,7 @@ let type_primary_6 = (stream, index) => {
     sub_rule_index: 6, type: 'type_primary', named,
   };
 
-  if (stream[i].type !== 'number') {
+  if (stream[i].type !== 'str') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 6,
@@ -3589,17 +3589,12 @@ let type_primary_7 = (stream, index) => {
     children, stream_index: index, name: 'type_primary',
     sub_rule_index: 7, type: 'type_primary', named,
   };
-  const _rule_0 = type_name(stream, i);
-  if (!_rule_0) return false;
-  named['name'] = _rule_0;
-  children.push(_rule_0);
-  i = _rule_0.last_index;
 
-  if (stream[i].type !== '<') {
+  if (stream[i].type !== 'number') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 7,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3607,30 +3602,12 @@ let type_primary_7 = (stream, index) => {
     return false;
   }
 
+  named['literal'] = stream[i];
   children.push(stream[i]); i++;
-  const _rule_2 = type_arg_list(stream, i);
-  if (!_rule_2) return false;
-  named['type_args'] = _rule_2;
-  children.push(_rule_2);
-  i = _rule_2.last_index;
-
-  if (stream[i].type !== '>') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'type_primary', sub_rule_index: 7,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_4 = array_suffix(stream, i);
-  if (_rule_4) {
-    children.push(_rule_4);
-    i = _rule_4.last_index;
+  const _rule_1 = array_suffix(stream, i);
+  if (_rule_1) {
+    children.push(_rule_1);
+    i = _rule_1.last_index;
   }
   node.success = i === stream.length; node.last_index = i;
   return node;
@@ -3684,6 +3661,11 @@ let type_primary_8 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
+  const _rule_4 = array_suffix(stream, i);
+  if (_rule_4) {
+    children.push(_rule_4);
+    i = _rule_4.last_index;
+  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -3704,7 +3686,7 @@ let type_primary_9 = (stream, index) => {
   children.push(_rule_0);
   i = _rule_0.last_index;
 
-  if (stream[i].type !== '.') {
+  if (stream[i].type !== '<') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 9,
@@ -3717,12 +3699,17 @@ let type_primary_9 = (stream, index) => {
   }
 
   children.push(stream[i]); i++;
+  const _rule_2 = type_arg_list(stream, i);
+  if (!_rule_2) return false;
+  named['type_args'] = _rule_2;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
 
-  if (stream[i].type !== 'name') {
+  if (stream[i].type !== '>') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 9,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -3730,13 +3717,7 @@ let type_primary_9 = (stream, index) => {
     return false;
   }
 
-  named['member'] = stream[i];
   children.push(stream[i]); i++;
-  const _rule_3 = array_suffix(stream, i);
-  if (_rule_3) {
-    children.push(_rule_3);
-    i = _rule_3.last_index;
-  }
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
@@ -3757,7 +3738,7 @@ let type_primary_10 = (stream, index) => {
   children.push(_rule_0);
   i = _rule_0.last_index;
 
-  if (stream[i].type !== '[') {
+  if (stream[i].type !== '.') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 10,
@@ -3771,7 +3752,7 @@ let type_primary_10 = (stream, index) => {
 
   children.push(stream[i]); i++;
 
-  if (stream[i].type !== 'str') {
+  if (stream[i].type !== 'name') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'type_primary', sub_rule_index: 10,
@@ -3783,26 +3764,12 @@ let type_primary_10 = (stream, index) => {
     return false;
   }
 
-  named['member_key'] = stream[i];
+  named['member'] = stream[i];
   children.push(stream[i]); i++;
-
-  if (stream[i].type !== ']') {
-    if (i >= best_failure_index) {
-      const failure = {
-        type: 'type_primary', sub_rule_index: 10,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
-        stream_index: i, token: stream[i], first_token: stream[index], success: false,
-      };
-      record_failure(failure, i);
-    }
-    return false;
-  }
-
-  children.push(stream[i]); i++;
-  const _rule_4 = array_suffix(stream, i);
-  if (_rule_4) {
-    children.push(_rule_4);
-    i = _rule_4.last_index;
+  const _rule_3 = array_suffix(stream, i);
+  if (_rule_3) {
+    children.push(_rule_3);
+    i = _rule_3.last_index;
   }
   node.success = i === stream.length; node.last_index = i;
   return node;
@@ -3823,6 +3790,73 @@ let type_primary_11 = (stream, index) => {
   named['name'] = _rule_0;
   children.push(_rule_0);
   i = _rule_0.last_index;
+
+  if (stream[i].type !== '[') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_primary', sub_rule_index: 11,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'str') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_primary', sub_rule_index: 11,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['member_key'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== ']') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'type_primary', sub_rule_index: 11,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  const _rule_4 = array_suffix(stream, i);
+  if (_rule_4) {
+    children.push(_rule_4);
+    i = _rule_4.last_index;
+  }
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+type_primary_11 = memoize('type_primary_11', type_primary_11);
+
+
+let type_primary_12 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'type_primary',
+    sub_rule_index: 12, type: 'type_primary', named,
+  };
+  const _rule_0 = type_name(stream, i);
+  if (!_rule_0) return false;
+  named['name'] = _rule_0;
+  children.push(_rule_0);
+  i = _rule_0.last_index;
   const _rule_1 = array_suffix(stream, i);
   if (_rule_1) {
     children.push(_rule_1);
@@ -3831,7 +3865,7 @@ let type_primary_11 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-type_primary_11 = memoize('type_primary_11', type_primary_11);
+type_primary_12 = memoize('type_primary_12', type_primary_12);
 
 
 function type_primary(stream, index) {
@@ -3846,7 +3880,8 @@ function type_primary(stream, index) {
     || type_primary_8(stream, index)
     || type_primary_9(stream, index)
     || type_primary_10(stream, index)
-    || type_primary_11(stream, index);
+    || type_primary_11(stream, index)
+    || type_primary_12(stream, index);
 }
 let func_type_params_0 = (stream, index) => {
   let i = index;
@@ -4641,11 +4676,26 @@ let object_type_property_1 = (stream, index) => {
     sub_rule_index: 1, type: 'object_type_property', named,
   };
 
-  if (stream[i].type !== 'name') {
+  if (stream[i].type !== 'readonly') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['readonly'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4663,7 +4713,7 @@ let object_type_property_1 = (stream, index) => {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 1,
-        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
       record_failure(failure, i);
@@ -4678,6 +4728,75 @@ let object_type_property_1 = (stream, index) => {
     if (i >= best_failure_index) {
       const failure = {
         type: 'object_type_property', sub_rule_index: 1,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 4,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_6 = type_expression(stream, i);
+  if (!_rule_6) return false;
+  named['valueType'] = _rule_6;
+  children.push(_rule_6);
+  i = _rule_6.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_type_property_1 = memoize('object_type_property_1', object_type_property_1);
+
+
+let object_type_property_2 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_type_property',
+    sub_rule_index: 2, type: 'object_type_property', named,
+  };
+
+  if (stream[i].type !== 'readonly') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['readonly'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 2,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['key'] = stream[i];
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+
+  if (stream[i].type !== 'colon') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 2,
         sub_rule_stream_index: i - index, sub_rule_token_index: 3,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -4698,22 +4817,91 @@ let object_type_property_1 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-object_type_property_1 = memoize('object_type_property_1', object_type_property_1);
+object_type_property_2 = memoize('object_type_property_2', object_type_property_2);
 
 
-let object_type_property_2 = (stream, index) => {
+let object_type_property_3 = (stream, index) => {
   let i = index;
   const children = [];
   const named = {};
   const node = {
     children, stream_index: index, name: 'object_type_property',
-    sub_rule_index: 2, type: 'object_type_property', named,
+    sub_rule_index: 3, type: 'object_type_property', named,
   };
 
   if (stream[i].type !== 'name') {
     if (i >= best_failure_index) {
       const failure = {
-        type: 'object_type_property', sub_rule_index: 2,
+        type: 'object_type_property', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['key'] = stream[i];
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+
+  if (stream[i].type !== 'question') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 2,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['optional'] = stream[i];
+  children.push(stream[i]); i++;
+
+  if (stream[i].type !== 'colon') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 3,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 3,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  children.push(stream[i]); i++;
+  if (stream[i].type === 'w') {
+    children.push(stream[i]); i++;
+  }
+  const _rule_5 = type_expression(stream, i);
+  if (!_rule_5) return false;
+  named['valueType'] = _rule_5;
+  children.push(_rule_5);
+  i = _rule_5.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+object_type_property_3 = memoize('object_type_property_3', object_type_property_3);
+
+
+let object_type_property_4 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'object_type_property',
+    sub_rule_index: 4, type: 'object_type_property', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'object_type_property', sub_rule_index: 4,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -4731,7 +4919,7 @@ let object_type_property_2 = (stream, index) => {
   if (stream[i].type !== 'colon') {
     if (i >= best_failure_index) {
       const failure = {
-        type: 'object_type_property', sub_rule_index: 2,
+        type: 'object_type_property', sub_rule_index: 4,
         sub_rule_stream_index: i - index, sub_rule_token_index: 2,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -4752,13 +4940,15 @@ let object_type_property_2 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-object_type_property_2 = memoize('object_type_property_2', object_type_property_2);
+object_type_property_4 = memoize('object_type_property_4', object_type_property_4);
 
 
 function object_type_property(stream, index) {
   return object_type_property_0(stream, index)
     || object_type_property_1(stream, index)
-    || object_type_property_2(stream, index);
+    || object_type_property_2(stream, index)
+    || object_type_property_3(stream, index)
+    || object_type_property_4(stream, index);
 }
 let type_name_0 = (stream, index) => {
   let i = index;
@@ -6000,10 +6190,59 @@ let class_member_def_0 = (stream, index) => {
     sub_rule_index: 0, type: 'class_member_def', named,
   };
 
+  if (stream[i].type !== 'readonly') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'class_member_def', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 0,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['readonly'] = stream[i];
+  children.push(stream[i]); i++;
+
   if (stream[i].type !== 'name') {
     if (i >= best_failure_index) {
       const failure = {
         type: 'class_member_def', sub_rule_index: 0,
+        sub_rule_stream_index: i - index, sub_rule_token_index: 1,
+        stream_index: i, token: stream[i], first_token: stream[index], success: false,
+      };
+      record_failure(failure, i);
+    }
+    return false;
+  }
+
+  named['name'] = stream[i];
+  children.push(stream[i]); i++;
+  const _rule_2 = annotation(stream, i);
+  if (!_rule_2) return false;
+  named['annotation'] = _rule_2;
+  children.push(_rule_2);
+  i = _rule_2.last_index;
+  node.success = i === stream.length; node.last_index = i;
+  return node;
+};
+class_member_def_0 = memoize('class_member_def_0', class_member_def_0);
+
+
+let class_member_def_1 = (stream, index) => {
+  let i = index;
+  const children = [];
+  const named = {};
+  const node = {
+    children, stream_index: index, name: 'class_member_def',
+    sub_rule_index: 1, type: 'class_member_def', named,
+  };
+
+  if (stream[i].type !== 'name') {
+    if (i >= best_failure_index) {
+      const failure = {
+        type: 'class_member_def', sub_rule_index: 1,
         sub_rule_stream_index: i - index, sub_rule_token_index: 0,
         stream_index: i, token: stream[i], first_token: stream[index], success: false,
       };
@@ -6022,11 +6261,12 @@ let class_member_def_0 = (stream, index) => {
   node.success = i === stream.length; node.last_index = i;
   return node;
 };
-class_member_def_0 = memoize('class_member_def_0', class_member_def_0);
+class_member_def_1 = memoize('class_member_def_1', class_member_def_1);
 
 
 function class_member_def(stream, index) {
-  return class_member_def_0(stream, index);
+  return class_member_def_0(stream, index)
+    || class_member_def_1(stream, index);
 }
 let CLASS_STATEMENT_0 = (stream, index) => {
   let i = index;
@@ -11238,6 +11478,9 @@ function _tokenize(tokenDef, input, char, stream) {
   }
   if (input.substr(char, 6) === 'keyof ') {
     return ['keyof ', 'keyof'];
+  }
+  if (input.substr(char, 9) === 'readonly ') {
+    return ['readonly ', 'readonly'];
   }
   if (input.substr(char, 6) === 'class ') {
     return ['class ', 'clazz'];

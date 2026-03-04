@@ -77,6 +77,9 @@ function handlePropertyAccess(expNode, parent, objType, getState) {
 function handleBracketAccess(expNode, parent, objType, getState) {
   const { pushInference, inferencePhase } = getState();
   const isOptional = !!expNode.named?.optional;
+  // Stamp context so the assign handler can find __objectType for readonly checks
+  // (bracket-access assignments like arr[0] = x need this, just like dot-access).
+  expNode.__objectType = objType;
   if (inferencePhase === 'inference') {
     const resolvedType = isOptional
       ? validateObjectPropertyAccess(objType, null, null)
@@ -135,14 +138,17 @@ function handleFuncCallAccess(expNode, parent, funcType, getState) {
       const hasUntypedRequiredParam = funcType.params.some(
         (p, idx) => p === AnyType && !funcType.paramHasDefault?.[idx]
       );
-      if (!hasUntypedRequiredParam) {
-        const actualArgCount = countFuncCallArgs(funcCallNode);
-        const required = funcType.params.filter((_, idx) => !funcType.paramHasDefault?.[idx]).length;
-        const total = funcType.params.length;
-        if (actualArgCount < required || actualArgCount > total) {
-          const expected = required === total ? `${total}` : `${required}-${total}`;
-          pushWarning(expNode, `function ${funcCallName} takes ${expected} argument${total === 1 ? '' : 's'} but got ${actualArgCount}`);
-        }
+      const actualArgCount = countFuncCallArgs(funcCallNode);
+      const required = funcType.params.filter((_, idx) => !funcType.paramHasDefault?.[idx]).length;
+      const total = funcType.params.length;
+      // For untyped params, allow calling with fewer args than required (VNode component
+      // pattern: def Foo(props) {} called as <Foo /> with 0 args is valid).
+      // But too many args is never valid — always check that direction.
+      const tooFew = !hasUntypedRequiredParam && actualArgCount < required;
+      const tooMany = actualArgCount > total;
+      if (tooFew || tooMany) {
+        const expected = required === total ? `${total}` : `${required}-${total}`;
+        pushWarning(expNode, `function ${funcCallName} takes ${expected} argument${total === 1 ? '' : 's'} but got ${actualArgCount}`);
       }
     }
 
@@ -480,7 +486,9 @@ function buildConstObjectType(objectLiteralNode) {
   const bodyNode = objectLiteralNode.children?.find(c => c.type === 'object_literal_body');
   if (bodyNode) processBody(bodyNode);
 
-  return Types.object(propertiesMap);
+  const objType = Types.object(propertiesMap);
+  objType.readonly = true;
+  return objType;
 }
 
 /**
@@ -504,7 +512,9 @@ function buildConstArrayType(arrayLiteralNode) {
   const bodyNode = arrayLiteralNode.children?.find(c => c.type === 'array_literal_body');
   if (bodyNode) collectElements(bodyNode);
 
-  return Types.tuple(elements);
+  const tupleType = Types.tuple(elements);
+  tupleType.readonly = true;
+  return tupleType;
 }
 
 function createExpressionHandlers(getState) {

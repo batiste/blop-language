@@ -97,6 +97,7 @@ const tokensDefinition = {
   'as': { str: 'as ' },
   'is': { str: 'is ' },
   'keyof': { str: 'keyof ' },
+  'readonly': { str: 'readonly ' },
   'clazz': { str: 'class ' },
   'try': { str: 'try ' },
   'catch': { str: 'catch ' },

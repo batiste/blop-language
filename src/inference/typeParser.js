@@ -129,6 +129,13 @@ export function parseTypePrimary(typePrimaryNode) {
     return baseType;
   }
 
+  // Check for readonly type: readonly T[]
+  if (typePrimaryNode.named.readonly) {
+    const innerType = parseTypePrimary(typePrimaryNode.named.inner);
+    innerType.readonly = true;
+    return innerType;
+  }
+
   let baseType = Types.any;
   
   // Check for object type
@@ -251,10 +258,11 @@ export function parseObjectType(objectTypeNode) {
 
       const key = node.named.key?.value;
       const optional = !!node.named.optional;
+      const readonly = !!node.named.readonly;
       const valueType = parseTypeExpression(node.named.valueType);
       
       if (key) {
-        properties.set(key, { type: valueType, optional });
+        properties.set(key, { type: valueType, optional, readonly });
       }
       // Do NOT recurse into this property's children — valueType is already
       // handled by parseTypeExpression above. Recursing would hoist nested

@@ -76,6 +76,8 @@ function selectBestFailure(failureArray, defaultFailure) {
   let bestFailure = null;
   let bestScore = -1;
   let bestTokenIndex = -1;
+  // Whether the current best made any progress (sub_rule_token_index > 0)
+  let bestHasProgress = false;
   
   for (const failure of failureArray) {
     // Build the position key: type:sub_rule_index:token_index
@@ -95,13 +97,22 @@ function selectBestFailure(failureArray, defaultFailure) {
     entries.sort((a, b) => b[1] - a[1]);
     const score = entries[0][1]; // Probability of the most common token
     
-    // Tie-breaker: when scores are equal, prefer failures later in the rule
-    // (higher token_index means more specific context)
     const tokenIndex = failure.sub_rule_token_index;
+    // A failure that consumed at least one token is far more informative than
+    // one that failed at the very first token of a rule (no progress made).
+    // Treat any-progress failures as always beating zero-progress ones.
+    const hasProgress = tokenIndex > 0;
     
-    if (score > bestScore || (score === bestScore && tokenIndex > bestTokenIndex)) {
+    const betterProgress = hasProgress && !bestHasProgress;
+    const worseProgress = !hasProgress && bestHasProgress;
+    if (worseProgress) continue;
+    
+    if (betterProgress ||
+        score > bestScore ||
+        (score === bestScore && tokenIndex > bestTokenIndex)) {
       bestScore = score;
       bestTokenIndex = tokenIndex;
+      bestHasProgress = hasProgress;
       bestFailure = failure;
     }
   }

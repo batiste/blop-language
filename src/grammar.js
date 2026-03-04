@@ -104,6 +104,7 @@ const grammar = {
   'type_primary': [
     ['(', 'func_type_params:params', ')', 'w', '=>', 'w', 'type_expression:return'],
     ['(', ')', 'w', '=>', 'w', 'type_expression:return'],
+    ['readonly:readonly', 'type_primary:inner'],
     ['keyof', 'type_primary:subject', 'array_suffix?'],
     ['tuple_type:tuple', 'array_suffix?'],
     ['object_type', 'array_suffix?'],
@@ -145,6 +146,8 @@ const grammar = {
   ],
   'object_type_property': [
     ['[', 'name:keyName', 'colon', 'w?', 'type_expression:keyType', ']', 'colon', 'w?', 'type_expression:valueType'],
+    ['readonly:readonly', 'name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
+    ['readonly:readonly', 'name:key', 'w?', 'colon', 'w?', 'type_expression:valueType'],
     ['name:key', 'w?', 'question:optional', 'colon', 'w?', 'type_expression:valueType'],
     ['name:key', 'w?', 'colon', 'w?', 'type_expression:valueType'],
   ],
@@ -188,6 +191,7 @@ const grammar = {
     ['async?:async', 'def', 'name?:name', 'generic_params?:generic_params', '(', 'func_def_params:params', ')', 'annotation?:annotation', 'w', 'func_body:body'],
   ],
   'class_member_def': [
+    ['readonly:readonly', 'name:name', 'annotation:annotation'],
     ['name:name', 'annotation:annotation'],
   ],
   'CLASS_STATEMENT': [

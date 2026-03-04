@@ -67,7 +67,7 @@ const TOKEN_EXPLANATIONS = {
   'rparen': 'closing parenthesis `)`',
   'lbrace': 'opening brace `{`',
   'rbrace': 'closing brace `}`',
-  'comma': 'comma `,`',
+  ',': 'comma `,`',
   'colon': 'colon `:`',
   'semicolon': 'semicolon `;`',
   'dot': 'dot `.`',
@@ -350,6 +350,53 @@ const ERROR_PATTERNS = [
       '  </div>\n' +
       '\n' +
       '  <div><strong>text</strong>\'world\'</div>  // error: multiple inline children',
+  },
+  {
+    name: 'trailing_comma',
+    detect: (context) => {
+      // Pattern: call(1, ) or [a, b, ] — a comma is the last meaningful token
+      // before the error token (which is ) or ] or newline).
+      const lastMeaningful = [...context.precedingTokens]
+        .reverse()
+        .find(t => t.type !== 'w' && t.type !== 'W' && t.type !== 'ws');
+      return !!lastMeaningful && lastMeaningful.type === ',';
+    },
+    message: () => 'Trailing comma',
+    suggestion: () =>
+      'Remove the trailing comma or add the missing argument/element:\n' +
+      '  call(a, b)      // correct\n' +
+      '  call(a, b, c)   // correct — not  call(a, b, c,)',
+  },
+  {
+    name: 'trailing_binary_operator',
+    detect: (context) => {
+      // Pattern: `count + )` — a binary/math/boolean operator is the last meaningful
+      // token before the error position, meaning the right-hand operand is missing.
+      // The parser ends up reporting a str_expression or exp failure, which is confusing.
+      const BINARY_OP_TYPES = new Set(['math_operator', 'boolean_operator', 'nullish']);
+      const lastMeaningful = [...context.precedingTokens]
+        .reverse()
+        .find(t => t.type !== 'w' && t.type !== 'W' && t.type !== 'ws');
+      return !!lastMeaningful && BINARY_OP_TYPES.has(lastMeaningful.type);
+    },
+    message: (context) => {
+      const BINARY_OP_TYPES = new Set(['math_operator', 'boolean_operator', 'nullish']);
+      const lastMeaningful = [...context.precedingTokens]
+        .reverse()
+        .find(t => t.type !== 'w' && t.type !== 'W' && t.type !== 'ws');
+      const op = lastMeaningful ? `\`${lastMeaningful.value}\`` : 'binary operator';
+      return `Expected an expression after ${op}`;
+    },
+    suggestion: (context) => {
+      const BINARY_OP_TYPES = new Set(['math_operator', 'boolean_operator', 'nullish']);
+      const lastMeaningful = [...context.precedingTokens]
+        .reverse()
+        .find(t => t.type !== 'w' && t.type !== 'W' && t.type !== 'ws');
+      const op = lastMeaningful ? lastMeaningful.value : '+';
+      return `Provide a right-hand operand for \`${op}\`:\n` +
+        `  count ${op} 1      // correct\n` +
+        `  count ${op} other  // correct`;
+    },
   },
   {
     name: 'vnode_closing_tag_on_different_line',

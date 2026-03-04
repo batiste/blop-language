@@ -50,7 +50,7 @@ function returnDef(input) {
     if (input[6] === ' ') {
       return 'return ';
     }
-    if (input[6] === '\n') {
+    if (input[6] === '\n' || !input[6]) {
       return 'return';
     }
   }
@@ -58,7 +58,7 @@ function returnDef(input) {
 
 function breakDef(input) {
   if (input.startsWith('break')) {
-    if (input[5] === '\n') {
+    if (input[5] === '\n' || !input[5]) {
       return 'break';
     }
   }
@@ -66,7 +66,7 @@ function breakDef(input) {
 
 function continueDef(input) {
   if (input.startsWith('continue')) {
-    if (input[8] === '\n') {
+    if (input[8] === '\n' || !input[8]) {
       return 'continue';
     }
   }
@@ -97,6 +97,7 @@ const tokensDefinition = {
   'as': { str: 'as ' },
   'is': { str: 'is ' },
   'keyof': { str: 'keyof ' },
+  'readonly': { str: 'readonly ' },
   'clazz': { str: 'class ' },
   'try': { str: 'try ' },
   'catch': { str: 'catch ' },

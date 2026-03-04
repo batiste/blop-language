@@ -170,6 +170,40 @@ describe('as const — array literals', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Readonly: mutation of as const values is a type error
+// ---------------------------------------------------------------------------
+
+describe('as const — readonly mutation guards', () => {
+  test('bracket-index assignment to as const array errors', () => {
+    expectCompilationError(`
+      tasdf = [1, 2] as const
+      tasdf[0] = 3
+    `, 'readonly');
+  });
+
+  test('dot-property assignment to as const object errors', () => {
+    expectCompilationError(`
+      obj = { x: 1 } as const
+      obj.x = 2
+    `, 'readonly');
+  });
+
+  test('bracket-index assignment to non-const array does not error', () => {
+    expectNoErrors(`
+      arr = [1, 2]
+      arr[0] = 3
+    `);
+  });
+
+  test('dot-property assignment to non-const object does not error', () => {
+    expectNoErrors(`
+      obj = { x: 1 }
+      obj.x = 2
+    `);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Non-literal expressions: fall back to inferred type
 // ---------------------------------------------------------------------------
 

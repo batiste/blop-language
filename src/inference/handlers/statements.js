@@ -501,30 +501,43 @@ function createStatementHandlers(getState) {
           // __objectType and __propertyName directly (stamped by handlePropertyAccess).
           const pathExpNode = node.named.path;
 
-          if (pathExpNode && pathExpNode.__objectType !== undefined && pathExpNode.__propertyName) {
+          if (pathExpNode && pathExpNode.__objectType !== undefined) {
             const objectType = pathExpNode.__objectType;
-            const propertyName = pathExpNode.__propertyName;
 
-            const valueType = node.named.exp?.inference?.[0];
+            // Readonly guard: values declared with 'as const' or 'readonly' cannot be mutated.
+            if (objectType.readonly) {
+              pushWarning(node, `Cannot assign to a readonly value`);
+            } else if (pathExpNode.__propertyName) {
+              const propertyName = pathExpNode.__propertyName;
 
-            if (valueType && valueType !== AnyType) {
-              // For class instances, skip validation for non-declared (constructor-assigned) props
-              const resolvedObjType = resolveTypeAlias(objectType, typeAliases);
-              const shouldSkipValidation =
-                resolvedObjType?.isClassInstance &&
-                !resolvedObjType.properties.has(propertyName);
+              // Per-property readonly guard (from `readonly` modifier in type annotation)
+              const resolvedObjTypeForReadonly = resolveTypeAlias(objectType, typeAliases);
+              const propEntry = resolvedObjTypeForReadonly?.properties?.get(propertyName);
+              if (propEntry?.readonly) {
+                pushWarning(node, `Cannot assign to readonly property '${propertyName}'`);
+              }
 
-              if (!shouldSkipValidation) {
-                const expectedType = getPropertyType(objectType, propertyName, typeAliases);
-                // Collect full property path string for error messages (e.g. "user.userType")
-                const fullPath = collectPropertyPathFromExp(pathExpNode);
+              const valueType = node.named.exp?.inference?.[0];
 
-                if (expectedType === null) {
-                  pushWarning(node, `Property '${fullPath}' does not exist on type ${objectType}`);
-                } else {
-                  const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
-                  if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
-                    pushWarning(node, `Cannot assign ${valueType} to property '${fullPath}' of type ${expectedType}`);
+              if (valueType && valueType !== AnyType) {
+                // For class instances, skip validation for non-declared (constructor-assigned) props
+                const resolvedObjType = resolveTypeAlias(objectType, typeAliases);
+                const shouldSkipValidation =
+                  resolvedObjType?.isClassInstance &&
+                  !resolvedObjType.properties.has(propertyName);
+
+                if (!shouldSkipValidation) {
+                  const expectedType = getPropertyType(objectType, propertyName, typeAliases);
+                  // Collect full property path string for error messages (e.g. "user.userType")
+                  const fullPath = collectPropertyPathFromExp(pathExpNode);
+
+                  if (expectedType === null) {
+                    pushWarning(node, `Property '${fullPath}' does not exist on type ${objectType}`);
+                  } else {
+                    const resolvedExpectedType = resolveTypeAlias(expectedType, typeAliases);
+                    if (!isTypeCompatible(valueType, resolvedExpectedType, typeAliases)) {
+                      pushWarning(node, `Cannot assign ${valueType} to property '${fullPath}' of type ${expectedType}`);
+                    }
                   }
                 }
               }
