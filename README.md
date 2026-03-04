@@ -191,10 +191,11 @@ npm run linter
 
 ### Formatting
 
-You can format your Blop source files in place using the CLI:
+You can format your Blop source files in place using the CLI — passing either a single file or a whole directory (processed recursively):
 
 ```
 node src/blop.js --format -i project/path/TodoListItem.blop
+node src/blop.js --format -i example
 ```
 
 If you want to automatically format all staged Blop files before each commit, you can set up a Git pre-commit hook:

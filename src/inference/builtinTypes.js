@@ -73,6 +73,17 @@ let builtinObjectTypes = {
     ),
   },
 
+  DOMElement: {
+    tagName: StringType,
+    id: StringType,
+    className: StringType,
+    innerHTML: StringType,
+    outerHTML: StringType,
+    textContent: StringType,
+    focus: new FunctionType([], UndefinedType, [], []),
+    // ... more properties and methods can be added as needed
+  },
+
   // Snabbdom VNode type – represents a virtual DOM node
   // See: https://github.com/snabbdom/snabbdom/blob/master/src/vnode.ts
   VNode: {
