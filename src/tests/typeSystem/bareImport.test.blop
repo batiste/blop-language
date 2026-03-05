@@ -7,7 +7,7 @@ test('Bare import merges type aliases globally', () => {
     name: "Alice",
     id: 42
   }
-  
+
   expect(user.name).toBe("Alice")
   expect(user.id).toBe(42)
 })
@@ -19,7 +19,7 @@ test('Multiple type aliases available after bare import', () => {
     author: "Bob",
     views: 100
   }
-  
+
   expect(post.title).toBe("Hello")
   expect(post.views).toBe(100)
 })
@@ -33,7 +33,7 @@ test('Bare import works with nested types', () => {
     },
     verified: true
   }
-  
+
   expect(profile.user.name).toBe("Charlie")
   expect(profile.verified).toBe(true)
 })
