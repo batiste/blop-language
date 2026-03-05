@@ -4,6 +4,8 @@
 // This module defines a structured, object-oriented type system to replace
 // ============================================================================
 
+import { isAnyType, isNeverType, tryResolveAlias, checkUnionTarget, checkIntersectionTarget } from './compatibility.js';
+
 /**
  * Base Type class - all types inherit from this
  */
@@ -34,17 +36,14 @@ export class Type {
    * @returns {boolean}
    */
   isCompatibleWith(target, aliases) {
-    // When the target is an intersection, the value must be compatible with the
-    // merged type (for all-object intersections) or with every constituent.
-    if (target instanceof IntersectionType) {
-      const merged = target.merge(aliases);
-      if (merged) {
-        return this.isCompatibleWith(merged, aliases);
-      }
-      return target.types.every(t => this.isCompatibleWith(t, aliases));
+    // When the target is an intersection, delegate to helper
+    if (target?.kind === 'intersection') {
+      const result = checkIntersectionTarget(this, target, aliases);
+      if (result !== null) return result;
     }
+    
     // Default: check equality
-    return this.equals(target) || (target instanceof PrimitiveType && target.name === 'any');
+    return this.equals(target) || isAnyType(target);
   }
 }
 
@@ -67,29 +66,30 @@ export class PrimitiveType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if ((target instanceof PrimitiveType && target.name === 'any') || 
-        (this instanceof PrimitiveType && this.name === 'any')) return true;
-    if (this instanceof PrimitiveType && this.name === 'never') return true;
-    if (target instanceof PrimitiveType && target.name === 'never') return false;
+    // Any type is compatible with anything
+    if (isAnyType(target)) return true;
+    
+    // 'any' is compatible with everything (bidirectional)
+    if (isAnyType(this)) return true;
+    
+    // 'never' is compatible with everything (bottom type)
+    if (isNeverType(this)) return true;
+    
+    // Nothing is compatible with 'never' as a target (except never itself)
+    if (isNeverType(target)) return false;
     
     // Check if target is a union containing this type
-    if (target instanceof UnionType) {
-      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target?.kind === 'union') {
+      return checkUnionTarget(this, target.types, aliases);
     }
     
-    // Resolve aliases and type member access (e.g. State.dogPage)
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    // Resolve aliases and type member access
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
     }
-
-    // Resolve keyof targets (e.g. keyof State → "a" | "b")
-    if (target instanceof KeyofType) {
-      const resolved = aliases.resolveKeyof(target);
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    if (aliasResolution.isCircular) {
+      return false; // Circular reference can't be resolved
     }
     
     return this.equals(target);
@@ -605,20 +605,21 @@ export class UnionType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if (target instanceof PrimitiveType && target.name === 'any') return true;
+    if (isAnyType(target)) return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
+    }
+    if (aliasResolution.isCircular) {
+      return false;
     }
 
     // When target is also a union, each type in this union must be covered by
     // at least one type in the target union — don't compare each constituent
     // against the whole union object, which would fail for e.g. FunctionType.
-    if (target instanceof UnionType) {
+    if (target?.kind === 'union') {
       return this.types.every(t => target.types.some(targetT => t.isCompatibleWith(targetT, aliases)));
     }
     
@@ -859,24 +860,25 @@ export class FunctionType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if (target instanceof PrimitiveType && target.name === 'any') return true;
+    if (isAnyType(target)) return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
+    }
+    if (aliasResolution.isCircular) {
+      return false;
     }
 
     // A function type is assignable to a union if it is assignable to any member
     // (e.g. a concrete function is valid for `function | null`)
-    if (target instanceof UnionType) {
-      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target?.kind === 'union') {
+      return checkUnionTarget(this, target.types, aliases);
     }
     
     // Simple function compatibility (contravariant params, covariant return)
-    if (target instanceof FunctionType) {
+    if (target?.kind === 'function') {
       // AnyFunctionType (marker with null params) accepts any function
       if (target.params === null || this.params === null) return true;
       if (this.params.length !== target.params.length) return false;
@@ -889,7 +891,7 @@ export class FunctionType extends Type {
       // Return type is covariant.
       // 'void' as the target return type means "we don't use the return value",
       // so any actual return type (including undefined, Promise<...>, etc.) is fine.
-      const targetReturnIsVoid = target.returnType instanceof PrimitiveType && target.returnType.name === 'void';
+      const targetReturnIsVoid = target.returnType?.kind === 'primitive' && target.returnType?.name === 'void';
       const returnCompatible = targetReturnIsVoid || this.returnType.isCompatibleWith(target.returnType, aliases);
       
       return paramsCompatible && returnCompatible;
@@ -1015,7 +1017,7 @@ export class TypeMemberAccess extends Type {
     const resolved = aliases.resolveMemberAccess(this);
     if (resolved === this) {
       // Could not resolve — treat as any
-      return target instanceof PrimitiveType && target.name === 'any';
+      return isAnyType(target);
     }
     return resolved.isCompatibleWith(target, aliases);
   }

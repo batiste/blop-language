@@ -1,0 +1,39 @@
+// Test for bare `import './file.blop'` - verifies type aliases are merged globally
+import './types.blop'
+
+test('Bare import merges type aliases globally', () => {
+  // User type alias from the bare import should be available
+  user: User = {
+    name: "Alice",
+    id: 42
+  }
+  
+  expect(user.name).toBe("Alice")
+  expect(user.id).toBe(42)
+})
+
+test('Multiple type aliases available after bare import', () => {
+  // Post type alias from the bare import should also be available
+  post: Post = {
+    title: "Hello",
+    author: "Bob",
+    views: 100
+  }
+  
+  expect(post.title).toBe("Hello")
+  expect(post.views).toBe(100)
+})
+
+test('Bare import works with nested types', () => {
+  // Profile contains User, which comes from the bare import
+  profile: Profile = {
+    user: {
+      name: "Charlie",
+      id: 5
+    },
+    verified: true
+  }
+  
+  expect(profile.user.name).toBe("Charlie")
+  expect(profile.verified).toBe(true)
+})

@@ -88,9 +88,12 @@ export function createImportHandler(getState) {
               const scope = getCurrentScope();
               registerImportedDefinition(name, nameNode, result, importedFunctions, importedClasses, typeAliases, scope);
             } else {
-              // import './types.blop' - import all types
-              // or import './types.blop' as types - can't use types directly
-              // For now, skip these cases
+              // import './types.blop' - bare import (no binding name)
+              // Type aliases are still merged globally below, making them available
+              // in type annotations throughout the file. See bareImport.test.blop for proof.
+              //
+              // import './types.blop' as types - namespace alias (not yet implemented)
+              // Would require supporting qualified names like `types.User` in type annotations.
             }
 
             // Always merge all type aliases from the imported file into the
