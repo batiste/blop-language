@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-03-05
+
+This release continues to strengthen the type system and developer experience with immutability
+patterns, improved type narrowing, and better error diagnostics.
+
+### Added
+
+**Type system**
+- `readonly` modifier for object properties and arrays: prevent accidental mutations and catch
+  errors at compile time. Syntax: `readonly name: string`, `readonly string[]` (#84).
+- `as const` assertions: freeze inferred types to their literal equivalents. Useful for creating
+  immutable configuration objects and type-safe enums (#85).
+- Type narrowing on object sub-elements: `if obj?.property` now correctly narrows the type of
+  nested properties within the conditional block.
+- "Object is possibly undefined" warnings: improved diagnostics when accessing properties on
+  potentially nullish objects (#86).
+
+**Editor & diagnostics**
+- Auto-completion improvements: better handling of optional chaining when suggesting property
+  and method names.
+- Improved error messages: clearer explanations of type mismatches and compilation failures.
+- Enhanced arity checking: better error reporting when function calls have incorrect argument
+  counts with suggestions for fixes (#87).
+
+**Formatting & code quality**
+- Whitespace enforcement: stricter parsing limits to maximum 2 consecutive spaces to encourage
+  consistent code style and prevent accidental formatting issues.
+
+### Changed
+
+- Type narrowing logic refined to handle nested property access patterns more accurately.
+- Error message formatting improved for readability.
+
+### Fixed
+
+- Auto-completion with optional chaining operator (`?.`) now suggests correct members.
+- Edge cases in type narrowing on sub-elements.
+
+---
+
 ## [1.2.0] - 2026-02-25
 
 This release focuses heavily on making the language more solid: the inference engine

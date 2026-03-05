@@ -28,6 +28,8 @@ This document tracks which TypeScript type-system features are present in Blop a
 | Dead code detection (unreachable code after `return` / `throw`) | `statements.js` — warns on code after an unconditional early exit |
 | **Tuple types (`[string, number]`)** | `TupleType` — see design notes below |
 | **`as` type assertion** | Grammar reuses the `as` keyword; inference stamps asserted type; backend erases the annotation |
+| **`as const` / const assertions** | `{ x: 1 } as const` — freeze inferred types to literal equivalents; recursively convert to `LiteralType` |
+| **`readonly` modifier** | `readonly name: string`, `readonly T[]` — `readonly` flag on `ObjectType` properties and `ArrayType`; errors on assignment |
 | **User-defined type predicates (`x is T`)** | `PredicateType` — see design notes below |
 | **`keyof` operator** | `KeyofType` — see design notes below |
 | **Class member type annotations** | `classMembers.test.js` — member type annotations, method signatures, and `this` inference all work |
@@ -50,10 +52,8 @@ These are self-contained, add immediate practical value, and do not require majo
 
 | # | Feature | TS example | Blocked by | Notes |
 |---|---|---|---|---|
-| 1 | **`as const` / const assertions** | `{ x: 1 } as const` | — | Freeze all inferred types to their literal equivalents. Reuse `as` grammar; add a `constAssertion` flag. Recursively convert `number` → `LiteralType(n)`, `string` → `LiteralType(s)`, turn object values into readonly literals. |
-| 2 | **`readonly` modifier** | `readonly name: string`, `readonly T[]` | — | Add a `readonly` flag in `ObjectType` properties and `ArrayType`. Emit a type error on assignment. Grammar: add `readonly` as an optional prefix on property annotations and array type syntax. No new `Type` subclass needed. |
-| 3 | **`satisfies` operator** | `expr satisfies T` | `as` infrastructure | Like `as` but with a compatibility check: error if the expression type is not assignable to `T`. Reuse `parseTypeExpression` + `isCompatibleWith`; keep the original inferred type (not the asserted one) for downstream inference. A strict complement to `as`. |
-| 4 | **Exhaustiveness checking** | `switch (x) { … }` + `never` narrowing | Type narrowing | After all branches of an `if/else` or `switch` have been handled, the remaining type should reduce to `never`. Emit a warning if a `never`-typed value is used (e.g. returned). Extend the checking phase's narrowing logic in `statements.js`. |
+| 1 | **`satisfies` operator** | `expr satisfies T` | `as` infrastructure | Like `as` but with a compatibility check: error if the expression type is not assignable to `T`. Reuse `parseTypeExpression` + `isCompatibleWith`; keep the original inferred type (not the asserted one) for downstream inference. A strict complement to `as`. |
+| 2 | **Exhaustiveness checking** | `switch (x) { … }` + `never` narrowing | Type narrowing | After all branches of an `if/else` or `switch` have been handled, the remaining type should reduce to `never`. Emit a warning if a `never`-typed value is used (e.g. returned). Extend the checking phase's narrowing logic in `statements.js`. |
 
 ### Tier 2 — Medium complexity (unlock utility types)
 
@@ -61,25 +61,26 @@ These require new `Type` subclasses but have well-understood semantics.
 
 | # | Feature | TS example | Blocked by | Notes |
 |---|---|---|---|---|
-| 6 | **Mapped types** | `{ [K in keyof T]: T[K] }` | `keyof` ✓ | New `MappedType` class with `keyParam`, `sourceType`, `valueExpr`. Resolution: expand `keyof sourceType`, bind `K` to each key, evaluate `valueExpr`. Unlocks `Partial<T>`, `Required<T>`, `Pick<T,K>`, `Omit<T,K>` as standard library aliases. |
-| 7 | **Conditional types** | `T extends U ? X : Y` | New `ConditionalType` | New `ConditionalType` class with `checkType`, `extendsType`, `trueType`, `falseType`. Resolution: check if `checkType` is assignable to `extendsType`; pick branch. Enables `ReturnType<F>`, `Parameters<F>`, `NonNullable<T>`. |
-| 8 | **`infer` keyword** | `T extends Array<infer E>` | Conditional types | Binding mechanism inside the `extendsType` of a conditional. The `infer` variable is in scope only in the true branch. |
-| 9 | **`Partial<T>`, `Required<T>`, `Pick<T,K>`, `Omit<T,K>`** | — | Mapped types | Once mapped types land, these become simple type alias definitions in `stdlib.js`. |
-| 10 | **`ReturnType<F>`, `Parameters<F>`** | — | Conditional + `infer` | `ReturnType<F>` = `F extends (...args: any[]) => infer R ? R : never`. |
-| 11 | **Function overloads** | Multiple call signatures | — | `FunctionType[]` per symbol. At call sites: find the first compatible overload. Grammar: a block of signature declarations before the implementation body. |
-| 12 | **Template literal types** | `` `prefix-${string}` `` | New `TemplateLiteralType` | `TemplateLiteralType` with `parts: Array<string \| Type>`. Evaluates against string literal types; widens to `string` otherwise. |
+| 3 | **Mapped types** | `{ [K in keyof T]: T[K] }` | `keyof` ✓ | New `MappedType` class with `keyParam`, `sourceType`, `valueExpr`. Resolution: expand `keyof sourceType`, bind `K` to each key, evaluate `valueExpr`. Unlocks `Partial<T>`, `Required<T>`, `Pick<T,K>`, `Omit<T,K>` as standard library aliases. |
+| 4 | **Conditional types** | `T extends U ? X : Y` | New `ConditionalType` | New `ConditionalType` class with `checkType`, `extendsType`, `trueType`, `falseType`. Resolution: check if `checkType` is assignable to `extendsType`; pick branch. Enables `ReturnType<F>`, `Parameters<F>`, `NonNullable<T>`. |
+| 5 | **`infer` keyword** | `T extends Array<infer E>` | Conditional types | Binding mechanism inside the `extendsType` of a conditional. The `infer` variable is in scope only in the true branch. |
+| 6 | **`Partial<T>`, `Required<T>`, `Pick<T,K>`, `Omit<T,K>`** | — | Mapped types | Once mapped types land, these become simple type alias definitions in `stdlib.js`. |
+| 7 | **`ReturnType<F>`, `Parameters<F>`** | — | Conditional + `infer` | `ReturnType<F>` = `F extends (...args: any[]) => infer R ? R : never`. |
+| 8 | **Function overloads** | Multiple call signatures | — | `FunctionType[]` per symbol. At call sites: find the first compatible overload. Grammar: a block of signature declarations before the implementation body. |
+| 9 | **Template literal types** | `` `prefix-${string}` `` | New `TemplateLiteralType` | `TemplateLiteralType` with `parts: Array<string \| Type>`. Evaluates against string literal types; widens to `string` otherwise. |
 
 ### Tier 3 — Advanced / lower immediate impact
 
 | # | Feature | TS example | Notes |
+| # | Feature | TS example | Notes |
 |---|---|---|---|
-| 13 | **`typeof x` in annotation position** | `type T = typeof someVar` | Type query — resolves to the inferred type of a variable. Requires look-up in the scope snapshot at declaration site. |
-| 14 | **`implements` interface checking** | `class Foo implements IFoo` | Class member annotations are already typed; `implements` would cross-check the class shape against a declared object type at the class-definition node. Straightforward extension of the existing excess-properties check. |
-| 15 | **Generic constraints** | `K extends keyof T` | Grammar for `extends` on type parameters; enforce in `substituteTypeParams`. `keyof` exists but cannot yet appear as a constraint. |
-| 16 | **Assertion functions** | `asserts cond` | Grammar + narrowing — analog to `PredicateType`; requires an `AssertionType` class and narrowing in the post-call scope. |
-| 17 | **Exhaustiveness in discriminated unions** | `switch (tag) { case 'a': … }` | Extension of Tier 1 #5; matches on literal types to peel the union case-by-case. |
-| 18 | **Declaration / interface merging** | Same-name type aliases | Symbol table change: collect all declarations of a name and merge their shapes. |
-| 19 | **Variance annotations** | `in`/`out` on generics | New flag on `GenericType`; enforced during `isCompatibleWith` on generic arguments. |
+| 10 | **`typeof x` in annotation position** | `type T = typeof someVar` | Type query — resolves to the inferred type of a variable. Requires look-up in the scope snapshot at declaration site. |
+| 11 | **`implements` interface checking** | `class Foo implements IFoo` | Class member annotations are already typed; `implements` would cross-check the class shape against a declared object type at the class-definition node. Straightforward extension of the existing excess-properties check. |
+| 12 | **Generic constraints** | `K extends keyof T` | Grammar for `extends` on type parameters; enforce in `substituteTypeParams`. `keyof` exists but cannot yet appear as a constraint. |
+| 13 | **Assertion functions** | `asserts cond` | Grammar + narrowing — analog to `PredicateType`; requires an `AssertionType` class and narrowing in the post-call scope. |
+| 14 | **Exhaustiveness in discriminated unions** | `switch (tag) { case 'a': … }` | Extension of Tier 1 #2; matches on literal types to peel the union case-by-case. |
+| 15 | **Declaration / interface merging** | Same-name type aliases | Symbol table change: collect all declarations of a name and merge their shapes. |
+| 16 | **Variance annotations** | `in`/`out` on generics | New flag on `GenericType`; enforced during `isCompatibleWith` on generic arguments. |
 
 ---
 
@@ -87,8 +88,8 @@ These require new `Type` subclasses but have well-understood semantics.
 
 If the goal is maximum practical value for Blop programs written today, the suggested order of attack is:
 
-1. **`as const`** — unlocks literal-type patterns everywhere; touches only the `as` infrastructure already in place.
-2. **`readonly`** — adds an immutability safety net; property flag, no new type class.
+1. ✅ **`as const`** — unlocks literal-type patterns everywhere; touches only the `as` infrastructure already in place. **DONE as of v1.3.0**.
+2. ✅ **`readonly`** — adds an immutability safety net; property flag, no new type class. **DONE as of v1.3.0**.
 3. **`satisfies`** — adds the strict complement to `as`; reuses all type-check infrastructure.
 4. **Exhaustiveness checking** — big DX win for discriminated-union patterns; extends existing dead-code logic.
 5. **Mapped types** — medium effort, high reward: immediately unlocks `Partial`, `Pick`, `Omit`, `Required`.

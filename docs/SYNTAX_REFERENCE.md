@@ -13,6 +13,7 @@ A practical reference for writing Blop code. Each section explains the syntax, s
 - [Objects and Arrays](#objects-and-arrays)
 - [Classes](#classes)
 - [Type Aliases](#type-aliases)
+- [Type Modifiers](#type-modifiers)
 - [try / catch / throw](#try--catch--throw)
 - [Compound Assignment](#compound-assignment)
 - [Virtual DOM](#virtual-dom)
@@ -290,6 +291,51 @@ def greet(u: User): string {
   return 'Hello, 'u.name
 }
 ```
+
+### Type Modifiers
+
+#### readonly
+
+The `readonly` modifier prevents modification of object properties and arrays. Attempting to modify a readonly field results in a compile-time error:
+
+```typescript
+// Readonly properties in objects
+type Config = {
+  readonly apiUrl: string,
+  readonly timeout: number,
+  retries: number
+}
+
+// Readonly arrays
+type StringList = readonly string[]
+
+// Using readonly in variables
+config: Config = { readonly apiUrl: 'https://api.example.com', timeout: 5000, retries: 3 }
+config.apiUrl = 'https://new-api.example.com'  // ❌ Compile error: cannot mutate readonly property
+config.retries = 4                             // ✅ OK: retries is mutable
+```
+
+#### as const
+
+The `as const` assertion freezes an object or array to use literal types instead of general types. This is useful for creating immutable configuration objects and type-safe enums:
+
+```typescript
+// Without as const: inferred as { name: string, level: number }
+settings = { name: 'default', level: 1 }
+
+// With as const: inferred as { readonly name: 'default', readonly level: 1 }
+immutableSettings = { name: 'default', level: 1 } as const
+
+// as const with arrays: preserves specific value types
+directions = ['north', 'south', 'east', 'west'] as const
+// Type: readonly ['north', 'south', 'east', 'west']
+
+// Type-safe enums
+Status = { Active: 'active', Inactive: 'inactive' } as const
+// Type: { readonly Active: 'active', readonly Inactive: 'inactive' }
+```
+
+When you use `as const`, all nested types become readonly and use literal types, making them safer for constants and immutable data structures.
 
 ---
 

@@ -311,6 +311,96 @@ The compiler registers dynamic import paths in the module's dependency list, so 
 - Conditional features (load a debug panel only in development)
 - Plugin systems
 
+## Immutability
+
+Blop provides two powerful tools to enforce immutability and prevent accidental mutations: `readonly` and `as const`.
+
+### The readonly Modifier
+
+The `readonly` modifier marks individual properties or arrays as immutable. Any attempt to modify a readonly field results in a compile-time error.
+
+```typescript
+type User = {
+  readonly id: number,
+  readonly name: string,
+  email: string      // mutable
+}
+
+user: User = { id: 1, name: 'Alice', email: 'alice@example.com' }
+
+// ❌ Error: cannot mutate readonly property
+user.id = 2
+user.name = 'Bob'
+
+// ✅ OK: email is not readonly
+user.email = 'alice.new@example.com'
+```
+
+Readonly also works with arrays:
+
+```typescript
+forbiddenIds: readonly number[] = [1, 2, 3]
+
+// ❌ Error: cannot mutate readonly array
+forbiddenIds.push(4)
+forbiddenIds[0] = 10
+
+// ✅ OK: reading values
+count = forbiddenIds.length
+```
+
+### The as const Assertion
+
+`as const` is a powerful assertion that freezes an entire object or array, converting all types to their literal equivalents and marking everything as readonly:
+
+```typescript
+// Without as const: { status: string }
+settings1 = { status: 'active' }
+
+// With as const: { readonly status: 'active' }
+settings2 = { status: 'active' } as const
+```
+
+This is particularly useful for creating type-safe enums and configuration constants:
+
+```typescript
+// Type-safe enum pattern
+HttpStatus = {
+  OK: 200,
+  NotFound: 404,
+  ServerError: 500
+} as const
+// Type: { readonly OK: 200, readonly NotFound: 404, readonly ServerError: 500 }
+
+// Now the type system knows exact values, enabling better type checking
+code: HttpStatus.OK = HttpStatus.OK    // ✅ OK
+code2: HttpStatus.NotFound = HttpStatus.OK  // ❌ Error: 200 is not assignable to 404
+```
+
+Array literals with `as const`:
+
+```typescript
+AllowedRoles = ['admin', 'user', 'guest'] as const
+// Type: readonly ['admin', 'user', 'guest']
+
+role1: AllowedRoles = 'admin'    // ✅ OK
+role2: AllowedRoles = 'owner'    // ❌ Error: 'owner' is not in the literal type
+```
+
+### Key Differences
+
+| Feature | `readonly` | `as const` |
+|---------|-----------|-----------|
+| Scope | Individual properties | Entire object/array |
+| Type change | Keeps general type | Converts to literal types |
+| Use case | Data structures with some mutable fields | Immutable constants and enums |
+| Syntax | `readonly name: string` | `obj as const` |
+
+### Use Cases
+
+- **readonly**: Data transfer objects with mostly immutable fields, API configurations, frozen lookups
+- **as const**: Feature flags, HTTP status codes, permission levels, immutable configuration tables
+
 ## Testing
 
 Tests for modern features are in [src/tests/modern-features.test.blop](../src/tests/modern-features.test.blop).
