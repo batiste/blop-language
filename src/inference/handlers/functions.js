@@ -2,7 +2,7 @@
 // Function Handlers - Type inference for function definitions and calls
 // ============================================================================
 
-import { visitChildren } from '../visitor.js';
+import { visitChildren, stampInferencePhaseOnly } from '../visitor.js';
 import { 
   getAnnotationType, 
   isTypeCompatible,
@@ -281,13 +281,11 @@ function finalizeFunctionReturnType({
   if (checkTarget && inferredType !== AnyType && !isTypeCompatible(inferredType, checkTarget, typeAliases)) {
     pushWarning(nameNode, `${warningLabel} returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
   }
-  if (inferencePhase === 'inference' && nameNode?.inferredType === undefined) {
-    nameNode.inferredType = new FunctionType(
-      scope.__currentFctParams, declaredType ?? inferredType,
-      genericParams, scope.__currentFctParamNames, null,
-      genericConstraints?.size > 0 ? genericConstraints : null
-    );
-  }
+  stampInferencePhaseOnly(nameNode, new FunctionType(
+    scope.__currentFctParams, declaredType ?? inferredType,
+    genericParams, scope.__currentFctParamNames, null,
+    genericConstraints?.size > 0 ? genericConstraints : null
+  ));
   return { declaredType, inferredType };
 }
 
@@ -356,9 +354,7 @@ function createFunctionHandlers(getState) {
           }
 
           scope[localName] = { type: propType };
-          if (inferencePhase === 'inference') {
-            token.inferredType = resolveTypeAlias(propType, typeAliases);
-          }
+          stampInferencePhaseOnly(token, resolveTypeAlias(propType, typeAliases));
           regDestrName(v.named.more);
         }
 
@@ -378,9 +374,7 @@ function createFunctionHandlers(getState) {
 
         scope.__currentFctParams.push(paramType);
         scope.__currentFctParamNames.push(node.named.name.value);
-        if (inferencePhase === 'inference' && node.named.name) {
-          node.named.name.inferredType = resolveTypeAlias(paramType, typeAliases);
-        }
+        stampInferencePhaseOnly(node.named.name, resolveTypeAlias(paramType, typeAliases));
         visitChildren(node);
       }
     },
@@ -462,12 +456,12 @@ function createFunctionHandlers(getState) {
           ? wrapInPromise(declaredType ?? inferredType)
           : (declaredType ?? inferredType);
         // Re-stamp hover type with the Promise-wrapped return type.
-        if (isAsync && inferencePhase === 'inference') {
-          node.named.name.inferredType = new FunctionType(
+        if (isAsync) {
+          stampInferencePhaseOnly(node.named.name, new FunctionType(
             scope.__currentFctParams, externalReturnType,
             genericParams, scope.__currentFctParamNames, null,
             genericConstraints?.size > 0 ? genericConstraints : null
-          );
+          ));
         }
         parentScope[node.named.name.value] = {
           source: 'func_def',
@@ -550,9 +544,7 @@ function createFunctionHandlers(getState) {
           type: classType,
           node,
         };
-        if (inferencePhase === 'inference' && node.named.name.inferredType === undefined) {
-          node.named.name.inferredType = classType;
-        }
+        stampInferencePhaseOnly(node.named.name, classType);
       }
 
       // Push a scope for the class body so __currentClassType is scoped
@@ -600,13 +592,13 @@ function createFunctionHandlers(getState) {
       });
 
       // Async methods expose Promise<T>; re-stamp the hover type accordingly.
-      if (node.named.async && inferencePhase === 'inference' && node.named.name) {
+      if (node.named.async) {
         const externalReturnType = wrapInPromise(methodDeclaredType ?? methodInferredType);
-        node.named.name.inferredType = new FunctionType(
+        stampInferencePhaseOnly(node.named.name, new FunctionType(
           scope.__currentFctParams, externalReturnType,
           genericParams, scope.__currentFctParamNames, null,
           genericConstraints?.size > 0 ? genericConstraints : null
-        );
+        ));
       }
 
       popScope();
@@ -622,9 +614,7 @@ function createFunctionHandlers(getState) {
       
       stampTypeAnnotation(annotation);
       const memberType = getAnnotationType(annotation);
-      if (memberType && inferencePhase === 'inference' && node.named.name?.inferredType === undefined) {
-        node.named.name.inferredType = memberType;
-      }
+      stampInferencePhaseOnly(node.named.name, memberType);
     },
   };
 }

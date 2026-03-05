@@ -2,7 +2,7 @@
 // Expression Handlers - Type inference for expressions
 // ============================================================================
 
-import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess } from '../visitor.js';
+import { visit, visitChildren, resolveTypes, pushToParent, validateObjectPropertyAccess, stampInferencePhaseOnly } from '../visitor.js';
 import { inferGenericArguments, substituteType, resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral, isTypeCompatible } from '../typeSystem.js';
 import { parseTypeExpression } from '../typeParser.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType, PredicateType, LiteralType, TupleType, Types } from '../Type.js';
