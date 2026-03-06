@@ -11,6 +11,10 @@ function createExpressionGenerators(context) {
       if (node.named?.type_cast) {
         return generateCode(node.named.exp);
       }
+      // `satisfies` operator: expr satisfies T — also emit only the expression at runtime.
+      if (node.named?.type_satisfies) {
+        return generateCode(node.named.exp);
+      }
       // Compound-expression string interpolation: a.b'text 'val
       // Grammar: ['exp:left', 'str:str', 'inner_str_expression?:str_exp']
       if (node.named?.left !== undefined && node.named?.str !== undefined) {

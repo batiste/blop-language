@@ -205,6 +205,19 @@ const BUILTIN_TYPES = new Set([
   
   // Legacy/alias types
   'int',
+
+  // Built-in utility generic types (TypeScript-compatible)
+  'Record',
+  'Partial',
+  'Required',
+  'Readonly',
+  'Pick',
+  'Omit',
+  'Exclude',
+  'Extract',
+  'NonNullable',
+  'ReturnType',
+  'Parameters',
 ]);
 
 /**

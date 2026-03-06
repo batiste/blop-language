@@ -4,6 +4,8 @@
 // This module defines a structured, object-oriented type system to replace
 // ============================================================================
 
+import { isAnyType, isNeverType, tryResolveAlias, checkUnionTarget, checkIntersectionTarget } from './compatibility.js';
+
 /**
  * Base Type class - all types inherit from this
  */
@@ -34,17 +36,14 @@ export class Type {
    * @returns {boolean}
    */
   isCompatibleWith(target, aliases) {
-    // When the target is an intersection, the value must be compatible with the
-    // merged type (for all-object intersections) or with every constituent.
-    if (target instanceof IntersectionType) {
-      const merged = target.merge(aliases);
-      if (merged) {
-        return this.isCompatibleWith(merged, aliases);
-      }
-      return target.types.every(t => this.isCompatibleWith(t, aliases));
+    // When the target is an intersection, delegate to helper
+    if (target?.kind === 'intersection') {
+      const result = checkIntersectionTarget(this, target, aliases);
+      if (result !== null) return result;
     }
+    
     // Default: check equality
-    return this.equals(target) || (target instanceof PrimitiveType && target.name === 'any');
+    return this.equals(target) || isAnyType(target);
   }
 }
 
@@ -67,29 +66,30 @@ export class PrimitiveType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if ((target instanceof PrimitiveType && target.name === 'any') || 
-        (this instanceof PrimitiveType && this.name === 'any')) return true;
-    if (this instanceof PrimitiveType && this.name === 'never') return true;
-    if (target instanceof PrimitiveType && target.name === 'never') return false;
+    // Any type is compatible with anything
+    if (isAnyType(target)) return true;
+    
+    // 'any' is compatible with everything (bidirectional)
+    if (isAnyType(this)) return true;
+    
+    // 'never' is compatible with everything (bottom type)
+    if (isNeverType(this)) return true;
+    
+    // Nothing is compatible with 'never' as a target (except never itself)
+    if (isNeverType(target)) return false;
     
     // Check if target is a union containing this type
-    if (target instanceof UnionType) {
-      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target?.kind === 'union') {
+      return checkUnionTarget(this, target.types, aliases);
     }
     
-    // Resolve aliases and type member access (e.g. State.dogPage)
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    // Resolve aliases and type member access
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
     }
-
-    // Resolve keyof targets (e.g. keyof State → "a" | "b")
-    if (target instanceof KeyofType) {
-      const resolved = aliases.resolveKeyof(target);
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    if (aliasResolution.isCircular) {
+      return false; // Circular reference can't be resolved
     }
     
     return this.equals(target);
@@ -354,7 +354,7 @@ export class ObjectType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof MappedType || target instanceof TypeIndexAccess) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -605,20 +605,21 @@ export class UnionType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if (target instanceof PrimitiveType && target.name === 'any') return true;
+    if (isAnyType(target)) return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
+    }
+    if (aliasResolution.isCircular) {
+      return false;
     }
 
     // When target is also a union, each type in this union must be covered by
     // at least one type in the target union — don't compare each constituent
     // against the whole union object, which would fail for e.g. FunctionType.
-    if (target instanceof UnionType) {
+    if (target?.kind === 'union') {
       return this.types.every(t => target.types.some(targetT => t.isCompatibleWith(targetT, aliases)));
     }
     
@@ -859,24 +860,25 @@ export class FunctionType extends Type {
   }
   
   isCompatibleWith(target, aliases) {
-    if (target instanceof PrimitiveType && target.name === 'any') return true;
+    if (isAnyType(target)) return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
-      const resolved = aliases.resolve(target);
-      // Avoid infinite recursion if alias can't be resolved
-      if (resolved === target) return false;
-      return this.isCompatibleWith(resolved, aliases);
+    const aliasResolution = tryResolveAlias(target, aliases);
+    if (aliasResolution.resolved) {
+      return this.isCompatibleWith(aliasResolution.resolved, aliases);
+    }
+    if (aliasResolution.isCircular) {
+      return false;
     }
 
     // A function type is assignable to a union if it is assignable to any member
     // (e.g. a concrete function is valid for `function | null`)
-    if (target instanceof UnionType) {
-      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    if (target?.kind === 'union') {
+      return checkUnionTarget(this, target.types, aliases);
     }
     
     // Simple function compatibility (contravariant params, covariant return)
-    if (target instanceof FunctionType) {
+    if (target?.kind === 'function') {
       // AnyFunctionType (marker with null params) accepts any function
       if (target.params === null || this.params === null) return true;
       if (this.params.length !== target.params.length) return false;
@@ -889,7 +891,7 @@ export class FunctionType extends Type {
       // Return type is covariant.
       // 'void' as the target return type means "we don't use the return value",
       // so any actual return type (including undefined, Promise<...>, etc.) is fine.
-      const targetReturnIsVoid = target.returnType instanceof PrimitiveType && target.returnType.name === 'void';
+      const targetReturnIsVoid = target.returnType?.kind === 'primitive' && target.returnType?.name === 'void';
       const returnCompatible = targetReturnIsVoid || this.returnType.isCompatibleWith(target.returnType, aliases);
       
       return paramsCompatible && returnCompatible;
@@ -1015,9 +1017,88 @@ export class TypeMemberAccess extends Type {
     const resolved = aliases.resolveMemberAccess(this);
     if (resolved === this) {
       // Could not resolve — treat as any
-      return target instanceof PrimitiveType && target.name === 'any';
+      return isAnyType(target);
     }
     return resolved.isCompatibleWith(target, aliases);
+  }
+}
+
+/**
+ * Mapped type: { [K in source]: valueType }
+ * Represents a mapped object type that iterates over keys of a source type.
+ * When resolved, expands to an ObjectType with one property per key.
+ */
+export class MappedType extends Type {
+  /**
+   * @param {string} keyParam - The name of the key parameter (e.g. 'K')
+   * @param {Type} sourceType - The source type whose keys to iterate (e.g. KeyofType)
+   * @param {Type} valueType - The value type expression (may reference keyParam)
+   * @param {boolean} optional - Whether properties should be optional
+   * @param {boolean} readonly - Whether properties should be readonly
+   */
+  constructor(keyParam, sourceType, valueType, optional = false, readonly = false) {
+    super();
+    this.kind = 'mapped';
+    this.keyParam = keyParam;
+    this.sourceType = sourceType;
+    this.valueType = valueType;
+    this.optional = optional;
+    this.readonly = readonly;
+  }
+
+  toString() {
+    const ro = this.readonly ? 'readonly ' : '';
+    const opt = this.optional ? '?' : '';
+    return `{ ${ro}[${this.keyParam} in ${this.sourceType}]${opt}: ${this.valueType} }`;
+  }
+
+  equals(other) {
+    return other instanceof MappedType
+      && this.keyParam === other.keyParam
+      && this.sourceType.equals(other.sourceType)
+      && this.valueType.equals(other.valueType)
+      && this.optional === other.optional;
+  }
+
+  isCompatibleWith(target, aliases) {
+    const resolved = aliases.resolve(this);
+    if (resolved !== this) return resolved.isCompatibleWith(target, aliases);
+    if (isAnyType(target)) return true;
+    return this.equals(target);
+  }
+}
+
+/**
+ * Indexed type access: T[K] where K is a type variable or literal.
+ * Used in mapped type value expressions like T[K].
+ */
+export class TypeIndexAccess extends Type {
+  /**
+   * @param {Type} baseType - The type being indexed (e.g. TypeAlias('T'))
+   * @param {Type} keyType - The key type (e.g. TypeAlias('K') or LiteralType)
+   */
+  constructor(baseType, keyType) {
+    super();
+    this.kind = 'index_access';
+    this.baseType = baseType;
+    this.keyType = keyType;
+  }
+
+  toString() {
+    return `${this.baseType}[${this.keyType}]`;
+  }
+
+  equals(other) {
+    return other instanceof TypeIndexAccess
+      && this.baseType.equals(other.baseType)
+      && this.keyType.equals(other.keyType);
+  }
+
+  isCompatibleWith(target, aliases) {
+    const resolved = aliases.resolve(this);
+    if (resolved !== this) return resolved.isCompatibleWith(target, aliases);
+    if (isAnyType(target)) return true;
+    return this.equals(target);
   }
 }
 
@@ -1156,6 +1237,59 @@ export class TypeAliasMap {
   }
 
   /**
+   * Resolve a TypeIndexAccess T[K] to the concrete property type.
+   * If K is a string literal and T is an ObjectType, looks up the property.
+   * @param {TypeIndexAccess} type
+   * @returns {Type}
+   */
+  resolveIndexAccess(type) {
+    const resolvedBase = this.resolve(type.baseType);
+    const resolvedKey = this.resolve(type.keyType);
+    if (resolvedBase instanceof ObjectType && resolvedKey instanceof LiteralType) {
+      const prop = resolvedBase.properties.get(resolvedKey.value);
+      if (prop) return prop.type;
+    }
+    if (resolvedBase instanceof PrimitiveType && resolvedBase.name === 'any') return AnyType;
+    return AnyType;
+  }
+
+  /**
+   * Resolve a MappedType by expanding its key set and building an ObjectType.
+   * @param {MappedType} type
+   * @returns {Type}
+   */
+  resolveMappedType(type) {
+    const resolvedSource = this.resolve(type.sourceType);
+
+    // Collect the concrete key literals
+    let keyLiterals;
+    if (resolvedSource instanceof UnionType) {
+      keyLiterals = resolvedSource.types.filter(t => t instanceof LiteralType && t.baseType === StringType);
+    } else if (resolvedSource instanceof LiteralType && resolvedSource.baseType === StringType) {
+      keyLiterals = [resolvedSource];
+    } else if (resolvedSource instanceof PrimitiveType && resolvedSource.name === 'string') {
+      // Open key set — produce a RecordType
+      const subs = new Map([[type.keyParam, StringType]]);
+      const resolvedValue = this.resolve(substituteTypeParams(type.valueType, subs));
+      return new RecordType(StringType, resolvedValue);
+    } else {
+      // Cannot determine keys — fallback
+      return AnyType;
+    }
+
+    if (keyLiterals.length === 0) return new ObjectType(new Map());
+
+    const newProps = new Map();
+    for (const keyLiteral of keyLiterals) {
+      const subs = new Map([[type.keyParam, keyLiteral]]);
+      const substituted = substituteTypeParams(type.valueType, subs);
+      const resolvedValue = this.resolve(substituted);
+      newProps.set(String(keyLiteral.value), { type: resolvedValue, optional: type.optional, readonly: type.readonly });
+    }
+    return new ObjectType(newProps);
+  }
+
+  /**
    * Resolve a type alias (recursive with cycle detection)
    * @param {Type} type
    * @returns {Type}
@@ -1166,6 +1300,12 @@ export class TypeAliasMap {
     }
     if (type instanceof KeyofType) {
       return this.resolveKeyof(type);
+    }
+    if (type instanceof TypeIndexAccess) {
+      return this.resolveIndexAccess(type);
+    }
+    if (type instanceof MappedType) {
+      return this.resolveMappedType(type);
     }
     if (!(type instanceof TypeAlias)) {
       return type;
@@ -1303,6 +1443,26 @@ export function substituteTypeParams(type, substitutions) {
 
   if (type instanceof KeyofType) {
     return new KeyofType(substituteTypeParams(type.subjectType, substitutions));
+  }
+
+  if (type instanceof MappedType) {
+    // Substitute in sourceType and valueType, but NOT in keyParam (it's a bound variable)
+    const filteredSubs = new Map(substitutions);
+    filteredSubs.delete(type.keyParam); // keyParam is locally bound — don't substitute it
+    return new MappedType(
+      type.keyParam,
+      substituteTypeParams(type.sourceType, substitutions),
+      substituteTypeParams(type.valueType, filteredSubs),
+      type.optional,
+      type.readonly
+    );
+  }
+
+  if (type instanceof TypeIndexAccess) {
+    return new TypeIndexAccess(
+      substituteTypeParams(type.baseType, substitutions),
+      substituteTypeParams(type.keyType, substitutions)
+    );
   }
 
   // Primitives and literals don't need substitution

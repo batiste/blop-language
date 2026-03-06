@@ -2,7 +2,7 @@
 // Literal Handlers - Type inference for literal values
 // ============================================================================
 
-import { visitChildren, resolveTypes } from '../visitor.js';
+import { visitChildren, resolveTypes, stampInferencePhaseOnly } from '../visitor.js';
 import { getBaseTypeOfLiteral, ObjectType } from '../typeSystem.js';
 import { Types, LiteralType, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
 
@@ -204,11 +204,9 @@ function inferObjectLiteralStructure(node, lookupVariable) {
 function createLiteralHandlers(getState) {
   // Shared helper: push a type for a literal node and stamp inferredType
   function pushLiteralType(node, parent, type) {
-    const { pushInference, inferencePhase } = getState();
+    const { pushInference } = getState();
     pushInference(parent, type);
-    if (inferencePhase === 'inference' && node.inferredType === undefined) {
-      node.inferredType = type;
-    }
+    stampInferencePhaseOnly(node, type);
   }
 
   // Shared helper: push a VNode type and register an implicit return.

@@ -69,10 +69,10 @@ function handleExpObjAccess(node, parent, getState) {
 function handleSimpleVariable(name, parent, definition, getState) {
   const { pushInference, typeAliases, pushWarning, inferencePhase } = getState();
 
-  // Exhaustiveness check: if a variable has been narrowed to `never` by the type
-  // guard system (i.e. all union cases have been handled via early-return guards),
-  // reading it is dead code — all possible values have already been accounted for.
-  if (inferencePhase === 'checking' && definition?.narrowed && definition.type === NeverType) {
+  // Exhaustiveness check: if a variable has been marked as exhausted by applyPostIfGuard
+  // (i.e. all union cases have been handled via prior early-return guards), reading it is
+  // dead code — all possible values have already been accounted for.
+  if (inferencePhase === 'checking' && definition?.__exhausted) {
     pushWarning(name, `'${name.value}' has been narrowed to 'never' — this code is unreachable: all union cases are already handled above`);
   }
 

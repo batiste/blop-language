@@ -13,7 +13,7 @@ import {
   Type, Types, TypeAliasMap,
   PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
   IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
-  PredicateType,
+  PredicateType, KeyofType, MappedType, TypeIndexAccess,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
@@ -30,6 +30,49 @@ function resolveGenericType(type, aliasMap) {
     } else {
       baseName = type.baseType.toString();
     }
+
+    // Omit<T, K> — built-in special case: Pick all keys of T except those in K
+    if (baseName === 'Omit' && type.typeArgs.length >= 2) {
+      const resolvedT = resolveAliasType(resolveGenericType(type.typeArgs[0], aliasMap), aliasMap);
+      const resolvedK = resolveAliasType(resolveGenericType(type.typeArgs[1], aliasMap), aliasMap);
+      // Collect keys to exclude
+      const excludedKeys = new Set();
+      const addKey = (t) => {
+        if (t instanceof LiteralType) excludedKeys.add(String(t.value));
+        else if (t instanceof UnionType) t.types.forEach(addKey);
+      };
+      addKey(resolvedK);
+      if (resolvedT instanceof ObjectType) {
+        const newProps = new Map();
+        for (const [key, prop] of resolvedT.properties) {
+          if (!excludedKeys.has(key)) newProps.set(key, prop);
+        }
+        return new ObjectType(newProps, resolvedT.name);
+      }
+      return resolvedT;
+    }
+
+    // Exclude<A, B> — built-in special case: remove B types from A
+    if (baseName === 'Exclude' && type.typeArgs.length >= 2) {
+      const resolvedA = resolveAliasType(resolveGenericType(type.typeArgs[0], aliasMap), aliasMap);
+      const resolvedB = resolveAliasType(resolveGenericType(type.typeArgs[1], aliasMap), aliasMap);
+      const excludedKeys = new Set();
+      const addKey = (t) => {
+        if (t instanceof LiteralType) excludedKeys.add(String(t.value));
+        else if (t instanceof PrimitiveType) excludedKeys.add(t.name);
+        else if (t instanceof UnionType) t.types.forEach(addKey);
+      };
+      addKey(resolvedB);
+      if (resolvedA instanceof UnionType) {
+        const remaining = resolvedA.types.filter(t => {
+          const str = t instanceof LiteralType ? String(t.value) : (t instanceof PrimitiveType ? t.name : null);
+          return str === null || !excludedKeys.has(str);
+        });
+        return createUnion(remaining.length === 0 ? [NeverType] : remaining);
+      }
+      return resolvedA;
+    }
+
     const instantiated = aliasMap.instantiate(baseName, type.typeArgs);
     return instantiated !== undefined ? instantiated : type;
   }
@@ -43,10 +86,24 @@ function resolveAliasType(type, aliasMap) {
     if (resolved !== type) return resolveAliasType(resolved, aliasMap);
     return type;
   }
+  if (type instanceof GenericType) {
+    // Resolve generic instantiation (e.g. Partial<User> or user-defined MyPartial<User>)
+    const resolved = resolveGenericType(type, aliasMap);
+    if (resolved !== type) return resolveAliasType(resolved, aliasMap);
+    return type;
+  }
+  if (type instanceof MappedType) {
+    return aliasMap.resolveMappedType(type);
+  }
+  if (type instanceof TypeIndexAccess) {
+    return aliasMap.resolveIndexAccess(type);
+  }
   if (type instanceof TypeAlias) {
     const resolved = aliasMap.resolve(type);
-    // If resolved from user-defined aliases, return that
-    if (resolved !== type) return resolved;
+    // If resolved from user-defined aliases, recursively resolve the result
+    // (this handles chains like `type Foo = Partial<User>` where the alias
+    //  resolves to a GenericType that itself needs further resolution)
+    if (resolved !== type) return resolveAliasType(resolved, aliasMap);
     // Special case: Component is used as a structural type for direct component calls (e.g. in tests).
     // Build an ObjectType with all properties optional so plain objects { attributes, children } pass.
     if (type.name === 'Component' && isBuiltinObjectType(type.name)) {
@@ -642,16 +699,58 @@ function typeToString(type) {
 }
 
 /**
+ * Pre-populate a TypeAliasMap with built-in utility generic type aliases.
+ * These mirror the TypeScript standard library utility types.
+ */
+function populateBuiltinAliases(aliasMap) {
+  const T = new TypeAlias('T');
+  const K = new TypeAlias('K');
+  const P = new TypeAlias('P');
+
+  // Partial<T> = { [K in keyof T]?: T[K] }
+  aliasMap.define(
+    'Partial',
+    new MappedType('K', new KeyofType(T), new TypeIndexAccess(T, K), true, false),
+    ['T']
+  );
+
+  // Required<T> = { [K in keyof T]: T[K] }  (all props required)
+  aliasMap.define(
+    'Required',
+    new MappedType('K', new KeyofType(T), new TypeIndexAccess(T, K), false, false),
+    ['T']
+  );
+
+  // Readonly<T> = { readonly [K in keyof T]: T[K] }
+  aliasMap.define(
+    'Readonly',
+    new MappedType('K', new KeyofType(T), new TypeIndexAccess(T, K), false, true),
+    ['T']
+  );
+
+  // Pick<T, K> = { [P in K]: T[P] }  (K is a union of keys to keep)
+  aliasMap.define(
+    'Pick',
+    new MappedType('P', K, new TypeIndexAccess(T, P), false, false),
+    ['T', 'K']
+  );
+  // Omit<T, K> is handled as a special case in resolveGenericType
+}
+
+/**
  * Convert object map to TypeAliasMap
  * @param {Object} obj
  * @returns {TypeAliasMap}
  */
 function stringMapToTypeAliasMap(obj) {
   if (!obj || typeof obj !== 'object') {
-    return new TypeAliasMap();
+    const aliasMap = new TypeAliasMap();
+    populateBuiltinAliases(aliasMap);
+    return aliasMap;
   }
   
   const aliasMap = new TypeAliasMap();
+  populateBuiltinAliases(aliasMap);
   
   for (const [name, value] of Object.entries(obj)) {
     if (typeof value === 'object' && value.genericParams && value.genericParams.length > 0) {

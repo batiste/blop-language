@@ -107,12 +107,14 @@ const grammar = {
     ['readonly:readonly', 'type_primary:inner'],
     ['keyof', 'type_primary:subject', 'array_suffix?'],
     ['tuple_type:tuple', 'array_suffix?'],
+    ['mapped_type:mapped'],
     ['object_type', 'array_suffix?'],
     ['str:literal', 'array_suffix?'],
     ['number:literal', 'array_suffix?'],
     ['type_name:name', '<', 'type_arg_list:type_args', '>', 'array_suffix?'],
     ['type_name:name', '<', 'type_arg_list:type_args', '>'],
     ['type_name:name', '.', 'name:member', 'array_suffix?'],
+    ['type_name:name', '[', 'name:index_key', ']', 'array_suffix?'],
     ['type_name:name', '[', 'str:member_key', ']', 'array_suffix?'],
     ['type_name:name', 'array_suffix?'],
   ],
@@ -138,6 +140,10 @@ const grammar = {
     ['{', 'wcomment', 'newline', 'w?', 'W?', 'object_type_properties:properties', 'single_space_or_newline', '}'], // this line could be removed
     ['{', 'single_space_or_newline', 'object_type_properties:properties', 'single_space_or_newline', '}'],
     ['{', '}'],
+  ],
+  'mapped_type': [
+    ['{', 'single_space_or_newline', 'readonly:readonly', 'w', '[', 'name:key_param', 'w', 'in', 'type_expression:source', ']', 'question?:optional', 'colon', 'w?', 'type_expression:value', 'single_space_or_newline', '}'],
+    ['{', 'single_space_or_newline', '[', 'name:key_param', 'w', 'in', 'type_expression:source', ']', 'question?:optional', 'colon', 'w?', 'type_expression:value', 'single_space_or_newline', '}'],
   ],
   'object_type_properties': [
     ['object_type_property', ',', 'single_space_or_newline', 'object_type_properties'],
@@ -325,6 +331,7 @@ const grammar = {
     ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
     ['exp:exp', 'w', 'as', 'type_expression:type_cast'],
+    ['exp:exp', 'w', 'satisfies', 'type_expression:type_satisfies'],
     ['exp:left', 'str:str', 'inner_str_expression?:str_exp'],
     ['str_expression'],
     ['name_exp'],

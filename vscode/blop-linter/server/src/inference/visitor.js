@@ -99,6 +99,19 @@ function pushWarning(node, message) {
   warnings.push(error);
 }
 
+/**
+ * Stamp a type onto a node's inferredType field only during the inference phase.
+ * Used throughout handlers to set hover information without checking if already stamped
+ * in the checking phase.
+ * @param {Object} node - Node to stamp
+ * @param {Type} type - Type to assign
+ */
+function stampInferencePhaseOnly(node, type) {
+  if (inferencePhase === 'inference' && node.inferredType === undefined) {
+    node.inferredType = type;
+  }
+}
+
 // ============================================================================
 // Type Resolution Helpers
 // ============================================================================
@@ -592,5 +605,6 @@ export {
   setHandlers,
   stampTypeAnnotation,
   stampInferredTypes,
+  stampInferencePhaseOnly,
   validateObjectPropertyAccess,
 };

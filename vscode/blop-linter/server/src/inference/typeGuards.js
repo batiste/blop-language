@@ -553,6 +553,8 @@ function applyElseBranchGuard(scope, typeGuard, lookupVariable, typeAliases) {
 /**
  * Apply the correct scope effect to the outer scope after an early-return if guard.
  * Same semantics as applyElseBranchGuard: code past the if block is the "false" path.
+ * When the result of the exclusion is `never`, the variable is marked as `__exhausted`
+ * so that the exhaustiveness checker can warn on subsequent uses.
  * @param {Object} typeAliases - Required when typeGuard.property is set
  */
 function applyPostIfGuard(scope, typeGuard, lookupVariable, typeAliases) {
@@ -576,6 +578,11 @@ function applyPostIfGuard(scope, typeGuard, lookupVariable, typeAliases) {
     applyNarrowing(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
   } else {
     applyExclusion(scope, typeGuard.variable, typeGuard.checkType, lookupVariable);
+  }
+  // Mark as exhausted if exclusion reduced the type to `never` — enables exhaustiveness warnings
+  const afterDef = scope[typeGuard.variable];
+  if (afterDef && afterDef.type?.kind === 'primitive' && afterDef.type?.name === 'never') {
+    afterDef.__exhausted = true;
   }
 }
 

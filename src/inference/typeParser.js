@@ -6,7 +6,7 @@ import {
   Type, Types, TypeAlias, TypeMemberAccess, KeyofType, UnionType, IntersectionType, ArrayType, ObjectType,
   TupleType, GenericType, LiteralType, PrimitiveType, PredicateType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
-  AnyFunctionType, FunctionType
+  AnyFunctionType, FunctionType, MappedType, TypeIndexAccess
 } from './Type.js';
 
 /**
@@ -129,6 +129,11 @@ export function parseTypePrimary(typePrimaryNode) {
     return baseType;
   }
 
+  // Check for mapped type: { [K in source]: value }
+  if (typePrimaryNode.named.mapped) {
+    return parseMappedType(typePrimaryNode.named.mapped);
+  }
+
   // Check for readonly type: readonly T[]
   if (typePrimaryNode.named.readonly) {
     const innerType = parseTypePrimary(typePrimaryNode.named.inner);
@@ -156,7 +161,7 @@ export function parseTypePrimary(typePrimaryNode) {
     const value = parseFloat(typePrimaryNode.named.literal.value);
     baseType = Types.literal(value, NumberType);
   } else {
-    const { name, type_args, member, member_key } = typePrimaryNode.named;
+    const { name, type_args, member, member_key, index_key } = typePrimaryNode.named;
     if (name) {
       // name is a type_name node, get its first child
       const typeToken = name.children ? name.children[0] : name;
@@ -168,6 +173,11 @@ export function parseTypePrimary(typePrimaryNode) {
           ? member.value
           : member_key.value.slice(1, -1); // strip surrounding quotes
         baseType = new TypeMemberAccess(new TypeAlias(typeName), key);
+      } else
+      // Check for index type access: T[K] where K is a type variable name
+      if (index_key) {
+        const keyName = index_key.value ?? (index_key.children?.[0]?.value);
+        baseType = new TypeIndexAccess(new TypeAlias(typeName), new TypeAlias(keyName));
       } else
       // Check if it's a generic type instantiation: Type<Args>
       if (type_args) {
@@ -206,6 +216,21 @@ function parseTupleTypeElements(node) {
     current = current.named?.rest ?? null;
   }
   return types;
+}
+
+/**
+ * Parse a mapped_type AST node into a MappedType
+ * Grammar: { [K in source]: value }  or  { readonly [K in source]?: value }
+ * @param {Object} mappedTypeNode - The mapped_type AST node
+ * @returns {MappedType}
+ */
+function parseMappedType(mappedTypeNode) {
+  if (!mappedTypeNode || !mappedTypeNode.named) return Types.any;
+  const { key_param, source, value, optional, readonly } = mappedTypeNode.named;
+  const keyParam = key_param?.value ?? 'K';
+  const sourceType = parseTypeExpression(source);
+  const valueType = parseTypeExpression(value);
+  return new MappedType(keyParam, sourceType, valueType, !!optional, !!readonly);
 }
 
 /**
