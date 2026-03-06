@@ -325,6 +325,7 @@ const grammar = {
     ['exp:left', 'w', '<:boolean_op', 'w', 'exp:right'],
     ['exp:left', 'w', '>:boolean_op', 'w', 'exp:right'],
     ['exp:exp', 'w', 'as', 'type_expression:type_cast'],
+    ['exp:exp', 'w', 'satisfies', 'type_expression:type_satisfies'],
     ['exp:left', 'str:str', 'inner_str_expression?:str_exp'],
     ['str_expression'],
     ['name_exp'],

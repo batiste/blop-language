@@ -156,6 +156,11 @@ export function removeNullish(type) {
  * @returns {Type|string} Narrowed type (matches input format)
  */
 export function narrowType(type, narrowedType) {
+  // `any` narrowed to T yields T (any is a top type, it includes all values)
+  if (type instanceof PrimitiveType && type.name === 'any') {
+    return narrowedType;
+  }
+
   if (type instanceof UnionType) {
     return type.narrow(narrowedType);
   }

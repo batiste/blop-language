@@ -217,11 +217,14 @@ function detectImpossibleComparison(expNode, lookupVariable, typeAliases) {
         });
         
         if (allLiterals) {
-          // Check if the compared value is in the union
-          // literalValue still has quotes for string literals, e.g. `"hello"`
+          // Check if the compared value is in the union.
+          // literalValue is the raw token value which includes surrounding quotes
+          // (single OR double, e.g. `'hello'` or `"hello"`). Strip them before
+          // comparing against LiteralType.value which is always the unquoted string.
+          const rawStrValue = literalValue.slice(1, -1);
           const isInUnion = unionTypes.some(t => {
             if (t instanceof LiteralType && t.baseType === StringType) {
-              return `"${t.value}"` === literalValue;
+              return t.value === rawStrValue;
             }
             if (t instanceof LiteralType && t.baseType === NumberType) {
               return String(t.value) === literalValue;

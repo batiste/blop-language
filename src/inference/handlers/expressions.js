@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
-import { resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral } from '../typeSystem.js';
+import { resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral, isTypeCompatible } from '../typeSystem.js';
 import { parseTypeExpression } from '../typeParser.js';
 import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
@@ -67,7 +67,15 @@ function handleExpObjAccess(node, parent, getState) {
  * Handle simple variable reference without property access
  */
 function handleSimpleVariable(name, parent, definition, getState) {
-  const { pushInference, typeAliases } = getState();  
+  const { pushInference, typeAliases, pushWarning, inferencePhase } = getState();
+
+  // Exhaustiveness check: if a variable has been narrowed to `never` by the type
+  // guard system (i.e. all union cases have been handled via early-return guards),
+  // reading it is dead code — all possible values have already been accounted for.
+  if (inferencePhase === 'checking' && definition?.narrowed && definition.type === NeverType) {
+    pushWarning(name, `'${name.value}' has been narrowed to 'never' — this code is unreachable: all union cases are already handled above`);
+  }
+
   if (!definition) {
     // Check if the identifier is a known type alias (e.g. `User` or `choices` used
     // standalone). The inference engine's typeAliases object includes imported aliases,
@@ -198,6 +206,33 @@ function createExpressionHandlers(getState) {
     },
     exp: (node, parent) => {
       const { left, obj } = node.named ?? {};
+
+      // `satisfies` operator: expr satisfies T — check compatibility and keep the original type.
+      // In inference phase: stamp and propagate the expression's own inferred type.
+      // In checking phase: warn if the expression type is not assignable to T.
+      if (node.named?.type_satisfies !== undefined) {
+        visitChildren(node);
+        const { inferencePhase, pushInference, pushWarning, typeAliases } = getState();
+        if (inferencePhase === 'inference') {
+          // Keep the original inferred type (not the target type — that's what distinguishes
+          // `satisfies` from `as`).
+          const origType = node.named.exp?.inferredType ?? node.inference?.[0] ?? AnyType;
+          node.inferredType = origType;
+          node.inference = [origType];
+          if (parent) pushInference(parent, origType);
+        } else {
+          // Checking phase: validate assignability to target type.
+          const targetType = parseTypeExpression(node.named.type_satisfies);
+          const exprType = node.named.exp?.inferredType ?? AnyType;
+          if (exprType !== AnyType && targetType !== AnyType) {
+            if (!isTypeCompatible(exprType, targetType, typeAliases)) {
+              const displayExpr = getBaseTypeOfLiteral(exprType);
+              pushWarning(node.named.exp, `${displayExpr} does not satisfy ${targetType}`);
+            }
+          }
+        }
+        return;
+      }
 
       // Type assertion: expr as SomeType — override the inferred type with the asserted type.
       // In inference phase: stamp asserted type; in checking phase: just visit children
