@@ -904,4 +904,18 @@ describe('runtime devtools hook', () => {
     await vi.runAllTimersAsync();
     vi.useRealTimers();
   });
+
+  test('exposes displayName for generated runtime component names', () => {
+    function RealComponent() {
+      return h('span', {}, ['real']);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(RealComponent, {}, [], '__42'));
+    init();
+
+    const snapshot = window.__BLOP_DEVTOOLS__.getTree();
+    const component = snapshot.root.children[0];
+    expect(component.name).toBe('__42');
+    expect(component.displayName).toBe('RealComponent');
+  });
 });

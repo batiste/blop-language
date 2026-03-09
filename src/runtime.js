@@ -407,10 +407,11 @@ function destroyUnreferencedComponents() {
 }
 
 function snapshotComponent(component) {
-  const target = getHighlightTarget(component);
+  const target = getComponentElement(component);
   return {
     path: component.path,
     name: component.name,
+    displayName: getComponentDisplayName(component),
     mounted: !!component.mounted,
     destroyed: !!component.destroyed,
     domLinked: !!target,
@@ -434,16 +435,33 @@ function getComponentByPath(path) {
   return cache[path] || null;
 }
 
-function getHighlightTarget(component) {
+function getComponentDisplayName(component) {
+  if (component.name === 'root') return 'root';
+
+  // Class components keep their constructor identity.
+  if (
+    component.constructor
+    && component.constructor !== Component
+    && component.constructor.name
+  ) {
+    return component.constructor.name;
+  }
+
+  const candidate = component.componentFct?.name;
+  if (candidate && candidate !== 'anonymous') return candidate;
+
+  return component.name;
+}
+
+function getComponentElement(component) {
   const elm = component?.vnode?.elm;
   if (!elm) return null;
   if (elm.nodeType === 1) return elm;
-  if (elm.nodeType === 3 && elm.parentElement) return elm.parentElement;
-  return null;
+  return elm.parentElement || null;
 }
 
 function getComponentRect(path) {
-  const target = getHighlightTarget(getComponentByPath(path));
+  const target = getComponentElement(getComponentByPath(path));
   if (!target || typeof target.getBoundingClientRect !== 'function') {
     return null;
   }
@@ -457,8 +475,9 @@ function getComponentRect(path) {
   };
 }
 
-function installDevtoolsHook() {
-  if (!globalThis.window) return;
+let rootNode = new Component(() => {}, {}, [], 'root');
+currentNode = rootNode;
+if (globalThis.window) {
   const existing = globalThis.window[DEVTOOLS_HOOK_KEY] || {};
   globalThis.window[DEVTOOLS_HOOK_KEY] = {
     ...existing,
@@ -467,10 +486,6 @@ function installDevtoolsHook() {
     getRect: getComponentRect,
   };
 }
-
-let rootNode = new Component(() => {}, {}, [], 'root');
-currentNode = rootNode;
-installDevtoolsHook();
 
 const newRoot = () => {
   rootNode = new Component(() => {}, {}, [], 'root');
