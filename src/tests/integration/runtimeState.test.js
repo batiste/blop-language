@@ -835,3 +835,63 @@ describe('createComponent - dynamic function replacement', () => {
     expect(parentCtx.vnode.children[0].text).toBe('v2');
   });
 });
+
+describe('runtime devtools hook', () => {
+  test('exposes a component tree snapshot on window', () => {
+    function Leaf(ctx) {
+      ctx.state('count', 1);
+      trackRead('leaf.value');
+      return h('span', {}, ['leaf']);
+    }
+
+    function App() {
+      return h('div', {}, [
+        c(Leaf, { id: 'leaf-1' }, [], 'Leaf'),
+      ]);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(App, {}, [], 'App'));
+    init();
+
+    const hook = window.__BLOP_DEVTOOLS__;
+    expect(hook).toBeDefined();
+    expect(typeof hook.getTree).toBe('function');
+
+    const snapshot = hook.getTree();
+    expect(snapshot.version).toBe(1);
+    expect(snapshot.root.name).toBe('root');
+    expect(snapshot.root.children[0].name).toBe('App');
+
+    const leafSnapshot = snapshot.root.children[0].children[0];
+    expect(leafSnapshot.name).toBe('Leaf');
+    expect(leafSnapshot.attributeKeys).toContain('id');
+    expect(leafSnapshot.stateKeys).toContain('count');
+    expect(leafSnapshot.trackedKeys).toContain('leaf.value');
+  });
+
+  test('keeps root alive after refresh and exposes latest tree', async () => {
+    vi.useFakeTimers();
+    let activeName = 'LeafA';
+
+    function App() {
+      if (activeName === 'LeafA') return c(() => h('span', {}, ['a']), {}, [], 'LeafA');
+      return c(() => h('span', {}, ['b']), {}, [], 'LeafB');
+    }
+
+    const dom = document.createElement('div');
+    const { init, refresh } = mount(dom, () => c(App, {}, [], 'App'));
+    init();
+
+    activeName = 'LeafB';
+    refresh();
+    await vi.runAllTimersAsync();
+
+    const snapshot = window.__BLOP_DEVTOOLS__.getTree();
+    expect(snapshot.root.destroyed).toBe(false);
+    expect(snapshot.root.children[0].name).toBe('App');
+    expect(snapshot.root.children[0].children[0].name).toBe('LeafB');
+
+    await vi.runAllTimersAsync();
+    vi.useRealTimers();
+  });
+});

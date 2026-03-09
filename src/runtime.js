@@ -381,6 +381,8 @@ const patch = snabbdomInit([
 let renderPipeline = [];
 let animationRequest = false;
 
+const DEVTOOLS_HOOK_KEY = '__BLOP_DEVTOOLS__';
+
 function scheduleRender(node) {
   renderPipeline.push(node);
   if (!animationRequest && globalThis.window) {
@@ -397,14 +399,47 @@ function destroyUnreferencedComponents() {
   // O(n) using Set for lookup instead of O(n²) with includes
   const nextCacheSet = new Set(Object.keys(nextCache));
   Object.keys(cache).forEach(path => {
+    if (path === 'root') return;
     if (!nextCacheSet.has(path)) {
       cache[path]._destroy();
     }
   });
 }
 
+function snapshotComponent(component) {
+  return {
+    path: component.path,
+    name: component.name,
+    mounted: !!component.mounted,
+    destroyed: !!component.destroyed,
+    attributeKeys: Object.keys(component.attributes || {}),
+    stateKeys: Object.keys(component.stateMap || {}),
+    contextKeys: Object.keys(component.contextMap || {}),
+    trackedKeys: component.trackedKeys ? [...component.trackedKeys] : [],
+    children: (component.componentsChildren || []).map(snapshotComponent),
+  };
+}
+
+function getComponentTreeSnapshot() {
+  return {
+    version: 1,
+    root: snapshotComponent(rootNode),
+  };
+}
+
+function installDevtoolsHook() {
+  if (!globalThis.window) return;
+  const existing = globalThis.window[DEVTOOLS_HOOK_KEY] || {};
+  globalThis.window[DEVTOOLS_HOOK_KEY] = {
+    ...existing,
+    version: 1,
+    getTree: getComponentTreeSnapshot,
+  };
+}
+
 let rootNode = new Component(() => {}, {}, [], 'root');
 currentNode = rootNode;
+installDevtoolsHook();
 
 const newRoot = () => {
   rootNode = new Component(() => {}, {}, [], 'root');
@@ -448,6 +483,7 @@ function mount(dom, render) {
       nextCache = {};
       const now = (new Date()).getTime();
       try {
+        newRoot();
         newVnode = render();
         // nothing to update
         if (!newVnode) {
@@ -456,7 +492,6 @@ function mount(dom, render) {
           callback && callback(after - now);
           return;
         }
-        newRoot();
         // error can happen during patching
         patch(vnode, newVnode);
       } catch (error) {
