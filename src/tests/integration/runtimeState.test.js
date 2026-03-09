@@ -856,6 +856,7 @@ describe('runtime devtools hook', () => {
     const hook = window.__BLOP_DEVTOOLS__;
     expect(hook).toBeDefined();
     expect(typeof hook.getTree).toBe('function');
+    expect(typeof hook.getRect).toBe('function');
 
     const snapshot = hook.getTree();
     expect(snapshot.version).toBe(1);
@@ -864,9 +865,18 @@ describe('runtime devtools hook', () => {
 
     const leafSnapshot = snapshot.root.children[0].children[0];
     expect(leafSnapshot.name).toBe('Leaf');
+    expect(leafSnapshot.domLinked).toBe(true);
     expect(leafSnapshot.attributeKeys).toContain('id');
     expect(leafSnapshot.stateKeys).toContain('count');
     expect(leafSnapshot.trackedKeys).toContain('leaf.value');
+
+    expect(hook.getRect(leafSnapshot.path)).toEqual(expect.objectContaining({
+      left: expect.any(Number),
+      top: expect.any(Number),
+      width: expect.any(Number),
+      height: expect.any(Number),
+    }));
+    expect(hook.getRect('root.missing.path')).toBeNull();
   });
 
   test('keeps root alive after refresh and exposes latest tree', async () => {

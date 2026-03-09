@@ -407,11 +407,13 @@ function destroyUnreferencedComponents() {
 }
 
 function snapshotComponent(component) {
+  const target = getHighlightTarget(component);
   return {
     path: component.path,
     name: component.name,
     mounted: !!component.mounted,
     destroyed: !!component.destroyed,
+    domLinked: !!target,
     attributeKeys: Object.keys(component.attributes || {}),
     stateKeys: Object.keys(component.stateMap || {}),
     contextKeys: Object.keys(component.contextMap || {}),
@@ -427,6 +429,34 @@ function getComponentTreeSnapshot() {
   };
 }
 
+function getComponentByPath(path) {
+  if (path === 'root') return rootNode;
+  return cache[path] || null;
+}
+
+function getHighlightTarget(component) {
+  const elm = component?.vnode?.elm;
+  if (!elm) return null;
+  if (elm.nodeType === 1) return elm;
+  if (elm.nodeType === 3 && elm.parentElement) return elm.parentElement;
+  return null;
+}
+
+function getComponentRect(path) {
+  const target = getHighlightTarget(getComponentByPath(path));
+  if (!target || typeof target.getBoundingClientRect !== 'function') {
+    return null;
+  }
+
+  const rect = target.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
 function installDevtoolsHook() {
   if (!globalThis.window) return;
   const existing = globalThis.window[DEVTOOLS_HOOK_KEY] || {};
@@ -434,6 +464,7 @@ function installDevtoolsHook() {
     ...existing,
     version: 1,
     getTree: getComponentTreeSnapshot,
+    getRect: getComponentRect,
   };
 }
 
