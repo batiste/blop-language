@@ -21,6 +21,7 @@ const DEFAULT_EXPANDED_BRANCHES = 8;
 
 let latestSnapshot = null;
 let queuedPushRefresh = null;
+let navigationRetryTimer = null;
 const openStateByPath = new Map();
 
 function setStatus(message) {
@@ -239,11 +240,31 @@ function clearQueuedPushRefresh() {
   }
 }
 
+function clearNavigationRetry() {
+  if (navigationRetryTimer) {
+    clearTimeout(navigationRetryTimer);
+    navigationRetryTimer = null;
+  }
+}
+
+function onNavigated() {
+  clearPageHighlight();
+  clearQueuedPushRefresh();
+  clearNavigationRetry();
+
+  // Navigation can happen before app/runtime is initialized; try now and shortly after.
+  refreshSnapshot('navigated');
+  navigationRetryTimer = setTimeout(() => {
+    navigationRetryTimer = null;
+    refreshSnapshot('navigated-retry');
+  }, 350);
+}
+
 function onRuntimeMessage(message, sender) {
   if (!message || message.type !== UPDATE_EVENT_NAME) {
     return;
   }
-  if (!sender?.tab || sender.tab.id !== inspectedTabId) {
+  if (sender?.tab && sender.tab.id !== inspectedTabId) {
     return;
   }
   queuePushRefresh();
@@ -259,9 +280,12 @@ hoverHighlightEl.addEventListener('change', () => {
   }
 });
 chrome.runtime.onMessage.addListener(onRuntimeMessage);
+chrome.devtools.network.onNavigated.addListener(onNavigated);
 window.addEventListener('beforeunload', () => {
   chrome.runtime.onMessage.removeListener(onRuntimeMessage);
+  chrome.devtools.network.onNavigated.removeListener(onNavigated);
   clearQueuedPushRefresh();
+  clearNavigationRetry();
   clearPageHighlight();
 });
 

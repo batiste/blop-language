@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Blop DevTools (MVP)",
-  "description": "Minimal DevTools panel to inspect the Blop component tree.",
+  "name": "Blop DevTools",
+  "description": "DevTools panel to inspect the Blop component tree.",
   "version": "0.0.1",
   "devtools_page": "devtools.html",
+  "icons": {
+    "128": "blop.png"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
