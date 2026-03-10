@@ -857,6 +857,7 @@ describe('runtime devtools hook', () => {
     expect(hook).toBeDefined();
     expect(typeof hook.getTree).toBe('function');
     expect(typeof hook.getRect).toBe('function');
+    expect(hook.eventName).toBe('blop-devtools-update');
 
     const snapshot = hook.getTree();
     expect(snapshot.version).toBe(1);
@@ -917,5 +918,54 @@ describe('runtime devtools hook', () => {
     const component = snapshot.root.children[0];
     expect(component.name).toBe('__42');
     expect(component.displayName).toBe('RealComponent');
+  });
+
+  test('dispatches push update events for init and refresh', async () => {
+    vi.useFakeTimers();
+    const events = [];
+    const onUpdate = (event) => events.push(event.detail?.reason);
+    window.addEventListener('blop-devtools-update', onUpdate);
+
+    let variant = 'a';
+    function App() {
+      return h('div', {}, [variant]);
+    }
+
+    const dom = document.createElement('div');
+    const { init, refresh } = mount(dom, () => c(App, {}, [], 'App'));
+    init();
+
+    variant = 'b';
+    refresh();
+    await vi.runAllTimersAsync();
+
+    expect(events).toContain('init');
+    expect(events).toContain('refresh');
+
+    window.removeEventListener('blop-devtools-update', onUpdate);
+    vi.useRealTimers();
+  });
+
+  test('dispatches push update event for partial renders', async () => {
+    vi.useFakeTimers();
+    const events = [];
+    const onUpdate = (event) => events.push(event.detail?.reason);
+    window.addEventListener('blop-devtools-update', onUpdate);
+
+    function Reactive() {
+      trackRead('counter');
+      return h('div', {}, ['ok']);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(Reactive, {}, [], 'Reactive'));
+    init();
+
+    notifyWrite('counter');
+    await vi.runAllTimersAsync();
+
+    expect(events).toContain('partial');
+
+    window.removeEventListener('blop-devtools-update', onUpdate);
+    vi.useRealTimers();
   });
 });

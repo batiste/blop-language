@@ -2,10 +2,11 @@ const treeEl = document.getElementById('tree');
 const rawOutputEl = document.getElementById('rawOutput');
 const statusEl = document.getElementById('status');
 const refreshButton = document.getElementById('refresh');
-const intervalSelect = document.getElementById('interval');
 const viewModeSelect = document.getElementById('viewMode');
 const hoverHighlightEl = document.getElementById('hoverHighlight');
 const PAGE_OVERLAY_ID = '__blop_devtools_overlay__';
+const UPDATE_EVENT_NAME = 'blop-devtools-update';
+const inspectedTabId = chrome.devtools.inspectedWindow.tabId;
 
 const SNAPSHOT_EXPR = `(() => {
   const hook = window.__BLOP_DEVTOOLS__;
@@ -18,8 +19,8 @@ const SNAPSHOT_EXPR = `(() => {
 })()`;
 const DEFAULT_EXPANDED_BRANCHES = 8;
 
-let pollTimer = null;
 let latestSnapshot = null;
+let queuedPushRefresh = null;
 const openStateByPath = new Map();
 
 function setStatus(message) {
@@ -208,8 +209,8 @@ function renderSnapshot(value) {
   }
 }
 
-function refreshSnapshot() {
-  setStatus('Reading snapshot...');
+function refreshSnapshot(source = 'manual') {
+  setStatus(`Reading snapshot (${source})...`);
   chrome.devtools.inspectedWindow.eval(SNAPSHOT_EXPR, (result, exceptionInfo) => {
     if (exceptionInfo && exceptionInfo.isException) {
       setStatus('Eval error');
@@ -218,28 +219,37 @@ function refreshSnapshot() {
       return;
     }
     latestSnapshot = result;
-    setStatus(`Updated at ${new Date().toLocaleTimeString()}`);
+    setStatus(`Updated (${source}) at ${new Date().toLocaleTimeString()}`);
     renderSnapshot(result);
   });
 }
 
-function clearPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
+function queuePushRefresh() {
+  if (queuedPushRefresh) return;
+  queuedPushRefresh = setTimeout(() => {
+    queuedPushRefresh = null;
+    refreshSnapshot('push');
+  }, 16);
+}
+
+function clearQueuedPushRefresh() {
+  if (queuedPushRefresh) {
+    clearTimeout(queuedPushRefresh);
+    queuedPushRefresh = null;
   }
 }
 
-function applyPolling() {
-  clearPolling();
-  if (intervalSelect.value === 'off') {
+function onRuntimeMessage(message, sender) {
+  if (!message || message.type !== UPDATE_EVENT_NAME) {
     return;
   }
-  pollTimer = setInterval(refreshSnapshot, Number(intervalSelect.value));
+  if (!sender?.tab || sender.tab.id !== inspectedTabId) {
+    return;
+  }
+  queuePushRefresh();
 }
 
-refreshButton.addEventListener('click', refreshSnapshot);
-intervalSelect.addEventListener('change', applyPolling);
+refreshButton.addEventListener('click', () => refreshSnapshot('manual'));
 viewModeSelect.addEventListener('change', () => {
   renderSnapshot(latestSnapshot);
 });
@@ -248,10 +258,11 @@ hoverHighlightEl.addEventListener('change', () => {
     clearPageHighlight();
   }
 });
+chrome.runtime.onMessage.addListener(onRuntimeMessage);
 window.addEventListener('beforeunload', () => {
-  clearPolling();
+  chrome.runtime.onMessage.removeListener(onRuntimeMessage);
+  clearQueuedPushRefresh();
   clearPageHighlight();
 });
 
-applyPolling();
-refreshSnapshot();
+refreshSnapshot('initial');

@@ -382,6 +382,17 @@ let renderPipeline = [];
 let animationRequest = false;
 
 const DEVTOOLS_HOOK_KEY = '__BLOP_DEVTOOLS__';
+const DEVTOOLS_UPDATE_EVENT = 'blop-devtools-update';
+
+function emitDevtoolsUpdate(reason) {
+  if (!globalThis.window) return;
+  if (typeof window.dispatchEvent !== 'function' || typeof window.CustomEvent !== 'function') {
+    return;
+  }
+  window.dispatchEvent(new window.CustomEvent(DEVTOOLS_UPDATE_EVENT, {
+    detail: { reason, ts: Date.now() },
+  }));
+}
 
 function scheduleRender(node) {
   renderPipeline.push(node);
@@ -389,6 +400,7 @@ function scheduleRender(node) {
     animationRequest = true;
     window.requestAnimationFrame(() => {
       renderPipeline.forEach(node => node.partialRender());
+      emitDevtoolsUpdate('partial');
       animationRequest = false;
       renderPipeline = [];
     });
@@ -453,6 +465,7 @@ function getComponentDisplayName(component) {
   return component.name;
 }
 
+// used by devtools
 function getComponentElement(component) {
   const elm = component?.vnode?.elm;
   if (!elm) return null;
@@ -460,6 +473,7 @@ function getComponentElement(component) {
   return elm.parentElement || null;
 }
 
+// used by devtools
 function getComponentRect(path) {
   const target = getComponentElement(getComponentByPath(path));
   if (!target || typeof target.getBoundingClientRect !== 'function') {
@@ -482,6 +496,7 @@ if (globalThis.window) {
   globalThis.window[DEVTOOLS_HOOK_KEY] = {
     ...existing,
     version: 1,
+    eventName: DEVTOOLS_UPDATE_EVENT,
     getTree: getComponentTreeSnapshot,
     getRect: getComponentRect,
   };
@@ -516,6 +531,7 @@ function mount(dom, render) {
     vnode = render();
     vnode = patch(toVNode(target), vnode);
     requested = false;
+    emitDevtoolsUpdate('init');
     return vnode;
   }
   function refresh(callback) {
@@ -549,6 +565,7 @@ function mount(dom, render) {
       destroyUnreferencedComponents();
       cache = nextCache;
       requested = false;
+      emitDevtoolsUpdate('refresh');
       callback && callback(after - now);
     };
     window.requestAnimationFrame(() => {
