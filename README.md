@@ -85,6 +85,7 @@ init()
 ### Tooling
 - **SSR Support** - `renderComponentToString()` for server-side rendering
 - **Hot Module Reloading (HMR)** - Instant updates during development
+- **Chrome DevTools** - Inspect Blop components tree
 - **CLI Tool** - Compile, format, and manage Blop projects from the command line
 - **Vite Compatibility** - Seamless integration with modern build tools
 - **Vitest Integration** - Write and run tests with a modern testing framework
@@ -212,22 +213,6 @@ chmod +x .git/hooks/pre-commit
 ```
 
 **[Contributing Guide](docs/STYLE_GUIDE.md)**
-
-## Example Project Structure
-
-```text
-my-blop-app/
-├── src/
-│   ├── main.blop          # Entry point
-│   ├── App.blop           # Root component
-│   ├── components/        # Reusable components
-│   ├── lib/               # Utilities (state, router)
-│   └── pages/             # Page components
-├── index.html             # HTML entry
-├── vite.config.js         # Vite configuration
-├── vitest.config.js       # Test configuration
-└── package.json
-```
 
 ## Links
 

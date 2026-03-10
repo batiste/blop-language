@@ -835,3 +835,137 @@ describe('createComponent - dynamic function replacement', () => {
     expect(parentCtx.vnode.children[0].text).toBe('v2');
   });
 });
+
+describe('runtime devtools hook', () => {
+  test('exposes a component tree snapshot on window', () => {
+    function Leaf(ctx) {
+      ctx.state('count', 1);
+      trackRead('leaf.value');
+      return h('span', {}, ['leaf']);
+    }
+
+    function App() {
+      return h('div', {}, [
+        c(Leaf, { id: 'leaf-1' }, [], 'Leaf'),
+      ]);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(App, {}, [], 'App'));
+    init();
+
+    const hook = window.__BLOP_DEVTOOLS__;
+    expect(hook).toBeDefined();
+    expect(typeof hook.getTree).toBe('function');
+    expect(typeof hook.getRect).toBe('function');
+    expect(hook.eventName).toBe('blop-devtools-update');
+
+    const snapshot = hook.getTree();
+    expect(snapshot.version).toBe(1);
+    expect(snapshot.root.name).toBe('root');
+    expect(snapshot.root.children[0].name).toBe('App');
+
+    const leafSnapshot = snapshot.root.children[0].children[0];
+    expect(leafSnapshot.name).toBe('Leaf');
+    expect(leafSnapshot.domLinked).toBe(true);
+    expect(leafSnapshot.attributeKeys).toContain('id');
+    expect(leafSnapshot.stateKeys).toContain('count');
+    expect(leafSnapshot.trackedKeys).toContain('leaf.value');
+
+    expect(hook.getRect(leafSnapshot.path)).toEqual(expect.objectContaining({
+      left: expect.any(Number),
+      top: expect.any(Number),
+      width: expect.any(Number),
+      height: expect.any(Number),
+    }));
+    expect(hook.getRect('root.missing.path')).toBeNull();
+  });
+
+  test('keeps root alive after refresh and exposes latest tree', async () => {
+    vi.useFakeTimers();
+    let activeName = 'LeafA';
+
+    function App() {
+      if (activeName === 'LeafA') return c(() => h('span', {}, ['a']), {}, [], 'LeafA');
+      return c(() => h('span', {}, ['b']), {}, [], 'LeafB');
+    }
+
+    const dom = document.createElement('div');
+    const { init, refresh } = mount(dom, () => c(App, {}, [], 'App'));
+    init();
+
+    activeName = 'LeafB';
+    refresh();
+    await vi.runAllTimersAsync();
+
+    const snapshot = window.__BLOP_DEVTOOLS__.getTree();
+    expect(snapshot.root.destroyed).toBe(false);
+    expect(snapshot.root.children[0].name).toBe('App');
+    expect(snapshot.root.children[0].children[0].name).toBe('LeafB');
+
+    await vi.runAllTimersAsync();
+    vi.useRealTimers();
+  });
+
+  test('exposes displayName for generated runtime component names', () => {
+    function RealComponent() {
+      return h('span', {}, ['real']);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(RealComponent, {}, [], '__42'));
+    init();
+
+    const snapshot = window.__BLOP_DEVTOOLS__.getTree();
+    const component = snapshot.root.children[0];
+    expect(component.name).toBe('__42');
+    expect(component.displayName).toBe('RealComponent');
+  });
+
+  test('dispatches push update events for init and refresh', async () => {
+    vi.useFakeTimers();
+    const events = [];
+    const onUpdate = (event) => events.push(event.detail?.reason);
+    window.addEventListener('blop-devtools-update', onUpdate);
+
+    let variant = 'a';
+    function App() {
+      return h('div', {}, [variant]);
+    }
+
+    const dom = document.createElement('div');
+    const { init, refresh } = mount(dom, () => c(App, {}, [], 'App'));
+    init();
+
+    variant = 'b';
+    refresh();
+    await vi.runAllTimersAsync();
+
+    expect(events).toContain('init');
+    expect(events).toContain('refresh');
+
+    window.removeEventListener('blop-devtools-update', onUpdate);
+    vi.useRealTimers();
+  });
+
+  test('dispatches push update event for partial renders', async () => {
+    vi.useFakeTimers();
+    const events = [];
+    const onUpdate = (event) => events.push(event.detail?.reason);
+    window.addEventListener('blop-devtools-update', onUpdate);
+
+    function Reactive() {
+      trackRead('counter');
+      return h('div', {}, ['ok']);
+    }
+
+    const { init } = mount(document.createElement('div'), () => c(Reactive, {}, [], 'Reactive'));
+    init();
+
+    notifyWrite('counter');
+    await vi.runAllTimersAsync();
+
+    expect(events).toContain('partial');
+
+    window.removeEventListener('blop-devtools-update', onUpdate);
+    vi.useRealTimers();
+  });
+});

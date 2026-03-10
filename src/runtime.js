@@ -381,12 +381,26 @@ const patch = snabbdomInit([
 let renderPipeline = [];
 let animationRequest = false;
 
+const DEVTOOLS_HOOK_KEY = '__BLOP_DEVTOOLS__';
+const DEVTOOLS_UPDATE_EVENT = 'blop-devtools-update';
+
+function emitDevtoolsUpdate(reason) {
+  if (!globalThis.window) return;
+  if (typeof window.dispatchEvent !== 'function' || typeof window.CustomEvent !== 'function') {
+    return;
+  }
+  window.dispatchEvent(new window.CustomEvent(DEVTOOLS_UPDATE_EVENT, {
+    detail: { reason, ts: Date.now() },
+  }));
+}
+
 function scheduleRender(node) {
   renderPipeline.push(node);
   if (!animationRequest && globalThis.window) {
     animationRequest = true;
     window.requestAnimationFrame(() => {
       renderPipeline.forEach(node => node.partialRender());
+      emitDevtoolsUpdate('partial');
       animationRequest = false;
       renderPipeline = [];
     });
@@ -397,14 +411,97 @@ function destroyUnreferencedComponents() {
   // O(n) using Set for lookup instead of O(n²) with includes
   const nextCacheSet = new Set(Object.keys(nextCache));
   Object.keys(cache).forEach(path => {
+    if (path === 'root') return;
     if (!nextCacheSet.has(path)) {
       cache[path]._destroy();
     }
   });
 }
 
+// used by devtools
+function snapshotComponent(component) {
+  const target = getComponentElement(component);
+  return {
+    path: component.path,
+    name: component.name,
+    displayName: getComponentDisplayName(component),
+    mounted: !!component.mounted,
+    destroyed: !!component.destroyed,
+    domLinked: !!target,
+    attributeKeys: Object.keys(component.attributes || {}),
+    stateKeys: Object.keys(component.stateMap || {}),
+    contextKeys: Object.keys(component.contextMap || {}),
+    trackedKeys: component.trackedKeys ? [...component.trackedKeys] : [],
+    children: (component.componentsChildren || []).map(snapshotComponent),
+  };
+}
+
+function getComponentTreeSnapshot() {
+  return {
+    version: 1,
+    root: snapshotComponent(rootNode),
+  };
+}
+
+function getComponentByPath(path) {
+  if (path === 'root') return rootNode;
+  return cache[path] || null;
+}
+
+function getComponentDisplayName(component) {
+  if (component.name === 'root') return 'root';
+
+  // Class components keep their constructor identity.
+  if (
+    component.constructor
+    && component.constructor !== Component
+    && component.constructor.name
+  ) {
+    return component.constructor.name;
+  }
+
+  const candidate = component.componentFct?.name;
+  if (candidate && candidate !== 'anonymous') return candidate;
+
+  return component.name;
+}
+
+// used by devtools
+function getComponentElement(component) {
+  const elm = component?.vnode?.elm;
+  if (!elm) return null;
+  if (elm.nodeType === 1) return elm;
+  return elm.parentElement || null;
+}
+
+// used by devtools
+function getComponentRect(path) {
+  const target = getComponentElement(getComponentByPath(path));
+  if (!target || typeof target.getBoundingClientRect !== 'function') {
+    return null;
+  }
+
+  const rect = target.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
 let rootNode = new Component(() => {}, {}, [], 'root');
 currentNode = rootNode;
+if (globalThis.window) {
+  const existing = globalThis.window[DEVTOOLS_HOOK_KEY] || {};
+  globalThis.window[DEVTOOLS_HOOK_KEY] = {
+    ...existing,
+    version: 1,
+    eventName: DEVTOOLS_UPDATE_EVENT,
+    getTree: getComponentTreeSnapshot,
+    getRect: getComponentRect,
+  };
+}
 
 const newRoot = () => {
   rootNode = new Component(() => {}, {}, [], 'root');
@@ -435,6 +532,7 @@ function mount(dom, render) {
     vnode = render();
     vnode = patch(toVNode(target), vnode);
     requested = false;
+    emitDevtoolsUpdate('init');
     return vnode;
   }
   function refresh(callback) {
@@ -448,6 +546,7 @@ function mount(dom, render) {
       nextCache = {};
       const now = (new Date()).getTime();
       try {
+        newRoot();
         newVnode = render();
         // nothing to update
         if (!newVnode) {
@@ -456,7 +555,6 @@ function mount(dom, render) {
           callback && callback(after - now);
           return;
         }
-        newRoot();
         // error can happen during patching
         patch(vnode, newVnode);
       } catch (error) {
@@ -468,6 +566,7 @@ function mount(dom, render) {
       destroyUnreferencedComponents();
       cache = nextCache;
       requested = false;
+      emitDevtoolsUpdate('refresh');
       callback && callback(after - now);
     };
     window.requestAnimationFrame(() => {

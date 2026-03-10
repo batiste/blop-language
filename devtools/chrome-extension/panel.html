@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Blop Tree</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        border-bottom: 1px solid #6664;
+      }
+
+      .toolbar button,
+      .toolbar select {
+        font: inherit;
+      }
+
+      #status {
+        opacity: 0.8;
+      }
+
+      #content {
+        margin: 0;
+        padding: 12px;
+      }
+
+      #rawOutput {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      #tree {
+        font-size: 12px;
+      }
+
+      .node {
+        margin: 2px 0;
+      }
+
+      .node summary {
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        list-style: none;
+        overflow: hidden;
+      }
+
+      .node summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .node summary::before {
+        content: "▶";
+        display: inline-block;
+        width: 10px;
+        opacity: 0.85;
+      }
+
+      .node[open] > summary::before {
+        content: "▼";
+      }
+
+      .node-name {
+        font-weight: 700;
+        white-space: nowrap;
+        word-break: normal;
+        flex: 0 0 auto;
+      }
+
+      .node-path {
+        opacity: 0.7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .node-tech-name {
+        opacity: 0.7;
+        font-size: 11px;
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+
+      .node-flags {
+        opacity: 0.8;
+        font-size: 11px;
+      }
+
+      .node-meta {
+        margin: 4px 0 6px 18px;
+        opacity: 0.85;
+        font-size: 11px;
+      }
+
+      .node-children {
+        margin-left: 14px;
+        border-left: 1px solid #6664;
+        padding-left: 10px;
+      }
+
+      .error {
+        color: #cf4f4f;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .empty {
+        opacity: 0.8;
+      }
+
+      .toolbar .spacer {
+        flex: 1;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button id="refresh" type="button">Refresh</button>
+      <span>Push updates</span>
+      <label>
+        View
+        <select id="viewMode">
+          <option value="tree" selected>tree</option>
+          <option value="json">json</option>
+        </select>
+      </label>
+      <label>
+        <input id="hoverHighlight" type="checkbox" checked />
+        Hover highlight
+      </label>
+      <span class="spacer"></span>
+      <span id="status">Waiting for refresh...</span>
+    </div>
+    <div id="content">
+      <div id="tree"></div>
+      <pre id="rawOutput" hidden></pre>
+    </div>
+    <script src="panel.js"></script>
+  </body>
+</html>
