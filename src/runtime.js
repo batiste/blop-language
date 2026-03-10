@@ -418,6 +418,7 @@ function destroyUnreferencedComponents() {
   });
 }
 
+// used by devtools
 function snapshotComponent(component) {
   const target = getComponentElement(component);
   return {
