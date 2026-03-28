@@ -230,18 +230,20 @@ async def productHandler(params, state) {
 
 ### Programmatic Navigation
 
-Access the router through state:
+Import and use `go` from `blop/navigation`:
 
 ```typescript
+import { go } from 'blop/navigation'
+
 def NavigationMenu(state) {
   goHome = (e) => {
     e.preventDefault()
-    state.$.router.go('/')
+    go('/')
   }
   
   goToUser = (userId) => (e) => {
     e.preventDefault()
-    state.$.router.go(`/users/`userId``)
+    go(`/users/`userId``)
   }
   
   <nav>
@@ -360,8 +362,8 @@ state = createState({
   dogs: { loading: false, current: null }
 })
 
-router = createRouter(state, window)
-state.$.router = router  // assign after creation so components can navigate
+createRouter(state, window)
+// createRouter already registers go() globally via blop/navigation
 ```
 
 ```typescript
@@ -555,9 +557,11 @@ if state.route.loading {
 Prevent full page reloads by calling `preventDefault`:
 
 ```typescript
+import { go } from 'blop/navigation'
+
 handleClick = (e) => {
   e.preventDefault()  // Important!
-  state.$.router.go('/path')
+  go('/path')
 }
 ```
 
