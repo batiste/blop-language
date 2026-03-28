@@ -243,7 +243,7 @@ def NavigationMenu(state) {
   
   goToUser = (userId) => (e) => {
     e.preventDefault()
-    go(`/users/`userId``)
+    go('/users/'userId)
   }
   
   <nav>
