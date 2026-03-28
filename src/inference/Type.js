@@ -147,7 +147,7 @@ export class LiteralType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -193,7 +193,7 @@ export class ArrayType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -245,7 +245,7 @@ export class TupleType extends Type {
     if (target instanceof TypeAlias && target.name === 'array') return true;
 
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
@@ -354,7 +354,7 @@ export class ObjectType extends Type {
     }
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof MappedType || target instanceof TypeIndexAccess) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof MappedType || target instanceof TypeIndexAccess || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -490,7 +490,7 @@ export class RecordType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false;
       return this.isCompatibleWith(resolved, aliases);
@@ -737,7 +737,7 @@ export class IntersectionType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
 
     // Resolve aliases and type member access on the target side
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       if (resolved === target) return false; // Unresolvable alias
       return this.isCompatibleWith(resolved, aliases);
@@ -791,7 +791,7 @@ export class GenericType extends Type {
     if (target instanceof PrimitiveType && target.name === 'any') return true;
     
     // Resolve aliases and type member access
-    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType) {
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess || target instanceof KeyofType || target instanceof ConditionalType) {
       const resolved = aliases.resolve(target);
       // Avoid infinite recursion if alias can't be resolved
       if (resolved === target) return false;
@@ -982,6 +982,39 @@ export class KeyofType extends Type {
   isCompatibleWith(target, aliases) {
     const resolved = this.resolve(aliases);
     return resolved.isCompatibleWith(target, aliases);
+  }
+}
+
+/**
+ * Conditional type: CheckType extends ExtendsType => TrueType else FalseType
+ */
+export class ConditionalType extends Type {
+  constructor(checkType, extendsType, trueType, falseType) {
+    super();
+    this.kind = 'conditional';
+    this.checkType = checkType;
+    this.extendsType = extendsType;
+    this.trueType = trueType;
+    this.falseType = falseType;
+  }
+
+  toString() {
+    return `${this.checkType} extends ${this.extendsType} => ${this.trueType} else ${this.falseType}`;
+  }
+
+  equals(other) {
+    return other instanceof ConditionalType
+      && this.checkType.equals(other.checkType)
+      && this.extendsType.equals(other.extendsType)
+      && this.trueType.equals(other.trueType)
+      && this.falseType.equals(other.falseType);
+  }
+
+  isCompatibleWith(target, aliases) {
+    const resolved = aliases.resolve(this);
+    if (resolved !== this) return resolved.isCompatibleWith(target, aliases);
+    if (isAnyType(target)) return true;
+    return this.equals(target);
   }
 }
 
@@ -1290,6 +1323,20 @@ export class TypeAliasMap {
   }
 
   /**
+   * Resolve a ConditionalType by checking assignability and picking a branch.
+   * @param {ConditionalType} type
+   * @returns {Type}
+   */
+  resolveConditionalType(type) {
+    const resolvedCheck = this.resolve(type.checkType);
+    const resolvedExtends = this.resolve(type.extendsType);
+    const branch = resolvedCheck.isCompatibleWith(resolvedExtends, this)
+      ? type.trueType
+      : type.falseType;
+    return this.resolve(branch);
+  }
+
+  /**
    * Resolve a type alias (recursive with cycle detection)
    * @param {Type} type
    * @returns {Type}
@@ -1306,6 +1353,9 @@ export class TypeAliasMap {
     }
     if (type instanceof MappedType) {
       return this.resolveMappedType(type);
+    }
+    if (type instanceof ConditionalType) {
+      return this.resolveConditionalType(type);
     }
     if (!(type instanceof TypeAlias)) {
       return type;
@@ -1455,6 +1505,15 @@ export function substituteTypeParams(type, substitutions) {
       substituteTypeParams(type.valueType, filteredSubs),
       type.optional,
       type.readonly
+    );
+  }
+
+  if (type instanceof ConditionalType) {
+    return new ConditionalType(
+      substituteTypeParams(type.checkType, substitutions),
+      substituteTypeParams(type.extendsType, substitutions),
+      substituteTypeParams(type.trueType, substitutions),
+      substituteTypeParams(type.falseType, substitutions)
     );
   }
 

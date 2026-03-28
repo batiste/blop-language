@@ -97,6 +97,7 @@ const grammar = {
     ['colon', 'w', 'type_expression:type'],
   ],
   'type_expression': [
+    ['type_primary:check', 'w', 'extends', 'type_expression:extends_type', 'w', '=>', 'w', 'type_expression:true_type', 'w', 'else:else', 'type_expression:false_type'],
     ['type_primary', 'w', 'pipe', 'w', 'type_expression:union'],
     ['type_primary', 'w', 'ampersand', 'w', 'type_expression:intersection'],
     ['type_primary'],

@@ -4,7 +4,7 @@
 
 import {
   Type, Types, TypeAlias, TypeMemberAccess, KeyofType, UnionType, IntersectionType, ArrayType, ObjectType,
-  TupleType, GenericType, LiteralType, PrimitiveType, PredicateType,
+  TupleType, GenericType, LiteralType, PrimitiveType, PredicateType, ConditionalType,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyFunctionType, FunctionType, MappedType, TypeIndexAccess
 } from './Type.js';
@@ -46,6 +46,15 @@ export function parseAnnotation(annotationNode) {
  */
 export function parseTypeExpression(typeExprNode) {
   if (!typeExprNode) return Types.any;
+
+  // Conditional type: Check extends Constraint => TrueType else FalseType
+  if (typeExprNode.named && typeExprNode.named.extends_type && typeExprNode.named.true_type && typeExprNode.named.false_type) {
+    const checkType = parseTypePrimary(typeExprNode.named.check);
+    const extendsType = parseTypeExpression(typeExprNode.named.extends_type);
+    const trueType = parseTypeExpression(typeExprNode.named.true_type);
+    const falseType = parseTypeExpression(typeExprNode.named.false_type);
+    return new ConditionalType(checkType, extendsType, trueType, falseType);
+  }
   
   // Check for union type: type_primary | type_expression
   if (typeExprNode.named && typeExprNode.named.union) {

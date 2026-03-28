@@ -13,7 +13,7 @@ import {
   Type, Types, TypeAliasMap,
   PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
   IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
-  PredicateType, KeyofType, MappedType, TypeIndexAccess,
+  PredicateType, KeyofType, MappedType, TypeIndexAccess, ConditionalType,
   substituteTypeParams, createUnion,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
@@ -94,6 +94,9 @@ function resolveAliasType(type, aliasMap) {
   }
   if (type instanceof MappedType) {
     return aliasMap.resolveMappedType(type);
+  }
+  if (type instanceof ConditionalType) {
+    return aliasMap.resolveConditionalType(type);
   }
   if (type instanceof TypeIndexAccess) {
     return aliasMap.resolveIndexAccess(type);
