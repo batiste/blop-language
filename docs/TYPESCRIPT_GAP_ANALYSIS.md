@@ -34,6 +34,7 @@ Purpose:
 | Mapped types (`{ [K in keyof T]: T[K] }`) | Done |
 | Utility aliases: `Partial`, `Required`, `Pick`, `Omit` | Done |
 | Conditional types | Done with Blop syntax: `T extends U => X else Y` |
+| Utility alias: `ReturnType<T>` | Done |
 
 ---
 
@@ -51,7 +52,7 @@ Purpose:
 |---|---|
 | Function overloads | Better API typing ergonomics |
 | Template literal types | Stronger string-level typing |
-| Remaining stdlib utility aliases (`ReturnType`, `Parameters`) | Practical TS parity surface |
+| Remaining stdlib utility aliases (`Parameters`) | Practical TS parity surface |
 
 ### Tier 3 — Advanced
 
@@ -70,7 +71,7 @@ Purpose:
 ## Recommended Next Order
 
 1. `infer` keyword
-2. Utility aliases based on conditional types (`ReturnType`, `Parameters`)
+2. Utility alias based on conditional types (`Parameters`)
 3. Function overloads
 4. Template literal types
 
@@ -91,6 +92,7 @@ Purpose:
 - Exhaustiveness tests: `src/tests/typeSystem/exhaustivenessChecking.test.js`
 - Mapped type tests: `src/tests/typeSystem/mappedTypes.test.js`
 - Conditional type tests: `src/tests/typeSystem/conditionalTypes.test.js`
+- ReturnType tests: `src/tests/typeSystem/returnType.test.js`
 - Predicate tests: `src/tests/typeSystem/typePredicates.test.js`
 - Keyof tests: `src/tests/typeSystem/keyofType.test.js`
 - Index signature tests: `src/tests/typeSystem/indexSignatures.test.js`

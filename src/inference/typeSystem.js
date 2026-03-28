@@ -73,6 +73,29 @@ function resolveGenericType(type, aliasMap) {
       return resolvedA;
     }
 
+    // ReturnType<F> — built-in special case: extract function return type
+    if (baseName === 'ReturnType' && type.typeArgs.length >= 1) {
+      const resolvedF = resolveAliasType(resolveGenericType(type.typeArgs[0], aliasMap), aliasMap);
+
+      if (resolvedF instanceof FunctionType) {
+        return resolvedF.returnType;
+      }
+
+      if (resolvedF instanceof UnionType) {
+        const returnTypes = [];
+        for (const member of resolvedF.types) {
+          const resolvedMember = resolveAliasType(resolveGenericType(member, aliasMap), aliasMap);
+          if (!(resolvedMember instanceof FunctionType)) {
+            return NeverType;
+          }
+          returnTypes.push(resolvedMember.returnType);
+        }
+        return createUnion(returnTypes);
+      }
+
+      return NeverType;
+    }
+
     const instantiated = aliasMap.instantiate(baseName, type.typeArgs);
     return instantiated !== undefined ? instantiated : type;
   }
