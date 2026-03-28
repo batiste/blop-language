@@ -31,6 +31,8 @@ Purpose:
 | Class member type annotations + `new` constructor expressions | Done |
 | Index signatures | Done |
 | Exhaustiveness checking (current scope) | Done for early-exit literal-union guard chains (`if` / `elseif`) |
+| Mapped types (`{ [K in keyof T]: T[K] }`) | Done |
+| Utility aliases: `Partial`, `Required`, `Pick`, `Omit` | Done |
 
 ---
 
@@ -40,17 +42,16 @@ Purpose:
 
 | Feature | Why it matters |
 |---|---|
-| Mapped types (`{ [K in keyof T]: T[K] }`) | Unlocks `Partial`, `Required`, `Pick`, `Omit` |
+| Conditional types (`T extends U ? X : Y`) | Foundation for higher-order utility typing |
+| `infer` keyword | Needed for `ReturnType`, `Parameters` |
 
 ### Tier 2 — Medium complexity
 
 | Feature | Why it matters |
 |---|---|
-| Conditional types (`T extends U ? X : Y`) | Foundation for many utility types |
-| `infer` keyword | Needed for `ReturnType`, `Parameters` |
 | Function overloads | Better API typing ergonomics |
 | Template literal types | Stronger string-level typing |
-| Stdlib utility aliases (`Partial`, `Pick`, `Omit`, `Required`, `ReturnType`, `Parameters`) | Practical TS parity surface |
+| Remaining stdlib utility aliases (`ReturnType`, `Parameters`) | Practical TS parity surface |
 
 ### Tier 3 — Advanced
 
@@ -69,9 +70,9 @@ Purpose:
 ## Recommended Next Order
 
 1. Mapped types
-2. Utility aliases based on mapped types (`Partial`, `Pick`, `Omit`, `Required`)
-3. Conditional types + `infer`
-4. Utility aliases based on conditional types (`ReturnType`, `Parameters`)
+2. Conditional types + `infer`
+3. Utility aliases based on conditional types (`ReturnType`, `Parameters`)
+4. Function overloads
 
 ---
 
@@ -88,6 +89,7 @@ Purpose:
 
 - `satisfies` tests: `src/tests/typeSystem/satisfies.test.js`
 - Exhaustiveness tests: `src/tests/typeSystem/exhaustivenessChecking.test.js`
+- Mapped type tests: `src/tests/typeSystem/mappedTypes.test.js`
 - Predicate tests: `src/tests/typeSystem/typePredicates.test.js`
 - Keyof tests: `src/tests/typeSystem/keyofType.test.js`
 - Index signature tests: `src/tests/typeSystem/indexSignatures.test.js`
