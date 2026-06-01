@@ -59,7 +59,7 @@
     "meta-parser-generator": "==1.2.0",
     "sass": "^1.97.3",
     "vite": "^7.3.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.0"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
