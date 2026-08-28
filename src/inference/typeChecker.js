@@ -2,11 +2,12 @@
 // Type Checker - Validates type operations and assignments
 // ============================================================================
 
-import { 
-  isTypeCompatible, 
+import {
+  isTypeCompatible,
   resolveTypeAlias,
   checkObjectStructuralCompatibility,
   getBaseTypeOfLiteral,
+  describeType,
 } from './typeSystem.js';
 import { AnyType, PrimitiveType, ObjectType, LiteralType, StringType, NumberType, UndefinedType } from './Type.js';
 
@@ -71,7 +72,8 @@ const TypeChecker = {
     }
 
     if (!isTypeCompatible(valueType, annotationType, typeAliases)) {
-      return { valid: false, warning: `Cannot assign ${valueType} to ${annotationType}` };
+      const displayValue = describeType(valueType, resolvedTarget);
+      return { valid: false, warning: `Cannot assign ${displayValue} to ${annotationType}` };
     }
 
     return { valid: true };
@@ -99,7 +101,8 @@ const TypeChecker = {
       const arg = args[i];
       const exp = expectedParams[i];
       if (arg && exp && !isTypeCompatible(arg, exp, typeAliases)) {
-        warnings.push(`function ${functionName} expected ${exp} for param ${i + 1} but got ${arg}`);
+        const displayArg = describeType(arg, exp, typeAliases);
+        warnings.push(`function ${functionName} expected ${exp} for param ${i + 1} but got ${displayArg}`);
       }
     }
     return { valid: warnings.length === 0, warnings };
@@ -123,7 +126,7 @@ const TypeChecker = {
 
     for (const returnType of explicitReturns) {
       if (!isTypeCompatible(returnType, declaredType, typeAliases)) {
-        const displayType = getBaseTypeOfLiteral(returnType);
+        const displayType = describeType(getBaseTypeOfLiteral(returnType), declaredType, typeAliases);
         return { 
           valid: false, 
           warning: `Function '${functionName}' returns ${displayType} but declared as ${declaredType}` 

@@ -58,6 +58,9 @@ const grammar = {
     ['name:name', 'annotation?:annotation', 'w', 'explicit_assign:explicit_assign', 'w', 'exp:exp'],
     ['name:name', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
     ['object_destructuring:destructuring', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
+    // Must precede the exp:path alternative, which would otherwise read the
+    // left-hand side as an array literal.
+    ['array_destructuring:array_destructuring', 'annotation?:annotation', 'w', '=', 'w', 'exp:exp'],
     ['exp:path', 'w', '=', 'w', 'exp:exp'],
   ],
   'assign_op': [
@@ -245,6 +248,17 @@ const grammar = {
   ],
   'object_destructuring': [
     ['{', 'w', 'destructuring_values:values', 'single_space_or_newline', '}'],
+  ],
+  'array_destructuring': [
+    ['[', 'newline?', 'W?', 'array_destructuring_values:values', 'newline?', 'W?', ']'],
+  ],
+  'array_destructuring_values': [
+    // Annotated alternatives first: a bare `name` would match and then fail on
+    // the annotation's colon.
+    ['name:name', 'annotation:annotation', ',', 'single_space_or_newline', 'array_destructuring_values:more'],
+    ['name:name', 'annotation:annotation'],
+    ['name:name', ',', 'single_space_or_newline', 'array_destructuring_values:more'],
+    ['name:name'],
   ],
   'destructuring_values': [
     // Nested destructuring must come before annotation rules (both start with 'name:name colon').

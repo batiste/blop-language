@@ -11,10 +11,10 @@
 
 import {
   Type, Types, TypeAliasMap,
-  PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
+  PrimitiveType, LiteralType, ArrayType, ArrayLiteralType, TupleType, ObjectType, UnionType,
   IntersectionType, GenericType, FunctionType, TypeAlias, TypeMemberAccess,
   PredicateType, KeyofType, MappedType, TypeIndexAccess, ConditionalType,
-  substituteTypeParams, createUnion,
+  substituteTypeParams, createUnion, widenFreshness,
   StringType, NumberType, BooleanType, NullType, UndefinedType,
   AnyType, NeverType, AnyFunctionType
 } from './Type.js';
@@ -684,7 +684,7 @@ export function checkObjectStructuralCompatibility(valueType, targetType, aliase
       }
       if (!valueProp.type.isCompatibleWith(targetProp.type, aliasMap)) {
         errors.push(
-          `Property '${key}' has type ${typeToString(valueProp.type)} but expected ${typeToString(targetProp.type)}`
+          `Property '${key}' has type ${describeType(valueProp.type, targetProp.type, aliasMap)} but expected ${typeToString(targetProp.type)}`
         );
       }
     }
@@ -721,6 +721,33 @@ export function stringToType(typeString) {
  * @returns {string}
  */
 function typeToString(type) {
+  return type.toString();
+}
+
+/**
+ * Render a type for a diagnostic that compares it against `target`.
+ *
+ * An array literal normally displays as the array it widens to, but against a
+ * tuple target that hides the actual problem — `(string | number)[]` says
+ * nothing about which position is wrong. Render it positionally instead:
+ *
+ *   Cannot assign [number, string] to [string, number]
+ *
+ * @param {Type} type - The value type being reported
+ * @param {Type} [target] - The type it was checked against
+ * @param {Object|TypeAliasMap} [aliases] - Used to resolve an aliased target
+ * @returns {string}
+ */
+export function describeType(type, target, aliases) {
+  if (type instanceof ArrayLiteralType && target) {
+    const resolvedTarget = aliases ? resolveTypeAlias(target, aliases) : target;
+    if (resolvedTarget instanceof TupleType) {
+      // Recurse so a nested literal is positional too, against a nested tuple
+      const parts = type.elements.map((el, i) =>
+        describeType(getBaseTypeOfLiteral(el), resolvedTarget.elements[i], aliases));
+      return `[${parts.join(', ')}]`;
+    }
+  }
   return type.toString();
 }
 
@@ -808,6 +835,7 @@ function objectToMap(obj) {
 
 export {
   Type, Types, TypeAliasMap,
-  PrimitiveType, LiteralType, ArrayType, TupleType, ObjectType, UnionType,
-  IntersectionType, GenericType, FunctionType, TypeAlias, PredicateType
+  PrimitiveType, LiteralType, ArrayType, ArrayLiteralType, TupleType, ObjectType, UnionType,
+  IntersectionType, GenericType, FunctionType, TypeAlias, PredicateType,
+  widenFreshness
 };

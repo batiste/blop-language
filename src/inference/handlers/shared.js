@@ -2,7 +2,7 @@
 // Shared Utilities - Common functions for statement handlers
 // ============================================================================
 
-import { LiteralType, UnionType } from '../Type.js';
+import { LiteralType, UnionType, ArrayType, TupleType, PrimitiveType, NullType, UndefinedType } from '../Type.js';
 import { parseTypeExpression } from '../typeSystem.js';
 import { AnyType, AnyFunctionType, FunctionType } from '../Type.js';
 import { stampInferencePhaseOnly } from '../visitor.js';
@@ -140,6 +140,65 @@ export function extractDestructuringBindings(node, parentPath = []) {
   }
   
   return bindings;
+}
+
+/**
+ * Extract bindings from an array_destructuring_values node, in order.
+ * Returns array of {index, varName, node, annotationNode} for `[a, b] = pair`.
+ */
+export function extractArrayDestructuringBindings(node, startIndex = 0) {
+  const bindings = [];
+  if (node?.type !== 'array_destructuring_values') return bindings;
+
+  if (node.named.name) {
+    bindings.push({
+      index: startIndex,
+      varName: node.named.name.value,
+      node: node.named.name,
+      annotationNode: node.named.annotation || null,
+    });
+  }
+  if (node.named.more) {
+    bindings.push(...extractArrayDestructuringBindings(node.named.more, startIndex + 1));
+  }
+  return bindings;
+}
+
+/**
+ * Can this type be pulled apart by an array destructuring pattern?
+ * Only clearly non-iterable types answer false — anything unknown is allowed
+ * through so that partial type information never produces a false warning.
+ */
+export function canDestructureAsArray(type) {
+  if (type instanceof ArrayType || type instanceof TupleType) return true;
+  if (type === NullType || type === UndefinedType) return false;
+  if (type instanceof LiteralType) return canDestructureAsArray(type.baseType);
+  if (type instanceof PrimitiveType) {
+    // Strings are iterable in JS; numbers and booleans are not
+    return type.name !== 'number' && type.name !== 'boolean';
+  }
+  return true;
+}
+
+/**
+ * The type bound to position `index` of an array destructuring pattern.
+ * @returns {Type|null} null when the position has no known type
+ */
+export function getDestructuredElementType(valueType, index, patternNode, pushWarning) {
+  if (!valueType || valueType === AnyType) return null;
+
+  if (valueType instanceof TupleType) {
+    const elementType = valueType.getElementType(index);
+    if (elementType === null) {
+      pushWarning(patternNode, `Tuple ${valueType} has no element at index ${index}`);
+      return null;
+    }
+    return elementType;
+  }
+
+  if (valueType instanceof ArrayType) return valueType.elementType;
+
+  return null;
 }
 
 /**

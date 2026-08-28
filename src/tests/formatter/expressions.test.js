@@ -177,6 +177,22 @@ describe('expression and operator formatting', () => {
     it('formats destructuring with type annotation', () => {
       expect(format('{ count: number } = state')).toBe('{ count: number } = state\n');
     });
+
+    it('formats simple array destructuring', () => {
+      expect(format('[first, second] = pair')).toBe('[first, second] = pair\n');
+    });
+
+    it('formats array destructuring with name annotations', () => {
+      expect(format('[host: string, port: number] = pair')).toBe('[host: string, port: number] = pair\n');
+    });
+
+    it('formats array destructuring with a pattern annotation', () => {
+      expect(format('[host, port]: [string, number] = pair')).toBe('[host, port]: [string, number] = pair\n');
+    });
+
+    it('formats array destructuring of a literal', () => {
+      expect(format('[x, y] = [1, 2]')).toBe('[x, y] = [1, 2]\n');
+    });
   });
 
   describe('template strings', () => {

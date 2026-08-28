@@ -291,6 +291,61 @@ export class TupleType extends Type {
 }
 
 /**
+ * The type of a *fresh* array literal, e.g. the `['a', 1]` in
+ * `pair: [string, number] = ['a', 1]`.
+ *
+ * It behaves exactly like the ArrayType it widens to — `(string | number)[]` —
+ * except that it remembers the type of each element by position, which lets it
+ * satisfy a tuple target. This is how an array literal gets contextually typed
+ * without the inference engine having to know the expected type up front (at a
+ * call site the arguments are inferred before the callee's parameters are even
+ * resolved).
+ *
+ * Freshness is deliberately short-lived: `widenFreshness()` strips it as soon as
+ * the value is bound to a variable or becomes a function's inferred return type,
+ * so `x = ['a', 1]` is a `(string | number)[]` and nothing more — same as
+ * TypeScript.
+ */
+export class ArrayLiteralType extends ArrayType {
+  /**
+   * @param {Type} elementType - The widened element type (union of all elements)
+   * @param {Type[]} elements - Type of each element, by position
+   */
+  constructor(elementType, elements) {
+    super(elementType);
+    this.elements = elements; // Type[]
+  }
+
+  /** The plain array type this literal widens to. */
+  widen() {
+    return new ArrayType(this.elementType);
+  }
+
+  isCompatibleWith(target, aliases) {
+    // Resolve aliases first so `type Pair = [string, number]` reaches the tuple below
+    if (target instanceof TypeAlias || target instanceof TypeMemberAccess
+        || target instanceof KeyofType || target instanceof ConditionalType) {
+      const resolved = aliases.resolve(target);
+      if (resolved !== target) return this.isCompatibleWith(resolved, aliases);
+    }
+
+    // Positional match against a tuple target
+    if (target instanceof TupleType) {
+      if (this.elements.length !== target.elements.length) return false;
+      return this.elements.every((el, i) => el.isCompatibleWith(target.elements[i], aliases));
+    }
+
+    // A union target may hold a tuple: try each member with positional matching
+    if (target instanceof UnionType) {
+      return target.types.some(t => this.isCompatibleWith(t, aliases));
+    }
+
+    // Anything else: behave like the plain array we widen to
+    return super.isCompatibleWith(target, aliases);
+  }
+}
+
+/**
  * Object types: { name: string, age: number }
  */
 export class ObjectType extends Type {
@@ -1418,6 +1473,65 @@ export class TypeAliasMap {
 }
 
 /**
+ * Copy a type, overriding some fields, keeping its class and every other field.
+ * @param {Type} type
+ * @param {Object} overrides
+ * @returns {Type}
+ */
+function cloneTypeWith(type, overrides) {
+  return Object.assign(Object.create(Object.getPrototypeOf(type)), type, overrides);
+}
+
+/**
+ * Strip array-literal freshness, at any depth.
+ *
+ * Called wherever a value stops being an expression and becomes something with a
+ * lasting type — a variable binding, a function's inferred return type. From
+ * that point on `['a', 1]` is a `(string | number)[]` and can no longer satisfy
+ * a tuple annotation, which is what TypeScript does too.
+ *
+ * @param {Type} type
+ * @returns {Type} The same instance when there is no freshness to strip.
+ */
+export function widenFreshness(type, seen = new Set()) {
+  if (!type || typeof type !== 'object' || seen.has(type)) return type;
+  seen.add(type);
+
+  if (type instanceof ArrayLiteralType) {
+    return new ArrayType(widenFreshness(type.elementType, seen));
+  }
+
+  if (type instanceof ArrayType) {
+    const elementType = widenFreshness(type.elementType, seen);
+    return elementType === type.elementType ? type : cloneTypeWith(type, { elementType });
+  }
+
+  if (type instanceof TupleType) {
+    const elements = type.elements.map(el => widenFreshness(el, seen));
+    return elements.every((el, i) => el === type.elements[i])
+      ? type : cloneTypeWith(type, { elements });
+  }
+
+  if (type instanceof UnionType || type instanceof IntersectionType) {
+    const types = type.types.map(t => widenFreshness(t, seen));
+    return types.every((t, i) => t === type.types[i]) ? type : cloneTypeWith(type, { types });
+  }
+
+  if (type instanceof ObjectType) {
+    let changed = false;
+    const properties = new Map();
+    for (const [key, prop] of type.properties) {
+      const propType = widenFreshness(prop.type, seen);
+      if (propType !== prop.type) changed = true;
+      properties.set(key, propType === prop.type ? prop : { ...prop, type: propType });
+    }
+    return changed ? cloneTypeWith(type, { properties }) : type;
+  }
+
+  return type;
+}
+
+/**
  * Substitute type parameters in a type
  * @param {Type} type
  * @param {Map<string, Type>} substitutions
@@ -1593,6 +1707,10 @@ export const Types = {
 
   tuple(elements) {
     return new TupleType(elements);
+  },
+
+  arrayLiteral(elementType, elements) {
+    return new ArrayLiteralType(elementType, elements);
   },
 
   predicate(paramName, guardType) {

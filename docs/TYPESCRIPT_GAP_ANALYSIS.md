@@ -21,7 +21,9 @@ Purpose:
 | Type narrowing (`typeof`, equality, truthiness, predicates) | Done |
 | Two-phase inference (inference -> checking) | Done |
 | Dead-code warning after unconditional `return` / `throw` | Done |
-| Tuple types | Done (basic) |
+| Tuple types | Done, including contextual typing of array literals |
+| Array destructuring (`[a, b] = pair`) | Done, with per-position element types |
+| Generic constraints (`T extends X`, `K extends keyof T`) | Done, enforced for inferred and explicit type arguments |
 | `as` assertions | Done |
 | `satisfies` operator | Done |
 | `as const` | Done |
@@ -58,9 +60,8 @@ Purpose:
 
 | Feature | Notes |
 |---|---|
-| `typeof x` in type position | Type query support |
+| `typeof x` in type position | Type query support; blocks the common `keyof typeof config` idiom |
 | `implements` checking | Cross-check class shape against interface/object type |
-| Generic constraints (`K extends keyof T`) | Important for generic utility patterns |
 | Assertion functions (`asserts ...`) | Additional narrowing mechanism |
 | Deeper discriminated-union exhaustiveness | Extend beyond current early-exit chain support |
 | Declaration/interface merging | Symbol table merge behavior |
@@ -79,10 +80,11 @@ Purpose:
 
 ## Known Gaps Snapshot
 
-- Tuple contextual typing is still limited for some array literals.
 - `keyof` over unions/intersections is not fully supported.
-- Generic constraints syntax is not implemented yet.
 - Index-signature key-type enforcement at bracket access is still partial.
+- Array destructuring has no rest (`[a, ...rest]`) or hole (`[, b]`) patterns.
+- `NonNullable<T>` is not implemented (`Exclude` / `Extract` are).
+- Conditional types are not distributive over unions.
 
 ---
 
@@ -96,3 +98,7 @@ Purpose:
 - Predicate tests: `src/tests/typeSystem/typePredicates.test.js`
 - Keyof tests: `src/tests/typeSystem/keyofType.test.js`
 - Index signature tests: `src/tests/typeSystem/indexSignatures.test.js`
+- Tuple tests: `src/tests/typeSystem/tupleTypes.test.js`, `src/tests/typeSystem/tupleContextualTyping.test.js`
+- Array destructuring tests: `src/tests/typeSystem/arrayDestructuring.test.js`,
+  `src/tests/languageFeatures/arrayDestructuring.test.blop`
+- Generic constraint tests: `src/tests/typeSystem/genericConstraints.test.js`

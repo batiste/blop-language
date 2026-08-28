@@ -160,12 +160,33 @@ describe('as const — array literals', () => {
     `);
   });
 
-  test('array without as const does NOT satisfy a tuple type', () => {
-    expectCompilationError(`
+  test('array literal satisfies a tuple type without as const', () => {
+    // A fresh array literal is contextually typed against the tuple parameter,
+    // so `as const` is not required here — it is required once the array is
+    // bound to a variable (see the next test).
+    expectNoErrors(`
       type Pair = [1, 2]
       def f(p: Pair) {}
       f([1, 2])
-    `, '');
+    `);
+  });
+
+  test('array bound to a variable without as const does NOT satisfy a tuple type', () => {
+    expectCompilationError(`
+      type Pair = [1, 2]
+      def f(p: Pair) {}
+      p = [1, 2]
+      f(p)
+    `, 'Pair');
+  });
+
+  test('array bound with as const does satisfy a tuple type', () => {
+    expectNoErrors(`
+      type Pair = [1, 2]
+      def f(p: Pair) {}
+      p = [1, 2] as const
+      f(p)
+    `);
   });
 });
 
