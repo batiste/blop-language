@@ -10,8 +10,9 @@ import {
   parseGenericConstraints,
   resolveTypeAlias,
   getBaseTypeOfLiteral,
+  describeType,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType, PredicateType, BooleanType } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType, PredicateType, BooleanType, widenFreshness } from '../Type.js';
 import { getBuiltinObjectType } from '../builtinTypes.js';
 
 /**
@@ -279,14 +280,19 @@ function finalizeFunctionReturnType({
   // Predicate functions must return boolean — compare against BooleanType, not PredicateType
   const checkTarget = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
   if (checkTarget && inferredType !== AnyType && !isTypeCompatible(inferredType, checkTarget, typeAliases)) {
-    pushWarning(nameNode, `${warningLabel} returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
+    const displayType = describeType(getBaseTypeOfLiteral(inferredType), checkTarget, typeAliases);
+    pushWarning(nameNode, `${warningLabel} returns ${displayType} but declared as ${declaredType}`);
   }
+  // The check above sees the fresh return type (so `return ['a', 1]` satisfies a
+  // declared tuple), but what callers see is widened: an inferred return type
+  // outlives the expression that produced it.
+  const externalInferredType = widenFreshness(inferredType);
   stampInferencePhaseOnly(nameNode, new FunctionType(
-    scope.__currentFctParams, declaredType ?? inferredType,
+    scope.__currentFctParams, declaredType ?? externalInferredType,
     genericParams, scope.__currentFctParamNames, null,
     genericConstraints?.size > 0 ? genericConstraints : null
   ));
-  return { declaredType, inferredType };
+  return { declaredType, inferredType: externalInferredType };
 }
 
 function createFunctionHandlers(getState) {
@@ -480,7 +486,8 @@ function createFunctionHandlers(getState) {
         if (annotation) stampTypeAnnotation(annotation);
         const declaredType = annotation ? getAnnotationType(annotation) : null;
         const inferredType = collectReturnType(scope.__returnTypes);
-        const innerType = declaredType ?? inferredType;
+        // Widened for callers; the declared-vs-actual check below uses the fresh type
+        const innerType = declaredType ?? widenFreshness(inferredType);
         // Async anonymous functions also expose Promise<T> to callers
         const finalType = isAsync ? wrapInPromise(innerType) : innerType;
         pushInference(parent, new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames));

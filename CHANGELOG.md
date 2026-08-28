@@ -12,7 +12,22 @@ patterns, improved type narrowing, and better error diagnostics.
 
 ### Added
 
+**Language**
+- Array destructuring: `[first, second] = pair` binds by position, with per-element types from
+  tuples and arrays. Names can be annotated individually (`[host: string, port: number] = pair`)
+  or the whole pattern at once (`[host, port]: [string, number] = pair`).
+
 **Type system**
+- Tuple types are now usable with array literals: `pair: [string, number] = ['a', 1]` and the
+  equivalent in argument, return, object-property and array-of-tuples positions. An array
+  literal is checked element by element against the tuple it targets, and the diagnostic names
+  the positions — `Cannot assign [number, string] to [string, number]` instead of the widened
+  `(string | number)[]`. As in TypeScript, tuple-ness holds only while the value is a literal:
+  once bound to a variable or returned as an inferred return type it is a plain array, so
+  `as const` is still what makes a tuple type stick.
+- Spreading a tuple into an array literal keeps its length and positions known, so
+  `[...pair, true]` satisfies `[string, number, boolean]`. Spread tuples also contribute their
+  element types to the inferred array type — `[...pair]` was previously inferred as `any[]`.
 - `readonly` modifier for object properties and arrays: prevent accidental mutations and catch
   errors at compile time. Syntax: `readonly name: string`, `readonly string[]` (#84).
 - `as const` assertions: freeze inferred types to their literal equivalents. Useful for creating

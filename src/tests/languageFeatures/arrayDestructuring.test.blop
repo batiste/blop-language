@@ -1,0 +1,84 @@
+// Array destructuring runtime tests.
+// Type inference is verified in typeSystem/arrayDestructuring.test.js.
+
+numbers = [1, 2, 3]
+[firstNumber, secondNumber] = numbers
+
+test('binds elements by position', () => {
+  expect(firstNumber).toBe(1)
+  expect(secondNumber).toBe(2)
+})
+
+test('fewer names than elements is fine', () => {
+  letters = ['a', 'b', 'c']
+  [onlyFirst] = letters
+  expect(onlyFirst).toBe('a')
+})
+
+test('more names than elements binds undefined', () => {
+  short = [1]
+  [one, missing] = short
+  expect(one).toBe(1)
+  expect(missing).toBe(undefined)
+})
+
+pair: [string, number] = ['answer', 42]
+[label, count] = pair
+
+test('destructures a tuple', () => {
+  expect(label).toBe('answer')
+  expect(count).toBe(42)
+})
+
+def makePair(): [string, number] {
+  return ['made', 7]
+}
+
+test('destructures a returned tuple', () => {
+  [madeLabel, madeCount] = makePair()
+  expect(madeLabel).toBe('made')
+  expect(madeCount).toBe(7)
+})
+
+test('destructures an array literal directly', () => {
+  [x, y] = [10, 20]
+  expect(x).toBe(10)
+  expect(y).toBe(20)
+})
+
+test('annotated names', () => {
+  [name: string, age: number] = ['Alice', 30]
+  expect(name).toBe('Alice')
+  expect(age).toBe(30)
+})
+
+test('annotated pattern', () => {
+  [host, port]: [string, number] = ['example.com', 443]
+  expect(host).toBe('example.com')
+  expect(port).toBe(443)
+})
+
+test('works inside a function', () => {
+  def swap(input: [string, number]) {
+    [a, b] = input
+    return [b, a]
+  }
+  swapped = swap(['x', 1])
+  expect(swapped[0]).toBe(1)
+  expect(swapped[1]).toBe('x')
+})
+
+test('destructures nested tuples', () => {
+  nested: [string, [number, number]] = ['point', [3, 4]]
+  [pointLabel, coords] = nested
+  expect(pointLabel).toBe('point')
+  expect(coords[0]).toBe(3)
+  expect(coords[1]).toBe(4)
+})
+
+test('destructures a map result', () => {
+  doubled = [1, 2].map((n) => n * 2)
+  [d1, d2] = doubled
+  expect(d1).toBe(2)
+  expect(d2).toBe(4)
+})

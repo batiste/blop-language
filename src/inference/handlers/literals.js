@@ -4,7 +4,7 @@
 
 import { visitChildren, resolveTypes, stampInferencePhaseOnly } from '../visitor.js';
 import { getBaseTypeOfLiteral, ObjectType } from '../typeSystem.js';
-import { Types, LiteralType, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, UnionType, TypeAlias } from '../Type.js';
+import { Types, LiteralType, StringType, NumberType, BooleanType, NullType, UndefinedType, AnyType, ArrayType, TupleType, UnionType, TypeAlias } from '../Type.js';
 
 /**
  * Deduplicate types by their string representation, last write wins.
@@ -19,11 +19,17 @@ function deduplicateTypes(types) {
 
 /**
  * Collect element types from an array_literal_body node (right-recursive).
+ *
+ * `all` feeds the widened element type; `positional` is the type of each element
+ * in order, and is null when an element's position cannot be known — spreading a
+ * plain array contributes an unknown number of elements.
+ *
  * @param {Object} bodyNode
- * @returns {import('../Type.js').Type[]}
+ * @returns {{ all: import('../Type.js').Type[], positional: import('../Type.js').Type[]|null }}
  */
 function collectBodyElementTypes(bodyNode) {
-  const elementTypes = [];
+  const all = [];
+  let positional = [];
   function collect(current) {
     if (!current?.children) return;
     for (const child of current.children) {
@@ -32,15 +38,23 @@ function collectBodyElementTypes(bodyNode) {
         // Detect spread elements (exp whose first child is 'spread')
         const isSpread = child.children?.some(c => c.type === 'spread');
         if (isSpread) {
-          // Unwrap ArrayType: ...string[] contributes string elements, not string[]
-          if (inferredType instanceof ArrayType) {
-            elementTypes.push(inferredType.elementType);
+          if (inferredType instanceof TupleType) {
+            // A tuple spread has a known length: ...[string, number] contributes
+            // both elements, at known positions.
+            all.push(...inferredType.elements);
+            if (positional) positional.push(...inferredType.elements);
+          } else if (inferredType instanceof ArrayType) {
+            // Unwrap ArrayType: ...string[] contributes string elements, not string[]
+            all.push(inferredType.elementType);
+            positional = null;
           } else {
             // Unknown spread type — treat as any
-            elementTypes.push(AnyType);
+            all.push(AnyType);
+            positional = null;
           }
         } else {
-          elementTypes.push(inferredType);
+          all.push(inferredType);
+          if (positional) positional.push(inferredType);
         }
       } else if (child.type === 'array_literal_body') {
         collect(child);
@@ -48,7 +62,7 @@ function collectBodyElementTypes(bodyNode) {
     }
   }
   collect(bodyNode);
-  return elementTypes;
+  return { all, positional };
 }
 
 /**
@@ -77,19 +91,11 @@ function tryUnifyObjectTypes(objectTypes) {
 }
 
 /**
- * Infer the element type of an array literal from its AST node
- * @param {Object} node - The array_literal AST node
- * @returns {import('../Type.js').Type|null} Array element Type object or null
+ * Widen a list of element types into the single element type of an array.
+ * @param {import('../Type.js').Type[]} elementTypes
+ * @returns {import('../Type.js').Type}
  */
-function inferArrayElementType(node) {
-  if (!node?.children) return null;
-
-  const bodyNode = node.children.find(c => c.type === 'array_literal_body');
-  if (!bodyNode) return null; // empty array
-
-  const elementTypes = collectBodyElementTypes(bodyNode);
-  if (elementTypes.length === 0) return null;
-
+function widenElementTypes(elementTypes) {
   // If all elements are objects with identical keys → unify into one object type
   if (elementTypes.length > 1 && elementTypes.every(t => t instanceof ObjectType)) {
     const unified = tryUnifyObjectTypes(elementTypes);
@@ -99,6 +105,32 @@ function inferArrayElementType(node) {
   // Widen literals to their base types and deduplicate
   const uniqueBaseTypes = deduplicateTypes(elementTypes.map(t => getBaseTypeOfLiteral(t)));
   return uniqueBaseTypes.length === 1 ? uniqueBaseTypes[0] : Types.union(uniqueBaseTypes);
+}
+
+/**
+ * Infer the type of an array literal from its AST node.
+ *
+ * The result is an ArrayLiteralType — a `T[]` that also remembers its elements by
+ * position, so it can satisfy a tuple annotation. See ArrayLiteralType in Type.js.
+ *
+ * @param {Object} node - The array_literal AST node
+ * @returns {import('../Type.js').Type|null} Array Type object, or null for an empty array
+ */
+function inferArrayLiteralType(node) {
+  if (!node?.children) return null;
+
+  const bodyNode = node.children.find(c => c.type === 'array_literal_body');
+  if (!bodyNode) return null; // empty array
+
+  const { all, positional } = collectBodyElementTypes(bodyNode);
+  if (all.length === 0) return null;
+
+  const elementType = widenElementTypes(all);
+
+  // Positions unknown (a plain array was spread in) — no tuple view of this literal
+  if (positional === null) return Types.array(elementType);
+
+  return Types.arrayLiteral(elementType, positional);
 }
 
 /**
@@ -248,8 +280,8 @@ function createLiteralHandlers(getState) {
     array_literal: (node, parent) => {
       const { pushInference } = getState();
       visitChildren(node);
-      const elementType = inferArrayElementType(node);
-      pushInference(parent, elementType ? Types.array(elementType) : Types.alias('array'));
+      const arrayType = inferArrayLiteralType(node);
+      pushInference(parent, arrayType ?? Types.alias('array'));
     },
 
     str_expression: (node, parent) => {

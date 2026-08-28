@@ -13,6 +13,7 @@ A practical reference for writing Blop code. Each section explains the syntax, s
 - [Objects and Arrays](#objects-and-arrays)
 - [Classes](#classes)
 - [Type Aliases](#type-aliases)
+- [Tuple Types](#tuple-types)
 - [Type Modifiers](#type-modifiers)
 - [try / catch / throw](#try--catch--throw)
 - [Compound Assignment](#compound-assignment)
@@ -53,6 +54,7 @@ name = 'Alice'
 
 // Destructuring
 { x, y, z as depth } = { x: 1, y: 2, z: 100.0 }
+[first, second] = [1, 2]
 
 // Type annotation
 count: number = 0
@@ -215,6 +217,13 @@ mixed = [1, 'two', { three: 3 }]
 // Object destructuring
 { name, age } = person
 
+// Array destructuring — binds by position
+[firstNumber, secondNumber] = numbers
+
+// Names can be annotated individually, or the whole pattern at once
+[host: string, port: number] = ['example.com', 443]
+[user, id]: [string, number] = ['alice', 1]
+
 // Object spread — later keys override earlier ones
 defaults = { timeout: 5000, retries: 3 }
 options = { ...defaults, timeout: 10000 }
@@ -290,6 +299,69 @@ user: User = { id: 1, name: 'Alice', role: 'Admin' }
 def greet(u: User): string {
   return 'Hello, 'u.name
 }
+```
+
+### Tuple Types
+
+A tuple is a fixed-length array where each position has its own type. Write one as
+`[T1, T2, …]` anywhere a type is expected:
+
+```typescript
+pair: [string, number] = ['answer', 42]
+
+def divide(a: number, b: number): [number, number] {
+  return [a / b, a % b]
+}
+
+type Entry = [string, number]
+entries: Entry[] = [['a', 1], ['b', 2]]
+```
+
+An array literal is checked position by position against the tuple it is assigned to,
+so mismatches are reported with the offending positions:
+
+```typescript
+pair: [string, number] = [42, 'answer']
+// ERROR: Cannot assign [number, string] to [string, number]
+
+pair: [string, number] = ['answer', 42, true]
+// ERROR: Cannot assign [string, number, boolean] to [string, number]
+```
+
+Tuple-ness only holds while the array is a literal in a position that expects a tuple.
+Once bound to a variable, the value is a plain array — use [as const](#as-const) when you
+need the tuple type to stick:
+
+```typescript
+pair = ['answer', 42]         // (string | number)[]
+p: [string, number] = pair    // ERROR: Cannot assign (string | number)[] to [string, number]
+
+frozen = ['answer', 42] as const
+p: [string, number] = frozen  // OK
+```
+
+Spreading a tuple keeps its length and positions known, so a spread can build a longer tuple.
+Spreading a plain array cannot — its length is unknown:
+
+```typescript
+pair: [string, number] = ['answer', 42]
+extended: [string, number, boolean] = [...pair, true]  // OK
+
+names: string[] = ['a']
+two: [string, string] = [...names]
+// ERROR: Cannot assign string[] to [string, string]
+```
+
+Indexing a tuple with a literal index gives the type at that position, and destructuring
+binds each name to its own type:
+
+```typescript
+pair: [string, number] = ['answer', 42]
+label: string = pair[0]
+count: number = pair[1]
+missing = pair[2]     // ERROR: Tuple index 2 is out of bounds (tuple has 2 elements)
+
+[label, count] = pair // label is string, count is number
 ```
 
 ### Type Modifiers

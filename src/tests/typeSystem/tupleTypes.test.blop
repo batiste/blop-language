@@ -1,19 +1,18 @@
 // Tuple type runtime tests.
-// Type-checking correctness is verified in tupleTypes.test.js.
+// Type-checking correctness is verified in tupleTypes.test.js and
+// tupleContextualTyping.test.js.
 // These tests confirm that runtime behavior (array indexing, .length, etc.)
 // works correctly when tuple type annotations are in play.
 
-// Functions WITHOUT typed parameters so array literals are accepted freely.
-
-def first(pair) {
+def first(pair: [string, number]): string {
   return pair[0]
 }
 
-def second(pair) {
+def second(pair: [string, number]): number {
   return pair[1]
 }
 
-def len(pair) {
+def len(pair: [string, number]) {
   return pair.length
 }
 
@@ -30,19 +29,63 @@ test('.length returns the element count', () => {
 })
 
 test('array of tuples works at runtime', () => {
-  entries = [['x', 1], ['y', 2]]
+  entries: [string, number][] = [['x', 1], ['y', 2]]
   expect(entries.length).toBe(2)
   expect(entries[0][0]).toBe('x')
   expect(entries[1][1]).toBe(2)
 })
 
 // Typed identity function — its presence here verifies that the tuple type
-// annotation is parsed correctly at compile time (no runtime call needed).
+// annotation is parsed correctly at compile time.
 def identity(x: [string, number]): [string, number] {
   return x
 }
 
-def process(pair: [string, number]) {
-  return pair
+test('identity returns the same tuple', () => {
+  pair = identity(['a', 1])
+  expect(pair[0]).toBe('a')
+  expect(pair[1]).toBe(1)
+})
+
+test('annotated declaration accepts an array literal', () => {
+  pair: [string, number] = ['a', 1]
+  expect(pair[0]).toBe('a')
+  expect(pair[1]).toBe(1)
+})
+
+type Entry = [string, number]
+
+test('tuple through a type alias', () => {
+  entry: Entry = ['count', 3]
+  expect(entry[1]).toBe(3)
+})
+
+def makePair(): [string, number] {
+  return ['made', 7]
 }
-// process([42, 'hello'])
+
+test('function returning a tuple literal', () => {
+  pair = makePair()
+  expect(pair[0]).toBe('made')
+  expect(pair[1]).toBe(7)
+})
+
+test('nested tuple', () => {
+  nested: [string, [number, boolean]] = ['a', [1, true]]
+  expect(nested[1][0]).toBe(1)
+  expect(nested[1][1]).toBe(true)
+})
+
+test('spreading a tuple into a longer tuple', () => {
+  pair: [string, number] = ['a', 1]
+  extended: [string, number, boolean] = [...pair, true]
+  expect(extended[0]).toBe('a')
+  expect(extended[1]).toBe(1)
+  expect(extended[2]).toBe(true)
+})
+
+test('tuple as an object property', () => {
+  config: { pair: [string, number] } = { pair: ['a', 1] }
+  expect(config.pair[0]).toBe('a')
+  expect(config.pair[1]).toBe(1)
+})

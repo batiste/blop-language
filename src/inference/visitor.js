@@ -4,7 +4,7 @@
 
 import TypeChecker from './typeChecker.js';
 import { getAnnotationType, resolveTypeAlias, isTypeCompatible, getPropertyType, parseTypePrimary } from './typeSystem.js';
-import { ObjectType, ArrayType, TupleType, AnyType, TypeAlias, RecordType, PrimitiveType, LiteralType, createUnion, UnionType, NullType, UndefinedType } from './Type.js';
+import { ObjectType, ArrayType, TupleType, AnyType, TypeAlias, RecordType, PrimitiveType, LiteralType, createUnion, UnionType, NullType, UndefinedType, widenFreshness } from './Type.js';
 import { isBuiltinObjectType, getArrayMemberType, getBuiltinObjectType, getPrimitiveMemberType } from './builtinTypes.js';
 
 // Module state
@@ -241,31 +241,36 @@ function handleAssignment(types, i, assignNode) {
         }
       }
     }
-    // If explicit_assign (:=), always create new variable in current scope
+    // A variable holds on to its type, so array-literal freshness stops here:
+    // `x = ['a', 1]` binds a (string | number)[], not a candidate tuple.
+    // The checks above still see the fresh type.
     else if (explicit_assign && name.value) {
+      // If explicit_assign (:=), always create new variable in current scope
+      const boundType = widenFreshness(valueType);
       const scope = getCurrentScope();
       scope[name.value] = {
-        type: valueType,
+        type: boundType,
         node: assignNode,
       };
       if (inferencePhase === 'inference' && name.inferredType === undefined) {
-        name.inferredType = valueType;
+        name.inferredType = boundType;
       }
     } else if (name.value) {
       // Regular assignment (=), check if reassigning existing variable
       const result = TypeChecker.checkVariableReassignment(valueType, name.value, lookupVariable, typeAliases);
+      const boundType = annotationType ?? widenFreshness(valueType);
       if (!result.valid) {
         pushWarning(assignNode, result.warning);
       } else if (!result.definition) {
         const scope = getCurrentScope();
         scope[name.value] = {
-          type: annotationType ?? valueType,
+          type: boundType,
           node: assignNode,
         };
       }
       // Stamp definition site for hover — prefer declared annotation type if available
       if (inferencePhase === 'inference' && name.inferredType === undefined) {
-        name.inferredType = annotationType ?? valueType;
+        name.inferredType = boundType;
       }
     }
   }

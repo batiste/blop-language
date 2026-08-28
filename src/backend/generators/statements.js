@@ -2,7 +2,7 @@ import { SCOPE_TYPES, SCOPE_DEPTH, ERROR_MESSAGES, BUILTIN_TYPES } from '../../c
 
 function createStatementGenerators(context) {
   const { generateCode, validators, scopes, typeAliases, hasBlopImports, genericTypeParams, checkFilename } = context;
-  const { checkRedefinition, shouldBeDefined, generateError, getExports } = validators;
+  const { checkRedefinition, shouldBeDefined, generateError, getExports, registerName } = validators;
 
   const currentScopeVN = () => scopes.type(SCOPE_TYPES.VIRTUAL_NODE);
   
@@ -170,11 +170,25 @@ function createStatementGenerators(context) {
         // Generate the full LHS expression directly
         output.push(...generateCode(node.named.path));
       } else {
-        output.push(...generateCode(node.named.destructuring));
+        output.push(...generateCode(node.named.destructuring ?? node.named.array_destructuring));
       }
       output.push(' = ');
       output.push(...generateCode(node.named.exp));
       output.push(';');
+      return output;
+    },
+    'array_destructuring': (node) => ['let [', ...generateCode(node.named.values), ']'],
+    'array_destructuring_values': (node) => {
+      const output = [];
+      registerName(node.named.name.value, node.named.name);
+      output.push(...generateCode(node.named.name));
+      if (node.named.annotation) {
+        generateCode(node.named.annotation);
+      }
+      if (node.named.more) {
+        output.push(', ');
+        output.push(...generateCode(node.named.more));
+      }
       return output;
     },
     'assign_op': (node) => {

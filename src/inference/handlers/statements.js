@@ -3,8 +3,8 @@
 // ============================================================================
 
 import { resolveTypes, pushToParent, visitChildren, visit, stampInferencePhaseOnly } from '../visitor.js';
-import { parseTypeExpression, parseGenericParams, parseGenericConstraints, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType } from '../typeSystem.js';
-import { UndefinedType, StringType, NumberType, LiteralType, UnionType } from '../Type.js';
+import { parseTypeExpression, parseGenericParams, parseGenericConstraints, resolveTypeAlias, isTypeCompatible, getPropertyType, getAnnotationType, ArrayType, ObjectType, getBaseTypeOfLiteral, createUnionType, describeType } from '../typeSystem.js';
+import { UndefinedType, StringType, NumberType, LiteralType, UnionType, widenFreshness } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard, applyPostIfGuard, detectImpossibleComparison } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { AnyType, AnyFunctionType, FunctionType } from '../Type.js';
@@ -15,7 +15,10 @@ import { createLoopHandlers } from './loops.js';
 import { createControlFlowHandlers } from './controlFlow.js';
 
 // Import shared utilities
-import { extractDestructuringBindings, collectPropertyPathFromExp, widenLiteralTypes, getReturnTypeCount } from './shared.js';
+import {
+  extractDestructuringBindings, extractArrayDestructuringBindings, collectPropertyPathFromExp,
+  widenLiteralTypes, getReturnTypeCount, canDestructureAsArray, getDestructuredElementType,
+} from './shared.js';
 
 
 function createStatementHandlers(getState) {
@@ -59,7 +62,7 @@ function createStatementHandlers(getState) {
             const declaredReturnType = functionScope.__declaredReturnType;
             if (declaredReturnType && returnType !== AnyType) {
               if (!isTypeCompatible(returnType, declaredReturnType, typeAliases)) {
-                const displayType = getBaseTypeOfLiteral(returnType);
+                const displayType = describeType(getBaseTypeOfLiteral(returnType), declaredReturnType, typeAliases);
                 // Use the original annotation type for the message (predicate functions store
                 // BooleanType in __declaredReturnType for checking, but the annotation itself
                 // is the predicate — e.g. "x is string").
@@ -212,6 +215,49 @@ function createStatementHandlers(getState) {
         
         pushToParent(node, parent);
         pushInference(parent, node);
+      } else if (node.named.array_destructuring) {
+        // Array destructuring: [first, second] = pair
+        // Optional annotation on the rhs: [a, b]: [string, number] = pair
+        if (node.named.annotation) {
+          stampTypeAnnotation(node.named.annotation);
+        }
+        visit(node.named.exp, node);
+
+        const expNode = node.named.exp;
+        const annotationType = node.named.annotation ? getAnnotationType(node.named.annotation) : null;
+        const valueType = annotationType || expNode?.inference?.[0] || node.inference?.[0];
+        const resolvedValueType = valueType ? resolveTypeAlias(valueType, typeAliases) : null;
+
+        if (resolvedValueType && !canDestructureAsArray(resolvedValueType)) {
+          pushWarning(node.named.array_destructuring, `Cannot destructure ${valueType} as an array`);
+        }
+
+        const bindings = extractArrayDestructuringBindings(node.named.array_destructuring.named.values);
+        for (const { index, varName, node: varNode, annotationNode } of bindings) {
+          // An inline annotation overrides the element type
+          if (annotationNode) {
+            stampTypeAnnotation(annotationNode);
+            const inlineType = getAnnotationType(annotationNode);
+            if (inlineType) {
+              varNode.inferredType = inlineType;
+              getCurrentScope()[varName] = { type: inlineType, node };
+              continue;
+            }
+          }
+
+          const elementType = getDestructuredElementType(
+            resolvedValueType, index, node.named.array_destructuring, pushWarning
+          );
+          if (elementType === null) continue;
+
+          // Bindings outlive the expression, so any array-literal freshness is gone
+          const boundType = widenFreshness(elementType);
+          getCurrentScope()[varName] = { type: boundType, node };
+          if (varNode.inferredType === undefined) varNode.inferredType = boundType;
+        }
+
+        pushToParent(node, parent);
+        pushInference(parent, node);
       } else if (node.named.name || node.named.path) {
         if (node.named.annotation) {
           // Stamp the type annotation for hover support
@@ -285,7 +331,8 @@ function createStatementHandlers(getState) {
             const valueType = expNode && expNode.inference && expNode.inference[0];
             
             if (valueType && valueType !== AnyType && node.named.name.inferredType === undefined) {
-              node.named.name.inferredType = resolveTypeAlias(valueType, typeAliases);
+              // Widened: the variable's type, not the fresh array-literal type
+              node.named.name.inferredType = widenFreshness(resolveTypeAlias(valueType, typeAliases));
             }
           }
         }
