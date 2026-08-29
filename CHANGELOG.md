@@ -55,6 +55,15 @@ patterns, improved type narrowing, and better error diagnostics.
 
 ### Fixed
 
+- Async functions annotated `Promise<T>` no longer report a false error. `async def f(): Promise<string>`
+  with `return 'a'` was flagged as "returns string but declared as Promise<string>" — the body is now
+  checked against `T` for both annotation spellings, while callers still see exactly one `Promise<T>`
+  layer (previously `Promise<Promise<T>>` for the explicit spelling). Applies to `def`, arrow functions
+  and class methods. A *sync* function annotated `Promise<T>` must still return a promise.
+- `void` return annotations were unusable: `def f(): void` reported "returns undefined but declared as
+  void" for a bare `return` or a body that falls through. `undefined` and `void` are now compatible.
+- `Promise<T>` is recognised as a type name, so it can be used in variable and parameter annotations
+  (`p: Promise<string>`), not only as a return type.
 - Auto-completion with optional chaining operator (`?.`) now suggests correct members.
 - Edge cases in type narrowing on sub-elements.
 

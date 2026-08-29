@@ -12,14 +12,31 @@ import {
   getBaseTypeOfLiteral,
   describeType,
 } from '../typeSystem.js';
-import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, GenericType, PredicateType, BooleanType, widenFreshness } from '../Type.js';
+import { AnyType, UndefinedType, FunctionType, createUnion, ObjectType, TypeAlias, PredicateType, BooleanType, widenFreshness, wrapInPromise, unwrapPromise } from '../Type.js';
 import { getBuiltinObjectType } from '../builtinTypes.js';
 
 /**
- * Wrap a type in Promise<T> to represent the external return type of an async function.
+ * The type a function *body* must return for a given return annotation.
+ *
+ * On an async function `async def f(): Promise<string>` and
+ * `async def f(): string` mean the same thing — the body returns a string.
+ * TypeScript requires the first spelling, so one Promise layer is stripped
+ * before return statements are checked against it. Callers still see
+ * Promise<T>: this is the inward-facing type, wrapInPromise() the outward one.
+ *
+ * A *sync* function annotated Promise<T> is left alone — it really does have to
+ * return a promise.
+ *
+ * @param {Type|null} declaredType - The annotation as written
+ * @param {boolean} isAsync
+ * @returns {Type|null}
  */
-function wrapInPromise(type) {
-  return new GenericType(new TypeAlias('Promise'), [type]);
+function declaredBodyReturnType(declaredType, isAsync) {
+  if (!declaredType) return null;
+  // Predicate functions must return boolean at runtime, so `return typeof x === 'string'`
+  // passes; the FunctionType keeps the PredicateType so call sites can narrow.
+  if (declaredType instanceof PredicateType) return BooleanType;
+  return isAsync ? unwrapPromise(declaredType) : declaredType;
 }
 
 /**
@@ -71,9 +88,10 @@ function prescanMethodSignature(methodNode, { stampTypeAnnotation }) {
     if (resolved) returnType = resolved;
   }
 
-  // Async methods are seen by callers as returning Promise<T>
+  // Async methods are seen by callers as returning Promise<T>. Unwrap first so an
+  // explicit `: Promise<T>` annotation is not wrapped a second time.
   if (methodNode.named?.async) {
-    returnType = wrapInPromise(returnType);
+    returnType = wrapInPromise(unwrapPromise(returnType));
   }
 
   return new FunctionType(params, returnType, genericParams, paramNames, null,
@@ -107,18 +125,15 @@ function registerGenericParams(scope, genericParamsNode) {
  * support, and store it on the scope for return-statement validation.
  * Returns the resolved type or null.
  */
-function setupDeclaredReturnType(scope, annotation, stampTypeAnnotation) {
+function setupDeclaredReturnType(scope, annotation, stampTypeAnnotation, isAsync = false) {
   if (!annotation) return null;
   stampTypeAnnotation(annotation);
   const declaredType = getAnnotationType(annotation);
   if (declaredType) {
-    // Predicate functions must return boolean at runtime. Use BooleanType
-    // for per-statement return checking so that `return typeof x === 'string'`
-    // passes; the FunctionType's returnType keeps PredicateType so call sites
-    // can apply narrowing.
-    scope.__declaredReturnType = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
-    // Keep the original annotation type for error messages (so predicate
-    // warnings say "declared as x is string" not "declared as boolean").
+    scope.__declaredReturnType = declaredBodyReturnType(declaredType, isAsync);
+    // Keep the original annotation type for error messages, so warnings say
+    // "declared as Promise<string>" / "declared as x is string" rather than the
+    // inward-facing type the body was checked against.
     scope.__annotationReturnType = declaredType;
   }
   return declaredType ?? null;
@@ -272,21 +287,25 @@ function warnDeadCode(bodyNode, pushWarning) {
 function finalizeFunctionReturnType({
   scope, annotation, nameNode, genericParams, genericConstraints,
   warningLabel, pushWarning, stampTypeAnnotation,
-  inferencePhase, typeAliases,
+  inferencePhase, typeAliases, isAsync = false,
 }) {
   if (annotation) stampTypeAnnotation(annotation);
-  const declaredType = annotation ? getAnnotationType(annotation) : null;
+  const annotationType = annotation ? getAnnotationType(annotation) : null;
   const inferredType = collectReturnType(scope.__returnTypes);
-  // Predicate functions must return boolean — compare against BooleanType, not PredicateType
-  const checkTarget = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
+  // Compare the body against the inward-facing type (Promise unwrapped for async,
+  // boolean for predicates) but report the annotation as the user wrote it.
+  const checkTarget = declaredBodyReturnType(annotationType, isAsync);
   if (checkTarget && inferredType !== AnyType && !isTypeCompatible(inferredType, checkTarget, typeAliases)) {
     const displayType = describeType(getBaseTypeOfLiteral(inferredType), checkTarget, typeAliases);
-    pushWarning(nameNode, `${warningLabel} returns ${displayType} but declared as ${declaredType}`);
+    pushWarning(nameNode, `${warningLabel} returns ${displayType} but declared as ${annotationType}`);
   }
   // The check above sees the fresh return type (so `return ['a', 1]` satisfies a
   // declared tuple), but what callers see is widened: an inferred return type
   // outlives the expression that produced it.
   const externalInferredType = widenFreshness(inferredType);
+  // Predicate types stay intact for call-site narrowing; async unwrapping is
+  // undone by the caller, which wraps this in exactly one Promise layer.
+  const declaredType = (annotationType instanceof PredicateType) ? annotationType : checkTarget;
   stampInferencePhaseOnly(nameNode, new FunctionType(
     scope.__currentFctParams, declaredType ?? externalInferredType,
     genericParams, scope.__currentFctParamNames, null,
@@ -427,7 +446,8 @@ function createFunctionHandlers(getState) {
       // Pre-parse declared return type so SCOPED_STATEMENT can validate each
       // return expression individually during the checking phase.
       const { annotation } = node.named;
-      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
+      const isAsync = !!node.named.async;
+      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation, isAsync);
 
       visitChildren(node);
 
@@ -443,8 +463,6 @@ function createFunctionHandlers(getState) {
 
       warnDeadCode(bodyNode, pushWarning);
 
-      const isAsync = !!node.named.async;
-
       if (node.named.name) {
         // Named function: validate return type and stamp hover type
         const { inferencePhase, typeAliases } = getState();
@@ -454,7 +472,7 @@ function createFunctionHandlers(getState) {
           genericParams, genericConstraints,
           warningLabel: `Function '${node.named.name.value}'`,
           pushWarning, stampTypeAnnotation,
-          inferencePhase, typeAliases,
+          inferencePhase, typeAliases, isAsync,
         });
         // Callers see async functions as returning Promise<T>; body validation
         // already ran against the raw T above.
@@ -484,19 +502,21 @@ function createFunctionHandlers(getState) {
       } else if (parent) {
         // Anonymous function as expression: infer function type and validate
         if (annotation) stampTypeAnnotation(annotation);
-        const declaredType = annotation ? getAnnotationType(annotation) : null;
+        const annotationType = annotation ? getAnnotationType(annotation) : null;
         const inferredType = collectReturnType(scope.__returnTypes);
+        // Inward-facing type: Promise unwrapped for async, boolean for predicates
+        const checkTarget = declaredBodyReturnType(annotationType, isAsync);
+        const declaredType = (annotationType instanceof PredicateType) ? annotationType : checkTarget;
         // Widened for callers; the declared-vs-actual check below uses the fresh type
         const innerType = declaredType ?? widenFreshness(inferredType);
         // Async anonymous functions also expose Promise<T> to callers
         const finalType = isAsync ? wrapInPromise(innerType) : innerType;
         pushInference(parent, new FunctionType(scope.__currentFctParams, finalType, genericParams, scope.__currentFctParamNames));
-        if (declaredType && inferredType !== AnyType) {
+        if (checkTarget && inferredType !== AnyType) {
           const { typeAliases } = getState();
-          const checkTarget = (declaredType instanceof PredicateType) ? BooleanType : declaredType;
           if (!isTypeCompatible(inferredType, checkTarget, typeAliases)) {
             const errorToken = parent.children?.find(c => c.type === 'name') || parent;
-            pushWarning(errorToken, `Function returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${declaredType}`);
+            pushWarning(errorToken, `Function returns ${getBaseTypeOfLiteral(inferredType)} but declared as ${annotationType}`);
           }
         }
       }
@@ -584,7 +604,8 @@ function createFunctionHandlers(getState) {
 
       // Pre-parse declared return type for return-statement validation
       const { annotation } = node.named;
-      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation);
+      const isAsync = !!node.named.async;
+      setupDeclaredReturnType(scope, annotation, stampTypeAnnotation, isAsync);
 
       visitChildren(node);
 
@@ -595,11 +616,11 @@ function createFunctionHandlers(getState) {
         genericParams, genericConstraints,
         warningLabel: `Method '${node.named.name?.value}'`,
         pushWarning, stampTypeAnnotation, inferencePhase,
-        typeAliases: getState().typeAliases,
+        typeAliases: getState().typeAliases, isAsync,
       });
 
       // Async methods expose Promise<T>; re-stamp the hover type accordingly.
-      if (node.named.async) {
+      if (isAsync) {
         const externalReturnType = wrapInPromise(methodDeclaredType ?? methodInferredType);
         stampInferencePhaseOnly(node.named.name, new FunctionType(
           scope.__currentFctParams, externalReturnType,

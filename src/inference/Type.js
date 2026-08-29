@@ -82,7 +82,15 @@ export class PrimitiveType extends Type {
     if (target?.kind === 'union') {
       return checkUnionTarget(this, target.types, aliases);
     }
-    
+
+    // `void` and `undefined` are interchangeable. A function that falls through
+    // or returns with no expression yields undefined, and `void` is how that is
+    // annotated — so `def f(): void` must accept it. Treated as compatible in
+    // both directions on purpose: TypeScript's one-way rule only pays off under
+    // strict callback variance, and would make void-typed values trip the
+    // impossible-comparison and assignment checks here for no practical gain.
+    if (isVoidLike(this) && isVoidLike(target)) return true;
+
     // Resolve aliases and type member access
     const aliasResolution = tryResolveAlias(target, aliases);
     if (aliasResolution.resolved) {
@@ -91,9 +99,18 @@ export class PrimitiveType extends Type {
     if (aliasResolution.isCircular) {
       return false; // Circular reference can't be resolved
     }
-    
+
     return this.equals(target);
   }
+}
+
+/**
+ * Is this the `void` or `undefined` primitive?
+ * @param {Type} type
+ * @returns {boolean}
+ */
+function isVoidLike(type) {
+  return type instanceof PrimitiveType && (type.name === 'void' || type.name === 'undefined');
 }
 
 // Singleton instances for common primitives
@@ -1470,6 +1487,32 @@ export class TypeAliasMap {
     // Substitute type parameters
     return substituteTypeParams(aliasValue.type, substitutions);
   }
+}
+
+/**
+ * Wrap a type in Promise<T> — the caller-visible return type of an async function.
+ * @param {Type} type
+ * @returns {GenericType}
+ */
+export function wrapInPromise(type) {
+  return new GenericType(new TypeAlias('Promise'), [type]);
+}
+
+/**
+ * Strip one Promise<T> layer, yielding T. Anything that is not a Promise is
+ * returned unchanged — this is the type of `await expr`, and the type an async
+ * function's body must produce for a `Promise<T>` annotation.
+ * @param {Type} type
+ * @returns {Type}
+ */
+export function unwrapPromise(type) {
+  if (type instanceof GenericType
+      && type.baseType instanceof TypeAlias
+      && type.baseType.name === 'Promise'
+      && type.typeArgs.length > 0) {
+    return type.typeArgs[0];
+  }
+  return type;
 }
 
 /**

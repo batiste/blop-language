@@ -5,7 +5,7 @@
 import { visit, visitChildren, resolveTypes, pushToParent } from '../visitor.js';
 import { resolveTypeAlias, createUnionType, removeNullish, isUnionType, parseUnionType, getBaseTypeOfLiteral, isTypeCompatible } from '../typeSystem.js';
 import { parseTypeExpression } from '../typeParser.js';
-import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, GenericType, StringType, NumberType, BooleanType, NullType, NeverType } from '../Type.js';
+import { ObjectType, PrimitiveType, AnyType, ArrayType, FunctionType, AnyFunctionType, UndefinedType, TypeAlias, StringType, NumberType, BooleanType, NullType, NeverType, wrapInPromise, unwrapPromise } from '../Type.js';
 import { detectTypeofCheck, detectEqualityCheck, detectTruthinessCheck, detectPredicateGuard, applyIfBranchGuard, applyElseBranchGuard } from '../typeGuards.js';
 import TypeChecker from '../typeChecker.js';
 import { isBuiltinObjectType } from '../builtinTypes.js';
@@ -317,13 +317,7 @@ function createExpressionHandlers(getState) {
         resolveTypes(node);
         if (node.inference) {
           for (let i = 0; i < node.inference.length; i++) {
-            const t = node.inference[i];
-            if (t instanceof GenericType &&
-                t.baseType instanceof TypeAlias &&
-                t.baseType.name === 'Promise' &&
-                t.typeArgs.length > 0) {
-              node.inference[i] = t.typeArgs[0];
-            }
+            node.inference[i] = unwrapPromise(node.inference[i]);
           }
         }
         pushToParent(node, parent);
@@ -365,7 +359,7 @@ function createExpressionHandlers(getState) {
       // dynamic import('./path') returns Promise<any>
       // No deeper inference needed; the module shape is unknown at compile time.
       const { pushInference } = getState();
-      pushInference(_parent, new GenericType(new TypeAlias('Promise'), [AnyType]));
+      pushInference(_parent, wrapInPromise(AnyType));
     },
     new_expression: (node, parent) => {
       const { pushInference, lookupVariable } = getState();

@@ -14,6 +14,8 @@ Purpose:
 | Feature | Status |
 |---|---|
 | Core primitives, literals, arrays, objects, unions, intersections | Done |
+| `void` return type | Done |
+| Async return types (`Promise<T>` or bare `T` spelling) | Done |
 | Generics with inference | Done |
 | Function types + arity/argument checking | Done |
 | Type aliases + type member access (`T['k']`) | Done |
@@ -85,6 +87,10 @@ Purpose:
 - Array destructuring has no rest (`[a, ...rest]`) or hole (`[, b]`) patterns.
 - `NonNullable<T>` is not implemented (`Exclude` / `Extract` are).
 - Conditional types are not distributive over unions.
+- Rest (`...args`) and optional (`x?: T`) function parameters do not parse.
+- Parenthesised type grouping does not parse, so `(string | null)[]` and
+  `(() => void)[]` must go through a named alias.
+- `Array<T>`, `Map<K, V>`, `Set<T>` and `unknown` are not recognised type names.
 
 ---
 

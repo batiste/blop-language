@@ -85,6 +85,11 @@ async def fetchData(url) {
   return response.json()
 }
 
+// A function that returns nothing is annotated void
+def log(message: string): void {
+  console.log(message)
+}
+
 // Arrow functions — single-expression or block body
 add = (a, b): number => a + b
 square = (a) => a * a
@@ -94,6 +99,34 @@ multiply = (a, b) => {
 ```
 
 > Anonymous functions (no name after `def`) are also valid and useful for callbacks or IIFEs.
+
+### Async return types
+
+An async function may be annotated either with what its body returns or with the
+`Promise<T>` a caller receives — both mean the same thing, and the body is checked
+against `T` either way:
+
+```typescript
+async def fetchName(): Promise<string> {
+  return 'Alice'          // checked against string, not Promise<string>
+}
+
+async def fetchAge(): number {
+  return 30               // same thing, shorter
+}
+
+// Callers always see Promise<T>
+p: Promise<string> = fetchName()
+name: string = await fetchName()
+```
+
+A **sync** function annotated `Promise<T>` really does have to return a promise:
+
+```typescript
+def fetchName(): Promise<string> {
+  return 'Alice'          // ERROR: returns string but declared as Promise<string>
+}
+```
 
 ---
 
