@@ -58,8 +58,8 @@
     "jsdom": "^27.0.1",
     "meta-parser-generator": "==1.2.0",
     "sass": "^1.97.3",
-    "vite": "^7.3.1",
-    "vitest": "^3.2.4"
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
   },
   "homepage": "https://github.com/batiste/blop-language",
   "dependencies": {
