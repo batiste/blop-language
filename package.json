@@ -54,7 +54,7 @@
     "eslint-plugin-import": "^2.32.0",
     "express": "^5.2.1",
     "glob": "^13.0.6",
-    "happy-dom": "^20.6.1",
+    "happy-dom": "^21.0.4",
     "jsdom": "^27.0.1",
     "meta-parser-generator": "==1.2.0",
     "sass": "^1.97.3",
